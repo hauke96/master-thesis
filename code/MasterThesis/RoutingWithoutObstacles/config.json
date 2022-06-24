@@ -1,0 +1,21 @@
+{
+  "globals": {
+    "startTime": "2010-01-01T00:00",
+    "endTime": "2010-01-01T01:00",
+    "deltaT": 1,
+    "deltaTUnit": "seconds",
+    "output": "csv",
+    "options": {
+      "delimiter": ";",
+      "format": "en-EN"
+    },
+    "pythonVisualization": true,
+    "console": true
+  },
+  "agents": [
+    {
+      "name": "Character",
+      "count": 1
+    }
+  ]
+}
