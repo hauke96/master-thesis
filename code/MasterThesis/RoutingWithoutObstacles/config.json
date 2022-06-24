@@ -14,7 +14,7 @@
   },
   "agents": [
     {
-      "name": "Character",
+      "name": "Agent",
       "count": 1
     }
   ]

@@ -1,5 +1,3 @@
-using Mars.Components.Environments;
-using Mars.Components.Environments.Cartesian;
 using Mars.Components.Layers;
 using Mars.Core.Data;
 using Mars.Interfaces.Data;
@@ -16,7 +14,7 @@ namespace Layer
             var layerInitialized = base.InitLayer(layerInitData, registerAgentHandle, unregisterAgent);
 
             var agentManager = layerInitData.Container.Resolve<IAgentManager>();
-            agentManager.Spawn<Character, Layer>().ToList();
+            agentManager.Spawn<Agent, Layer>().ToList();
 
             return layerInitialized;
         }

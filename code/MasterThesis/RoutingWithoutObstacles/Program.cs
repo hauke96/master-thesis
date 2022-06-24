@@ -15,7 +15,7 @@ namespace RoutingWithoutObstacles
 
             var description = new ModelDescription();
             description.AddLayer<Layer.Layer>();
-            description.AddAgent<Character, Layer.Layer>();
+            description.AddAgent<Agent, Layer.Layer>();
 
             var file = File.ReadAllText("config.json");
             var config = SimulationConfig.Deserialize(file);

@@ -5,10 +5,9 @@ using Mars.Interfaces.Environments;
 
 namespace Model
 {
-    public class Character : ICharacter, IAgent<VectorLayer>
+    public class Agent : IPositionable, IAgent<VectorLayer>
     {
         public Position Position { get; set; }
-        public double Extent { get; set; }
         public Guid ID { get; set; }
 
         public void Init(VectorLayer layer)
@@ -22,11 +21,6 @@ namespace Model
         {
             // SharedEnvironment.Environment.Move(this, 45, 10);
             SharedEnvironment.Environment.MoveTowards(this, 45, 10);
-        }
-
-        public CollisionKind? HandleCollision(ICharacter other)
-        {
-            throw new NotImplementedException();
         }
     }
 }
