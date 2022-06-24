@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using Mars.Components.Starter;
 using Mars.Interfaces.Model;
-using Model;
+using RoutingWithoutObstacles.Model;
 
 namespace RoutingWithoutObstacles
 {

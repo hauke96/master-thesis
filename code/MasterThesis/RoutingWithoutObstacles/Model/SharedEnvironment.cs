@@ -1,7 +1,6 @@
 using Mars.Components.Environments;
-using Mars.Components.Environments.Cartesian;
 
-namespace Model
+namespace RoutingWithoutObstacles.Model
 {
     public class SharedEnvironment
     {

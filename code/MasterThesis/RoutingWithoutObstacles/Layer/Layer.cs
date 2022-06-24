@@ -2,9 +2,9 @@ using Mars.Components.Layers;
 using Mars.Core.Data;
 using Mars.Interfaces.Data;
 using Mars.Interfaces.Layers;
-using Model;
+using RoutingWithoutObstacles.Model;
 
-namespace Layer
+namespace RoutingWithoutObstacles.Layer
 {
     public class Layer : VectorLayer
     {
@@ -14,7 +14,7 @@ namespace Layer
             var layerInitialized = base.InitLayer(layerInitData, registerAgentHandle, unregisterAgent);
 
             var agentManager = layerInitData.Container.Resolve<IAgentManager>();
-            agentManager.Spawn<Agent, Layer>().ToList();
+            agentManager.Spawn<Agent, Layer>();
 
             return layerInitialized;
         }

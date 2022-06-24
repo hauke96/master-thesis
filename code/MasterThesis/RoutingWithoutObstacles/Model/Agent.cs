@@ -1,9 +1,9 @@
-using Mars.Components.Environments.Cartesian;
+using System;
 using Mars.Components.Layers;
 using Mars.Interfaces.Agents;
 using Mars.Interfaces.Environments;
 
-namespace Model
+namespace RoutingWithoutObstacles.Model
 {
     public class Agent : IPositionable, IAgent<VectorLayer>
     {
@@ -12,7 +12,7 @@ namespace Model
 
         public void Init(VectorLayer layer)
         {
-            Position = Position.CreatePosition(0.05, 0.05);
+            Position = Position.CreateGeoPosition(0.05, 0.05);
             // SharedEnvironment.Environment.Insert(this, Position);
             SharedEnvironment.Environment.Insert(this);
         }
