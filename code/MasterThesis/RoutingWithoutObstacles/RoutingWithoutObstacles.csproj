@@ -8,13 +8,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Mars.Base" Version="4.3.1-beta-3" />
-      <PackageReference Include="Mars.Common" Version="4.3.1-beta-3" />
       <PackageReference Include="Mars.Components" Version="4.3.1-beta-3" />
       <PackageReference Include="Mars.Core" Version="4.3.1-beta-3" />
       <PackageReference Include="Mars.Interfaces" Version="4.3.1-beta-3" />
-      <PackageReference Include="Mars.IO" Version="4.3.1-beta-3" />
-      <PackageReference Include="Mars.Numerics" Version="4.3.1-beta-3" />
     </ItemGroup>
 
     <ItemGroup>

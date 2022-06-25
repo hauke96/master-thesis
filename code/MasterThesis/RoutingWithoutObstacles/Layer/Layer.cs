@@ -14,7 +14,13 @@ namespace RoutingWithoutObstacles.Layer
             var layerInitialized = base.InitLayer(layerInitData, registerAgentHandle, unregisterAgent);
 
             var agentManager = layerInitData.Container.Resolve<IAgentManager>();
-            agentManager.Spawn<Agent, Layer>();
+            agentManager.Spawn<Agent, Layer>().ToList();
+
+            // TODO Simple diagonal line as obstacle:
+            // var vectorStructuredData = new VectorStructuredData();
+            // vectorStructuredData.Geometry =
+            //     new LineString(new[] { new Coordinate(0.02, 0.02), new Coordinate(0.07, 0.07) });
+            // Insert(vectorStructuredData);
 
             return layerInitialized;
         }
