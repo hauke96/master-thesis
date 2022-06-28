@@ -2,7 +2,6 @@ using Mars.Components.Layers;
 using Mars.Core.Data;
 using Mars.Interfaces.Data;
 using Mars.Interfaces.Layers;
-using NetTopologySuite.Geometries;
 using RoutingWithLineObstacle.Model;
 
 namespace RoutingWithLineObstacle.Layer

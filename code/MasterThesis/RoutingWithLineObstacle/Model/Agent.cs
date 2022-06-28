@@ -4,6 +4,7 @@ using Mars.Interfaces.Agents;
 using Mars.Interfaces.Annotations;
 using Mars.Interfaces.Environments;
 using RoutingWithLineObstacle.Layer;
+using Position = Mars.Interfaces.Environments.Position;
 
 namespace RoutingWithLineObstacle.Model
 {
@@ -11,7 +12,7 @@ namespace RoutingWithLineObstacle.Model
     public class Agent : IPositionable, IAgent<VectorLayer>
     {
         private static readonly int STEP_SIZE = 1;
-        
+
         [PropertyDescription] public ObstacleLayer ObstacleLayer { get; set; }
 
         public Position Position { get; set; }
@@ -22,6 +23,8 @@ namespace RoutingWithLineObstacle.Model
             Position = Position.CreateGeoPosition(0, 0);
             // SharedEnvironment.Environment.Insert(this, Position);
             SharedEnvironment.Environment.Insert(this);
+
+            DetermineNewTargetPosition();
         }
 
         public void Tick()
@@ -30,18 +33,23 @@ namespace RoutingWithLineObstacle.Model
             if (distanceToTargetInM < STEP_SIZE)
             {
                 Console.WriteLine("Target reached. Initialize new target.");
-                Target.SetRandomPosition();
+                DetermineNewTargetPosition();
                 return;
             }
 
             // Console.WriteLine($"Distance to target: {Math.Round(distanceToTargetInM, 2)}m");
 
             var bearing = Position.GetBearing(Target.Position);
-            
+
             // SharedEnvironment.Environment.Move(this, 45, 10);
             SharedEnvironment.Environment.MoveTowards(this, bearing, STEP_SIZE);
-            
+
             Thread.Sleep(10);
+        }
+
+        private void DetermineNewTargetPosition()
+        {
+            Target.SetRandomPosition();
         }
     }
 }

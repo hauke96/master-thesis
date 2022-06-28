@@ -13,7 +13,6 @@ namespace RoutingWithLineObstacle
             CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
 
             SharedEnvironment.Init();
-            Target.SetRandomPosition();
 
             var description = new ModelDescription();
             description.AddLayer<Layer.Layer>();
