@@ -9,7 +9,7 @@
       "delimiter": ";",
       "format": "en-EN"
     },
-    "pythonVisualization": true,
+    "pythonVisualization": false,
     "console": false
   },
   "layers": [

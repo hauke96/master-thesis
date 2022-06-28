@@ -17,6 +17,7 @@ namespace RoutingWithLineObstacle.Model
 
         public Position Position { get; set; }
         public Guid ID { get; set; }
+        public Queue<Position> Waypoints = new Queue<Position>();
 
         public void Init(VectorLayer layer)
         {
@@ -24,32 +25,45 @@ namespace RoutingWithLineObstacle.Model
             // SharedEnvironment.Environment.Insert(this, Position);
             SharedEnvironment.Environment.Insert(this);
 
-            DetermineNewTargetPosition();
+            Target.SetRandomPosition();
+            Waypoints.Enqueue(Target.Position);
         }
 
         public void Tick()
         {
-            var distanceToTargetInM = Position.DistanceInMTo(Target.Position);
+            var currentWaypoint = Waypoints.Peek();
+            Console.WriteLine($"Tick with current waypoint {currentWaypoint}");
+
+            var distanceToTargetInM = Position.DistanceInMTo(currentWaypoint);
             if (distanceToTargetInM < STEP_SIZE)
             {
-                Console.WriteLine("Target reached. Initialize new target.");
-                DetermineNewTargetPosition();
+                Waypoints.Dequeue();
+                
+                // The current waypoint was the last one -> determine a whole new target
+                if (Waypoints.Count == 0)
+                {
+                    Console.WriteLine($"Target {currentWaypoint} reached.");
+                    DetermineNewWaypoints();
+                }
+
                 return;
             }
 
             // Console.WriteLine($"Distance to target: {Math.Round(distanceToTargetInM, 2)}m");
 
-            var bearing = Position.GetBearing(Target.Position);
+            var bearing = Position.GetBearing(currentWaypoint);
 
             // SharedEnvironment.Environment.Move(this, 45, 10);
             SharedEnvironment.Environment.MoveTowards(this, bearing, STEP_SIZE);
-
-            Thread.Sleep(10);
         }
 
-        private void DetermineNewTargetPosition()
+        private void DetermineNewWaypoints()
         {
+            var nearest = ObstacleLayer.NearestVertex(Position);
+            Waypoints.Enqueue(nearest);
+            
             Target.SetRandomPosition();
+            Waypoints.Enqueue(Target.Position);
         }
     }
 }
