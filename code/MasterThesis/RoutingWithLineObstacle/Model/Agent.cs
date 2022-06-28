@@ -3,6 +3,7 @@ using Mars.Components.Layers;
 using Mars.Interfaces.Agents;
 using Mars.Interfaces.Annotations;
 using Mars.Interfaces.Environments;
+using NetTopologySuite.Geometries;
 using RoutingWithLineObstacle.Layer;
 using Position = Mars.Interfaces.Environments.Position;
 
@@ -21,11 +22,12 @@ namespace RoutingWithLineObstacle.Model
 
         public void Init(VectorLayer layer)
         {
-            Position = Position.CreateGeoPosition(0, 0);
+            ResetPosition();
+
             // SharedEnvironment.Environment.Insert(this, Position);
             SharedEnvironment.Environment.Insert(this);
 
-            Target.SetRandomPosition();
+            Target.NewPosition();
             Waypoints.Enqueue(Target.Position);
         }
 
@@ -38,7 +40,7 @@ namespace RoutingWithLineObstacle.Model
             if (distanceToTargetInM < STEP_SIZE)
             {
                 Waypoints.Dequeue();
-                
+
                 // The current waypoint was the last one -> determine a whole new target
                 if (Waypoints.Count == 0)
                 {
@@ -55,15 +57,35 @@ namespace RoutingWithLineObstacle.Model
 
             // SharedEnvironment.Environment.Move(this, 45, 10);
             SharedEnvironment.Environment.MoveTowards(this, bearing, STEP_SIZE);
+
+            Thread.Sleep(10);
         }
 
         private void DetermineNewWaypoints()
         {
-            var nearest = ObstacleLayer.NearestVertex(Position);
-            Waypoints.Enqueue(nearest);
-            
-            Target.SetRandomPosition();
+            Target.NewPosition();
+            ResetPosition();
+
+            var lineStringToTarget = new LineString(new[]
+                { new Coordinate(Position.X, Position.Y), new Coordinate(Target.Position.X, Target.Position.Y) });
+
+            var intersectsWithObstacle = ObstacleLayer
+                .Explore(Position.PositionArray, -1,
+                    feature => feature.VectorStructured.Geometry.Intersects(lineStringToTarget))
+                .Any();
+
+            if (intersectsWithObstacle)
+            {
+                var nearest = ObstacleLayer.NearestVertex(Position);
+                Waypoints.Enqueue(nearest);
+            }
+
             Waypoints.Enqueue(Target.Position);
+        }
+
+        private void ResetPosition()
+        {
+            Position = Position.CreateGeoPosition(0.001, 0.0005);
         }
     }
 }

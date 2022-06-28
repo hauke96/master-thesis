@@ -17,14 +17,13 @@ namespace RoutingWithLineObstacle.Layer
             var lineString = Nearest(position.PositionArray).VectorStructured.Geometry as LineString;
             var coordinates = lineString.Coordinates.Copy();
             
-            coordinates.Each(coordinate => Console.WriteLine($"  For {coordinate}: {position.DistanceInMTo(new Position(coordinate.X, coordinate.Y))}"));
+            coordinates.Each(coordinate => Console.WriteLine($"  For {coordinate}: {position.DistanceInMTo(Position.CreateGeoPosition(coordinate.X, coordinate.Y))}"));
             
             Array.Sort(coordinates,
                 (c1, c2) =>
                 {
-                    // TODO Is this ternary operator correct?
-                    var distanceInMToC1 = position.DistanceInMTo(new Position(c1.X, c1.Y));
-                    var distanceInMToC2 = position.DistanceInMTo(new Position(c2.X, c2.Y));
+                    var distanceInMToC1 = position.DistanceInMTo(Position.CreateGeoPosition(c1.X, c1.Y));
+                    var distanceInMToC2 = position.DistanceInMTo(Position.CreateGeoPosition(c2.X, c2.Y));
                     
                     Console.WriteLine($"  Distance: {distanceInMToC1}({c1}) / /{distanceInMToC2}({c2})");
                     
@@ -35,7 +34,7 @@ namespace RoutingWithLineObstacle.Layer
             
             Console.WriteLine($"  Nearest coordinate: {coordinates[0]}");
             
-            return new Position(coordinates[0].X, coordinates[0].Y);
+            return Position.CreateGeoPosition(coordinates[0].X, coordinates[0].Y);
         }
     }
 }
