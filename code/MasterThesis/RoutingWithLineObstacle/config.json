@@ -12,4 +12,21 @@
     "pythonVisualization": true,
     "console": false
   },
+  "layers": [
+    {
+      "name": "ObstacleLayer",
+      "file": "Resources/obstacles.geojson"
+    }
+  ],
+  "agents": [
+    {
+      "name": "Agent",
+      "count": 1,
+      "outputs": [
+        {
+          "kind":"trips"
+        }
+      ]
+    }
+  ]
 }

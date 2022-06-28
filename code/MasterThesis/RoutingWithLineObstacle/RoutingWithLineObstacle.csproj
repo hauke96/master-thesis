@@ -17,6 +17,10 @@
       <Content Include="config.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
+      <None Remove="Resources\obstacles.geojson" />
+      <Content Include="Resources\obstacles.geojson">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 
 </Project>

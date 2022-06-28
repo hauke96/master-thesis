@@ -1,8 +1,9 @@
 using Mars.Components.Environments;
+using Mars.Components.Environments.Cartesian;
+using ServiceStack.Text;
 
-namespace RoutingWithoutObstacles.Model
+namespace RoutingWithLineObstacle.Model
 {
-    // Avoid cyclic dependency between layer and agent by using this intermediate class to share the environment.
     public class SharedEnvironment
     {
         /*
@@ -11,7 +12,6 @@ namespace RoutingWithoutObstacles.Model
          * not that helpful when considering Mitchells algorithm. For visibility graphs, collisions might be helpful
          * but the graph is calculated prior to routing.
          */
-
         // public static CollisionEnvironment<Agent, IObstacle> Environment { get; set; }
         public static GeoHashEnvironment<Agent> Environment { get; set; }
 

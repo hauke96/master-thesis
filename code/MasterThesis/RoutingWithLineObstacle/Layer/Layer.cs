@@ -2,9 +2,10 @@ using Mars.Components.Layers;
 using Mars.Core.Data;
 using Mars.Interfaces.Data;
 using Mars.Interfaces.Layers;
-using RoutingWithoutObstacles.Model;
+using NetTopologySuite.Geometries;
+using RoutingWithLineObstacle.Model;
 
-namespace RoutingWithoutObstacles.Layer
+namespace RoutingWithLineObstacle.Layer
 {
     public class Layer : VectorLayer
     {
@@ -15,7 +16,7 @@ namespace RoutingWithoutObstacles.Layer
 
             var agentManager = layerInitData.Container.Resolve<IAgentManager>();
             agentManager.Spawn<Agent, Layer>().ToList();
-
+            
             return layerInitialized;
         }
     }

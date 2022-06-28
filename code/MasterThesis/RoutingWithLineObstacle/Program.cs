@@ -1,6 +1,8 @@
 ﻿using System.Globalization;
 using Mars.Components.Starter;
 using Mars.Interfaces.Model;
+using RoutingWithLineObstacle.Layer;
+using RoutingWithLineObstacle.Model;
 
 namespace RoutingWithLineObstacle
 {
@@ -10,12 +12,13 @@ namespace RoutingWithLineObstacle
         {
             CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
 
-            // SharedEnvironment.Init();
-            // Target.SetRandomPosition();
+            SharedEnvironment.Init();
+            Target.SetRandomPosition();
 
             var description = new ModelDescription();
-            // description.AddLayer<Layer.Layer>();
-            // description.AddAgent<Agent, Layer.Layer>();
+            description.AddLayer<Layer.Layer>();
+            description.AddLayer<ObstacleLayer>();
+            description.AddAgent<Agent, Layer.Layer>();
 
             var file = File.ReadAllText("config.json");
             var config = SimulationConfig.Deserialize(file);
