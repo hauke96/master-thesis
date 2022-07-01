@@ -14,7 +14,7 @@ namespace RoutingWithLineObstacle.Model
     // TODO Find a better name than just "Agent".
     public class Agent : IPositionable, IAgent<VectorLayer>
     {
-        private static readonly int STEP_SIZE = 1;
+        private static readonly int STEP_SIZE = 10;
 
         [PropertyDescription] public ObstacleLayer ObstacleLayer { get; set; }
 
@@ -76,7 +76,7 @@ namespace RoutingWithLineObstacle.Model
 
         private void ResetPosition()
         {
-            Position = Position.CreateGeoPosition(0.001, 0.0005);
+            Position = Position.CreateGeoPosition(0.01, 0.005);
         }
     }
 }
