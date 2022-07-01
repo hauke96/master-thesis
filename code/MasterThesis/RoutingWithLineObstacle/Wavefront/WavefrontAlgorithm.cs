@@ -38,7 +38,7 @@ namespace RoutingWithLineObstacle.Wavefront
             Vertices.Add(target);
             PositionToPredecessor[source] = null;
 
-            Events = new Queue<VertexEvent>(initializeVertexEventsFor(source));
+            Events = new Queue<VertexEvent>(initializeVertexEventsFor(source, 0));
 
             while (!PositionToPredecessor.ContainsKey(target))
             {
@@ -51,7 +51,7 @@ namespace RoutingWithLineObstacle.Wavefront
                 PositionToPredecessor[currentEvent.Position] = currentEvent.Root;
 
                 // Calculate events for the wavefront starting at currentEvent.Position and add them to the current queue of events
-                var events = initializeVertexEventsFor(currentEvent.Position);
+                var events = initializeVertexEventsFor(currentEvent.Position, currentEvent.DistanceFromSource);
                 events.AddRange(Events.ToArray());
                 events.Sort();
                 Events = new Queue<VertexEvent>(events);
@@ -70,10 +70,11 @@ namespace RoutingWithLineObstacle.Wavefront
             return waypoints;
         }
 
-        private List<VertexEvent> initializeVertexEventsFor(Position eventRoot)
+        private List<VertexEvent> initializeVertexEventsFor(Position eventRoot, double distanceToRootFromSource)
         {
             var vertexEvents = getSortedVerticesFor(eventRoot)
-                .Map(vertexPosition => new VertexEvent(vertexPosition, eventRoot));
+                .Map(vertexPosition =>
+                    new VertexEvent(vertexPosition, eventRoot, distanceToRootFromSource));
             vertexEvents.Sort();
             return vertexEvents;
         }

@@ -6,18 +6,28 @@ namespace RoutingWithLineObstacle.Wavefront.Events
     {
         public Position Position { get; }
         public Position Root { get; }
-        public double Distance { get; }
 
-        public VertexEvent(Position position, Position root)
+        /// <summary>
+        /// The distance from the source of the routing to the root of this event.
+        /// </summary>
+        public double DistanceToRootFromSource { get; }
+
+        /// <summary>
+        /// The distance from the source of the routing via the root of this event to the actual event location.
+        /// </summary>
+        public double DistanceFromSource { get; }
+
+        public VertexEvent(Position position, Position root, double distanceToRootFromSource)
         {
             Position = position;
             Root = root;
-            Distance = root.DistanceInMTo(position);
+            DistanceToRootFromSource = distanceToRootFromSource;
+            DistanceFromSource = DistanceToRootFromSource + root.DistanceInMTo(position);
         }
 
         public int CompareTo(VertexEvent? other)
         {
-            return (int)(Distance - other.Distance);
+            return (int)(DistanceFromSource - other.DistanceFromSource);
         }
     }
 }
