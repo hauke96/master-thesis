@@ -74,9 +74,22 @@ namespace RoutingWithLineObstacle.Wavefront
         {
             var vertexEvents = getSortedVerticesFor(eventRoot)
                 .Map(vertexPosition =>
-                    new VertexEvent(vertexPosition, eventRoot, distanceToRootFromSource));
+                    new VertexEvent(vertexPosition, eventRoot, distanceToRootFromSource))
+                .FindAll(isEventValid);
             vertexEvents.Sort();
             return vertexEvents;
+        }
+
+        private bool isEventValid(VertexEvent rawEvent)
+        {
+            var lineStringToEvent = new LineString(new[]
+            {
+                new Coordinate(rawEvent.Root.X, rawEvent.Root.Y),
+                new Coordinate(rawEvent.Position.X, rawEvent.Position.Y)
+            });
+
+            var obstacleIntersectsWithLineString = Obstacles.Any(obstacle => obstacle.Crosses(lineStringToEvent));
+            return !obstacleIntersectsWithLineString;
         }
 
         private List<Position> getSortedVerticesFor(Position position)

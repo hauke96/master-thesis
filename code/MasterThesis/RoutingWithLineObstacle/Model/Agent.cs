@@ -72,24 +72,6 @@ namespace RoutingWithLineObstacle.Model
             var obstacleGeometries = ObstacleLayer.Features.Map(f => f.VectorStructured.Geometry);
             var wavefrontAlgorithm = new WavefrontAlgorithm(obstacleGeometries);
             Waypoints = new Queue<Position>(wavefrontAlgorithm.route(Position, Target.Position));
-
-            // TODO use this in algorithm
-            // var lineStringToTarget = new LineString(new[]
-            //     { new Coordinate(Position.X, Position.Y), new Coordinate(Target.Position.X, Target.Position.Y) });
-            //
-            // var intersectsWithObstacle = ObstacleLayer
-            //     .Explore(Position.PositionArray, -1,
-            //         feature => feature.VectorStructured.Geometry.Intersects(lineStringToTarget))
-            //     .Any();
-            //
-            // if (intersectsWithObstacle)
-            // {
-            //     // TODO Do not simply take the nearest vertex but actually perform a simplified wave-algorithm by determining the distance from each vertex to the target
-            //     var nearest = ObstacleLayer.NearestVertex(Position);
-            //     Waypoints.Enqueue(nearest);
-            // }
-
-            // Waypoints.Enqueue(Target.Position);
         }
 
         private void ResetPosition()
