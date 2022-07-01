@@ -5,6 +5,8 @@ using Mars.Interfaces.Annotations;
 using Mars.Interfaces.Environments;
 using NetTopologySuite.Geometries;
 using RoutingWithLineObstacle.Layer;
+using RoutingWithLineObstacle.Wavefront;
+using ServiceStack;
 using Position = Mars.Interfaces.Environments.Position;
 
 namespace RoutingWithLineObstacle.Model
@@ -18,6 +20,7 @@ namespace RoutingWithLineObstacle.Model
 
         public Position Position { get; set; }
         public Guid ID { get; set; }
+
         public Queue<Position> Waypoints = new Queue<Position>();
 
         public void Init(VectorLayer layer)
@@ -66,21 +69,27 @@ namespace RoutingWithLineObstacle.Model
             Target.NewPosition();
             ResetPosition();
 
-            var lineStringToTarget = new LineString(new[]
-                { new Coordinate(Position.X, Position.Y), new Coordinate(Target.Position.X, Target.Position.Y) });
+            var obstacleGeometries = ObstacleLayer.Features.Map(f => f.VectorStructured.Geometry);
+            var wavefrontAlgorithm = new WavefrontAlgorithm(obstacleGeometries);
+            Waypoints = new Queue<Position>(wavefrontAlgorithm.route(Position, Target.Position));
 
-            var intersectsWithObstacle = ObstacleLayer
-                .Explore(Position.PositionArray, -1,
-                    feature => feature.VectorStructured.Geometry.Intersects(lineStringToTarget))
-                .Any();
+            // TODO use this in algorithm
+            // var lineStringToTarget = new LineString(new[]
+            //     { new Coordinate(Position.X, Position.Y), new Coordinate(Target.Position.X, Target.Position.Y) });
+            //
+            // var intersectsWithObstacle = ObstacleLayer
+            //     .Explore(Position.PositionArray, -1,
+            //         feature => feature.VectorStructured.Geometry.Intersects(lineStringToTarget))
+            //     .Any();
+            //
+            // if (intersectsWithObstacle)
+            // {
+            //     // TODO Do not simply take the nearest vertex but actually perform a simplified wave-algorithm by determining the distance from each vertex to the target
+            //     var nearest = ObstacleLayer.NearestVertex(Position);
+            //     Waypoints.Enqueue(nearest);
+            // }
 
-            if (intersectsWithObstacle)
-            {
-                var nearest = ObstacleLayer.NearestVertex(Position);
-                Waypoints.Enqueue(nearest);
-            }
-
-            Waypoints.Enqueue(Target.Position);
+            // Waypoints.Enqueue(Target.Position);
         }
 
         private void ResetPosition()
