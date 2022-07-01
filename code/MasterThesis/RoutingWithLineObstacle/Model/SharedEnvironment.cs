@@ -18,7 +18,7 @@ namespace RoutingWithLineObstacle.Model
         public static void Init()
         {
             // Environment = new CollisionEnvironment<Agent, IObstacle>();
-            Environment = GeoHashEnvironment<Agent>.BuildByBBox(0, 0, 0.001, 0.001);
+            Environment = GeoHashEnvironment<Agent>.BuildByBBox(0, 0, 0.01, 0.01);
         }
     }
 }

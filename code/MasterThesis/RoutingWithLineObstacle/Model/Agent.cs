@@ -14,7 +14,7 @@ namespace RoutingWithLineObstacle.Model
     // TODO Find a better name than just "Agent".
     public class Agent : IPositionable, IAgent<VectorLayer>
     {
-        private static readonly int STEP_SIZE = 10;
+        private static readonly int STEP_SIZE = 100;
 
         [PropertyDescription] public ObstacleLayer ObstacleLayer { get; set; }
 
@@ -61,13 +61,13 @@ namespace RoutingWithLineObstacle.Model
             // SharedEnvironment.Environment.Move(this, 45, 10);
             SharedEnvironment.Environment.MoveTowards(this, bearing, STEP_SIZE);
 
-            Thread.Sleep(10);
+            Thread.Sleep(2);
         }
 
         private void DetermineNewWaypoints()
         {
             Target.NewPosition();
-            ResetPosition();
+            // ResetPosition();
 
             var obstacleGeometries = ObstacleLayer.Features.Map(f => f.VectorStructured.Geometry);
             var wavefrontAlgorithm = new WavefrontAlgorithm(obstacleGeometries);
@@ -76,7 +76,7 @@ namespace RoutingWithLineObstacle.Model
 
         private void ResetPosition()
         {
-            Position = Position.CreateGeoPosition(0.01, 0.005);
+            Position = Position.CreateGeoPosition(0.1, 0.05);
         }
     }
 }
