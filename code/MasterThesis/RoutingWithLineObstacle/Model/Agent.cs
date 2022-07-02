@@ -7,6 +7,7 @@ using NetTopologySuite.Geometries;
 using RoutingWithLineObstacle.Layer;
 using RoutingWithLineObstacle.Wavefront;
 using ServiceStack;
+using Wavefront;
 using Position = Mars.Interfaces.Environments.Position;
 
 namespace RoutingWithLineObstacle.Model

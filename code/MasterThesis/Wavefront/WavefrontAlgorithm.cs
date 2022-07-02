@@ -4,7 +4,7 @@ using RoutingWithLineObstacle.Wavefront.Events;
 using ServiceStack;
 using Position = Mars.Interfaces.Environments.Position;
 
-namespace RoutingWithLineObstacle.Wavefront
+namespace Wavefront
 {
     public class WavefrontAlgorithm
     {
