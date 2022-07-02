@@ -6,7 +6,7 @@ namespace RoutingWithLineObstacle.Model
     // TODO Clarify what a target should be (Entity, Agent, just a position as it's now, ...).
     public class Target
     {
-        public static Position Position { get; set; } = Position.CreateGeoPosition(0, -0.015);
+        public static Position Position { get; set; } = Position.CreateGeoPosition(0, 01);
 
         public static void NewPosition()
         {

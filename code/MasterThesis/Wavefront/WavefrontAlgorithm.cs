@@ -2,29 +2,30 @@ using Mars.Interfaces.Environments;
 using NetTopologySuite.Geometries;
 using RoutingWithLineObstacle.Wavefront.Events;
 using ServiceStack;
+using Wavefront.Geometry;
 using Position = Mars.Interfaces.Environments.Position;
 
 namespace Wavefront
 {
     public class WavefrontAlgorithm
     {
-        private readonly List<Geometry> Obstacles;
-        private readonly List<Position> Vertices;
+        private readonly List<NetTopologySuite.Geometries.Geometry> Obstacles;
+        private readonly List<Vertex> Vertices;
         private readonly Dictionary<Position, Position?> PositionToPredecessor;
 
         private Position Source;
         private Position Target;
         private Queue<VertexEvent> Events;
 
-        public WavefrontAlgorithm(List<Geometry> obstacles)
+        public WavefrontAlgorithm(List<NetTopologySuite.Geometries.Geometry> obstacles)
         {
             Obstacles = obstacles;
-            Vertices = new List<Position>();
+            Vertices = new List<Vertex>();
             PositionToPredecessor = new Dictionary<Position, Position?>();
 
             Obstacles.Each(obstacle =>
             {
-                var positions = obstacle.Coordinates.Map(c => Position.CreateGeoPosition(c.X, c.Y));
+                var positions = obstacle.Coordinates.Map(c => new Vertex(c, obstacle));
                 Vertices.AddRange(positions);
             });
         }
@@ -34,8 +35,8 @@ namespace Wavefront
             Source = source;
             Target = target;
 
-            Vertices.Add(source);
-            Vertices.Add(target);
+            Vertices.Add(new Vertex(source));
+            Vertices.Add(new Vertex(target));
             PositionToPredecessor[source] = null;
 
             Events = new Queue<VertexEvent>(initializeVertexEventsFor(source, 0));
@@ -92,12 +93,8 @@ namespace Wavefront
             return !obstacleIntersectsWithLineString;
         }
 
-        private List<Position> getSortedVerticesFor(Position position)
+        private List<Vertex> getSortedVerticesFor(Position position)
         {
-            // List<Coordinate> coordinates = new List<Coordinate>();
-
-            // Obstacles.Each(obstacle => coordinates.AddRange(obstacle.Coordinates));
-
             Vertices.Sort((c1, c2) =>
             {
                 var distanceInMToC1 = position.DistanceInMTo(Position.CreateGeoPosition(c1.X, c1.Y));

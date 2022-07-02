@@ -1,10 +1,13 @@
 using Mars.Interfaces.Environments;
+using Wavefront.Geometry;
 
 namespace RoutingWithLineObstacle.Wavefront.Events
 {
     public class VertexEvent : IComparable<VertexEvent>
     {
-        public Position Position { get; }
+        public Vertex Vertex { get; }
+        public Position Position => Vertex.Position;
+        
         public Position Root { get; }
 
         /// <summary>
@@ -17,12 +20,12 @@ namespace RoutingWithLineObstacle.Wavefront.Events
         /// </summary>
         public double DistanceFromSource { get; }
 
-        public VertexEvent(Position position, Position root, double distanceToRootFromSource)
+        public VertexEvent(Vertex vertex, Position root, double distanceToRootFromSource)
         {
-            Position = position;
+            Vertex = vertex;
             Root = root;
             DistanceToRootFromSource = distanceToRootFromSource;
-            DistanceFromSource = DistanceToRootFromSource + root.DistanceInMTo(position);
+            DistanceFromSource = DistanceToRootFromSource + root.DistanceInMTo(Position);
         }
 
         public int CompareTo(VertexEvent? other)
