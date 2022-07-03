@@ -26,19 +26,26 @@ public class Vertex
     /// <summary>
     /// The geometry this vertex belongs to, e.g. a LineString.
     /// </summary>
-    public NetTopologySuite.Geometries.Geometry RootGeometry { get; }
+    public NetTopologySuite.Geometries.Geometry? RootGeometry { get; }
 
     /// <summary>
     /// Determines the right neighbor within the Geometry. Think of the geometry as a list of coordinates, this returns
     /// the coordinate which is the next element in this coordinate list.
     /// </summary>
-    public Coordinate RightNeighbor
+    public Coordinate? RightNeighbor
     {
         get
         {
+            if (RootGeometry == null)
+            {
+                return null;
+            }
+            
+            // TODO handle polygons/closed lines
+
             var coordinates = RootGeometry.Coordinates;
             var indexOfThisVertex = Array.IndexOf(coordinates, Coordinate);
-            if (indexOfThisVertex >= coordinates.Length)
+            if (indexOfThisVertex + 1 >= coordinates.Length)
             {
                 // This is already the last coordinate
                 return null;
@@ -52,10 +59,17 @@ public class Vertex
     /// Determines the left neighbor within the Geometry. Think of the geometry as a list of coordinates, this returns
     /// the coordinate which is the previous element in this coordinate list.
     /// </summary>
-    public Coordinate LeftNeighbor
+    public Coordinate? LeftNeighbor
     {
         get
         {
+            if (RootGeometry == null)
+            {
+                return null;
+            }
+            
+            // TODO handle polygons/closed lines
+
             var coordinates = RootGeometry.Coordinates;
             var indexOfThisVertex = Array.IndexOf(coordinates, Coordinate);
             if (indexOfThisVertex == 0)

@@ -13,12 +13,15 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Content Include="Resources\obstacles.geojson">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
       <None Remove="config.json" />
       <Content Include="config.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
       <None Remove="Resources\obstacles.geojson" />
-      <Content Include="Resources\obstacles.geojson">
+      <Content Include="Resources\obstacles-rotated-open-box.geojson">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
     </ItemGroup>
