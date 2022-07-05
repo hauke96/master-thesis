@@ -6,7 +6,7 @@ namespace Wavefront.Tests.Geometry;
 public class AngleTest
 {
     [Test]
-    public void isBetween_noZeroDegreeOverlap()
+    public void IsBetween_noZeroDegreeOverlap()
     {
         Assert.True(Angle.IsBetween(0, 40, 90));
         Assert.True(Angle.IsBetween(10, 180, 200));
@@ -18,7 +18,7 @@ public class AngleTest
     }
 
     [Test]
-    public void isBetween_noZeroDegreeOverlap_outside360DegreeArea()
+    public void IsBetween_noZeroDegreeOverlap_outside360DegreeArea()
     {
         // 0, 40, 90
         Assert.True(Angle.IsBetween(0, 40, 450));
@@ -32,7 +32,7 @@ public class AngleTest
     }
 
     [Test]
-    public void isBetween_withZeroDegreeOverlap()
+    public void IsBetween_withZeroDegreeOverlap()
     {
         Assert.True(Angle.IsBetween(300, 40, 90));
         Assert.True(Angle.IsBetween(-60, 40, 90));
@@ -46,7 +46,7 @@ public class AngleTest
     }
 
     [Test]
-    public void normalize()
+    public void Normalize()
     {
         Assert.AreEqual(90, Angle.Normalize(90));
         Assert.AreEqual(0, Angle.Normalize(0));
@@ -57,7 +57,7 @@ public class AngleTest
     }
 
     [Test]
-    public void difference()
+    public void Difference()
     {
         Assert.AreEqual(90, Angle.Difference(0, 90));
         Assert.AreEqual(200, Angle.Difference(0, 200));
