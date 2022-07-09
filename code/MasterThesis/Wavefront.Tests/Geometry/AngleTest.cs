@@ -65,4 +65,23 @@ public class AngleTest
         Assert.AreEqual(80, Angle.Difference(300, 20));
         Assert.AreEqual(100, Angle.Difference(300, 400));
     }
+
+    [Test]
+    public void GetEnclosingAngle()
+    {
+        double from;
+        double to;
+
+        Angle.GetEnclosingAngles(10, 200, out from, out to);
+        Assert.AreEqual(200, from);
+        Assert.AreEqual(10, to);
+
+        Angle.GetEnclosingAngles(10, 90, out from, out to);
+        Assert.AreEqual(10, from);
+        Assert.AreEqual(90, to);
+
+        Angle.GetEnclosingAngles(350, 90, out from, out to);
+        Assert.AreEqual(350, from);
+        Assert.AreEqual(90, to);
+    }
 }

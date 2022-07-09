@@ -36,4 +36,24 @@ public class Angle
     {
         return ((a % 360) + 360) % 360;
     }
+
+    /// <summary>
+    /// Calculates the enclosing angle between the original angles. Meaning the angle between them that's at most 180°.
+    /// Or in other words: An angle between the returned fromAngle and toAngle is "inside" that area.
+    ///
+    /// Example:
+    /// Say originalFrom is 10° and originalTo is 200° building an angle of 190°. Then the returning fromAngle is
+    /// 200° and toAngle is 10° marking an angle of 170°.
+    /// </summary>
+    public static void GetEnclosingAngles(double originalFromAngle, double originalToAngle, out double fromAngle,
+        out double toAngle)
+    {
+        fromAngle = originalFromAngle;
+        toAngle = originalToAngle;
+        if (Difference(fromAngle, toAngle) > 180)
+        {
+            fromAngle = originalToAngle;
+            toAngle = originalFromAngle;
+        }
+    }
 }

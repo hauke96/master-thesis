@@ -86,6 +86,16 @@ public class Vertex
     {
         Position = position;
     }
+    
+    public Vertex(Coordinate position)
+    {
+        Position = Position.CreateGeoPosition(position.X, position.Y);
+    }
+    
+    public Vertex(double x, double y)
+    {
+        Position = Position.CreateGeoPosition(x, y);
+    }
 
     public Vertex(Coordinate coordinate, NetTopologySuite.Geometries.Geometry rootGeometry)
     {
