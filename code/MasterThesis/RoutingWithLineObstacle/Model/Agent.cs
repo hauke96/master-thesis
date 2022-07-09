@@ -72,7 +72,15 @@ namespace RoutingWithLineObstacle.Model
 
             var obstacleGeometries = ObstacleLayer.Features.Map(f => f.VectorStructured.Geometry);
             var wavefrontAlgorithm = new WavefrontAlgorithm(obstacleGeometries);
+            try
+            {
             Waypoints = new Queue<Position>(wavefrontAlgorithm.route(Position, Target.Position));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
         }
 
         private void ResetPosition()

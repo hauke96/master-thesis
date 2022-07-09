@@ -111,16 +111,7 @@ namespace Wavefront
             double angleWavefrontRight;
             double angleWavefrontLeft;
 
-            try
-            {
-                HandleNeighbors(currentVertex, wavefront, out angleWavefrontRight, out angleWavefrontLeft);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
-
+            HandleNeighbors(currentVertex, wavefront, out angleWavefrontRight, out angleWavefrontLeft);
             Console.WriteLine($"  Handled neighbors: right={angleWavefrontRight}, left={angleWavefrontLeft}");
 
             // var angleWavefrontRootToCurrentVertex =
