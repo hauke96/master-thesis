@@ -34,6 +34,10 @@ public class Angle
 
     public static double Normalize(double a)
     {
+        if (a == 360)
+        {
+            return a;
+        }
         return ((a % 360) + 360) % 360;
     }
 
