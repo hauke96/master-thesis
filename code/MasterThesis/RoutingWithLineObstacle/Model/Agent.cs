@@ -74,7 +74,7 @@ namespace RoutingWithLineObstacle.Model
             var wavefrontAlgorithm = new WavefrontAlgorithm(obstacleGeometries);
             try
             {
-            Waypoints = new Queue<Position>(wavefrontAlgorithm.route(Position, Target.Position));
+            Waypoints = new Queue<Position>(wavefrontAlgorithm.Route(Position, Target.Position));
             }
             catch (Exception e)
             {

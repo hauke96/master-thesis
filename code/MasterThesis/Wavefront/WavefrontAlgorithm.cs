@@ -32,7 +32,7 @@ namespace Wavefront
             Wavefronts = wavefronts ?? new List<Wavefront>();
         }
 
-        public List<Position> route(Position source, Position target)
+        public List<Position> Route(Position source, Position target)
         {
             Vertices.Add(new Vertex(target));
             PositionToPredecessor[source] = null;
@@ -221,8 +221,10 @@ namespace Wavefront
             else
             {
                 // Check if neighbor is visible
+                var neighborWithinWavefrontRange = Angle.IsBetween(wavefront.FromAngle,
+                    wavefront.RootVertex.Position.GetBearing(new Position(neighbor.X, neighbor.Y)), wavefront.ToAngle);
                 if (!TrajectoryCollidesWithObstacle(wavefront.RootVertex.X, wavefront.RootVertex.Y, neighbor.X,
-                        neighbor.Y))
+                        neighbor.Y) && neighborWithinWavefrontRange)
                 {
                     // We can directly return the angle from wavefront root to the neighbor because we don't need to create new wavefronts.
                     return wavefront.RootVertex.Position.GetBearing(Position.CreateGeoPosition(neighbor.X, neighbor.Y));
@@ -247,6 +249,13 @@ namespace Wavefront
             double toAngle;
             Angle.GetEnclosingAngles(angleEventRootToNeighbor, angleNewWavefrontEdge, out fromAngle, out toAngle);
 
+            // Edge case: With only one neighbor and 180° Angle, it can happen that the wrong side (e.g. the wrong half-circle) has been chosen. We don't want the new wavefront to overlap with the old one, so we fix this:
+            if (Angle.GetAbsoluteValue(fromAngle, toAngle) == 180 &&
+                Angle.Overlap(fromAngle, toAngle, wavefront.FromAngle, wavefront.ToAngle))
+            {
+                (fromAngle, toAngle) = (toAngle, fromAngle);
+            }
+
             AddNewWavefront(Vertices, currentVertex, wavefront.DistanceToRootFromSource, fromAngle, toAngle);
             // AddWavefrontIfValid(wavefront.RelevantVertices, wavefront.DistanceToRootFromSource, currentVertex,
             // fromAngle, toAngle);
@@ -270,7 +279,9 @@ namespace Wavefront
             if (newWavefront != null)
             {
                 Console.WriteLine(
-                    $"    New wavefront at {newWavefront.RootVertex.Position} with {relevantVertices.Count} relevant vertices from {fromAngle}° to {toAngle}°");
+                    $"    New wavefront at {newWavefront.RootVertex.Position} with {newWavefront.RelevantVertices.Count} relevant vertices from {fromAngle}° to {toAngle}°");
+                Console.WriteLine(
+                    $"      Relevant vertices: {newWavefront.RelevantVertices.Map(v => v.Position.ToString()).Join(", ")}");
                 Wavefronts.Add(newWavefront);
             }
             else

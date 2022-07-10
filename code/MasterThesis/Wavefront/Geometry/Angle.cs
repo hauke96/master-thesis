@@ -1,5 +1,3 @@
-using Mars.Numerics;
-
 namespace Wavefront.Geometry;
 
 public class Angle
@@ -38,6 +36,7 @@ public class Angle
         {
             return a;
         }
+
         return ((a % 360) + 360) % 360;
     }
 
@@ -59,5 +58,16 @@ public class Angle
             fromAngle = originalToAngle;
             toAngle = originalFromAngle;
         }
+    }
+
+    public static bool Overlap(double from1, double to1, double from2, double to2)
+    {
+        return IsBetween(from1, from2, to1) || IsBetween(from1, to2, to1) ||
+               IsBetween(from2, from1, to2) || IsBetween(from2, to1, to2);
+    }
+
+    public static double GetAbsoluteValue(double fromAngle, double toAngle)
+    {
+        return Normalize(toAngle) - Normalize(fromAngle);
     }
 }
