@@ -11,25 +11,28 @@ public class Wavefront
     public double ToAngle { get; private set; }
     public Vertex RootVertex { get; }
 
-    public List<Vertex> RelevantVertices => new(possiblyVisibleVertices);
+    public List<Vertex> RelevantVertices => new(_possiblyVisibleVertices);
 
     /// <summary>
     /// The distance from the source of the routing to the root of this event.
     /// </summary>
     public double DistanceToRootFromSource { get; }
 
-    private Queue<Vertex> possiblyVisibleVertices;
+    private Queue<Vertex> _possiblyVisibleVertices;
 
     /// <summary>
     /// Creates a new wavefront if it's valid. A wavefront is *not* valid when there are no events ahead.
+    /// <returns>
+    /// The new wavefront or null if the new wavefront would not be valid.
+    /// </returns>
     /// </summary>
-    public static Wavefront? newIfValid(double fromAngle, double toAngle, Vertex rootVertex, List<Vertex> allVertices,
+    public static Wavefront? New(double fromAngle, double toAngle, Vertex rootVertex, List<Vertex> allVertices,
         double distanceToRootFromSource)
     {
         var wavefront = new Wavefront(fromAngle, toAngle, rootVertex, distanceToRootFromSource);
         wavefront.FilterAndEnqueueVertices(allVertices);
 
-        if (wavefront.possiblyVisibleVertices.Count == 0)
+        if (wavefront._possiblyVisibleVertices.Count == 0)
         {
             return null;
         }
@@ -49,7 +52,7 @@ public class Wavefront
 
         // Get the vertices that are possibly visible. There's not collision detection here but all vertices are at
         // least within the range of this wavefront.
-        possiblyVisibleVertices = new Queue<Vertex>();
+        _possiblyVisibleVertices = new Queue<Vertex>();
     }
 
     private void FilterAndEnqueueVertices(List<Vertex> vertices)
@@ -71,8 +74,8 @@ public class Wavefront
                     : -1;
             });
 
-        possiblyVisibleVertices.Clear();
-        vertices.Each(vertex => possiblyVisibleVertices.Enqueue(vertex));
+        _possiblyVisibleVertices.Clear();
+        vertices.Each(vertex => _possiblyVisibleVertices.Enqueue(vertex));
     }
 
     /// <summary>
@@ -80,19 +83,19 @@ public class Wavefront
     /// </summary>
     public Vertex? GetNextVertex()
     {
-        if (possiblyVisibleVertices.Count == 0)
+        if (_possiblyVisibleVertices.Count == 0)
         {
             return null;
         }
 
-        return possiblyVisibleVertices.Peek();
+        return _possiblyVisibleVertices.Peek();
     }
 
     public void RemoveNextVertex()
     {
         if (GetNextVertex() != null)
         {
-            possiblyVisibleVertices.Dequeue();
+            _possiblyVisibleVertices.Dequeue();
         }
     }
 
@@ -104,12 +107,17 @@ public class Wavefront
             return 0;
         }
 
-        return RootVertex.Position.DistanceInMTo(nextVertex.Position);
+        return DistanceTo(nextVertex.Position);
+    }
+
+    public double DistanceTo(Position position)
+    {
+        return DistanceToRootFromSource + RootVertex.Position.DistanceInMTo(position);
     }
 
     public void IgnoreVertex(Vertex vertex)
     {
-        possiblyVisibleVertices = new Queue<Vertex>(possiblyVisibleVertices.Where(v => v != vertex));
+        _possiblyVisibleVertices = new Queue<Vertex>(_possiblyVisibleVertices.Where(v => v != vertex));
     }
 
     public void SetAngles(double fromAngle, double toAngle)

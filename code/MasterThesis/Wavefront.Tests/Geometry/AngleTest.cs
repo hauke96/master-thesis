@@ -12,8 +12,10 @@ public class AngleTest
         Assert.True(Angle.IsBetween(10, 180, 200));
         Assert.True(Angle.IsBetween(10, 180, 180));
         Assert.True(Angle.IsBetween(180, 180, 200));
+        Assert.True(Angle.IsBetween(0, 90, 360));
 
-        Assert.False(Angle.IsBetween(0, 90, 360));
+        Assert.False(Angle.IsBetween(0, 90, 361));
+        Assert.False(Angle.IsBetween(-1, 90, 360));
         Assert.False(Angle.IsBetween(0, 90, 45));
     }
 
@@ -50,10 +52,11 @@ public class AngleTest
     {
         Assert.AreEqual(90, Angle.Normalize(90));
         Assert.AreEqual(0, Angle.Normalize(0));
-        Assert.AreEqual(0, Angle.Normalize(360));
         Assert.AreEqual(0, Angle.Normalize(720));
         Assert.AreEqual(90, Angle.Normalize(-270));
         Assert.AreEqual(180, Angle.Normalize(-180));
+        Assert.AreEqual(360, Angle.Normalize(360));
+        Assert.AreEqual(1, Angle.Normalize(361));
     }
 
     [Test]
@@ -83,5 +86,24 @@ public class AngleTest
         Angle.GetEnclosingAngles(350, 90, out from, out to);
         Assert.AreEqual(350, from);
         Assert.AreEqual(90, to);
+    }
+
+    [Test]
+    public void Overlap()
+    {
+        Assert.True(Angle.Overlap(0, 90, 40, 100));
+        Assert.True(Angle.Overlap(0, 90, 10, 80));
+        Assert.True(Angle.Overlap(40, 100, 0, 90));
+        Assert.True(Angle.Overlap(10, 80, 0, 90));
+        Assert.True(Angle.Overlap(350, 90, 40, 100));
+        Assert.True(Angle.Overlap(90, 180, 160, 10));
+        Assert.True(Angle.Overlap(350, 180, 160, 10));
+
+        Assert.False(Angle.Overlap(0, 90, 100, 120));
+        Assert.False(Angle.Overlap(100, 120, 0, 90));
+        Assert.False(Angle.Overlap(350, 90, 100, 120));
+        Assert.False(Angle.Overlap(40, 90, 100, 10));
+        Assert.False(Angle.Overlap(10, 10, 20, 30));
+        Assert.False(Angle.Overlap(10, 20, 30, 30));
     }
 }

@@ -15,12 +15,10 @@ public class Angle
         {
             return a <= angle && angle <= b;
         }
-        else
-        {
-            // We exceed the 0° border: Check if "angle" is NOT between b and a (which is the opposite part of the
-            // imaginary circle and has no overlap with the 0° border.
-            return !(b < angle && angle < a);
-        }
+
+        // We exceed the 0° border: Check if "angle" is NOT between b and a (which is the opposite part of the
+        // imaginary circle and has no overlap with the 0° border.
+        return !(b < angle && angle < a);
     }
 
     public static double Difference(double a, double b)
