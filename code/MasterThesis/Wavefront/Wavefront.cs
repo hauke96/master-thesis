@@ -19,6 +19,7 @@ public class Wavefront
     public double DistanceToRootFromSource { get; }
 
     private Queue<Vertex> _possiblyVisibleVertices;
+    private readonly List<Position> _visitedVertices;
 
     /// <summary>
     /// Creates a new wavefront if it's valid. A wavefront is *not* valid when there are no events ahead.
@@ -30,7 +31,7 @@ public class Wavefront
         double distanceToRootFromSource)
     {
         var wavefront = new Wavefront(fromAngle, toAngle, rootVertex, distanceToRootFromSource);
-        wavefront.FilterAndEnqueueVertices(allVertices);
+        wavefront.FilterAndEnqueueVertices(rootVertex, allVertices);
 
         if (wavefront._possiblyVisibleVertices.Count == 0)
         {
@@ -53,15 +54,16 @@ public class Wavefront
         // Get the vertices that are possibly visible. There's not collision detection here but all vertices are at
         // least within the range of this wavefront.
         _possiblyVisibleVertices = new Queue<Vertex>();
+        _visitedVertices = new List<Position>();
     }
 
-    private void FilterAndEnqueueVertices(List<Vertex> vertices)
+    private void FilterAndEnqueueVertices(Vertex rootVertex, List<Vertex> vertices)
     {
         vertices = vertices
             .FindAll(vertex =>
             {
                 var bearing = RootVertex.Position.GetBearing(vertex.Position);
-                return FromAngle <= bearing && bearing <= ToAngle;
+                return !Equals(rootVertex, vertex) && FromAngle <= bearing && bearing <= ToAngle;
             });
         vertices
             .Sort((v1, v2) =>
@@ -95,8 +97,14 @@ public class Wavefront
     {
         if (GetNextVertex() != null)
         {
-            _possiblyVisibleVertices.Dequeue();
+            var vertex = _possiblyVisibleVertices.Dequeue();
+            _visitedVertices.Add(vertex.Position);
         }
+    }
+
+    public bool HasBeenVisited(Position position)
+    {
+        return _visitedVertices.Contains(position);
     }
 
     public double DistanceToNextVertex()
@@ -136,7 +144,7 @@ public class Wavefront
         FromAngle = fromAngle;
         ToAngle = toAngle;
 
-        FilterAndEnqueueVertices(RelevantVertices);
+        FilterAndEnqueueVertices(RootVertex, RelevantVertices);
         // TODO handle possiblyVisibleVertices is empty. Maybe return boolean?
     }
 }

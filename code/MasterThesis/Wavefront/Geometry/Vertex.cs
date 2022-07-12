@@ -40,7 +40,7 @@ public class Vertex
             {
                 return null;
             }
-            
+
             // TODO handle polygons/closed lines
 
             var coordinates = RootGeometry.Coordinates;
@@ -67,7 +67,7 @@ public class Vertex
             {
                 return null;
             }
-            
+
             // TODO handle polygons/closed lines
 
             var coordinates = RootGeometry.Coordinates;
@@ -86,12 +86,12 @@ public class Vertex
     {
         Position = position;
     }
-    
+
     public Vertex(Coordinate position)
     {
         Position = Position.CreateGeoPosition(position.X, position.Y);
     }
-    
+
     public Vertex(double x, double y)
     {
         Position = Position.CreateGeoPosition(x, y);
@@ -101,5 +101,20 @@ public class Vertex
     {
         Position = Position.CreateGeoPosition(coordinate.X, coordinate.Y);
         RootGeometry = rootGeometry;
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return Equals(obj as Vertex);
+    }
+
+    public bool Equals(Vertex? other)
+    {
+        return other != null && Position.Equals(other.Position) && Equals(RootGeometry, other.RootGeometry);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Position, RootGeometry);
     }
 }

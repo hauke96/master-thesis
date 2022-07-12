@@ -1,8 +1,5 @@
 using Mars.Common;
-using Mars.Common.Core;
-using Mars.Interfaces.Environments;
 using NetTopologySuite.Geometries;
-using RoutingWithLineObstacle.Wavefront.Events;
 using ServiceStack;
 using Wavefront.Geometry;
 using Position = Mars.Interfaces.Environments.Position;
@@ -52,7 +49,7 @@ namespace Wavefront
 
             while (!PositionToPredecessor.ContainsKey(target))
             {
-                ProcessNextEvent();
+                ProcessNextEvent(target);
             }
 
             var waypoints = new List<Position>();
@@ -70,12 +67,13 @@ namespace Wavefront
             return waypoints;
         }
 
-        public void ProcessNextEvent()
+        public void ProcessNextEvent(Position targetPosition)
         {
             // TODO Use sorted queue (prioroty queue?)
             Wavefronts.Sort((w1, w2) => w1.DistanceToNextVertex() - w2.DistanceToNextVertex() > 0 ? 1 : -1);
             var wavefront = Wavefronts[0];
             var currentVertex = wavefront.GetNextVertex();
+            var newWavefrontCreatedAtEventRoot = false;
 
             Console.WriteLine(
                 $"Process wavefront at {wavefront.RootVertex.Position} from {wavefront.FromAngle}° to {wavefront.ToAngle}°");
@@ -84,6 +82,16 @@ namespace Wavefront
             {
                 Console.WriteLine("  No next vertex, remove wavefront");
                 // This wavefront doesn't have any events ahead, to we can remove it. 
+                Wavefronts.Remove(wavefront);
+                return;
+            }
+
+            if (Equals(currentVertex.Position, targetPosition))
+            {
+                Console.WriteLine($"  Target reached ({currentVertex.Position})");
+                PositionToPredecessor[currentVertex.Position] = wavefront.RootVertex.Position;
+                Console.WriteLine($"  Set predecessor of target to {wavefront.RootVertex.Position}");
+                wavefront.RemoveNextVertex();
                 Wavefronts.Remove(wavefront);
                 return;
             }
@@ -101,191 +109,153 @@ namespace Wavefront
             wavefront.RemoveNextVertex();
             Console.WriteLine("  Drop vertex from wavefront");
 
-            // TODO Need the event here? Probably want to keep if for more complex situations later?
-            var currentEvent = new VertexEvent(currentVertex, wavefront.RootVertex.Position,
-                wavefront.DistanceToRootFromSource);
+            double angleShadowFrom;
+            double angleShadowTo;
 
-            PositionToPredecessor[currentEvent.Position] = currentEvent.Root;
-            Console.WriteLine($"  Set predecessor of {currentEvent.Position} to {currentEvent.Root}");
+            HandleNeighbors(currentVertex, wavefront, out angleShadowFrom, out angleShadowTo,
+                out newWavefrontCreatedAtEventRoot);
+            Console.WriteLine($"  Handled neighbors, shadow from {angleShadowFrom}° to {angleShadowTo}°");
 
-            double angleWavefrontRight;
-            double angleWavefrontLeft;
-
-            HandleNeighbors(currentVertex, wavefront, out angleWavefrontRight, out angleWavefrontLeft);
-            Console.WriteLine($"  Handled neighbors: right={angleWavefrontRight}, left={angleWavefrontLeft}");
-
-            // var angleWavefrontRootToCurrentVertex =
-            //     wavefront.RootVertex.Position.GetBearing(currentVertex.Position);
-            //
-            // double fromAngle;
-            // double toAngle;
-            // //
-            // // // We need to create a new wavefront starting at the end of the line we found
-            // // if (IsEndOfGeometry(rightNeighbor, leftNeighbor))
-            // // {
-            // //     var neighbor = rightNeighbor ?? leftNeighbor;
-            // //     var angleCurrentVertexToNeighbor =
-            // //         currentVertex.Position.GetBearing(new Position(neighbor.X, neighbor.Y));
-            // //
-            // //     var distanceFromSourceToCurrentVertex = wavefront.DistanceToRootFromSource +
-            // //                                             wavefront.RootVertex.Position.DistanceInMTo(
-            // //                                                 currentVertex.Position);
-            // //
-            // //     GetEnclosingAngles(angleWavefrontRootToCurrentVertex, angleCurrentVertexToNeighbor, out toAngle,
-            // //         out fromAngle);
-            // //
-            // //     // Not the relevant vertices from the wavefront as we create a new wavefront in a whole new direction.
-            // //     AdjustWavefront(Vertices, currentVertex, distanceFromSourceToCurrentVertex, fromAngle, toAngle);
-            // // }
-            //
-            // if (Angle.IsBetween(angleWavefrontRight, angleWavefrontRootToCurrentVertex, angleWavefrontLeft))
-            // {
-            //     fromAngle = angleWavefrontLeft;
-            //     toAngle = angleWavefrontRight;
-            // }
-            // else
-            // {
-            //     fromAngle = angleWavefrontRight;
-            //     toAngle = angleWavefrontLeft;
-            // }
-            //
-            // AdjustWavefront(wavefront.RelevantVertices, wavefront.RootVertex, wavefront.DistanceToRootFromSource,
-            //     fromAngle, toAngle, wavefront);
-
-            Console.WriteLine($"  Create Wavefront at right angle?");
-            Console.WriteLine(
-                $"    from={wavefront.FromAngle} < right={angleWavefrontRight}? {wavefront.FromAngle < angleWavefrontRight}");
-            Console.WriteLine(
-                $"    from={wavefront.FromAngle} <= right={angleWavefrontRight} <= to={wavefront.ToAngle}? {Angle.IsBetween(wavefront.FromAngle, angleWavefrontRight, wavefront.ToAngle)}");
-            if (wavefront.FromAngle < angleWavefrontRight &&
-                Angle.IsBetween(wavefront.FromAngle, angleWavefrontRight, wavefront.ToAngle))
+            if (newWavefrontCreatedAtEventRoot)
             {
-                AddNewWavefront(wavefront.RelevantVertices, wavefront.RootVertex, wavefront.DistanceToRootFromSource,
-                    wavefront.FromAngle, angleWavefrontRight);
+                PositionToPredecessor[currentVertex.Position] = wavefront.RootVertex.Position;
+                Console.WriteLine($"  Set predecessor of {currentVertex.Position} to {wavefront.RootVertex.Position}");
             }
 
-            Console.WriteLine($"  Create Wavefront at left angle?");
-            Console.WriteLine(
-                $"    left={angleWavefrontLeft} < to={wavefront.ToAngle}? {angleWavefrontLeft < wavefront.ToAngle}");
-            Console.WriteLine(
-                $"    from={wavefront.FromAngle} <= left={angleWavefrontLeft} <= to={wavefront.ToAngle}? {Angle.IsBetween(wavefront.FromAngle, angleWavefrontLeft, wavefront.ToAngle)}");
-            if (angleWavefrontLeft < wavefront.ToAngle &&
-                Angle.IsBetween(wavefront.FromAngle, angleWavefrontLeft, wavefront.ToAngle))
+            if (!Double.IsNaN(angleShadowFrom) && !Double.IsNaN(angleShadowTo))
             {
+                Wavefronts.Remove(wavefront);
                 AddNewWavefront(wavefront.RelevantVertices, wavefront.RootVertex, wavefront.DistanceToRootFromSource,
-                    angleWavefrontLeft, wavefront.ToAngle);
+                    wavefront.FromAngle, angleShadowFrom);
+                AddNewWavefront(wavefront.RelevantVertices, wavefront.RootVertex, wavefront.DistanceToRootFromSource,
+                    angleShadowTo, wavefront.ToAngle);
             }
-
-            Wavefronts.Remove(wavefront);
         }
 
-        public void HandleNeighbors(Vertex currentVertex, Wavefront wavefront, out double angleWavefrontRight,
-            out double angleWavefrontLeft)
+        public void HandleNeighbors(Vertex currentVertex, Wavefront wavefront, out double angleShadowFrom,
+            out double angleShadowTo, out bool createdWavefrontAtCurrentVertex)
         {
-            var rightNeighbor = currentVertex.RightNeighbor;
-            angleWavefrontRight = HandleNeighborVertex(wavefront, rightNeighbor, currentVertex);
+            angleShadowFrom = 0;
+            angleShadowTo = 0;
+            createdWavefrontAtCurrentVertex = false;
 
-            var leftNeighbor = currentVertex.LeftNeighbor;
-            angleWavefrontLeft = HandleNeighborVertex(wavefront, leftNeighbor, currentVertex);
+            var rightNeighbor = currentVertex.RightNeighbor?.ToPosition() ?? currentVertex.LeftNeighbor?.ToPosition();
+            var leftNeighbor = currentVertex.LeftNeighbor?.ToPosition() ?? currentVertex.RightNeighbor?.ToPosition();
 
-            Angle.GetEnclosingAngles(angleWavefrontRight, angleWavefrontLeft, out angleWavefrontRight,
-                out angleWavefrontLeft);
+            if (rightNeighbor == null && leftNeighbor == null)
+            {
+                Console.WriteLine($"  Current vertex has no neighbors");
+                return;
+            }
+
+            var angleToRightNeighbor = wavefront.RootVertex.Position.GetBearing(rightNeighbor);
+            var angleToLeftNeighbor = wavefront.RootVertex.Position.GetBearing(leftNeighbor);
+            var angleToCurrentVertex = wavefront.RootVertex.Position.GetBearing(currentVertex.Position);
+
+            double rightShadowFrom = Double.NaN;
+            double rightShadowTo = Double.NaN;
+            double leftShadowFrom = Double.NaN;
+            double leftShadowTo = Double.NaN;
+
+            // Shadows of one line segment is restricted to 180° so we can simply determine the enclosing angle here.
+            if (wavefront.HasBeenVisited(rightNeighbor))
+            {
+                Angle.GetEnclosingAngles(angleToRightNeighbor, angleToCurrentVertex, out rightShadowFrom,
+                    out rightShadowTo);
+                Console.WriteLine(
+                    $"  Right neighbor={rightNeighbor} has been visited casting a shadow from {rightShadowFrom}° to {rightShadowFrom}°");
+            }
+
+            if (wavefront.HasBeenVisited(leftNeighbor))
+            {
+                Angle.GetEnclosingAngles(angleToLeftNeighbor, angleToCurrentVertex, out leftShadowFrom,
+                    out leftShadowTo);
+                Console.WriteLine(
+                    $"  Left neighbor={rightNeighbor} has been visited casting a shadow from {leftShadowFrom}° to {leftShadowTo}°");
+            }
+
+            // When only one shadow exists -> Take its angles
+            if (Double.IsNaN(rightShadowFrom))
+            {
+                Console.WriteLine($"  There's no right shadow -> Use left shadow as result");
+                // No right shadow -> The casted shadow only consists of the left shadow
+                angleShadowFrom = leftShadowFrom;
+                angleShadowTo = leftShadowTo;
+            }
+
+            if (Double.IsNaN(leftShadowFrom))
+            {
+                Console.WriteLine($"  There's no left shadow -> Use right shadow as result");
+                // No left shadow -> The casted shadow only consists of the right shadow
+                angleShadowFrom = rightShadowFrom;
+                angleShadowTo = rightShadowTo;
+            }
+
+            // When two shadows exist -> merge them
+            if (!Double.IsNaN(rightShadowFrom) && !Double.IsNaN(leftShadowFrom))
+            {
+                Console.WriteLine($"  There are two shadows -> merge them");
+                if (Math.Abs(rightShadowTo - leftShadowFrom) < 0.01)
+                {
+                    angleShadowFrom = rightShadowFrom;
+                    angleShadowTo = leftShadowTo;
+                }
+                else
+                {
+                    angleShadowFrom = leftShadowFrom;
+                    angleShadowTo = rightShadowTo;
+                }
+
+                Console.WriteLine($"  There are two shadows -> from {angleShadowFrom}° to {angleShadowTo}°");
+            }
+
+            Console.WriteLine("  Create new wavefronts if needed");
+            if (!Double.IsNaN(angleToRightNeighbor))
+            {
+                createdWavefrontAtCurrentVertex |= CreateWavefrontIfNeeded(currentVertex, wavefront, angleShadowFrom,
+                    angleShadowTo, currentVertex.RightNeighbor != null, angleToRightNeighbor,
+                    currentVertex.Position.GetBearing(rightNeighbor), angleToCurrentVertex);
+            }
+
+            if (!Double.IsNaN(angleToLeftNeighbor))
+            {
+                createdWavefrontAtCurrentVertex |= CreateWavefrontIfNeeded(currentVertex, wavefront, angleShadowFrom,
+                    angleShadowTo, currentVertex.LeftNeighbor != null, angleToLeftNeighbor,
+                    currentVertex.Position.GetBearing(leftNeighbor), angleToCurrentVertex);
+            }
         }
 
         /// <summary>
-        /// Checks if one of the neighbors we found marks the end of the geometry (e.g. the LineString). 
+        /// This may create new wavefronts if the are within the region behind a line segment. This can happen when a
+        /// shadow is casted by the wavefront and a line or when there's no neighbor for the given current vertex.
+        /// Latter case appear when the current vertex is the end or beginning of a line.
         /// </summary>
-        public static bool IsEndOfGeometry(Coordinate? rightNeighbor, Coordinate? leftNeighbor)
+        private bool CreateWavefrontIfNeeded(Vertex currentVertex, Wavefront wavefront, double angleShadowFrom,
+            double angleShadowTo, bool hasNeighbor, double angleWavefrontToNeighbor,
+            double angleCurrentVertexToNeighbor, double angleToCurrentVertex)
         {
-            return !(rightNeighbor == null && leftNeighbor == null) && (rightNeighbor == null || leftNeighbor == null);
+            // Not outside of shadow
+            if (!Angle.IsBetween(angleShadowTo, angleWavefrontToNeighbor, angleShadowFrom) || !hasNeighbor)
+            {
+                Console.WriteLine($"    Neighbor at angle {angleWavefrontToNeighbor}° within shadow");
+                // Neighbor is within shadow -> Create new wavefront to cover the shadow region
+                Angle.GetEnclosingAngles(angleCurrentVertexToNeighbor, angleToCurrentVertex,
+                    out var fromAngle, out var toAngle);
+                return AddNewWavefront(Vertices, currentVertex, wavefront.DistanceTo(currentVertex.Position), fromAngle,
+                    toAngle);
+            }
+
+            return false;
         }
 
-        /// <summary>
-        /// Handles the given neighbor vertex of currentVertex. This means a Wavefront.of might be spawned if the
-        /// neighbor is not visible from the root vertex of the given wavefront.
-        /// </summary>
-        /// <returns>
-        /// The angle that should be used to adjust the given wavefront. This is basically the right/left edge
-        /// of the "shadow" casted by the wavefront and the line-part between left and right neighbor of the event.
-        /// </returns>
-        public double HandleNeighborVertex(Wavefront wavefront, Coordinate? neighbor, Vertex currentVertex)
-        {
-            bool neighborWithinWavefrontRange = true;
-            if (neighbor == null)
-            {
-                // return wavefront.RootVertex.Position.GetBearing(currentVertex.Position);
-                neighbor = currentVertex.RightNeighbor ?? currentVertex.LeftNeighbor;
-
-                // We don't care is the neighbor is visible or not, we want to create a new wavefront, because the
-                // edge we're looking at is casting a "shadow".
-            }
-            else
-            {
-                // Check if neighbor is visible
-                neighborWithinWavefrontRange = Angle.IsBetween(wavefront.FromAngle,
-                    wavefront.RootVertex.Position.GetBearing(new Position(neighbor.X, neighbor.Y)), wavefront.ToAngle);
-                if (IsPositionVisible(wavefront.RootVertex.Position, neighbor.ToPosition()) &&
-                    neighborWithinWavefrontRange)
-                {
-                    // We can directly return the angle from wavefront root to the neighbor because we don't need to create new wavefronts.
-                    return wavefront.RootVertex.Position.GetBearing(Position.CreateGeoPosition(neighbor.X, neighbor.Y));
-                }
-            }
-
-            if (neighbor == null)
-            {
-                // TODO is this correct?
-                return wavefront.RootVertex.Position.GetBearing(currentVertex.Position);
-            }
-
-            // TODO assert that neighbor is not visible?
-            // TODO assert neighbor not null?
-
-            // The neighbor is not visible -> The angle of the new wavefront based on the wavefront.RootVertex only
-            // goes to the angle of the current vertex (seen from the root vertex of the wavefront).
-            var angleWavefrontRootToEventRoot = wavefront.RootVertex.Position.GetBearing(currentVertex.Position);
-            var angleEventRootToNeighbor = currentVertex.Position.GetBearing(new Position(neighbor.X, neighbor.Y));
-
-            if (!neighborWithinWavefrontRange)
-            {
-                // We know that the event root vertex is within the wavefront range and the neighbor is outside of it.
-                // We therefor want to return the angle of the wavefront that's between those two.
-                if (Angle.IsBetween(angleWavefrontRootToEventRoot, wavefront.FromAngle, angleEventRootToNeighbor))
-                {
-                    // The from angle of the wavefront is between them, so we return it.
-                    return wavefront.FromAngle;
-                }
-
-                return wavefront.ToAngle;
-            }
-
-            double fromAngle;
-            double toAngle;
-            Angle.GetEnclosingAngles(angleEventRootToNeighbor, angleWavefrontRootToEventRoot, out fromAngle,
-                out toAngle);
-
-            // Edge case: With only one neighbor and 180° Angle, it can happen that the wrong side (e.g. the wrong half-circle) has been chosen. We don't want the new wavefront to overlap with the old one, so we fix this:
-            if (Angle.GetAbsoluteValue(fromAngle, toAngle) == 180 &&
-                Angle.Overlap(fromAngle, toAngle, wavefront.FromAngle, wavefront.ToAngle))
-            {
-                (fromAngle, toAngle) = (toAngle, fromAngle);
-            }
-
-            AddNewWavefront(Vertices, currentVertex, wavefront.DistanceTo(currentVertex.Position), fromAngle, toAngle);
-            // AddWavefrontIfValid(wavefront.RelevantVertices, wavefront.DistanceToRootFromSource, currentVertex,
-            // fromAngle, toAngle);
-
-            return angleWavefrontRootToEventRoot;
-        }
-
-        public void AddWavefrontIfValid(List<Vertex> relevantVertices, double distanceFromSourceToVertex,
+        public bool AddWavefrontIfValid(List<Vertex> relevantVertices, double distanceFromSourceToVertex,
             Vertex rootVertex, double fromAngle, double toAngle)
         {
             // Ignore angles that are nearly the same
             const double floatRoundingTolerance = 0.0001;
             if (Math.Abs(fromAngle % 360 - toAngle % 360) < floatRoundingTolerance)
             {
-                return;
+                return false;
             }
 
             toAngle = toAngle == 0 ? 360 : toAngle;
@@ -298,32 +268,18 @@ namespace Wavefront
                 Console.WriteLine(
                     $"      Relevant vertices: {newWavefront.RelevantVertices.Map(v => v.Position.ToString()).Join(", ")}");
                 Wavefronts.Add(newWavefront);
+                return true;
             }
-            else
-            {
-                Console.WriteLine(
-                    $"    New wavefront at {rootVertex.Position} from {fromAngle}° to {toAngle}° wouldn't have any vertices -> ignore it");
-            }
+
+            Console.WriteLine(
+                $"    New wavefront at {rootVertex.Position} from {fromAngle}° to {toAngle}° wouldn't have any vertices -> ignore it");
+            return false;
         }
 
-        /// <summary>
-        /// Creates one to two new wavefronts depending on the parameters (i.e. if from and to angle exceed the 0°
-        /// border). When a wavefront is passed, it'll be removed from the list of wavefronts as a new one will be created.
-        /// </summary>
-        public void AdjustWavefront(List<Vertex> vertices, Vertex root, double distanceToRootFromSource,
-            double fromAngle, double toAngle, Wavefront? wavefront = null)
-        {
-            if (wavefront != null)
-            {
-                Wavefronts.Remove(wavefront);
-            }
-
-            AddNewWavefront(vertices, root, distanceToRootFromSource, fromAngle, toAngle);
-        }
-
-        public void AddNewWavefront(List<Vertex> vertices, Vertex root, double distanceToRootFromSource,
+        public bool AddNewWavefront(List<Vertex> vertices, Vertex root, double distanceToRootFromSource,
             double fromAngle, double toAngle)
         {
+            bool newWavefrontCreated = false;
             /*
              * If the interesting area exceeds the 0° border (e.g. goes from 300° via 0° to 40°), then we remove the
              * old wavefront and create two new ones. One from 300° to 360° and one from 0° to 40°. This simply
@@ -332,13 +288,16 @@ namespace Wavefront
             if (fromAngle > toAngle)
             {
                 Console.WriteLine("    Angles for new wavefront exceed 0° border -> Create two");
-                AddWavefrontIfValid(vertices, distanceToRootFromSource, root, fromAngle, 360);
-                AddWavefrontIfValid(vertices, distanceToRootFromSource, root, 0, toAngle);
+                newWavefrontCreated |= AddWavefrontIfValid(vertices, distanceToRootFromSource, root, fromAngle, 360);
+                newWavefrontCreated |= AddWavefrontIfValid(vertices, distanceToRootFromSource, root, 0, toAngle);
             }
             else
             {
-                AddWavefrontIfValid(vertices, distanceToRootFromSource, root, fromAngle, toAngle);
+                newWavefrontCreated |=
+                    AddWavefrontIfValid(vertices, distanceToRootFromSource, root, fromAngle, toAngle);
             }
+
+            return newWavefrontCreated;
         }
 
         private bool IsEventValid(Position eventRootPosition, Position eventPosition)
