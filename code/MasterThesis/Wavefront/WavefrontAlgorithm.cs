@@ -134,7 +134,157 @@ namespace Wavefront
             }
         }
 
+        // TODO document rotation idea of this method
         public void HandleNeighbors(Vertex currentVertex, Wavefront wavefront, out double angleShadowFrom,
+            out double angleShadowTo, out bool createdWavefrontAtCurrentVertex)
+        {
+            angleShadowFrom = Double.NaN;
+            angleShadowTo = Double.NaN;
+            createdWavefrontAtCurrentVertex = false;
+
+            var rightNeighbor = currentVertex.RightNeighbor?.ToPosition() ?? currentVertex.LeftNeighbor?.ToPosition();
+            var leftNeighbor = currentVertex.LeftNeighbor?.ToPosition() ?? currentVertex.RightNeighbor?.ToPosition();
+
+            if (rightNeighbor == null && leftNeighbor == null)
+            {
+                Console.WriteLine("  Current vertex has no neighbors");
+                return;
+            }
+
+            var angleRootToRightNeighbor = rightNeighbor != null
+                ? wavefront.RootVertex.Position.GetBearing(rightNeighbor)
+                : double.NaN;
+            var angleRootToLeftNeighbor = leftNeighbor != null
+                ? wavefront.RootVertex.Position.GetBearing(leftNeighbor)
+                : double.NaN;
+            var angleRootToCurrentVertex = wavefront.RootVertex.Position.GetBearing(currentVertex.Position);
+
+
+            var angleVertexToRightNeighbor = rightNeighbor != null
+                ? currentVertex.Position.GetBearing(rightNeighbor)
+                : double.NaN;
+            var angleVertexToLeftNeighbor = leftNeighbor != null
+                ? currentVertex.Position.GetBearing(leftNeighbor)
+                : double.NaN;
+
+            // Rotate such that the current vertex of always north/up of the wavefront root
+            var rotationAngle = -angleRootToCurrentVertex;
+            var angleCurrentWavefrontFrom = Angle.Normalize(wavefront.FromAngle + rotationAngle);
+            var angleCurrentWavefrontTo = Angle.Normalize(wavefront.ToAngle + rotationAngle);
+            angleRootToRightNeighbor = Angle.Normalize(angleRootToRightNeighbor + rotationAngle);
+            angleRootToLeftNeighbor = Angle.Normalize(angleRootToLeftNeighbor + rotationAngle);
+            angleRootToCurrentVertex = Angle.Normalize(angleRootToCurrentVertex + rotationAngle);
+            angleVertexToRightNeighbor = Angle.Normalize(angleVertexToRightNeighbor + rotationAngle);
+            angleVertexToLeftNeighbor = Angle.Normalize(angleVertexToLeftNeighbor + rotationAngle);
+
+            var rightNeighborHasBeenVisited = wavefront.HasBeenVisited(rightNeighbor);
+            var leftNeighborHasBeenVisited = wavefront.HasBeenVisited(leftNeighbor);
+
+            // Both neighbors on left/right (aka west/east) side of root+current vertex -> New wavefront needed for the casted shadow
+            var bothNeighborsOnWestSide = angleVertexToRightNeighbor >= 180 && angleVertexToLeftNeighbor >= 180;
+            var bothNeighborsOnEastSide = angleVertexToRightNeighbor <= 180 && angleVertexToLeftNeighbor <= 180;
+
+            double angleWavefrontFrom = Double.NaN;
+            double angleWavefrontTo = Double.NaN;
+            if (bothNeighborsOnWestSide)
+            {
+                angleWavefrontFrom = Math.Max(angleVertexToRightNeighbor, angleVertexToLeftNeighbor);
+                angleWavefrontTo = 360;
+
+                // angleShadowFrom = Math.Min(angleRootToRightNeighbor, angleRootToLeftNeighbor);
+                // angleShadowTo = 360;
+            }
+            else if (bothNeighborsOnEastSide)
+            {
+                angleWavefrontFrom = 0;
+                angleWavefrontTo = Math.Min(angleVertexToRightNeighbor, angleVertexToLeftNeighbor);
+
+                // angleShadowFrom = 0;
+                // angleShadowTo = Math.Max(angleRootToRightNeighbor, angleRootToLeftNeighbor);
+            }
+
+            // Wavefront root vertex if the only neighbor aka we reached the end of a line with the wavefront rooted
+            // in the second last vertex of that line.
+            var wavefrontRootIsSecondLastLineVertex = Equals(rightNeighbor, wavefront.RootVertex.Position) &&
+                                                      Equals(leftNeighbor, wavefront.RootVertex.Position);
+            if (wavefrontRootIsSecondLastLineVertex)
+            {
+                if (Math.Abs(angleCurrentWavefrontTo % 360) < 0.01)
+                {
+                    angleWavefrontFrom = 0;
+                    angleWavefrontTo = Math.Min(angleVertexToRightNeighbor, angleVertexToLeftNeighbor);
+                }
+                else if (Math.Abs(angleCurrentWavefrontFrom % 360) < 0.01)
+                {
+                    angleWavefrontFrom = Math.Max(angleVertexToRightNeighbor, angleVertexToLeftNeighbor);
+                    angleWavefrontTo = 360;
+                }
+            }
+
+            var neighborWillBeVisitedByWavefront = wavefrontRootIsSecondLastLineVertex &&
+                                                   Angle.IsBetween(wavefront.FromAngle, angleWavefrontFrom,
+                                                       wavefront.ToAngle);
+            var newWavefrontNeeded = !double.IsNaN(angleWavefrontFrom) && !double.IsNaN(angleWavefrontTo) &&
+                                     !neighborWillBeVisitedByWavefront;
+
+            // Rotate back
+            angleRootToRightNeighbor = Angle.Normalize(angleRootToRightNeighbor - rotationAngle);
+            angleRootToLeftNeighbor = Angle.Normalize(angleRootToLeftNeighbor - rotationAngle);
+            angleRootToCurrentVertex = Angle.Normalize(angleRootToCurrentVertex - rotationAngle);
+            angleWavefrontFrom = Angle.Normalize(angleWavefrontFrom - rotationAngle);
+            angleWavefrontTo = Angle.Normalize(angleWavefrontTo - rotationAngle);
+
+            if (newWavefrontNeeded)
+            {
+                createdWavefrontAtCurrentVertex = AddNewWavefront(Vertices, currentVertex,
+                    wavefront.DistanceTo(currentVertex.Position), angleWavefrontFrom, angleWavefrontTo);
+            }
+
+            double angleRightShadowFrom = Double.NaN;
+            double angleRightShadowTo = Double.NaN;
+            if (wavefront.HasBeenVisited(rightNeighbor))
+            {
+                Angle.GetEnclosingAngles(angleRootToRightNeighbor, angleRootToCurrentVertex, out angleRightShadowFrom,
+                    out angleRightShadowTo);
+                angleShadowFrom = angleRightShadowFrom;
+                angleShadowTo = angleRightShadowTo;
+                Console.WriteLine(
+                    $"  Right neighbor={rightNeighbor}, visited={rightNeighborHasBeenVisited} casting a shadow from {angleShadowFrom}° to {angleShadowTo}°");
+            }
+
+            double angleLeftShadowFrom = Double.NaN;
+            double angleLeftShadowTo = Double.NaN;
+            if (wavefront.HasBeenVisited(leftNeighbor))
+            {
+                Angle.GetEnclosingAngles(angleRootToLeftNeighbor, angleRootToCurrentVertex, out angleLeftShadowFrom,
+                    out angleLeftShadowTo);
+                angleShadowFrom = angleLeftShadowFrom;
+                angleShadowTo = angleLeftShadowTo;
+                Console.WriteLine(
+                    $"  Left neighbor={leftNeighbor}, visited={leftNeighborHasBeenVisited} casting a shadow from {angleLeftShadowFrom}° to {angleLeftShadowTo}°");
+            }
+
+            // When two shadows exist -> merge them because they always touch
+            if (!Double.IsNaN(angleRightShadowFrom) && !Double.IsNaN(angleLeftShadowFrom))
+            {
+                Console.WriteLine($"  There are two shadows -> merge them");
+                if (Math.Abs(Angle.Difference(angleRightShadowTo, angleLeftShadowFrom)) < 0.01)
+                {
+                    angleShadowFrom = angleRightShadowFrom;
+                    angleShadowTo = angleLeftShadowTo;
+                }
+                else
+                {
+                    angleShadowFrom = angleLeftShadowFrom;
+                    angleShadowTo = angleRightShadowTo;
+                }
+
+                Console.WriteLine(
+                    $"  There were two shadows -> merged shadow goes from {angleShadowFrom}° to {angleShadowTo}°");
+            }
+        }
+
+        public void HandleNeighbors_old(Vertex currentVertex, Wavefront wavefront, out double angleShadowFrom,
             out double angleShadowTo, out bool createdWavefrontAtCurrentVertex)
         {
             angleShadowFrom = 0;

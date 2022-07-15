@@ -10,10 +10,10 @@ public class AngleTest
     {
         Assert.True(Angle.IsBetween(0, 40, 90));
         Assert.True(Angle.IsBetween(10, 180, 200));
-        Assert.True(Angle.IsBetween(10, 180, 180));
-        Assert.True(Angle.IsBetween(180, 180, 200));
         Assert.True(Angle.IsBetween(0, 90, 360));
 
+        Assert.False(Angle.IsBetween(10, 180, 180));
+        Assert.False(Angle.IsBetween(180, 180, 200));
         Assert.False(Angle.IsBetween(0, 90, 361));
         Assert.False(Angle.IsBetween(-1, 90, 360));
         Assert.False(Angle.IsBetween(0, 90, 45));
@@ -39,12 +39,28 @@ public class AngleTest
         Assert.True(Angle.IsBetween(300, 40, 90));
         Assert.True(Angle.IsBetween(-60, 40, 90));
         Assert.True(Angle.IsBetween(300, 350, 20));
-        Assert.True(Angle.IsBetween(300, 300, 20));
-        Assert.True(Angle.IsBetween(300, 20, 20));
 
+        Assert.False(Angle.IsBetween(300, 20, 20));
+        Assert.False(Angle.IsBetween(300, 300, 20));
         Assert.False(Angle.IsBetween(300, 180, 90));
         // 10, 180, 90
         Assert.False(Angle.IsBetween(-300, 180, 90));
+    }
+
+    [Test]
+    public void IsEnclosedBy()
+    {
+        Assert.True(Angle.IsEnclosedBy(0, 10, 20));
+        Assert.True(Angle.IsEnclosedBy(20, 10, 0));
+        Assert.True(Angle.IsEnclosedBy(-10, 10, 20));
+        Assert.True(Angle.IsEnclosedBy(20, 10, -10));
+        Assert.True(Angle.IsEnclosedBy(350, 10, 380));
+        Assert.True(Angle.IsEnclosedBy(380, 10, 350));
+        
+        Assert.False(Angle.IsEnclosedBy(10, 10, 20));
+        Assert.False(Angle.IsEnclosedBy(0, 20, 20));
+        Assert.False(Angle.IsEnclosedBy(0, 90, 200));
+        Assert.False(Angle.IsEnclosedBy(200, 90, 0));
     }
 
     [Test]

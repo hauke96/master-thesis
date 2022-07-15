@@ -561,6 +561,7 @@ namespace Wavefront.Tests
         {
             static WavefrontAlgorithm wavefrontAlgorithm;
             static LineString multiVertexLineObstacle;
+            static LineString rotatedLineObstacle;
 
             [SetUp]
             public void Setup()
@@ -569,10 +570,17 @@ namespace Wavefront.Tests
                 {
                     new Coordinate(2, 2),
                     new Coordinate(3, 2),
-                    new Coordinate(3, 5),
+                    new Coordinate(3, 5)
+                });
+                rotatedLineObstacle = new LineString(new[]
+                {
+                    new Coordinate(5, 3),
+                    new Coordinate(6.5, 3.5),
+                    new Coordinate(7.5, 0.5)
                 });
                 var obstacles = new List<NetTopologySuite.Geometries.Geometry>();
                 obstacles.Add(multiVertexLineObstacle);
+                obstacles.Add(rotatedLineObstacle);
 
                 wavefrontAlgorithm = new WavefrontAlgorithm(obstacles);
             }
@@ -614,9 +622,9 @@ namespace Wavefront.Tests
                 var waypoints = wavefrontAlgorithm.Route(sourceVertex, targetVertex);
 
                 Assert.Contains(sourceVertex, waypoints);
-                Assert.Contains(Position.CreateGeoPosition(multiVertexLineObstacle[1].X, multiVertexLineObstacle[0].Y),
+                Assert.Contains(Position.CreateGeoPosition(multiVertexLineObstacle[1].X, multiVertexLineObstacle[1].Y),
                     waypoints);
-                Assert.Contains(Position.CreateGeoPosition(multiVertexLineObstacle[0].X, multiVertexLineObstacle[1].Y),
+                Assert.Contains(Position.CreateGeoPosition(multiVertexLineObstacle[0].X, multiVertexLineObstacle[0].Y),
                     waypoints);
                 Assert.Contains(targetVertex, waypoints);
                 Assert.AreEqual(4, waypoints.Count);
@@ -635,6 +643,24 @@ namespace Wavefront.Tests
                 Assert.Contains(Position.CreateGeoPosition(multiVertexLineObstacle[0].X, multiVertexLineObstacle[0].Y),
                     waypoints);
                 Assert.Contains(Position.CreateGeoPosition(multiVertexLineObstacle[1].X, multiVertexLineObstacle[1].Y),
+                    waypoints);
+                Assert.Contains(targetVertex, waypoints);
+                Assert.AreEqual(4, waypoints.Count);
+            }
+
+            [Test]
+            public void RouteFromInsideCorner()
+            {
+                // In between those is a corner with two neighbors, so that corner cannot be used.
+                var sourceVertex = Position.CreateGeoPosition(6, 3);
+                var targetVertex = Position.CreateGeoPosition(7, 3);
+
+                var waypoints = wavefrontAlgorithm.Route(sourceVertex, targetVertex);
+
+                Assert.Contains(sourceVertex, waypoints);
+                Assert.Contains(Position.CreateGeoPosition(rotatedLineObstacle[0].X, rotatedLineObstacle[0].Y),
+                    waypoints);
+                Assert.Contains(Position.CreateGeoPosition(rotatedLineObstacle[1].X, rotatedLineObstacle[1].Y),
                     waypoints);
                 Assert.Contains(targetVertex, waypoints);
                 Assert.AreEqual(4, waypoints.Count);
