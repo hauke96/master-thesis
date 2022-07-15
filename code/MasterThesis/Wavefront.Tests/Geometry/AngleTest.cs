@@ -67,6 +67,7 @@ public class AngleTest
         Assert.AreEqual(200, Angle.Difference(-180, 20));
         Assert.AreEqual(80, Angle.Difference(300, 20));
         Assert.AreEqual(100, Angle.Difference(300, 400));
+        Assert.AreEqual(0, Angle.Difference(100, 100));
     }
 
     [Test]

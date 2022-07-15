@@ -102,9 +102,9 @@ public class Wavefront
         }
     }
 
-    public bool HasBeenVisited(Position position)
+    public bool HasBeenVisited(Position? position)
     {
-        return _visitedVertices.Contains(position);
+        return position != null && _visitedVertices.Contains(position);
     }
 
     public double DistanceToNextVertex()
@@ -146,5 +146,11 @@ public class Wavefront
 
         FilterAndEnqueueVertices(RootVertex, RelevantVertices);
         // TODO handle possiblyVisibleVertices is empty. Maybe return boolean?
+    }
+
+    public bool Contains(Position? rightNeighbor)
+    {
+        return rightNeighbor != null && (RelevantVertices.Any(vertex => vertex.Position.Equals(rightNeighbor)) ||
+                                         HasBeenVisited(rightNeighbor));
     }
 }

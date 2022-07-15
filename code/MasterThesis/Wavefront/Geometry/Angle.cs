@@ -25,7 +25,7 @@ public class Angle
     {
         a = Normalize(a);
         b = Normalize(b);
-        return a < b ? b - a : 360 - a + b;
+        return a <= b ? b - a : 360 - a + b;
     }
 
     public static double Normalize(double a)

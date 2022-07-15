@@ -73,7 +73,6 @@ namespace Wavefront
             Wavefronts.Sort((w1, w2) => w1.DistanceToNextVertex() - w2.DistanceToNextVertex() > 0 ? 1 : -1);
             var wavefront = Wavefronts[0];
             var currentVertex = wavefront.GetNextVertex();
-            var newWavefrontCreatedAtEventRoot = false;
 
             Console.WriteLine(
                 $"Process wavefront at {wavefront.RootVertex.Position} from {wavefront.FromAngle}° to {wavefront.ToAngle}°");
@@ -113,7 +112,7 @@ namespace Wavefront
             double angleShadowTo;
 
             HandleNeighbors(currentVertex, wavefront, out angleShadowFrom, out angleShadowTo,
-                out newWavefrontCreatedAtEventRoot);
+                out var newWavefrontCreatedAtEventRoot);
             Console.WriteLine($"  Handled neighbors, shadow from {angleShadowFrom}° to {angleShadowTo}°");
 
             if (newWavefrontCreatedAtEventRoot)
@@ -124,6 +123,8 @@ namespace Wavefront
 
             if (!Double.IsNaN(angleShadowFrom) && !Double.IsNaN(angleShadowTo))
             {
+                Console.WriteLine(
+                    $"  Remove old wavefront from {wavefront.FromAngle}° to {wavefront.ToAngle}° and create new ones");
                 Wavefronts.Remove(wavefront);
                 AddNewWavefront(wavefront.RelevantVertices, wavefront.RootVertex, wavefront.DistanceToRootFromSource,
                     wavefront.FromAngle, angleShadowFrom);
@@ -151,27 +152,74 @@ namespace Wavefront
             var angleToRightNeighbor = wavefront.RootVertex.Position.GetBearing(rightNeighbor);
             var angleToLeftNeighbor = wavefront.RootVertex.Position.GetBearing(leftNeighbor);
             var angleToCurrentVertex = wavefront.RootVertex.Position.GetBearing(currentVertex.Position);
+            var minAngle = Math.Min(Math.Min(angleToRightNeighbor, angleToLeftNeighbor), angleToCurrentVertex);
+            var maxAngle = Math.Max(Math.Max(angleToRightNeighbor, angleToLeftNeighbor), angleToCurrentVertex);
 
             double rightShadowFrom = Double.NaN;
             double rightShadowTo = Double.NaN;
             double leftShadowFrom = Double.NaN;
             double leftShadowTo = Double.NaN;
 
+            var rightNeighborHasBeenVisited = wavefront.HasBeenVisited(rightNeighbor);
+            var leftNeighborHasBeenVisited = wavefront.HasBeenVisited(leftNeighbor);
+
+            // A neighbor is in the shadow when it's between min- and magAngle OR when we "fake" the neighbor because
+            // the current vertex only has one.
+            var rightNeighborInShadow = angleToRightNeighbor != minAngle && angleToRightNeighbor != maxAngle &&
+                wavefront.Contains(rightNeighbor) || Equals(rightNeighbor, currentVertex.LeftNeighbor?.ToPosition());
+            var leftNeighborInShadow = angleToLeftNeighbor != minAngle && angleToLeftNeighbor != maxAngle &&
+                wavefront.Contains(leftNeighbor) || Equals(leftNeighbor, currentVertex.RightNeighbor?.ToPosition());
+            Console.WriteLine($"  In shadow: right={rightNeighborInShadow}, left={leftNeighborInShadow}");
+
             // Shadows of one line segment is restricted to 180° so we can simply determine the enclosing angle here.
-            if (wavefront.HasBeenVisited(rightNeighbor))
+            if (wavefront.HasBeenVisited(rightNeighbor) || rightNeighborInShadow)
             {
                 Angle.GetEnclosingAngles(angleToRightNeighbor, angleToCurrentVertex, out rightShadowFrom,
                     out rightShadowTo);
                 Console.WriteLine(
-                    $"  Right neighbor={rightNeighbor} has been visited casting a shadow from {rightShadowFrom}° to {rightShadowFrom}°");
+                    $"  Right neighbor={rightNeighbor}, visited={rightNeighborHasBeenVisited} casting a shadow from {rightShadowFrom}° to {rightShadowTo}°");
             }
 
-            if (wavefront.HasBeenVisited(leftNeighbor))
+            if (rightNeighborInShadow)
+            {
+                var angleCurrentVertexToRightNeighbor = currentVertex.Position.GetBearing(rightNeighbor);
+                Angle.GetEnclosingAngles(angleCurrentVertexToRightNeighbor, angleToCurrentVertex, out var wavefrontFrom,
+                    out var wavefrontTo);
+
+                createdWavefrontAtCurrentVertex |= AddNewWavefront(Vertices, currentVertex,
+                    wavefront.DistanceTo(currentVertex.Position), wavefrontFrom,
+                    wavefrontTo);
+
+                if (!wavefront.HasBeenVisited(rightNeighbor))
+                {
+                    rightShadowFrom = Double.NaN;
+                    rightShadowTo = Double.NaN;
+                }
+            }
+
+            if (wavefront.HasBeenVisited(leftNeighbor) || leftNeighborInShadow)
             {
                 Angle.GetEnclosingAngles(angleToLeftNeighbor, angleToCurrentVertex, out leftShadowFrom,
                     out leftShadowTo);
                 Console.WriteLine(
-                    $"  Left neighbor={rightNeighbor} has been visited casting a shadow from {leftShadowFrom}° to {leftShadowTo}°");
+                    $"  Left neighbor={leftNeighbor}, visited={leftNeighborHasBeenVisited} casting a shadow from {leftShadowFrom}° to {leftShadowTo}°");
+            }
+
+            if (leftNeighborInShadow)
+            {
+                var angleCurrentVertexToLeftNeighbor = currentVertex.Position.GetBearing(leftNeighbor);
+                Angle.GetEnclosingAngles(angleCurrentVertexToLeftNeighbor, angleToCurrentVertex, out var wavefrontFrom,
+                    out var wavefrontTo);
+
+                createdWavefrontAtCurrentVertex |= AddNewWavefront(Vertices, currentVertex,
+                    wavefront.DistanceTo(currentVertex.Position), wavefrontFrom,
+                    wavefrontTo);
+
+                if (!wavefront.HasBeenVisited(leftNeighbor))
+                {
+                    leftShadowFrom = Double.NaN;
+                    leftShadowTo = Double.NaN;
+                }
             }
 
             // When only one shadow exists -> Take its angles
@@ -191,11 +239,11 @@ namespace Wavefront
                 angleShadowTo = rightShadowTo;
             }
 
-            // When two shadows exist -> merge them
+            // When two shadows exist -> merge them because they always touch
             if (!Double.IsNaN(rightShadowFrom) && !Double.IsNaN(leftShadowFrom))
             {
                 Console.WriteLine($"  There are two shadows -> merge them");
-                if (Math.Abs(rightShadowTo - leftShadowFrom) < 0.01)
+                if (Math.Abs(Angle.Difference(rightShadowTo, leftShadowFrom)) < 0.01)
                 {
                     angleShadowFrom = rightShadowFrom;
                     angleShadowTo = leftShadowTo;
@@ -206,22 +254,8 @@ namespace Wavefront
                     angleShadowTo = rightShadowTo;
                 }
 
-                Console.WriteLine($"  There are two shadows -> from {angleShadowFrom}° to {angleShadowTo}°");
-            }
-
-            Console.WriteLine("  Create new wavefronts if needed");
-            if (!Double.IsNaN(angleToRightNeighbor))
-            {
-                createdWavefrontAtCurrentVertex |= CreateWavefrontIfNeeded(currentVertex, wavefront, angleShadowFrom,
-                    angleShadowTo, currentVertex.RightNeighbor != null, angleToRightNeighbor,
-                    currentVertex.Position.GetBearing(rightNeighbor), angleToCurrentVertex);
-            }
-
-            if (!Double.IsNaN(angleToLeftNeighbor))
-            {
-                createdWavefrontAtCurrentVertex |= CreateWavefrontIfNeeded(currentVertex, wavefront, angleShadowFrom,
-                    angleShadowTo, currentVertex.LeftNeighbor != null, angleToLeftNeighbor,
-                    currentVertex.Position.GetBearing(leftNeighbor), angleToCurrentVertex);
+                Console.WriteLine(
+                    $"  There were two shadows -> merged shadow goes from {angleShadowFrom}° to {angleShadowTo}°");
             }
         }
 
