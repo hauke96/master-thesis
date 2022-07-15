@@ -85,6 +85,14 @@ namespace Wavefront
                 return;
             }
 
+            if (!IsEventValid(wavefront.RootVertex.Position, currentVertex.Position)
+                || PositionToPredecessor.ContainsKey(currentVertex.Position))
+            {
+                Console.WriteLine("  Event not valid, ignore vertex");
+                wavefront.IgnoreVertex(currentVertex);
+                return;
+            }
+
             if (Equals(currentVertex.Position, targetPosition))
             {
                 Console.WriteLine($"  Target reached ({currentVertex.Position})");
@@ -96,14 +104,6 @@ namespace Wavefront
             }
 
             Console.WriteLine($"  Next vertex at {currentVertex.Position}");
-
-            if (!IsEventValid(wavefront.RootVertex.Position, currentVertex.Position)
-                || PositionToPredecessor.ContainsKey(currentVertex.Position))
-            {
-                Console.WriteLine("  Event not valid, ignore vertex");
-                wavefront.IgnoreVertex(currentVertex);
-                return;
-            }
 
             wavefront.RemoveNextVertex();
             Console.WriteLine("  Drop vertex from wavefront");
@@ -165,10 +165,10 @@ namespace Wavefront
 
             // A neighbor is in the shadow when it's between min- and magAngle OR when we "fake" the neighbor because
             // the current vertex only has one.
-            var rightNeighborInShadow = angleToRightNeighbor != minAngle && angleToRightNeighbor != maxAngle &&
-                wavefront.Contains(rightNeighbor) || Equals(rightNeighbor, currentVertex.LeftNeighbor?.ToPosition());
-            var leftNeighborInShadow = angleToLeftNeighbor != minAngle && angleToLeftNeighbor != maxAngle &&
-                wavefront.Contains(leftNeighbor) || Equals(leftNeighbor, currentVertex.RightNeighbor?.ToPosition());
+            var rightNeighborInShadow = angleToRightNeighbor != minAngle && angleToRightNeighbor != maxAngle ||
+                                        Equals(rightNeighbor, currentVertex.LeftNeighbor?.ToPosition());
+            var leftNeighborInShadow = angleToLeftNeighbor != minAngle && angleToLeftNeighbor != maxAngle ||
+                                       Equals(leftNeighbor, currentVertex.RightNeighbor?.ToPosition());
             Console.WriteLine($"  In shadow: right={rightNeighborInShadow}, left={leftNeighborInShadow}");
 
             // Shadows of one line segment is restricted to 180° so we can simply determine the enclosing angle here.
@@ -185,6 +185,14 @@ namespace Wavefront
                 var angleCurrentVertexToRightNeighbor = currentVertex.Position.GetBearing(rightNeighbor);
                 Angle.GetEnclosingAngles(angleCurrentVertexToRightNeighbor, angleToCurrentVertex, out var wavefrontFrom,
                     out var wavefrontTo);
+
+                // We reached the end of a line -> Create new wavefront of 180° but in the area that's not covered by the current wavefront
+                if (!Equals(rightNeighbor, currentVertex.RightNeighbor?.ToPosition()) &&
+                    (Math.Abs(wavefront.FromAngle - wavefrontFrom) < 0.01 ||
+                     Math.Abs(wavefront.ToAngle - wavefrontTo) < 0.01))
+                {
+                    (wavefrontFrom, wavefrontTo) = (wavefrontTo, wavefrontFrom);
+                }
 
                 createdWavefrontAtCurrentVertex |= AddNewWavefront(Vertices, currentVertex,
                     wavefront.DistanceTo(currentVertex.Position), wavefrontFrom,
@@ -210,6 +218,14 @@ namespace Wavefront
                 var angleCurrentVertexToLeftNeighbor = currentVertex.Position.GetBearing(leftNeighbor);
                 Angle.GetEnclosingAngles(angleCurrentVertexToLeftNeighbor, angleToCurrentVertex, out var wavefrontFrom,
                     out var wavefrontTo);
+
+                // We reached the end of a line -> Create new wavefront of 180° but in the area that's not covered by the current wavefront
+                if (!Equals(leftNeighbor, currentVertex.LeftNeighbor?.ToPosition()) &&
+                    (Math.Abs(wavefront.FromAngle - wavefrontFrom) < 0.01 ||
+                     Math.Abs(wavefront.ToAngle - wavefrontTo) < 0.01))
+                {
+                    (wavefrontFrom, wavefrontTo) = (wavefrontTo, wavefrontFrom);
+                }
 
                 createdWavefrontAtCurrentVertex |= AddNewWavefront(Vertices, currentVertex,
                     wavefront.DistanceTo(currentVertex.Position), wavefrontFrom,

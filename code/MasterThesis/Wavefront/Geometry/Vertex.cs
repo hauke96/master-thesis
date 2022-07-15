@@ -117,4 +117,9 @@ public class Vertex
     {
         return HashCode.Combine(Position, RootGeometry);
     }
+
+    public override string ToString()
+    {
+        return Position.ToString();
+    }
 }
