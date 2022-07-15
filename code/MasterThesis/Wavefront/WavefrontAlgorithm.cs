@@ -1,4 +1,5 @@
 using Mars.Common;
+using Mars.Common.Core;
 using NetTopologySuite.Geometries;
 using ServiceStack;
 using Wavefront.Geometry;
@@ -152,8 +153,6 @@ namespace Wavefront
             var angleToRightNeighbor = wavefront.RootVertex.Position.GetBearing(rightNeighbor);
             var angleToLeftNeighbor = wavefront.RootVertex.Position.GetBearing(leftNeighbor);
             var angleToCurrentVertex = wavefront.RootVertex.Position.GetBearing(currentVertex.Position);
-            var minAngle = Math.Min(Math.Min(angleToRightNeighbor, angleToLeftNeighbor), angleToCurrentVertex);
-            var maxAngle = Math.Max(Math.Max(angleToRightNeighbor, angleToLeftNeighbor), angleToCurrentVertex);
 
             double rightShadowFrom = Double.NaN;
             double rightShadowTo = Double.NaN;
@@ -163,12 +162,14 @@ namespace Wavefront
             var rightNeighborHasBeenVisited = wavefront.HasBeenVisited(rightNeighbor);
             var leftNeighborHasBeenVisited = wavefront.HasBeenVisited(leftNeighbor);
 
-            // A neighbor is in the shadow when it's between min- and magAngle OR when we "fake" the neighbor because
-            // the current vertex only has one.
-            var rightNeighborInShadow = angleToRightNeighbor != minAngle && angleToRightNeighbor != maxAngle ||
-                                        Equals(rightNeighbor, currentVertex.LeftNeighbor?.ToPosition());
-            var leftNeighborInShadow = angleToLeftNeighbor != minAngle && angleToLeftNeighbor != maxAngle ||
-                                       Equals(leftNeighbor, currentVertex.RightNeighbor?.ToPosition());
+            // A neighbor is "in the shadow" when we "fake" the neighbor because the current vertex only has one
+            // OR when its angle is enclosed by the angle between the current vertex and the other neighbor.
+            var rightNeighborInShadow = Equals(rightNeighbor, currentVertex.LeftNeighbor?.ToPosition()) ||
+                                        Angle.IsEnclosedBy(angleToCurrentVertex, angleToRightNeighbor,
+                                            angleToLeftNeighbor);
+            var leftNeighborInShadow = Equals(leftNeighbor, currentVertex.RightNeighbor?.ToPosition()) ||
+                                       Angle.IsEnclosedBy(angleToCurrentVertex, angleToLeftNeighbor,
+                                           angleToRightNeighbor);
             Console.WriteLine($"  In shadow: right={rightNeighborInShadow}, left={leftNeighborInShadow}");
 
             // Shadows of one line segment is restricted to 180° so we can simply determine the enclosing angle here.

@@ -13,12 +13,18 @@ public class Angle
 
         if (a <= b)
         {
-            return a <= angle && angle <= b;
+            return a < angle && angle < b;
         }
 
         // We exceed the 0° border: Check if "angle" is NOT between b and a (which is the opposite part of the
         // imaginary circle and has no overlap with the 0° border.
-        return !(b < angle && angle < a);
+        return !(b <= angle && angle <= a);
+    }
+
+    public static bool IsEnclosedBy(double a, double angle, double b)
+    {
+        GetEnclosingAngles(a, b, out a, out b);
+        return IsBetween(a, angle, b);
     }
 
     public static double Difference(double a, double b)
