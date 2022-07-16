@@ -185,7 +185,7 @@ namespace Wavefront
 
             double angleWavefrontFrom = Double.NaN;
             double angleWavefrontTo = Double.NaN;
-            if (bothNeighborsOnWestSide)
+            if (bothNeighborsOnWestSide && Angle.Difference(angleCurrentWavefrontTo, 360) > 0.01)
             {
                 angleWavefrontFrom = Math.Max(angleVertexToRightNeighbor, angleVertexToLeftNeighbor);
                 angleWavefrontTo = 360;
@@ -193,7 +193,7 @@ namespace Wavefront
                 // angleShadowFrom = Math.Min(angleRootToRightNeighbor, angleRootToLeftNeighbor);
                 // angleShadowTo = 360;
             }
-            else if (bothNeighborsOnEastSide)
+            else if (bothNeighborsOnEastSide && Angle.Difference(angleCurrentWavefrontFrom, 0) > 0.01)
             {
                 angleWavefrontFrom = 0;
                 angleWavefrontTo = Math.Min(angleVertexToRightNeighbor, angleVertexToLeftNeighbor);
@@ -221,8 +221,8 @@ namespace Wavefront
             }
 
             var neighborWillBeVisitedByWavefront = wavefrontRootIsSecondLastLineVertex &&
-                                                   Angle.IsBetween(wavefront.FromAngle, angleWavefrontFrom,
-                                                       wavefront.ToAngle);
+                                                   Angle.IsBetween(angleCurrentWavefrontFrom, angleWavefrontFrom,
+                                                       angleCurrentWavefrontTo);
             var newWavefrontNeeded = !double.IsNaN(angleWavefrontFrom) && !double.IsNaN(angleWavefrontTo) &&
                                      !neighborWillBeVisitedByWavefront;
 

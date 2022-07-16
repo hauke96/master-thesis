@@ -29,11 +29,14 @@ public class Angle
 
     public static double Difference(double a, double b)
     {
-        a = Normalize(a);
-        b = Normalize(b);
+        a = StrictNormalize(a);
+        b = StrictNormalize(b);
         return a <= b ? b - a : 360 - a + b;
     }
 
+    /// <summary>
+    /// Normalizes the angle. For convenience, 360° stays 360°.
+    /// </summary>
     public static double Normalize(double a)
     {
         if (a == 360)
@@ -41,7 +44,15 @@ public class Angle
             return a;
         }
 
-        return ((a % 360) + 360) % 360;
+        return StrictNormalize(a);
+    }
+
+    /// <summary>
+    /// Like "Normalize(double)" but 360° will be turned into 0.
+    /// </summary>
+    public static double StrictNormalize(double a)
+    {
+        return (a % 360 + 360) % 360;
     }
 
     /// <summary>

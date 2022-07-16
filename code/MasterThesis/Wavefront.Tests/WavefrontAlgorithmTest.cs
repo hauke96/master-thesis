@@ -127,7 +127,7 @@ namespace Wavefront.Tests
                     var sourceVertex = new Vertex(multiVertexLineObstacle[0], multiVertexLineObstacle);
                     var targetVertex = new Vertex(targetPosition);
                     vertices.Add(targetVertex);
-                    
+
                     var wavefront = Wavefront.New(0, 90, sourceVertex, vertices, 1)!;
                     wavefrontAlgorithm.Wavefronts.Add(wavefront);
 
@@ -333,7 +333,7 @@ namespace Wavefront.Tests
                 }
 
                 [Test]
-                public void EndOfLineCreatesNew180DegreeWavefront()
+                public void EndOfLine_CreatesNew180DegreeWavefront()
                 {
                     var wavefront = Wavefront.New(180, 270, new Vertex(multiVertexLineObstacle[1]),
                         wavefrontAlgorithm.Vertices, 10)!;
@@ -513,6 +513,26 @@ namespace Wavefront.Tests
                     Assert.IsTrue(Math.Abs(w.FromAngle - 225) < 1);
                     Assert.IsTrue(Math.Abs(w.ToAngle - 270) < 1);
                     Assert.AreEqual(multiVertexLineObstacle[1], w.RootVertex.Coordinate);
+                }
+
+                [Test]
+                public void InnerCorner_NotCreatingNewWavefront()
+                {
+                    var wavefront = Wavefront.New(0, 90,
+                        new Vertex(multiVertexLineObstacle[0], multiVertexLineObstacle), wavefrontAlgorithm.Vertices,
+                        1)!;
+                    wavefrontAlgorithm.Wavefronts.Add(wavefront);
+                    var vertex = new Vertex(multiVertexLineObstacle[1], multiVertexLineObstacle);
+
+                    wavefrontAlgorithm.HandleNeighbors(vertex, wavefront, out var angleShadowFrom,
+                        out var angleShadowTo, out var createdWavefront);
+
+                    Assert.False(createdWavefront);
+                    Assert.IsNaN(angleShadowFrom);
+                    Assert.IsNaN(angleShadowTo);
+
+                    Assert.AreEqual(1, wavefrontAlgorithm.Wavefronts.Count);
+                    Assert.AreEqual(wavefront, wavefrontAlgorithm.Wavefronts[0]);
                 }
             }
 

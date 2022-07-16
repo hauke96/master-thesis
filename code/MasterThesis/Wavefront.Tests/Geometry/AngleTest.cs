@@ -74,6 +74,17 @@ public class AngleTest
         Assert.AreEqual(360, Angle.Normalize(360));
         Assert.AreEqual(1, Angle.Normalize(361));
     }
+    [Test]
+    public void StrictNormalize()
+    {
+        Assert.AreEqual(90, Angle.StrictNormalize(90));
+        Assert.AreEqual(0, Angle.StrictNormalize(0));
+        Assert.AreEqual(0, Angle.StrictNormalize(720));
+        Assert.AreEqual(90, Angle.StrictNormalize(-270));
+        Assert.AreEqual(180, Angle.StrictNormalize(-180));
+        Assert.AreEqual(0, Angle.StrictNormalize(360));
+        Assert.AreEqual(1, Angle.StrictNormalize(361));
+    }
 
     [Test]
     public void Difference()
