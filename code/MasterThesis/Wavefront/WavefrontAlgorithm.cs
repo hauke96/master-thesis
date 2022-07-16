@@ -197,7 +197,7 @@ namespace Wavefront
 
             Log.note($"bothNeighborsOnWestSide={bothNeighborsOnWestSide}");
             Log.note($"bothNeighborsOnEastSide={bothNeighborsOnEastSide}");
-            Log.note($"neighborsOnBothSides={currentVertexIsNeighbor}");
+            Log.note($"currentVertexIsNeighbor={currentVertexIsNeighbor}");
 
             double angleWavefrontFrom = Double.NaN;
             double angleWavefrontTo = Double.NaN;
@@ -336,8 +336,8 @@ namespace Wavefront
              * old wavefront and create two new ones. One from 300° to 360° and one from 0° to 40°. This simply
              * makes range checks easier and has no further reason.
              */
-            Log.i($"Angles for new wavefront exceed 0° border? {fromAngle > toAngle}");
-            if (fromAngle > toAngle)
+            Log.i($"Angles for new wavefront (from={fromAngle}°, to={toAngle}°) exceed 0° border? {Angle.IsBetween(fromAngle, 0, toAngle)}");
+            if (Angle.IsBetween(fromAngle, 0, toAngle))
             {
                 newWavefrontCreated |= AddWavefrontIfValid(vertices, distanceToRootFromSource, root, fromAngle, 360);
                 newWavefrontCreated |= AddWavefrontIfValid(vertices, distanceToRootFromSource, root, 0, toAngle);

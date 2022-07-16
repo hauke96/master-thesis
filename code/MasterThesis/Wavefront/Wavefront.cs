@@ -63,7 +63,9 @@ public class Wavefront
             .FindAll(vertex =>
             {
                 var bearing = RootVertex.Position.GetBearing(vertex.Position);
-                return !Equals(rootVertex, vertex) && Angle.LowerEqual(FromAngle, bearing) && Angle.LowerEqual(bearing, ToAngle);
+                return !Equals(rootVertex, vertex) && (Angle.IsBetween(FromAngle, bearing, ToAngle) ||
+                                                       Angle.AreEqual(FromAngle, bearing) ||
+                                                       Angle.AreEqual(ToAngle, bearing));
             });
         vertices
             .Sort((v1, v2) =>
