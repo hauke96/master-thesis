@@ -11,14 +11,14 @@ public class Angle
         b = Normalize(b);
         angle = Normalize(angle);
 
-        if (a <= b)
+        if (LowerEqual(a, b))
         {
             return a < angle && angle < b;
         }
 
         // We exceed the 0° border: Check if "angle" is NOT between b and a (which is the opposite part of the
         // imaginary circle and has no overlap with the 0° border.
-        return !(b <= angle && angle <= a);
+        return !(LowerEqual(b, angle) && LowerEqual(angle, a));
     }
 
     public static bool IsEnclosedBy(double a, double angle, double b)
@@ -84,5 +84,36 @@ public class Angle
     public static double GetAbsoluteValue(double fromAngle, double toAngle)
     {
         return Normalize(toAngle) - Normalize(fromAngle);
+    }
+
+    /// <summary>
+    /// Returns a == b. The equality check is made with a little bit of tolerance to compensate floating point inaccuracy.
+    /// </summary>
+    public static bool AreEqual(double a, double b)
+    {
+        a = StrictNormalize(a);
+        b = StrictNormalize(b);
+        GetEnclosingAngles(a, b, out a, out b);
+        return Difference(a, b) < 0.01;
+    }
+
+    /// <summary>
+    /// Returns a >= b. The equality check is made with a little bit of tolerance to compensate floating point inaccuracy.
+    /// </summary>
+    public static bool GreaterEqual(double a, double b)
+    {
+        a = Normalize(a);
+        b = Normalize(b);
+        return AreEqual(a, b) || a > b;
+    }
+
+    /// <summary>
+    /// Returns a <= b. The equality check is made with a little bit of tolerance to compensate floating point inaccuracy.
+    /// </summary>
+    public static bool LowerEqual(double a, double b)
+    {
+        a = Normalize(a);
+        b = Normalize(b);
+        return AreEqual(a, b) || a < b;
     }
 }

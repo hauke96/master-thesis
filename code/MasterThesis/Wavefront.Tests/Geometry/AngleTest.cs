@@ -56,7 +56,7 @@ public class AngleTest
         Assert.True(Angle.IsEnclosedBy(20, 10, -10));
         Assert.True(Angle.IsEnclosedBy(350, 10, 380));
         Assert.True(Angle.IsEnclosedBy(380, 10, 350));
-        
+
         Assert.False(Angle.IsEnclosedBy(10, 10, 20));
         Assert.False(Angle.IsEnclosedBy(0, 20, 20));
         Assert.False(Angle.IsEnclosedBy(0, 90, 200));
@@ -74,6 +74,7 @@ public class AngleTest
         Assert.AreEqual(360, Angle.Normalize(360));
         Assert.AreEqual(1, Angle.Normalize(361));
     }
+
     [Test]
     public void StrictNormalize()
     {
@@ -133,5 +134,56 @@ public class AngleTest
         Assert.False(Angle.Overlap(40, 90, 100, 10));
         Assert.False(Angle.Overlap(10, 10, 20, 30));
         Assert.False(Angle.Overlap(10, 20, 30, 30));
+    }
+
+    [Test]
+    public void AreEqual()
+    {
+        Assert.True(Angle.AreEqual(0, 0));
+        Assert.True(Angle.AreEqual(0, 0.01));
+        Assert.True(Angle.AreEqual(1.01, 1));
+        Assert.True(Angle.AreEqual(10, 10));
+        Assert.True(Angle.AreEqual(10, 10.001));
+        Assert.True(Angle.AreEqual(9.99999, 10.001));
+        Assert.True(Angle.AreEqual(360, 0));
+        Assert.True(Angle.AreEqual(0, 360));
+        Assert.True(Angle.AreEqual(1000, 280));
+
+        Assert.False(Angle.AreEqual(0, 0.010000001));
+        Assert.False(Angle.AreEqual(0, 1));
+        Assert.False(Angle.AreEqual(1.01000001, 1));
+        Assert.False(Angle.AreEqual(360, 1));
+        Assert.False(Angle.AreEqual(359, 0));
+    }
+
+    [Test]
+    public void GreaterEqual()
+    {
+        Assert.True(Angle.GreaterEqual(1, 0));
+        Assert.True(Angle.GreaterEqual(1, 0.9899999999));
+        Assert.True(Angle.GreaterEqual(1, 1.01));
+        Assert.True(Angle.GreaterEqual(360, 0));
+        Assert.True(Angle.GreaterEqual(0, 360));
+        Assert.True(Angle.GreaterEqual(1, 360.1));
+
+        Assert.False(Angle.GreaterEqual(1, 1.01000001));
+        Assert.False(Angle.GreaterEqual(1, 359.9));
+        Assert.False(Angle.GreaterEqual(1, 360));
+        Assert.False(Angle.GreaterEqual(359.9, 360));
+    }
+
+    [Test]
+    public void LowerEqual()
+    {
+        Assert.True(Angle.LowerEqual(0, 1));
+        Assert.True(Angle.LowerEqual(360, 0));
+        Assert.True(Angle.LowerEqual(0, 360));
+        Assert.True(Angle.LowerEqual(1.01, 1));
+        Assert.True(Angle.LowerEqual(360.1, 1));
+        Assert.True(Angle.LowerEqual(359.9, 360));
+
+        Assert.False(Angle.LowerEqual(359.9, 1));
+        Assert.False(Angle.LowerEqual(360, 1));
+        Assert.False(Angle.LowerEqual(1.01000001, 1));
     }
 }

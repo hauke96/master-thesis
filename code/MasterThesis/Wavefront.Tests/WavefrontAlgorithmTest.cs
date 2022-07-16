@@ -516,10 +516,30 @@ namespace Wavefront.Tests
                 }
 
                 [Test]
-                public void InnerCorner_NotCreatingNewWavefront()
+                public void InnerCornerOnLine_NotCreatingNewWavefront()
                 {
                     var wavefront = Wavefront.New(0, 90,
                         new Vertex(multiVertexLineObstacle[0], multiVertexLineObstacle), wavefrontAlgorithm.Vertices,
+                        1)!;
+                    wavefrontAlgorithm.Wavefronts.Add(wavefront);
+                    var vertex = new Vertex(multiVertexLineObstacle[1], multiVertexLineObstacle);
+
+                    wavefrontAlgorithm.HandleNeighbors(vertex, wavefront, out var angleShadowFrom,
+                        out var angleShadowTo, out var createdWavefront);
+
+                    Assert.False(createdWavefront);
+                    Assert.IsNaN(angleShadowFrom);
+                    Assert.IsNaN(angleShadowTo);
+
+                    Assert.AreEqual(1, wavefrontAlgorithm.Wavefronts.Count);
+                    Assert.AreEqual(wavefront, wavefrontAlgorithm.Wavefronts[0]);
+                }
+
+                [Test]
+                public void InnerCorner_NotCreatingNewWavefront()
+                {
+                    var wavefront = Wavefront.New(0, 90,
+                        new Vertex(6.75, 3.25), wavefrontAlgorithm.Vertices,
                         1)!;
                     wavefrontAlgorithm.Wavefronts.Add(wavefront);
                     var vertex = new Vertex(multiVertexLineObstacle[1], multiVertexLineObstacle);

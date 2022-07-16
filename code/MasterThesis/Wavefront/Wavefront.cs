@@ -7,8 +7,8 @@ namespace Wavefront;
 
 public class Wavefront
 {
-    public double FromAngle { get; private set; }
-    public double ToAngle { get; private set; }
+    public double FromAngle { get; }
+    public double ToAngle { get; }
     public Vertex RootVertex { get; }
 
     public List<Vertex> RelevantVertices => new(_possiblyVisibleVertices);
@@ -63,7 +63,7 @@ public class Wavefront
             .FindAll(vertex =>
             {
                 var bearing = RootVertex.Position.GetBearing(vertex.Position);
-                return !Equals(rootVertex, vertex) && FromAngle <= bearing && bearing <= ToAngle;
+                return !Equals(rootVertex, vertex) && Angle.LowerEqual(FromAngle, bearing) && Angle.LowerEqual(bearing, ToAngle);
             });
         vertices
             .Sort((v1, v2) =>
@@ -126,31 +126,5 @@ public class Wavefront
     public void IgnoreVertex(Vertex vertex)
     {
         _possiblyVisibleVertices = new Queue<Vertex>(_possiblyVisibleVertices.Where(v => v != vertex));
-    }
-
-    public void SetAngles(double fromAngle, double toAngle)
-    {
-        // We want to reuse the Vertices field, therefore the angle area is not allowed to become larger but only smaller.
-        if (fromAngle < FromAngle)
-        {
-            throw new Exception($"New fromAngle (-> {fromAngle}) is smaller than the old fromAngle (-> {FromAngle}.");
-        }
-
-        if (toAngle > toAngle)
-        {
-            throw new Exception($"New toAngle (-> {toAngle}) is larger than the old toAngle (-> {ToAngle}.");
-        }
-
-        FromAngle = fromAngle;
-        ToAngle = toAngle;
-
-        FilterAndEnqueueVertices(RootVertex, RelevantVertices);
-        // TODO handle possiblyVisibleVertices is empty. Maybe return boolean?
-    }
-
-    public bool Contains(Position? rightNeighbor)
-    {
-        return rightNeighbor != null && (RelevantVertices.Any(vertex => vertex.Position.Equals(rightNeighbor)) ||
-                                         HasBeenVisited(rightNeighbor));
     }
 }
