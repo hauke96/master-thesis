@@ -2,6 +2,8 @@ namespace Wavefront.Geometry;
 
 public class Angle
 {
+    private const double FLOAT_TOLERANCE = 0.0001;
+
     /// <summary>
     /// Checks if the angle "angle" is between a and b.
     /// </summary>
@@ -94,7 +96,7 @@ public class Angle
         a = StrictNormalize(a);
         b = StrictNormalize(b);
         GetEnclosingAngles(a, b, out a, out b);
-        return Difference(a, b) < 0.01;
+        return Difference(a, b) < FLOAT_TOLERANCE;
     }
 
     /// <summary>

@@ -71,9 +71,7 @@ public class Wavefront
                 var distanceInMToC1 = RootVertex.Position.DistanceInMTo(Position.CreateGeoPosition(v1.X, v1.Y));
                 var distanceInMToC2 = RootVertex.Position.DistanceInMTo(Position.CreateGeoPosition(v2.X, v2.Y));
 
-                return distanceInMToC1 - distanceInMToC2 > 0
-                    ? 1
-                    : -1;
+                return (int)(distanceInMToC1 - distanceInMToC2);
             });
 
         _possiblyVisibleVertices.Clear();

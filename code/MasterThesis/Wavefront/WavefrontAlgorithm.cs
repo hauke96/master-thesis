@@ -70,7 +70,7 @@ namespace Wavefront
         public void ProcessNextEvent(Position targetPosition)
         {
             // TODO Use sorted queue (prioroty queue?)
-            Wavefronts.Sort((w1, w2) => w1.DistanceToNextVertex() - w2.DistanceToNextVertex() > 0 ? 1 : -1);
+            Wavefronts.Sort((w1, w2) => (int)(w1.DistanceToNextVertex() - w2.DistanceToNextVertex()));
             var wavefront = Wavefronts[0];
             var currentVertex = wavefront.GetNextVertex();
 
@@ -88,7 +88,9 @@ namespace Wavefront
             if (!IsEventValid(wavefront.RootVertex.Position, currentVertex.Position)
                 || PositionToPredecessor.ContainsKey(currentVertex.Position))
             {
-                Log.i("Event not valid, ignore vertex");
+                Log.i($"Ignore event at {currentVertex.Position}: " +
+                      $"invalid={!IsEventValid(wavefront.RootVertex.Position, currentVertex.Position)}, " +
+                      $"already visited={PositionToPredecessor.ContainsKey(currentVertex.Position)}");
                 wavefront.IgnoreVertex(currentVertex);
                 return;
             }
@@ -308,13 +310,6 @@ namespace Wavefront
         public bool AddWavefrontIfValid(List<Vertex> relevantVertices, double distanceFromSourceToVertex,
             Vertex rootVertex, double fromAngle, double toAngle)
         {
-            // Ignore angles that are nearly the same
-            if (Angle.AreEqual(fromAngle, toAngle))
-            {
-                Log.i($"Angles {fromAngle}° and {toAngle}° are nearly the same -> don't create wavefront");
-                return false;
-            }
-
             toAngle = Angle.AreEqual(toAngle, 0) ? 360 : toAngle;
             var newWavefront = Wavefront.New(fromAngle, toAngle, rootVertex, relevantVertices,
                 distanceFromSourceToVertex);
