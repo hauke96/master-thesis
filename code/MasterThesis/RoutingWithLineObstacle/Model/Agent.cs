@@ -3,6 +3,7 @@ using Mars.Components.Layers;
 using Mars.Interfaces.Agents;
 using Mars.Interfaces.Annotations;
 using Mars.Interfaces.Environments;
+using Mars.Interfaces.Layers;
 using NetTopologySuite.Geometries;
 using RoutingWithLineObstacle.Layer;
 using RoutingWithLineObstacle.Wavefront;
@@ -62,7 +63,7 @@ namespace RoutingWithLineObstacle.Model
             // SharedEnvironment.Environment.Move(this, 45, 10);
             SharedEnvironment.Environment.MoveTowards(this, bearing, STEP_SIZE);
 
-            Thread.Sleep(2);
+            // Thread.Sleep(TimeSpan.FromMilliseconds(0.5));
         }
 
         private void DetermineNewWaypoints()
@@ -70,11 +71,17 @@ namespace RoutingWithLineObstacle.Model
             Target.NewPosition();
             // ResetPosition();
 
+            if (Target.Position.Y >= 0.12)
+            {
+                SharedEnvironment.Environment.Remove(this);
+                return;
+            }
+
             var obstacleGeometries = ObstacleLayer.Features.Map(f => f.VectorStructured.Geometry);
             var wavefrontAlgorithm = new WavefrontAlgorithm(obstacleGeometries);
             try
             {
-            Waypoints = new Queue<Position>(wavefrontAlgorithm.Route(Position, Target.Position));
+                Waypoints = new Queue<Position>(wavefrontAlgorithm.Route(Position, Target.Position));
             }
             catch (Exception e)
             {

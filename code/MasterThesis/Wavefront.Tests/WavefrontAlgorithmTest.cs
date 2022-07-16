@@ -22,6 +22,8 @@ namespace Wavefront.Tests
             [SetUp]
             public void Setup()
             {
+                Log.Init();
+                
                 multiVertexLineObstacle = new LineString(new[]
                 {
                     new Coordinate(6, 3),
@@ -137,6 +139,49 @@ namespace Wavefront.Tests
                         wavefrontAlgorithm.PositionToPredecessor[targetPosition]);
                     Assert.AreEqual(0, wavefrontAlgorithm.Wavefronts.Count);
                     Assert.AreEqual(0, wavefront.RelevantVertices.Count);
+                }
+                
+                [Test]
+                public void CastingShadowWithRootBeingNeighborOfShadowEdge()
+                {
+                    // Real world problem: The shadow ends at 180° but the wavefront ends there as well -> There was a
+                    // problem adjusting the wavefront
+                    
+                    var vertices = new List<Vertex>();
+                    var line = new LineString(new[]
+                    {
+                        new Coordinate(0.05200529027, 0.04528037038),
+                        new Coordinate(0.05200350079, 0.0318479355),
+                        new Coordinate(0.06326695096, 0.03184643498),
+                        new Coordinate(0.06326760583, 0.03676209134),
+                        new Coordinate(0.06327136644, 0.06499057746),
+                    });
+                    line.Coordinates.Each(c => vertices.Add(new Vertex(c, line)));
+                    vertices.Add(new Vertex(0.0820386, 0.0409633));
+                    vertices.Add(new Vertex(0.0104371, 0.082151));
+                    
+                    var sourceVertex = vertices[0];
+                    var vertex = vertices[2];
+
+                    var wavefront = Wavefront.New(-90.00763298106523, 180.00763298898323, sourceVertex, vertices, 1)!;
+                    wavefrontAlgorithm.Wavefronts.Add(wavefront);
+                    
+                    wavefront.RemoveNextVertex();
+                    Assert.IsTrue(wavefront.HasBeenVisited(vertices[1].Position));
+                    wavefront.RemoveNextVertex();
+                    Assert.IsTrue(wavefront.HasBeenVisited(vertices[3].Position));
+                    Assert.AreEqual(vertex, wavefront.GetNextVertex());
+
+                    wavefrontAlgorithm.ProcessNextEvent(targetPosition);
+
+                    Assert.AreEqual(2, wavefrontAlgorithm.Wavefronts.Count);
+                    var w = wavefronts[0];
+                    Assert.AreEqual(wavefront.FromAngle, w.FromAngle, 0.1);
+                    Assert.AreEqual(360, w.ToAngle, 0.1);
+                    
+                    w = wavefronts[1];
+                    Assert.AreEqual(0, w.FromAngle, 0.1);
+                    Assert.AreEqual(127.1, w.ToAngle, 0.1);
                 }
             }
 

@@ -29,9 +29,7 @@ namespace RoutingWithLineObstacle.Layer
 
                     Console.WriteLine($"  Distance: {distanceInMToC1}({c1}) / /{distanceInMToC2}({c2})");
 
-                    return distanceInMToC1 - distanceInMToC2 > 0
-                        ? 1
-                        : -1;
+                    return (int)(distanceInMToC1 - distanceInMToC2);
                 });
 
             Console.WriteLine($"  Nearest coordinate: {coordinates[0]}");
@@ -56,9 +54,7 @@ namespace RoutingWithLineObstacle.Layer
 
                 Console.WriteLine($"  Distance: {distanceInMToC1}({c1}) / /{distanceInMToC2}({c2})");
 
-                return distanceInMToC1 - distanceInMToC2 > 0
-                    ? 1
-                    : -1;
+                return (int)(distanceInMToC1 - distanceInMToC2);
             });
 
             return coordinates.Map(c => Position.CreateGeoPosition(c.X, c.Y));
