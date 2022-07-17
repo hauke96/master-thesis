@@ -88,7 +88,7 @@ namespace Wavefront.Tests
                 public void EventVertexHasAlreadyBeenProcessed()
                 {
                     var vertices = new List<Vertex>();
-                    var nextVertex = new Vertex(multiVertexLineObstacle.Coordinates[0]);
+                    var nextVertex = new Vertex(multiVertexLineObstacle.Coordinates[0].ToPosition());
                     vertices.Add(nextVertex);
                     var wavefront = Wavefront.New(0, 90, new Vertex(5, 2), vertices, 1)!;
                     wavefrontAlgorithm.Wavefronts.Add(wavefront);
@@ -380,7 +380,7 @@ namespace Wavefront.Tests
                 [Test]
                 public void EndOfLine_CreatesNew180DegreeWavefront()
                 {
-                    var wavefront = Wavefront.New(180, 270, new Vertex(multiVertexLineObstacle[1]),
+                    var wavefront = Wavefront.New(180, 270, new Vertex(multiVertexLineObstacle[1].ToPosition()),
                         wavefrontAlgorithm.Vertices, 10)!;
                     wavefronts.Add(wavefront);
                     var vertex = new Vertex(multiVertexLineObstacle[0], multiVertexLineObstacle);
@@ -413,7 +413,7 @@ namespace Wavefront.Tests
                 [Test]
                 public void StartingFromEndOfLine_CreatesNewWavefront()
                 {
-                    var wavefront = Wavefront.New(90, 180, new Vertex(multiVertexLineObstacle[0]),
+                    var wavefront = Wavefront.New(90, 180, new Vertex(multiVertexLineObstacle[0].ToPosition()),
                         wavefrontAlgorithm.Vertices, 10)!;
                     wavefronts.Add(wavefront);
                     var vertex = new Vertex(multiVertexLineObstacle[1], multiVertexLineObstacle);

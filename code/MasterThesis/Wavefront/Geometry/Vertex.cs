@@ -11,14 +11,19 @@ public class Vertex
     {
         get => _position;
 
-        private set
+        private init
         {
             _position = value;
-            Coordinate = new Coordinate(_position.X, _position.Y);
+            _coordinate = new Coordinate(_position.X, _position.Y);
         }
     }
 
-    public Coordinate Coordinate { get; private set; }
+    private Coordinate _coordinate;
+
+    public Coordinate Coordinate
+    {
+        get => _coordinate;
+    }
 
     public double X => Position.X;
     public double Y => Position.Y;
@@ -26,7 +31,7 @@ public class Vertex
     /// <summary>
     /// The geometry this vertex belongs to, e.g. a LineString.
     /// </summary>
-    public NetTopologySuite.Geometries.Geometry? RootGeometry { get; }
+    private readonly NetTopologySuite.Geometries.Geometry? _rootGeometry;
 
     /// <summary>
     /// Determines the right neighbor within the Geometry. Think of the geometry as a list of coordinates, this returns
@@ -36,14 +41,14 @@ public class Vertex
     {
         get
         {
-            if (RootGeometry == null)
+            if (_rootGeometry == null)
             {
                 return null;
             }
 
             // TODO handle polygons/closed lines
 
-            var coordinates = RootGeometry.Coordinates;
+            var coordinates = _rootGeometry.Coordinates;
             var indexOfThisVertex = Array.IndexOf(coordinates, Coordinate);
             if (indexOfThisVertex + 1 >= coordinates.Length)
             {
@@ -63,14 +68,14 @@ public class Vertex
     {
         get
         {
-            if (RootGeometry == null)
+            if (_rootGeometry == null)
             {
                 return null;
             }
 
             // TODO handle polygons/closed lines
 
-            var coordinates = RootGeometry.Coordinates;
+            var coordinates = _rootGeometry.Coordinates;
             var indexOfThisVertex = Array.IndexOf(coordinates, Coordinate);
             if (indexOfThisVertex == 0)
             {
@@ -87,11 +92,6 @@ public class Vertex
         Position = position;
     }
 
-    public Vertex(Coordinate position)
-    {
-        Position = Position.CreateGeoPosition(position.X, position.Y);
-    }
-
     public Vertex(double x, double y)
     {
         Position = Position.CreateGeoPosition(x, y);
@@ -100,7 +100,7 @@ public class Vertex
     public Vertex(Coordinate coordinate, NetTopologySuite.Geometries.Geometry rootGeometry)
     {
         Position = Position.CreateGeoPosition(coordinate.X, coordinate.Y);
-        RootGeometry = rootGeometry;
+        _rootGeometry = rootGeometry;
     }
 
     public override bool Equals(object? obj)
@@ -110,12 +110,12 @@ public class Vertex
 
     public bool Equals(Vertex? other)
     {
-        return other != null && Position.Equals(other.Position) && Equals(RootGeometry, other.RootGeometry);
+        return other != null && Position.Equals(other.Position) && Equals(_rootGeometry, other._rootGeometry);
     }
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(Position, RootGeometry);
+        return HashCode.Combine(Position, _rootGeometry);
     }
 
     public override string ToString()
