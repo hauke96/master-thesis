@@ -163,7 +163,7 @@ namespace Wavefront.Tests
                     var sourceVertex = vertices[0];
                     var vertex = vertices[2];
 
-                    var wavefront = Wavefront.New(-90.00763298106523, 180.00763298898323, sourceVertex, vertices, 1)!;
+                    var wavefront = Wavefront.New(269.992367019, 180.00763298898323, sourceVertex, vertices, 1)!;
                     wavefrontAlgorithm.Wavefronts.Add(wavefront);
                     
                     wavefront.RemoveNextVertex();
@@ -335,7 +335,7 @@ namespace Wavefront.Tests
                 {
                     Assert.True(wavefronts.IsEmpty());
 
-                    wavefrontAlgorithm.AddWavefrontIfValid(wavefrontAlgorithm.Vertices, 10, rootVertex, 190, 0);
+                    wavefrontAlgorithm.AddWavefrontIfValid(wavefrontAlgorithm.Vertices, 10, rootVertex, 190, 360);
 
                     Assert.AreEqual(1, wavefronts.Count);
                     var wavefront = wavefronts[0];

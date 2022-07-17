@@ -308,30 +308,14 @@ namespace Wavefront
             }
         }
 
-        public bool AddWavefrontIfValid(List<Vertex> relevantVertices, double distanceFromSourceToVertex,
-            Vertex rootVertex, double fromAngle, double toAngle)
-        {
-            toAngle = Angle.AreEqual(toAngle, 0) ? 360 : toAngle;
-            var newWavefront = Wavefront.New(fromAngle, toAngle, rootVertex, relevantVertices,
-                distanceFromSourceToVertex);
-            if (newWavefront != null)
-            {
-                Log.I(
-                    $"New wavefront at {newWavefront.RootVertex.Position} with {newWavefront.RelevantVertices.Count} relevant vertices from {fromAngle}° to {toAngle}°");
-                Log.I($"Relevant vertices: {newWavefront.RelevantVertices.Map(v => v.Position.ToString()).Join(", ")}");
-                Wavefronts.Add(newWavefront);
-                return true;
-            }
-
-            Log.I(
-                $"New wavefront at {rootVertex.Position} from {fromAngle}° to {toAngle}° wouldn't have any vertices -> ignore it");
-            return false;
-        }
-
         public bool AddNewWavefront(List<Vertex> vertices, Vertex root, double distanceToRootFromSource,
             double fromAngle, double toAngle)
         {
             bool newWavefrontCreated = false;
+            
+            toAngle = Angle.Normalize(toAngle);
+            fromAngle = Angle.StrictNormalize(fromAngle);
+            
             /*
              * If the interesting area exceeds the 0° border (e.g. goes from 300° via 0° to 40°), then we remove the
              * old wavefront and create two new ones. One from 300° to 360° and one from 0° to 40°. This simply
@@ -351,6 +335,25 @@ namespace Wavefront
             }
 
             return newWavefrontCreated;
+        }
+
+        public bool AddWavefrontIfValid(List<Vertex> relevantVertices, double distanceFromSourceToVertex,
+            Vertex rootVertex, double fromAngle, double toAngle)
+        {
+            var newWavefront = Wavefront.New(fromAngle, toAngle, rootVertex, relevantVertices,
+                distanceFromSourceToVertex);
+            if (newWavefront != null)
+            {
+                Log.I(
+                    $"New wavefront at {newWavefront.RootVertex.Position} with {newWavefront.RelevantVertices.Count} relevant vertices from {fromAngle}° to {toAngle}°");
+                Log.I($"Relevant vertices: {newWavefront.RelevantVertices.Map(v => v.Position.ToString()).Join(", ")}");
+                Wavefronts.Add(newWavefront);
+                return true;
+            }
+
+            Log.I(
+                $"New wavefront at {rootVertex.Position} from {fromAngle}° to {toAngle}° wouldn't have any vertices -> ignore it");
+            return false;
         }
 
         private bool IsPositionVisible(Position startPosition, Position endPosition)
