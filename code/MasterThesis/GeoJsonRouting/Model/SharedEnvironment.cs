@@ -2,7 +2,7 @@ using Mars.Components.Environments;
 using Mars.Components.Environments.Cartesian;
 using ServiceStack.Text;
 
-namespace RoutingWithLineObstacle.Model
+namespace GeoJsonRouting.Model
 {
     public class SharedEnvironment
     {

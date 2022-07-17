@@ -1,66 +1,70 @@
+using GeoJsonRouting.Layer;
 using Mars.Common;
 using Mars.Components.Layers;
 using Mars.Interfaces.Agents;
 using Mars.Interfaces.Annotations;
 using Mars.Interfaces.Environments;
 using Mars.Interfaces.Layers;
-using NetTopologySuite.Geometries;
-using RoutingWithLineObstacle.Layer;
-using RoutingWithLineObstacle.Wavefront;
 using ServiceStack;
 using Wavefront;
 using Position = Mars.Interfaces.Environments.Position;
 
-namespace RoutingWithLineObstacle.Model
+namespace GeoJsonRouting.Model
 {
     // TODO Find a better name than just "Agent".
     public class Agent : IPositionable, IAgent<VectorLayer>
     {
         private static readonly int STEP_SIZE = 100;
 
+        [PropertyDescription] public UnregisterAgent UnregisterHandle { get; set; }
         [PropertyDescription] public ObstacleLayer ObstacleLayer { get; set; }
 
-        public Position Position { get; set; }
+        public Position? Position { get; set; }
         public Guid ID { get; set; }
 
         public Queue<Position> Waypoints = new Queue<Position>();
 
         public void Init(VectorLayer layer)
         {
-            ResetPosition();
-
-            // SharedEnvironment.Environment.Insert(this, Position);
-            SharedEnvironment.Environment.Insert(this);
-
-            Target.NewPosition();
-            Waypoints.Enqueue(Target.Position);
         }
 
         public void Tick()
         {
+            if (Position == null)
+            {
+                Position = ObstacleLayer.GetStart();
+                Target.Position = ObstacleLayer.GetTarget();
+                // Waypoints.Enqueue(Target.Position);
+
+                DetermineNewWaypoints();
+
+                SharedEnvironment.Environment.Insert(this);
+            }
+
             var currentWaypoint = Waypoints.Peek();
             Console.WriteLine($"Tick with current waypoint {currentWaypoint}");
 
             var distanceToTargetInM = Position.DistanceInMTo(currentWaypoint);
-            if (distanceToTargetInM < STEP_SIZE)
+            if (distanceToTargetInM == 0)
             {
                 Waypoints.Dequeue();
 
-                // The current waypoint was the last one -> determine a whole new target
+                // The current waypoint was the last one -> we're done
                 if (Waypoints.Count == 0)
                 {
                     Console.WriteLine($"Target {currentWaypoint} reached.");
-                    DetermineNewWaypoints();
+                    Kill();
                 }
-
                 return;
             }
 
-            // Console.WriteLine($"Distance to target: {Math.Round(distanceToTargetInM, 2)}m");
+            if (distanceToTargetInM < STEP_SIZE)
+            {
+                SharedEnvironment.Environment.MoveTo(this, currentWaypoint);
+                return;
+            }
 
             var bearing = Position.GetBearing(currentWaypoint);
-
-            // SharedEnvironment.Environment.Move(this, 45, 10);
             SharedEnvironment.Environment.MoveTowards(this, bearing, STEP_SIZE);
 
             // Thread.Sleep(TimeSpan.FromMilliseconds(0.5));
@@ -68,14 +72,14 @@ namespace RoutingWithLineObstacle.Model
 
         private void DetermineNewWaypoints()
         {
-            Target.NewPosition();
+            // Target.NewPosition();
             // ResetPosition();
-
-            if (Target.Position.Y >= 0.12)
-            {
-                SharedEnvironment.Environment.Remove(this);
-                return;
-            }
+            //
+            // if (Target.Position.Y >= 0.12)
+            // {
+            //     SharedEnvironment.Environment.Remove(this);
+            //     return;
+            // }
 
             var obstacleGeometries = ObstacleLayer.Features.Map(f => f.VectorStructured.Geometry);
             var wavefrontAlgorithm = new WavefrontAlgorithm(obstacleGeometries);
@@ -90,9 +94,10 @@ namespace RoutingWithLineObstacle.Model
             }
         }
 
-        private void ResetPosition()
+        private void Kill()
         {
-            Position = Position.CreateGeoPosition(0.1, 0.05);
+            SharedEnvironment.Environment.Remove(this);
+            UnregisterHandle.Invoke(ObstacleLayer, this);
         }
     }
 }

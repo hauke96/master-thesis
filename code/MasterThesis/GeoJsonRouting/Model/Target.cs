@@ -1,7 +1,7 @@
 using Mars.Common;
 using Mars.Interfaces.Environments;
 
-namespace RoutingWithLineObstacle.Model
+namespace GeoJsonRouting.Model
 {
     // TODO Clarify what a target should be (Entity, Agent, just a position as it's now, ...).
     public class Target

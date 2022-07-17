@@ -1,9 +1,10 @@
 ﻿using System.Globalization;
+using GeoJsonRouting.Layer;
+using GeoJsonRouting.Model;
 using Mars.Components.Starter;
 using Mars.Interfaces.Model;
-using RoutingWithoutObstacles.Model;
 
-namespace RoutingWithoutObstacles
+namespace GeoJsonRouting
 {
     class Program
     {
@@ -12,10 +13,10 @@ namespace RoutingWithoutObstacles
             CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
 
             SharedEnvironment.Init();
-            Target.SetRandomPosition();
 
             var description = new ModelDescription();
             description.AddLayer<Layer.Layer>();
+            description.AddLayer<ObstacleLayer>();
             description.AddAgent<Agent, Layer.Layer>();
 
             var file = File.ReadAllText("config.json");

@@ -5,6 +5,7 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <RootNamespace>GeoJsonRouting</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -21,9 +22,6 @@
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
       <None Remove="Resources\obstacles.geojson" />
-      <Content Include="Resources\obstacles-rotated-open-box.geojson">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
     </ItemGroup>
 
     <ItemGroup>
