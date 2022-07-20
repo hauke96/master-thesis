@@ -18,12 +18,15 @@ namespace Wavefront.Tests
             static List<Wavefront> wavefronts;
             static LineString multiVertexLineObstacle;
             static LineString simpleLineObstacle;
+            static List<Vertex> vertices;
+            static List<Vertex> multiVertexLineVertices;
+            static List<Vertex> simpleLineVertices;
 
             [SetUp]
             public void Setup()
             {
                 Log.Init();
-                
+
                 multiVertexLineObstacle = new LineString(new[]
                 {
                     new Coordinate(6, 3),
@@ -35,6 +38,28 @@ namespace Wavefront.Tests
                     new Coordinate(2, 5),
                     new Coordinate(2, 10)
                 });
+
+                multiVertexLineVertices = new List<Vertex>();
+                multiVertexLineVertices.Add(new Vertex(multiVertexLineObstacle.Coordinates[0].ToPosition(),
+                    multiVertexLineObstacle.Coordinates[^1].ToPosition(),
+                    multiVertexLineObstacle.Coordinates[1].ToPosition()));
+                multiVertexLineVertices.Add(new Vertex(multiVertexLineObstacle.Coordinates[1].ToPosition(),
+                    multiVertexLineObstacle.Coordinates[0].ToPosition(),
+                    multiVertexLineObstacle.Coordinates[2].ToPosition()));
+                multiVertexLineVertices.Add(new Vertex(multiVertexLineObstacle.Coordinates[2].ToPosition(),
+                    multiVertexLineObstacle.Coordinates[1].ToPosition(),
+                    multiVertexLineObstacle.Coordinates[^1].ToPosition()));
+
+                simpleLineVertices = new List<Vertex>();
+                simpleLineVertices.Add(new Vertex(simpleLineObstacle.Coordinates[0].ToPosition(),
+                    simpleLineObstacle.Coordinates[1].ToPosition()));
+                simpleLineVertices.Add(new Vertex(simpleLineObstacle.Coordinates[1].ToPosition(),
+                    simpleLineObstacle.Coordinates[0].ToPosition()));
+
+                vertices = new List<Vertex>();
+                vertices.AddRange(multiVertexLineVertices);
+                vertices.AddRange(simpleLineVertices);
+
                 var obstacles = new List<NetTopologySuite.Geometries.Geometry>();
                 obstacles.Add(multiVertexLineObstacle);
                 obstacles.Add(simpleLineObstacle);
@@ -126,7 +151,7 @@ namespace Wavefront.Tests
                 public void TargetReached()
                 {
                     var vertices = new List<Vertex>();
-                    var sourceVertex = new Vertex(multiVertexLineObstacle[0], multiVertexLineObstacle);
+                    var sourceVertex = multiVertexLineVertices[0];
                     var targetVertex = new Vertex(targetPosition);
                     vertices.Add(targetVertex);
 
@@ -140,13 +165,13 @@ namespace Wavefront.Tests
                     Assert.AreEqual(0, wavefrontAlgorithm.Wavefronts.Count);
                     Assert.AreEqual(0, wavefront.RelevantVertices.Count);
                 }
-                
+
                 [Test]
                 public void CastingShadowWithRootBeingNeighborOfShadowEdge()
                 {
                     // Real world problem: The shadow ends at 180° but the wavefront ends there as well -> There was a
                     // problem adjusting the wavefront
-                    
+
                     var vertices = new List<Vertex>();
                     var line = new LineString(new[]
                     {
@@ -156,16 +181,25 @@ namespace Wavefront.Tests
                         new Coordinate(0.06326760583, 0.03676209134),
                         new Coordinate(0.06327136644, 0.06499057746),
                     });
-                    line.Coordinates.Each(c => vertices.Add(new Vertex(c, line)));
+                    vertices.Add(new Vertex(line.Coordinates[0].ToPosition(), line.Coordinates[^1].ToPosition(),
+                        line.Coordinates[1].ToPosition()));
+                    vertices.Add(new Vertex(line.Coordinates[1].ToPosition(), line.Coordinates[0].ToPosition(),
+                        line.Coordinates[2].ToPosition()));
+                    vertices.Add(new Vertex(line.Coordinates[2].ToPosition(), line.Coordinates[1].ToPosition(),
+                        line.Coordinates[3].ToPosition()));
+                    vertices.Add(new Vertex(line.Coordinates[3].ToPosition(), line.Coordinates[2].ToPosition(),
+                        line.Coordinates[4].ToPosition()));
+                    vertices.Add(new Vertex(line.Coordinates[4].ToPosition(), line.Coordinates[3].ToPosition(),
+                        line.Coordinates[^1].ToPosition()));
                     vertices.Add(new Vertex(0.0820386, 0.0409633));
                     vertices.Add(new Vertex(0.0104371, 0.082151));
-                    
+
                     var sourceVertex = vertices[0];
                     var vertex = vertices[2];
 
                     var wavefront = Wavefront.New(269.992367019, 180.00763298898323, sourceVertex, vertices, 1)!;
                     wavefrontAlgorithm.Wavefronts.Add(wavefront);
-                    
+
                     wavefront.RemoveNextVertex();
                     Assert.IsTrue(wavefront.HasBeenVisited(vertices[1].Position));
                     wavefront.RemoveNextVertex();
@@ -178,7 +212,7 @@ namespace Wavefront.Tests
                     var w = wavefronts[0];
                     Assert.AreEqual(wavefront.FromAngle, w.FromAngle, 0.1);
                     Assert.AreEqual(360, w.ToAngle, 0.1);
-                    
+
                     w = wavefronts[1];
                     Assert.AreEqual(0, w.FromAngle, 0.1);
                     Assert.AreEqual(127.1, w.ToAngle, 0.1);
@@ -194,7 +228,7 @@ namespace Wavefront.Tests
                 [SetUp]
                 public void Setup()
                 {
-                    nextVertex = new Vertex(multiVertexLineObstacle.Coordinates[0], multiVertexLineObstacle);
+                    nextVertex = multiVertexLineVertices[0];
                     wavefront = Wavefront.New(0, 350, new Vertex(5, 0), wavefrontAlgorithm.Vertices, 1)!;
                     wavefrontAlgorithm.Wavefronts.Add(wavefront);
                     targetPosition = Position.CreateGeoPosition(10, 10);
@@ -264,13 +298,7 @@ namespace Wavefront.Tests
                 [SetUp]
                 public void setup()
                 {
-                    var vertices = new List<Vertex>();
-                    nextVertex = new Vertex(multiVertexLineObstacle.Coordinates[0], multiVertexLineObstacle);
-                    vertices.Add(nextVertex);
-                    vertices.Add(new Vertex(multiVertexLineObstacle.Coordinates[1], multiVertexLineObstacle));
-                    vertices.Add(new Vertex(multiVertexLineObstacle.Coordinates[2], multiVertexLineObstacle));
-                    vertices.Add(new Vertex(simpleLineObstacle.Coordinates[0], simpleLineObstacle));
-                    vertices.Add(new Vertex(simpleLineObstacle.Coordinates[1], simpleLineObstacle));
+                    nextVertex = multiVertexLineVertices[0];
                     // Add wavefront close to the next vertex
                     wavefront = Wavefront.New(270, 355, new Vertex(6.2, 2.8), wavefrontAlgorithm.Vertices, 1)!;
                     wavefrontAlgorithm.Wavefronts.Add(wavefront);
@@ -353,7 +381,7 @@ namespace Wavefront.Tests
                 {
                     var wavefront = Wavefront.New(0, 90, new Vertex(5, 0), wavefrontAlgorithm.Vertices, 10)!;
                     wavefronts.Add(wavefront);
-                    var vertex = new Vertex(multiVertexLineObstacle[1], multiVertexLineObstacle);
+                    var vertex = multiVertexLineVertices[1];
                     wavefront.RemoveNextVertex();
                     Assert.IsTrue(wavefront.HasBeenVisited(multiVertexLineObstacle[0].ToPosition()));
                     Assert.AreEqual(vertex, wavefront.GetNextVertex());
@@ -383,7 +411,7 @@ namespace Wavefront.Tests
                     var wavefront = Wavefront.New(180, 270, new Vertex(multiVertexLineObstacle[1].ToPosition()),
                         wavefrontAlgorithm.Vertices, 10)!;
                     wavefronts.Add(wavefront);
-                    var vertex = new Vertex(multiVertexLineObstacle[0], multiVertexLineObstacle);
+                    var vertex = multiVertexLineVertices[0];
                     Assert.AreEqual(vertex, wavefront.GetNextVertex());
 
                     wavefrontAlgorithm.HandleNeighbors(vertex, wavefront, out var angleShadowFrom,
@@ -416,7 +444,7 @@ namespace Wavefront.Tests
                     var wavefront = Wavefront.New(90, 180, new Vertex(multiVertexLineObstacle[0].ToPosition()),
                         wavefrontAlgorithm.Vertices, 10)!;
                     wavefronts.Add(wavefront);
-                    var vertex = new Vertex(multiVertexLineObstacle[1], multiVertexLineObstacle);
+                    var vertex = multiVertexLineVertices[1];
                     Assert.AreEqual(vertex, wavefront.GetNextVertex());
 
                     wavefrontAlgorithm.HandleNeighbors(vertex, wavefront, out var angleShadowFrom,
@@ -442,7 +470,7 @@ namespace Wavefront.Tests
                 {
                     var wavefront = Wavefront.New(190, 350, new Vertex(8, 4.5), wavefrontAlgorithm.Vertices, 10)!;
                     wavefronts.Add(wavefront);
-                    var vertex = new Vertex(multiVertexLineObstacle[1], multiVertexLineObstacle);
+                    var vertex = multiVertexLineVertices[1];
                     wavefront.RemoveNextVertex();
                     Assert.IsTrue(wavefront.HasBeenVisited(multiVertexLineObstacle[2].ToPosition()));
                     Assert.AreEqual(vertex, wavefront.GetNextVertex());
@@ -471,7 +499,7 @@ namespace Wavefront.Tests
                 {
                     var wavefront = Wavefront.New(300, 330, new Vertex(8, 2), wavefrontAlgorithm.Vertices, 10)!;
                     wavefronts.Add(wavefront);
-                    var vertex = new Vertex(multiVertexLineObstacle[1], multiVertexLineObstacle);
+                    var vertex = multiVertexLineVertices[1];
                     Assert.IsFalse(wavefront.HasBeenVisited(multiVertexLineObstacle[2].ToPosition()));
                     Assert.AreEqual(vertex, wavefront.GetNextVertex());
 
@@ -492,7 +520,7 @@ namespace Wavefront.Tests
                 {
                     var wavefront = Wavefront.New(270, 360, new Vertex(8, 2), wavefrontAlgorithm.Vertices, 10)!;
                     wavefronts.Add(wavefront);
-                    var vertex = new Vertex(multiVertexLineObstacle[1], multiVertexLineObstacle);
+                    var vertex = multiVertexLineVertices[1];
                     Assert.IsFalse(wavefront.HasBeenVisited(multiVertexLineObstacle[0].ToPosition()));
                     Assert.IsFalse(wavefront.HasBeenVisited(multiVertexLineObstacle[2].ToPosition()));
                     Assert.AreEqual(vertex, wavefront.GetNextVertex());
@@ -514,7 +542,7 @@ namespace Wavefront.Tests
                 {
                     var wavefront = Wavefront.New(0, 270, new Vertex(6, 4), wavefrontAlgorithm.Vertices, 10)!;
                     wavefronts.Add(wavefront);
-                    var vertex = new Vertex(multiVertexLineObstacle[1], multiVertexLineObstacle);
+                    var vertex = multiVertexLineVertices[1];
                     wavefront.RemoveNextVertex();
                     Assert.IsTrue(wavefront.HasBeenVisited(multiVertexLineObstacle[2].ToPosition()));
                     wavefront.RemoveNextVertex();
@@ -541,7 +569,7 @@ namespace Wavefront.Tests
                     vertices.Add(new Vertex(5, 2.5));
                     var wavefront = Wavefront.New(180, 270, new Vertex(7.5, 3.5), vertices, 1)!;
                     wavefrontAlgorithm.Wavefronts.Add(wavefront);
-                    var vertex = new Vertex(multiVertexLineObstacle[1], multiVertexLineObstacle);
+                    var vertex = multiVertexLineVertices[1];
 
                     wavefrontAlgorithm.HandleNeighbors(vertex, wavefront, out var angleShadowFrom,
                         out var angleShadowTo, out var createdWavefront);
@@ -563,11 +591,9 @@ namespace Wavefront.Tests
                 [Test]
                 public void InnerCornerOnLine_NotCreatingNewWavefront()
                 {
-                    var wavefront = Wavefront.New(0, 90,
-                        new Vertex(multiVertexLineObstacle[0], multiVertexLineObstacle), wavefrontAlgorithm.Vertices,
-                        1)!;
+                    var wavefront = Wavefront.New(0, 90, multiVertexLineVertices[0], wavefrontAlgorithm.Vertices, 1)!;
                     wavefrontAlgorithm.Wavefronts.Add(wavefront);
-                    var vertex = new Vertex(multiVertexLineObstacle[1], multiVertexLineObstacle);
+                    var vertex = multiVertexLineVertices[1];
 
                     wavefrontAlgorithm.HandleNeighbors(vertex, wavefront, out var angleShadowFrom,
                         out var angleShadowTo, out var createdWavefront);
@@ -587,7 +613,7 @@ namespace Wavefront.Tests
                         new Vertex(6.75, 3.25), wavefrontAlgorithm.Vertices,
                         1)!;
                     wavefrontAlgorithm.Wavefronts.Add(wavefront);
-                    var vertex = new Vertex(multiVertexLineObstacle[1], multiVertexLineObstacle);
+                    var vertex = multiVertexLineVertices[1];
 
                     wavefrontAlgorithm.HandleNeighbors(vertex, wavefront, out var angleShadowFrom,
                         out var angleShadowTo, out var createdWavefront);

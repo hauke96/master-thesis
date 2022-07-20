@@ -1,10 +1,13 @@
+using Mars.Common;
 using NetTopologySuite.Geometries;
+using ServiceStack;
 using Position = Mars.Interfaces.Environments.Position;
 
 namespace Wavefront.Geometry;
 
 public class Vertex
 {
+    private readonly List<Position> _neighbors;
     private Position _position;
 
     public Position Position
@@ -28,79 +31,47 @@ public class Vertex
     public double X => Position.X;
     public double Y => Position.Y;
 
-    /// <summary>
-    /// The geometry this vertex belongs to, e.g. a LineString.
-    /// </summary>
-    private readonly NetTopologySuite.Geometries.Geometry? _rootGeometry;
-
-    /// <summary>
-    /// Determines the right neighbor within the Geometry. Think of the geometry as a list of coordinates, this returns
-    /// the coordinate which is the next element in this coordinate list.
-    /// </summary>
-    public Coordinate? RightNeighbor
+    public Vertex(double x, double y) : this(Position.CreateGeoPosition(x, y), new HashSet<Position>())
     {
-        get
-        {
-            if (_rootGeometry == null)
-            {
-                return null;
-            }
-
-            // TODO handle polygons/closed lines
-
-            var coordinates = _rootGeometry.Coordinates;
-            var indexOfThisVertex = Array.IndexOf(coordinates, Coordinate);
-            if (indexOfThisVertex + 1 >= coordinates.Length)
-            {
-                // This is already the last coordinate
-                return null;
-            }
-
-            return coordinates[indexOfThisVertex + 1];
-        }
     }
 
-    /// <summary>
-    /// Determines the left neighbor within the Geometry. Think of the geometry as a list of coordinates, this returns
-    /// the coordinate which is the previous element in this coordinate list.
-    /// </summary>
-    public Coordinate? LeftNeighbor
+    public Vertex(Position position) : this(position, new HashSet<Position>())
     {
-        get
-        {
-            if (_rootGeometry == null)
-            {
-                return null;
-            }
-
-            // TODO handle polygons/closed lines
-
-            var coordinates = _rootGeometry.Coordinates;
-            var indexOfThisVertex = Array.IndexOf(coordinates, Coordinate);
-            if (indexOfThisVertex == 0)
-            {
-                // This is already the first coordinate
-                return null;
-            }
-
-            return coordinates[indexOfThisVertex - 1];
-        }
     }
 
-    public Vertex(Position position)
+    public Vertex(Position position, params Position[] neighbors) : this(position, neighbors.ToSet())
+    {
+    }
+
+    public Vertex(Position position, ISet<Position> neighbors)
     {
         Position = position;
+        _neighbors = neighbors.ToList();
+        _neighbors.Sort((p1, p2) => (int)(Position.GetBearing(p1) - Position.GetBearing(p2)));
     }
 
-    public Vertex(double x, double y)
+    /// <summary>
+    /// Returns the neighbor that's right (=counter clockwise) or equal to the angle of the given position.
+    /// </summary>
+    // TODO Tests
+    public Position? RightNeighbor(Position basePosition)
     {
-        Position = Position.CreateGeoPosition(x, y);
+        var index = _neighbors.FindLastIndex(neighborPosition =>
+            Position.GetBearing(neighborPosition) <= Position.GetBearing(basePosition));
+        index = index >= 0 ? index : _neighbors.Count - 1;
+        return index >= 0 ? _neighbors[index] : null;
     }
 
-    public Vertex(Coordinate coordinate, NetTopologySuite.Geometries.Geometry rootGeometry)
+    /// <summary>
+    /// Returns the neighbor that's left (=clockwise) or equal to the angle of the given position.
+    /// </summary>
+    // TODO Tests
+    public Position? LeftNeighbor(Position basePosition)
     {
-        Position = Position.CreateGeoPosition(coordinate.X, coordinate.Y);
-        _rootGeometry = rootGeometry;
+        var index = _neighbors.FindIndex(neighborPosition =>
+            Position.GetBearing(neighborPosition) > Position.GetBearing(basePosition));
+        index = index >= 0 ? index : 0;
+        return index < _neighbors.Count ? _neighbors[index] : null;
     }
 
     public override bool Equals(object? obj)
@@ -110,12 +81,12 @@ public class Vertex
 
     public bool Equals(Vertex? other)
     {
-        return other != null && Position.Equals(other.Position) && Equals(_rootGeometry, other._rootGeometry);
+        return other != null && Position.Equals(other.Position);
     }
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(Position, _rootGeometry);
+        return HashCode.Combine(Position);
     }
 
     public override string ToString()

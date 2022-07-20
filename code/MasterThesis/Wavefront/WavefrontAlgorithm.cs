@@ -21,12 +21,61 @@ namespace Wavefront
             Vertices = new List<Vertex>();
             PositionToPredecessor = new Dictionary<Position, Position?>();
 
+            var positionToNeighbors = GetNeighborsFromObstacleVertices();
+
+            positionToNeighbors.Keys.Each(position =>
+            {
+                Vertices.Add(new Vertex(position, positionToNeighbors[position]));
+            });
+
+            Wavefronts = wavefronts ?? new List<Wavefront>();
+        }
+
+        // TODO Tests
+        public Dictionary<Position, ISet<Position>> GetNeighborsFromObstacleVertices()
+        {
+            var positionToNeighbors = new Dictionary<Position, ISet<Position>>();
             Obstacles.Each(obstacle =>
             {
-                var positions = obstacle.Coordinates.Map(c => new Vertex(c, obstacle));
-                Vertices.AddRange(positions);
+                if (obstacle.Coordinates.Length <= 1)
+                {
+                    return;
+                }
+                var isClosed = Equals(obstacle.Coordinates.First(), obstacle.Coordinates.Last());
+
+                obstacle.Coordinates.Each((index, coordinate) =>
+                {
+                    var position = coordinate.ToPosition();
+                    if (!positionToNeighbors.ContainsKey(position))
+                    {
+                        positionToNeighbors[position] = new HashSet<Position>();
+                    }
+
+                    Coordinate? nextCoordinate =
+                        index + 1 < obstacle.Coordinates.Length ? obstacle.Coordinates[index + 1] : null;
+                    Coordinate? previousCoordinate = index - 1 > 0 ? obstacle.Coordinates[index - 1] : null;
+                    if (isClosed && nextCoordinate == null)
+                    {
+                        nextCoordinate = obstacle.Coordinates.First();
+                    }
+
+                    if (isClosed && previousCoordinate == null)
+                    {
+                        previousCoordinate = obstacle.Coordinates[^2];
+                    }
+
+                    if (nextCoordinate != null)
+                    {
+                        positionToNeighbors[position].Add(nextCoordinate.ToPosition());
+                    }
+
+                    if (previousCoordinate != null)
+                    {
+                        positionToNeighbors[position].Add(previousCoordinate.ToPosition());
+                    }
+                });
             });
-            Wavefronts = wavefronts ?? new List<Wavefront>();
+            return positionToNeighbors;
         }
 
         public List<Position> Route(Position source, Position target)
@@ -145,8 +194,8 @@ namespace Wavefront
             angleShadowTo = Double.NaN;
             createdWavefrontAtCurrentVertex = false;
 
-            var rightNeighbor = currentVertex.RightNeighbor?.ToPosition() ?? currentVertex.LeftNeighbor?.ToPosition();
-            var leftNeighbor = currentVertex.LeftNeighbor?.ToPosition() ?? currentVertex.RightNeighbor?.ToPosition();
+            var rightNeighbor = currentVertex.RightNeighbor(wavefront.RootVertex.Position) ?? currentVertex.LeftNeighbor(wavefront.RootVertex.Position);
+            var leftNeighbor = currentVertex.LeftNeighbor(wavefront.RootVertex.Position) ?? currentVertex.RightNeighbor(wavefront.RootVertex.Position);
 
             if (rightNeighbor == null && leftNeighbor == null)
             {
@@ -312,10 +361,10 @@ namespace Wavefront
             double fromAngle, double toAngle)
         {
             bool newWavefrontCreated = false;
-            
+
             toAngle = Angle.Normalize(toAngle);
             fromAngle = Angle.StrictNormalize(fromAngle);
-            
+
             /*
              * If the interesting area exceeds the 0° border (e.g. goes from 300° via 0° to 40°), then we remove the
              * old wavefront and create two new ones. One from 300° to 360° and one from 0° to 40°. This simply
