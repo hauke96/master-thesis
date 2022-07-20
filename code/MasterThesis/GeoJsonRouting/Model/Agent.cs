@@ -81,10 +81,10 @@ namespace GeoJsonRouting.Model
             //     return;
             // }
 
-            var obstacleGeometries = ObstacleLayer.Features.Map(f => f.VectorStructured.Geometry);
-            var wavefrontAlgorithm = new WavefrontAlgorithm(obstacleGeometries);
             try
             {
+                var obstacleGeometries = ObstacleLayer.Features.Map(f => f.VectorStructured.Geometry);
+                var wavefrontAlgorithm = new WavefrontAlgorithm(obstacleGeometries);
                 Waypoints = new Queue<Position>(wavefrontAlgorithm.Route(Position, Target.Position));
             }
             catch (Exception e)

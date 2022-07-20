@@ -5,7 +5,35 @@
     "features": [
         {
             "type": "Feature",
-            "properties": null,
+            "properties": {
+                "target": "yes"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    0.04893131188,
+                    0.04073888621
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "start": "yes"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    0.09819942010,
+                    0.03681090582
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "barrier": "fence"
+            },
             "geometry": {
                 "type": "LineString",
                 "coordinates": [
