@@ -1,4 +1,5 @@
 using Mars.Common;
+using Mars.Interfaces.Environments;
 using NetTopologySuite.Geometries;
 using ServiceStack;
 using Wavefront.Geometry;
@@ -21,7 +22,7 @@ namespace Wavefront
             Vertices = new List<Vertex>();
             PositionToPredecessor = new Dictionary<Position, Position?>();
 
-            var positionToNeighbors = GetNeighborsFromObstacleVertices();
+            var positionToNeighbors = GetNeighborsFromObstacleVertices(Obstacles);
 
             positionToNeighbors.Keys.Each(position =>
             {
@@ -32,15 +33,17 @@ namespace Wavefront
         }
 
         // TODO Tests
-        public Dictionary<Position, ISet<Position>> GetNeighborsFromObstacleVertices()
+        public Dictionary<Position, List<Position>> GetNeighborsFromObstacleVertices(
+            List<NetTopologySuite.Geometries.Geometry> obstacles)
         {
-            var positionToNeighbors = new Dictionary<Position, ISet<Position>>();
-            Obstacles.Each(obstacle =>
+            var positionToNeighbors = new Dictionary<Position, List<Position>>();
+            obstacles.Each(obstacle =>
             {
                 if (obstacle.Coordinates.Length <= 1)
                 {
                     return;
                 }
+
                 var isClosed = Equals(obstacle.Coordinates.First(), obstacle.Coordinates.Last());
 
                 obstacle.Coordinates.Each((index, coordinate) =>
@@ -48,12 +51,12 @@ namespace Wavefront
                     var position = coordinate.ToPosition();
                     if (!positionToNeighbors.ContainsKey(position))
                     {
-                        positionToNeighbors[position] = new HashSet<Position>();
+                        positionToNeighbors[position] = new List<Position>();
                     }
 
                     Coordinate? nextCoordinate =
                         index + 1 < obstacle.Coordinates.Length ? obstacle.Coordinates[index + 1] : null;
-                    Coordinate? previousCoordinate = index - 1 > 0 ? obstacle.Coordinates[index - 1] : null;
+                    Coordinate? previousCoordinate = index - 1 >= 0 ? obstacle.Coordinates[index - 1] : null;
                     if (isClosed && nextCoordinate == null)
                     {
                         nextCoordinate = obstacle.Coordinates.First();
@@ -93,8 +96,8 @@ namespace Wavefront
 
             Log.Init();
             Log.I($"Routing from {source} to {target}");
-            Log.I($"Initial wavefront at {initialWavefront.RootVertex.Position}");
-            Log.I($"Wavefront vertices {initialWavefront.RelevantVertices.Map(v => v.Position.ToString()).Join(", ")}");
+            Log.D($"Initial wavefront at {initialWavefront.RootVertex.Position}");
+            Log.D($"Wavefront vertices {initialWavefront.RelevantVertices.Map(v => v.Position.ToString()).Join(", ")}");
 
             while (!PositionToPredecessor.ContainsKey(target))
             {
@@ -124,11 +127,15 @@ namespace Wavefront
             var currentVertex = wavefront.GetNextVertex();
 
             Log.I(
-                $"Process wavefront at {wavefront.RootVertex.Position} from {wavefront.FromAngle}° to {wavefront.ToAngle}°");
+                $"Process wavefront (" +
+                $"total wavefront={Wavefronts.Count}," +
+                $"m from start={(int)wavefront.DistanceToRootFromSource}," +
+                $"m to target={(int)wavefront.RootVertex.Position.DistanceInMTo(targetPosition)})" +
+                $"at {wavefront.RootVertex.Position} from {wavefront.FromAngle}° to {wavefront.ToAngle}°");
 
             if (currentVertex == null)
             {
-                Log.I("No next vertex, remove wavefront");
+                Log.D("No next vertex, remove wavefront");
                 // This wavefront doesn't have any events ahead, to we can remove it. 
                 Wavefronts.Remove(wavefront);
                 return;
@@ -138,7 +145,7 @@ namespace Wavefront
             var currentVertexHasBeenVisitedBefore = PositionToPredecessor.ContainsKey(currentVertex.Position);
             if (!isCurrentVertexVisible || currentVertexHasBeenVisitedBefore)
             {
-                Log.I($"Ignore event at {currentVertex.Position}: " +
+                Log.D($"Ignore event at {currentVertex.Position}: " +
                       $"invalid={!isCurrentVertexVisible}, " +
                       $"already visited={currentVertexHasBeenVisitedBefore}");
                 wavefront.IgnoreVertex(currentVertex);
@@ -149,33 +156,33 @@ namespace Wavefront
             {
                 Log.I($"Target reached ({currentVertex.Position})");
                 PositionToPredecessor[currentVertex.Position] = wavefront.RootVertex.Position;
-                Log.I($"Set predecessor of target to {wavefront.RootVertex.Position}");
+                Log.D($"Set predecessor of target to {wavefront.RootVertex.Position}");
                 wavefront.RemoveNextVertex();
                 Wavefronts.Remove(wavefront);
                 return;
             }
 
-            Log.I($"Next vertex at {currentVertex.Position}");
+            Log.D($"Next vertex at {currentVertex.Position}");
 
             wavefront.RemoveNextVertex();
-            Log.I("Drop vertex from wavefront");
+            Log.D("Drop vertex from wavefront");
 
             double angleShadowFrom;
             double angleShadowTo;
 
             HandleNeighbors(currentVertex, wavefront, out angleShadowFrom, out angleShadowTo,
                 out var newWavefrontCreatedAtEventRoot);
-            Log.I($"Handled neighbors, shadow from {angleShadowFrom}° to {angleShadowTo}°");
+            Log.D($"Handled neighbors, shadow from {angleShadowFrom}° to {angleShadowTo}°");
 
             if (newWavefrontCreatedAtEventRoot)
             {
                 PositionToPredecessor[currentVertex.Position] = wavefront.RootVertex.Position;
-                Log.I($"Set predecessor of {currentVertex.Position} to {wavefront.RootVertex.Position}");
+                Log.D($"Set predecessor of {currentVertex.Position} to {wavefront.RootVertex.Position}");
             }
 
             if (!Double.IsNaN(angleShadowFrom) && !Double.IsNaN(angleShadowTo))
             {
-                Log.I($"Remove old wavefront from {wavefront.FromAngle}° to {wavefront.ToAngle}° and create new ones");
+                Log.D($"Remove old wavefront from {wavefront.FromAngle}° to {wavefront.ToAngle}° and create new ones");
                 Wavefronts.Remove(wavefront);
                 AddNewWavefront(wavefront.RelevantVertices, wavefront.RootVertex, wavefront.DistanceToRootFromSource,
                     wavefront.FromAngle, angleShadowFrom);
@@ -188,22 +195,24 @@ namespace Wavefront
         public void HandleNeighbors(Vertex currentVertex, Wavefront wavefront, out double angleShadowFrom,
             out double angleShadowTo, out bool createdWavefrontAtCurrentVertex)
         {
-            Log.I($"Process vertex={currentVertex}");
+            Log.D($"Process vertex={currentVertex}");
 
             angleShadowFrom = Double.NaN;
             angleShadowTo = Double.NaN;
             createdWavefrontAtCurrentVertex = false;
 
-            var rightNeighbor = currentVertex.RightNeighbor(wavefront.RootVertex.Position) ?? currentVertex.LeftNeighbor(wavefront.RootVertex.Position);
-            var leftNeighbor = currentVertex.LeftNeighbor(wavefront.RootVertex.Position) ?? currentVertex.RightNeighbor(wavefront.RootVertex.Position);
+            var rightNeighbor = currentVertex.RightNeighbor(wavefront.RootVertex.Position) ??
+                                currentVertex.LeftNeighbor(wavefront.RootVertex.Position);
+            var leftNeighbor = currentVertex.LeftNeighbor(wavefront.RootVertex.Position) ??
+                               currentVertex.RightNeighbor(wavefront.RootVertex.Position);
 
             if (rightNeighbor == null && leftNeighbor == null)
             {
-                Log.I("Current vertex has no neighbors -> abort");
+                Log.D("Current vertex has no neighbors -> abort");
                 return;
             }
 
-            Log.I($"rightNeighbor={rightNeighbor}, leftNeighbor={leftNeighbor}");
+            Log.D($"rightNeighbor={rightNeighbor}, leftNeighbor={leftNeighbor}");
 
             var angleRootToRightNeighbor = rightNeighbor != null
                 ? wavefront.RootVertex.Position.GetBearing(rightNeighbor)
@@ -222,7 +231,7 @@ namespace Wavefront
 
             // Rotate such that the current vertex of always north/up of the wavefront root
             var rotationAngle = -angleRootToCurrentVertex;
-            Log.I($"Rotate relevant angles by {rotationAngle}°");
+            Log.D($"Rotate relevant angles by {rotationAngle}°");
             var angleCurrentWavefrontFrom = Angle.Normalize(wavefront.FromAngle + rotationAngle);
             var angleCurrentWavefrontTo = Angle.Normalize(wavefront.ToAngle + rotationAngle);
             angleVertexToRightNeighbor = Angle.Normalize(angleVertexToRightNeighbor + rotationAngle);
@@ -270,7 +279,7 @@ namespace Wavefront
                 // angleShadowTo = Math.Max(angleRootToRightNeighbor, angleRootToLeftNeighbor);
             }
 
-            Log.I($"Wavefront goes from={angleWavefrontFrom}° to={angleWavefrontTo}°");
+            Log.D($"Wavefront goes from={angleWavefrontFrom}° to={angleWavefrontTo}°");
 
             // Wavefront root vertex is the only neighbor aka we reached the end of a line with the wavefront rooted
             // in the second last vertex of that line.
@@ -278,7 +287,7 @@ namespace Wavefront
                                                       Equals(leftNeighbor, wavefront.RootVertex.Position);
             if (wavefrontRootIsSecondLastLineVertex)
             {
-                Log.I("Wavefront is second last in line string -> Create new wavefront");
+                Log.D("Wavefront is second last in line string -> Create new wavefront");
                 if (Angle.AreEqual(angleCurrentWavefrontTo, 0))
                 {
                     angleWavefrontFrom = 0;
@@ -299,12 +308,12 @@ namespace Wavefront
             var newWavefrontNeeded = !double.IsNaN(angleWavefrontFrom) && !double.IsNaN(angleWavefrontTo) &&
                                      !neighborWillBeVisitedByWavefront;
 
-            Log.I(
+            Log.D(
                 $"New wavefront needed={newWavefrontNeeded} because: neighborWillBeVisitedByWavefront={neighborWillBeVisitedByWavefront}, " +
                 $"angleWavefrontFrom={angleWavefrontFrom}°, angleWavefrontTo={angleWavefrontTo}°");
 
             // Rotate back
-            Log.I($"Rotate every angle back by {-rotationAngle}°");
+            Log.D($"Rotate every angle back by {-rotationAngle}°");
             angleWavefrontFrom = Angle.Normalize(angleWavefrontFrom - rotationAngle);
             angleWavefrontTo = Angle.Normalize(angleWavefrontTo - rotationAngle);
 
@@ -322,7 +331,7 @@ namespace Wavefront
                     out angleRightShadowTo);
                 angleShadowFrom = angleRightShadowFrom;
                 angleShadowTo = angleRightShadowTo;
-                Log.I(
+                Log.D(
                     $"Right neighbor={rightNeighbor} has been visited casting a shadow from {angleShadowFrom}° to {angleShadowTo}°");
             }
 
@@ -334,14 +343,14 @@ namespace Wavefront
                     out angleLeftShadowTo);
                 angleShadowFrom = angleLeftShadowFrom;
                 angleShadowTo = angleLeftShadowTo;
-                Log.I(
+                Log.D(
                     $"Left neighbor={leftNeighbor} has been visited casting a shadow from {angleLeftShadowFrom}° to {angleLeftShadowTo}°");
             }
 
             // When two shadows exist -> merge them because they always touch
             if (!Double.IsNaN(angleRightShadowFrom) && !Double.IsNaN(angleLeftShadowFrom))
             {
-                Log.I("There are two shadows -> merge them");
+                Log.D("There are two shadows -> merge them");
                 if (Angle.AreEqual(angleRightShadowTo, angleLeftShadowFrom))
                 {
                     angleShadowFrom = angleRightShadowFrom;
@@ -353,7 +362,7 @@ namespace Wavefront
                     angleShadowTo = angleRightShadowTo;
                 }
 
-                Log.I($"There were two shadows -> merged shadow goes from {angleShadowFrom}° to {angleShadowTo}°");
+                Log.D($"There were two shadows -> merged shadow goes from {angleShadowFrom}° to {angleShadowTo}°");
             }
         }
 
@@ -370,7 +379,7 @@ namespace Wavefront
              * old wavefront and create two new ones. One from 300° to 360° and one from 0° to 40°. This simply
              * makes range checks easier and has no further reason.
              */
-            Log.I(
+            Log.D(
                 $"Angles for new wavefront (from={fromAngle}°, to={toAngle}°) exceed 0° border? {Angle.IsBetween(fromAngle, 0, toAngle)}");
             if (Angle.IsBetween(fromAngle, 0, toAngle))
             {
@@ -393,14 +402,14 @@ namespace Wavefront
                 distanceFromSourceToVertex);
             if (newWavefront != null)
             {
-                Log.I(
+                Log.D(
                     $"New wavefront at {newWavefront.RootVertex.Position} with {newWavefront.RelevantVertices.Count} relevant vertices from {fromAngle}° to {toAngle}°");
-                Log.I($"Relevant vertices: {newWavefront.RelevantVertices.Map(v => v.Position.ToString()).Join(", ")}");
+                Log.D($"Relevant vertices: {newWavefront.RelevantVertices.Map(v => v.Position.ToString()).Join(", ")}");
                 Wavefronts.Add(newWavefront);
                 return true;
             }
 
-            Log.I(
+            Log.D(
                 $"New wavefront at {rootVertex.Position} from {fromAngle}° to {toAngle}° wouldn't have any vertices -> ignore it");
             return false;
         }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Mars.Interfaces.Environments;
 using NUnit.Framework;
 using ServiceStack;
@@ -15,7 +16,7 @@ public class VertexTest
         neighborPositions.Add(Position.CreateGeoPosition(2, 1)); // right
         neighborPositions.Add(Position.CreateGeoPosition(1, 0)); // below
         neighborPositions.Add(Position.CreateGeoPosition(0, 1)); // left
-        var vertex = new Vertex(Position.CreateGeoPosition(1, 1), neighborPositions.ToSet());
+        var vertex = new Vertex(Position.CreateGeoPosition(1, 1), neighborPositions.ToList());
 
         var rightNeighbor = vertex.RightNeighbor(Position.CreateGeoPosition(2, 2));
         Assert.AreEqual(neighborPositions[2], rightNeighbor);
@@ -37,7 +38,7 @@ public class VertexTest
         neighborPositions.Add(Position.CreateGeoPosition(2, 1)); // right
         neighborPositions.Add(Position.CreateGeoPosition(1, 0)); // below
         neighborPositions.Add(Position.CreateGeoPosition(0, 1)); // left
-        var vertex = new Vertex(Position.CreateGeoPosition(1, 1), neighborPositions.ToSet());
+        var vertex = new Vertex(Position.CreateGeoPosition(1, 1), neighborPositions.ToList());
 
         var rightNeighbor = vertex.LeftNeighbor(Position.CreateGeoPosition(2, 2));
         Assert.AreEqual(neighborPositions[0], rightNeighbor);

@@ -31,22 +31,22 @@ public class Vertex
     public double X => Position.X;
     public double Y => Position.Y;
 
-    public Vertex(double x, double y) : this(Position.CreateGeoPosition(x, y), new HashSet<Position>())
+    public Vertex(double x, double y) : this(Position.CreateGeoPosition(x, y), new List<Position>())
     {
     }
 
-    public Vertex(Position position) : this(position, new HashSet<Position>())
+    public Vertex(Position position) : this(position, new List<Position>())
     {
     }
 
-    public Vertex(Position position, params Position[] neighbors) : this(position, neighbors.ToSet())
+    public Vertex(Position position, params Position[] neighbors) : this(position, neighbors.ToList())
     {
     }
 
-    public Vertex(Position position, ISet<Position> neighbors)
+    public Vertex(Position position, List<Position> neighbors)
     {
         Position = position;
-        _neighbors = neighbors.ToList();
+        _neighbors = neighbors;
         _neighbors.Sort((p1, p2) => (int)(Position.GetBearing(p1) - Position.GetBearing(p2)));
     }
 

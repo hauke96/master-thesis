@@ -41,14 +41,12 @@ namespace Wavefront.Tests
 
                 multiVertexLineVertices = new List<Vertex>();
                 multiVertexLineVertices.Add(new Vertex(multiVertexLineObstacle.Coordinates[0].ToPosition(),
-                    multiVertexLineObstacle.Coordinates[^1].ToPosition(),
                     multiVertexLineObstacle.Coordinates[1].ToPosition()));
                 multiVertexLineVertices.Add(new Vertex(multiVertexLineObstacle.Coordinates[1].ToPosition(),
                     multiVertexLineObstacle.Coordinates[0].ToPosition(),
                     multiVertexLineObstacle.Coordinates[2].ToPosition()));
                 multiVertexLineVertices.Add(new Vertex(multiVertexLineObstacle.Coordinates[2].ToPosition(),
-                    multiVertexLineObstacle.Coordinates[1].ToPosition(),
-                    multiVertexLineObstacle.Coordinates[^1].ToPosition()));
+                    multiVertexLineObstacle.Coordinates[1].ToPosition()));
 
                 simpleLineVertices = new List<Vertex>();
                 simpleLineVertices.Add(new Vertex(simpleLineObstacle.Coordinates[0].ToPosition(),
@@ -67,6 +65,56 @@ namespace Wavefront.Tests
                 wavefronts = new List<Wavefront>();
                 wavefrontAlgorithm = new WavefrontAlgorithm(obstacles, wavefronts);
                 rootVertex = new Vertex(Position.CreateGeoPosition(5, 2));
+            }
+
+            public class NeighborsFromObstacleVertices : WithWavefrontAlgorithm
+            {
+                [SetUp]
+                public void setup()
+                {
+                }
+
+                [Test]
+                public void GetNeighborsFromObstacleVertices_SimpleLineString()
+                {
+                    var positionToNeighbors =
+                        wavefrontAlgorithm.GetNeighborsFromObstacleVertices(
+                            new List<NetTopologySuite.Geometries.Geometry> { simpleLineObstacle });
+
+                    Assert.AreEqual(2, positionToNeighbors.Count);
+
+                    Assert.AreEqual(1, positionToNeighbors[simpleLineObstacle[0].ToPosition()].Count);
+                    Assert.AreEqual(simpleLineObstacle[1].ToPosition(),
+                        positionToNeighbors[simpleLineObstacle[0].ToPosition()][0]);
+
+                    Assert.AreEqual(1, positionToNeighbors[simpleLineObstacle[1].ToPosition()].Count);
+                    Assert.AreEqual(simpleLineObstacle[0].ToPosition(),
+                        positionToNeighbors[simpleLineObstacle[1].ToPosition()][0]);
+                }
+
+                [Test]
+                public void GetNeighborsFromObstacleVertices_MultiVertexLineString()
+                {
+                    var positionToNeighbors =
+                        wavefrontAlgorithm.GetNeighborsFromObstacleVertices(
+                            new List<NetTopologySuite.Geometries.Geometry> { multiVertexLineObstacle });
+
+                    Assert.AreEqual(3, positionToNeighbors.Count);
+
+                    Assert.AreEqual(1, positionToNeighbors[multiVertexLineObstacle[0].ToPosition()].Count);
+                    Assert.AreEqual(multiVertexLineObstacle[1].ToPosition(),
+                        positionToNeighbors[multiVertexLineObstacle[0].ToPosition()][0]);
+
+                    Assert.AreEqual(2, positionToNeighbors[multiVertexLineObstacle[1].ToPosition()].Count);
+                    Assert.AreEqual(multiVertexLineObstacle[2].ToPosition(),
+                        positionToNeighbors[multiVertexLineObstacle[1].ToPosition()][0]);
+                    Assert.AreEqual(multiVertexLineObstacle[0].ToPosition(),
+                        positionToNeighbors[multiVertexLineObstacle[1].ToPosition()][1]);
+
+                    Assert.AreEqual(1, positionToNeighbors[multiVertexLineObstacle[2].ToPosition()].Count);
+                    Assert.AreEqual(multiVertexLineObstacle[1].ToPosition(),
+                        positionToNeighbors[multiVertexLineObstacle[2].ToPosition()][0]);
+                }
             }
 
             public class ProcessNextEvent : WithWavefrontAlgorithm

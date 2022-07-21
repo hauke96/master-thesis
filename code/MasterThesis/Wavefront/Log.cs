@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Wavefront;
 
@@ -6,6 +7,11 @@ public class Log
 {
     private static int _normalCallDepth = 0;
     private static readonly string _indentString = "  ";
+
+    public static readonly int DEBUG = 0;
+    public static readonly int INFO = 1;
+
+    public static int LogLevel = INFO;
 
     public static void Init()
     {
@@ -19,9 +25,17 @@ public class Log
         Console.WriteLine(indentation + prefix + message);
     }
 
+    public static void D(string message, string prefix = "", int manualIndentOffset = 0)
+    {
+        if (LogLevel <= DEBUG)
+        {
+            I(message, prefix, manualIndentOffset - 1);
+        }
+    }
+
     public static void Note(string message)
     {
-        I(message, "- ", -1);
+        D(message, "- ", -1);
     }
 
     private static int GetCallDepth()
