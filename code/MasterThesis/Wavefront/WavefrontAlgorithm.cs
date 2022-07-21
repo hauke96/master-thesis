@@ -126,12 +126,14 @@ namespace Wavefront
             var wavefront = Wavefronts[0];
             var currentVertex = wavefront.GetNextVertex();
 
-            Log.I(
+            Log.D(
                 $"Process wavefront (" +
                 $"total wavefront={Wavefronts.Count}," +
                 $"m from start={(int)wavefront.DistanceToRootFromSource}," +
                 $"m to target={(int)wavefront.RootVertex.Position.DistanceInMTo(targetPosition)})" +
-                $"at {wavefront.RootVertex.Position} from {wavefront.FromAngle}° to {wavefront.ToAngle}°");
+                $"at {wavefront.RootVertex.Position} from {wavefront.FromAngle}° to {wavefront.ToAngle}°",
+                "",
+                1);
 
             if (currentVertex == null)
             {
@@ -154,7 +156,7 @@ namespace Wavefront
 
             if (Equals(currentVertex.Position, targetPosition))
             {
-                Log.I($"Target reached ({currentVertex.Position})");
+                Log.I($"Target reached ({currentVertex.Position})", "", 1);
                 PositionToPredecessor[currentVertex.Position] = wavefront.RootVertex.Position;
                 Log.D($"Set predecessor of target to {wavefront.RootVertex.Position}");
                 wavefront.RemoveNextVertex();
@@ -177,7 +179,7 @@ namespace Wavefront
             if (newWavefrontCreatedAtEventRoot)
             {
                 PositionToPredecessor[currentVertex.Position] = wavefront.RootVertex.Position;
-                Log.D($"Set predecessor of {currentVertex.Position} to {wavefront.RootVertex.Position}");
+                Log.I($"Set predecessor of {currentVertex.Position} to {wavefront.RootVertex.Position}");
             }
 
             if (!Double.IsNaN(angleShadowFrom) && !Double.IsNaN(angleShadowTo))

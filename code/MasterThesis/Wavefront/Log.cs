@@ -21,7 +21,7 @@ public class Log
     public static void I(string message, string prefix = "", int manualIndentOffset = 0)
     {
         var indentation =
-            string.Concat(Enumerable.Repeat(_indentString, GetCallDepth() - _normalCallDepth + manualIndentOffset));
+            string.Concat(Enumerable.Repeat(_indentString, manualIndentOffset));
         Console.WriteLine(indentation + prefix + message);
     }
 
@@ -29,7 +29,7 @@ public class Log
     {
         if (LogLevel <= DEBUG)
         {
-            I(message, prefix, manualIndentOffset - 1);
+            I(message, prefix, GetCallDepth() - _normalCallDepth + (manualIndentOffset - 1));
         }
     }
 
