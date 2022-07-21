@@ -14,7 +14,7 @@ namespace GeoJsonRouting.Model
     // TODO Find a better name than just "Agent".
     public class Agent : IPositionable, IAgent<VectorLayer>
     {
-        private static readonly int STEP_SIZE = 100;
+        private static readonly int STEP_SIZE = 1;
 
         [PropertyDescription] public UnregisterAgent UnregisterHandle { get; set; }
         [PropertyDescription] public ObstacleLayer ObstacleLayer { get; set; }
