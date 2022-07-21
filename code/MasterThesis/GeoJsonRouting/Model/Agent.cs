@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using GeoJsonRouting.Layer;
 using Mars.Common;
 using Mars.Components.Layers;
@@ -55,6 +56,7 @@ namespace GeoJsonRouting.Model
                     Console.WriteLine($"Target {currentWaypoint} reached.");
                     Kill();
                 }
+
                 return;
             }
 
@@ -85,7 +87,11 @@ namespace GeoJsonRouting.Model
             {
                 var obstacleGeometries = ObstacleLayer.Features.Map(f => f.VectorStructured.Geometry);
                 var wavefrontAlgorithm = new WavefrontAlgorithm(obstacleGeometries);
+                var watch = Stopwatch.StartNew();
                 Waypoints = new Queue<Position>(wavefrontAlgorithm.Route(Position, Target.Position));
+                watch.Stop();
+                Console.WriteLine($"Routing duration: {watch.ElapsedMilliseconds}ms");
+                Thread.Sleep(5000);
             }
             catch (Exception e)
             {
