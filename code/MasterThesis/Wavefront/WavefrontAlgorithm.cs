@@ -1,6 +1,7 @@
 using Mars.Common;
 using Mars.Interfaces.Environments;
 using NetTopologySuite.Geometries;
+using NetTopologySuite.IO.Handlers;
 using ServiceStack;
 using Wavefront.Geometry;
 using Position = Mars.Interfaces.Environments.Position;
@@ -422,19 +423,34 @@ namespace Wavefront
 
         private bool IsPositionVisible(Position startPosition, Position endPosition)
         {
-            return !TrajectoryCollidesWithObstacle(startPosition.X, startPosition.Y, endPosition.X, endPosition.Y);
+            return !TrajectoryCollidesWithObstacle(startPosition, endPosition);
         }
 
-        private bool TrajectoryCollidesWithObstacle(double startPositionX, double startPositionY, double endPositionX,
-            double endPositionY)
+        public bool TrajectoryCollidesWithObstacle(Position startPosition, Position endPosition)
         {
-            var lineStringToEvent = new LineString(new[]
-            {
-                new Coordinate(startPositionX, startPositionY),
-                new Coordinate(endPositionX, endPositionY)
-            });
+            var envelope = new Envelope(startPosition.ToCoordinate(), endPosition.ToCoordinate());
 
-            return Obstacles.Any(obstacle => obstacle.Crosses(lineStringToEvent));
+            var coordinateStart = startPosition.ToCoordinate();
+            var coordinateEnd = endPosition.ToCoordinate();
+
+            foreach (var obstacle in Obstacles)
+            {
+                if (obstacle.Coordinates.Length < 2 || !obstacle.EnvelopeInternal.Intersects(envelope))
+                {
+                    continue;
+                }
+                
+                for (int i = 0; i < obstacle.Coordinates.Length - 1; i++)
+                {
+                    if (Intersect.DoIntersect(coordinateStart, coordinateEnd, obstacle.Coordinates[i],
+                            obstacle.Coordinates[i + 1]))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }
