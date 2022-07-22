@@ -880,5 +880,52 @@ namespace Wavefront.Tests
                 Assert.AreEqual(4, waypoints.Count);
             }
         }
+
+        public class ZickZackAroundBuildings
+        {
+            // Real world problem: Route was not shortest when going around building
+
+            static WavefrontAlgorithm wavefrontAlgorithm;
+
+            [SetUp]
+            public void Setup()
+            {
+                var eastBuilding = new LineString(new[]
+                {
+                    new Coordinate(1, 2.5),
+                    new Coordinate(2.5, 1),
+                    new Coordinate(3.5, 2),
+                    new Coordinate(2, 3.5),
+                    new Coordinate(1, 2.5)
+                });
+                var westBuilding = new LineString(new[]
+                {
+                    new Coordinate(3, 3.5),
+                    new Coordinate(5, 1.5),
+                    new Coordinate(6.5, 3),
+                    new Coordinate(4.5, 5),
+                    new Coordinate(3, 3.5)
+                });
+                var obstacles = new List<NetTopologySuite.Geometries.Geometry>();
+                obstacles.Add(eastBuilding);
+                obstacles.Add(westBuilding);
+
+                wavefrontAlgorithm = new WavefrontAlgorithm(obstacles);
+            }
+
+            [Test]
+            public void Routing()
+            {
+                var waypoints = wavefrontAlgorithm.Route(Position.CreateGeoPosition(2, 1),
+                    Position.CreateGeoPosition(3.5, 4.5));
+
+                Assert.AreEqual(5, waypoints.Count);
+                Assert.AreEqual(Position.CreateGeoPosition(2, 1), waypoints[0]);
+                Assert.AreEqual(Position.CreateGeoPosition(2.5, 1), waypoints[1]);
+                Assert.AreEqual(Position.CreateGeoPosition(3.5, 2), waypoints[2]);
+                Assert.AreEqual(Position.CreateGeoPosition(3, 3.5), waypoints[3]);
+                Assert.AreEqual(Position.CreateGeoPosition(3.5, 4.5), waypoints[4]);
+            }
+        }
     }
 }
