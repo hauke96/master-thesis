@@ -1,0 +1,116 @@
+
+{
+    "type": "FeatureCollection",
+    "generator": "JOSM",
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "target": "yes"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    9.92924346692,
+                    53.58468437815
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "start": "yes"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    9.92891798676,
+                    53.58436384714
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "addr:city": "Hamburg",
+                "building": "office",
+                "@id": "way/37455362",
+                "addr:street": "Warnstedtstraße",
+                "addr:housenumber": "28",
+                "addr:postcode": "22525",
+                "addr:country": "DE",
+                "building:levels": "2",
+                "roof:shape": "flat"
+            },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            9.92872730000,
+                            53.58453790000
+                        ],
+                        [
+                            9.92896730000,
+                            53.58435830000
+                        ],
+                        [
+                            9.92917760000,
+                            53.58445730000
+                        ],
+                        [
+                            9.92893680000,
+                            53.58463740000
+                        ],
+                        [
+                            9.92872730000,
+                            53.58453790000
+                        ]
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "roof:levels": "0",
+                "addr:housenumber": "30",
+                "addr:city": "Hamburg",
+                "building": "office",
+                "addr:street": "Warnstedtstraße",
+                "addr:postcode": "22525",
+                "@id": "way/37455354",
+                "addr:country": "DE",
+                "building:levels": "2",
+                "roof:shape": "flat"
+            },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            9.92914547642,
+                            53.58461882910
+                        ],
+                        [
+                            9.92947863771,
+                            53.58435537767
+                        ],
+                        [
+                            9.92986042358,
+                            53.58452552140
+                        ],
+                        [
+                            9.92952726229,
+                            53.58478897176
+                        ],
+                        [
+                            9.92914547642,
+                            53.58461882910
+                        ]
+                    ]
+                ]
+            }
+        }
+    ]
+}
