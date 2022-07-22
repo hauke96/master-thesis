@@ -23,7 +23,6 @@ namespace Wavefront
             PositionToPredecessor = new Dictionary<Position, Position?>();
 
             var positionToNeighbors = GetNeighborsFromObstacleVertices(Obstacles);
-
             positionToNeighbors.Keys.Each(position =>
             {
                 Vertices.Add(new Vertex(position, positionToNeighbors[position]));
@@ -143,13 +142,18 @@ namespace Wavefront
                 return;
             }
 
-            var isCurrentVertexVisible = IsPositionVisible(wavefront.RootVertex.Position, currentVertex.Position);
             var currentVertexHasBeenVisitedBefore = PositionToPredecessor.ContainsKey(currentVertex.Position);
-            if (!isCurrentVertexVisible || currentVertexHasBeenVisitedBefore)
+            if (currentVertexHasBeenVisitedBefore)
             {
-                Log.D($"Ignore event at {currentVertex.Position}: " +
-                      $"invalid={!isCurrentVertexVisible}, " +
-                      $"already visited={currentVertexHasBeenVisitedBefore}");
+                Log.D($"Vertex at {currentVertex.Position} has been visited before");
+                wavefront.IgnoreVertex(currentVertex);
+                return;
+            }
+
+            var isCurrentVertexVisible = IsPositionVisible(wavefront.RootVertex.Position, currentVertex.Position);
+            if (!isCurrentVertexVisible)
+            {
+                Log.D($"Vertex at {currentVertex.Position} is not visible");
                 wavefront.IgnoreVertex(currentVertex);
                 return;
             }
