@@ -1,7 +1,7 @@
 using Mars.Common;
+using Mars.Common.Core.Collections;
 using Mars.Interfaces.Environments;
 using NetTopologySuite.Geometries;
-using NetTopologySuite.IO.Handlers;
 using ServiceStack;
 using Wavefront.Geometry;
 using Position = Mars.Interfaces.Environments.Position;
@@ -13,11 +13,11 @@ namespace Wavefront
         private readonly List<NetTopologySuite.Geometries.Geometry> Obstacles;
 
         public readonly Dictionary<Position, Position?> PositionToPredecessor;
-        public readonly List<Wavefront> Wavefronts;
+        public readonly LinkedList<Wavefront> Wavefronts;
         public readonly List<Vertex> Vertices;
 
         public WavefrontAlgorithm(List<NetTopologySuite.Geometries.Geometry> obstacles,
-            List<Wavefront>? wavefronts = null)
+            LinkedList<Wavefront>? wavefronts = null)
         {
             Obstacles = obstacles;
             Vertices = new List<Vertex>();
@@ -29,7 +29,11 @@ namespace Wavefront
                 Vertices.Add(new Vertex(position, positionToNeighbors[position]));
             });
 
-            Wavefronts = wavefronts ?? new List<Wavefront>();
+            Wavefronts = new LinkedList<Wavefront>();
+            if (wavefronts != null)
+            {
+                Wavefronts.AddRange(wavefronts);
+            }
         }
 
         // TODO Tests
@@ -92,7 +96,7 @@ namespace Wavefront
                 return new List<Position>();
             }
 
-            Wavefronts.Add(initialWavefront);
+            AddWavefront(initialWavefront);
 
             Log.Init();
             Log.I($"Routing from {source} to {target}");
@@ -122,8 +126,7 @@ namespace Wavefront
         public void ProcessNextEvent(Position targetPosition)
         {
             // TODO Use sorted queue (prioroty queue?)
-            Wavefronts.Sort((w1, w2) => (int)(w1.DistanceToNextVertex() - w2.DistanceToNextVertex()));
-            var wavefront = Wavefronts[0];
+            var wavefront = Wavefronts.First();
             var currentVertex = wavefront.GetNextVertex();
 
             Log.D(
@@ -147,7 +150,7 @@ namespace Wavefront
             if (currentVertexHasBeenVisitedBefore)
             {
                 Log.D($"Vertex at {currentVertex.Position} has been visited before");
-                wavefront.RemoveNextVertex();
+                RemoveNextVertex(wavefront);
                 return;
             }
 
@@ -155,7 +158,7 @@ namespace Wavefront
             if (!isCurrentVertexVisible)
             {
                 Log.D($"Vertex at {currentVertex.Position} is not visible");
-                wavefront.RemoveNextVertex();
+                RemoveNextVertex(wavefront);
                 return;
             }
 
@@ -171,7 +174,7 @@ namespace Wavefront
 
             Log.D($"Next vertex at {currentVertex.Position}");
 
-            wavefront.RemoveNextVertex();
+            RemoveNextVertex(wavefront);
             Log.D("Drop vertex from wavefront");
 
             double angleShadowFrom;
@@ -196,6 +199,13 @@ namespace Wavefront
                 AddNewWavefront(wavefront.RelevantVertices, wavefront.RootVertex, wavefront.DistanceToRootFromSource,
                     angleShadowTo, wavefront.ToAngle);
             }
+        }
+
+        private void RemoveNextVertex(Wavefront wavefront)
+        {
+            wavefront.RemoveNextVertex();
+            Wavefronts.Remove(wavefront);
+            AddWavefront(wavefront);
         }
 
         // TODO document rotation idea of this method
@@ -412,7 +422,7 @@ namespace Wavefront
                 Log.D(
                     $"New wavefront at {newWavefront.RootVertex.Position} with {newWavefront.RelevantVertices.Count} relevant vertices from {fromAngle}° to {toAngle}°");
                 Log.D($"Relevant vertices: {newWavefront.RelevantVertices.Map(v => v.Position.ToString()).Join(", ")}");
-                Wavefronts.Add(newWavefront);
+                AddWavefront(newWavefront);
                 return true;
             }
 
@@ -451,6 +461,24 @@ namespace Wavefront
             }
 
             return false;
+        }
+
+        public void AddWavefront(Wavefront newWavefront)
+        {
+            var distanceToNextVertex = newWavefront.DistanceToNextVertex();
+            var node = Wavefronts.First;
+            for (var i = 0; i < Wavefronts.Count; i++)
+            {
+                if (node.Value.DistanceToNextVertex() > distanceToNextVertex)
+                {
+                    Wavefronts.AddBefore(node, newWavefront);
+                    return;
+                }
+
+                node = node.Next;
+            }
+
+            Wavefronts.AddLast(newWavefront);
         }
     }
 }

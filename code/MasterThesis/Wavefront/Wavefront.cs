@@ -93,6 +93,7 @@ public class Wavefront
 
     public void RemoveNextVertex()
     {
+        _visitedVertices.Add(RelevantVertices.Last().Position);
         RelevantVertices.RemoveAt(RelevantVertices.Count - 1);
     }
 

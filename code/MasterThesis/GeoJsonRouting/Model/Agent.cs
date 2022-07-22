@@ -91,7 +91,6 @@ namespace GeoJsonRouting.Model
                 Waypoints = new Queue<Position>(wavefrontAlgorithm.Route(Position, Target.Position));
                 watch.Stop();
                 Console.WriteLine($"Routing duration: {watch.ElapsedMilliseconds}ms");
-                Thread.Sleep(5000);
             }
             catch (Exception e)
             {
