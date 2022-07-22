@@ -147,7 +147,7 @@ namespace Wavefront
             if (currentVertexHasBeenVisitedBefore)
             {
                 Log.D($"Vertex at {currentVertex.Position} has been visited before");
-                wavefront.IgnoreVertex(currentVertex);
+                wavefront.RemoveNextVertex();
                 return;
             }
 
@@ -155,7 +155,7 @@ namespace Wavefront
             if (!isCurrentVertexVisible)
             {
                 Log.D($"Vertex at {currentVertex.Position} is not visible");
-                wavefront.IgnoreVertex(currentVertex);
+                wavefront.RemoveNextVertex();
                 return;
             }
 
@@ -439,7 +439,7 @@ namespace Wavefront
                 {
                     continue;
                 }
-                
+
                 for (int i = 0; i < obstacle.Coordinates.Length - 1; i++)
                 {
                     if (Intersect.DoIntersect(coordinateStart, coordinateEnd, obstacle.Coordinates[i],

@@ -11,14 +11,12 @@ public class Wavefront
     public double ToAngle { get; }
     public Vertex RootVertex { get; }
 
-    public List<Vertex> RelevantVertices => new(_possiblyVisibleVertices);
-
     /// <summary>
     /// The distance from the source of the routing to the root of this event.
     /// </summary>
     public double DistanceToRootFromSource { get; }
 
-    private Queue<Vertex> _possiblyVisibleVertices;
+    public List<Vertex> RelevantVertices;
     private readonly List<Position> _visitedVertices;
 
     /// <summary>
@@ -33,7 +31,7 @@ public class Wavefront
         var wavefront = new Wavefront(fromAngle, toAngle, rootVertex, distanceToRootFromSource);
         wavefront.FilterAndEnqueueVertices(rootVertex, allVertices);
 
-        if (wavefront._possiblyVisibleVertices.Count == 0)
+        if (wavefront.RelevantVertices.Count == 0)
         {
             return null;
         }
@@ -53,7 +51,7 @@ public class Wavefront
 
         // Get the vertices that are possibly visible. There's not collision detection here but all vertices are at
         // least within the range of this wavefront.
-        _possiblyVisibleVertices = new Queue<Vertex>();
+        RelevantVertices = new List<Vertex>();
         _visitedVertices = new List<Position>();
     }
 
@@ -73,11 +71,11 @@ public class Wavefront
                 var distanceInMToC1 = RootVertex.Position.DistanceInMTo(Position.CreateGeoPosition(v1.X, v1.Y));
                 var distanceInMToC2 = RootVertex.Position.DistanceInMTo(Position.CreateGeoPosition(v2.X, v2.Y));
 
-                return (int)(distanceInMToC1 - distanceInMToC2);
+                return (int)(distanceInMToC2 - distanceInMToC1);
             });
 
-        _possiblyVisibleVertices.Clear();
-        vertices.Each(vertex => _possiblyVisibleVertices.Enqueue(vertex));
+        RelevantVertices.Clear();
+        vertices.Each(vertex => RelevantVertices.Add(vertex));
     }
 
     /// <summary>
@@ -85,21 +83,17 @@ public class Wavefront
     /// </summary>
     public Vertex? GetNextVertex()
     {
-        if (_possiblyVisibleVertices.Count == 0)
+        if (RelevantVertices.Count == 0)
         {
             return null;
         }
 
-        return _possiblyVisibleVertices.Peek();
+        return RelevantVertices.Last();
     }
 
     public void RemoveNextVertex()
     {
-        if (GetNextVertex() != null)
-        {
-            var vertex = _possiblyVisibleVertices.Dequeue();
-            _visitedVertices.Add(vertex.Position);
-        }
+        RelevantVertices.RemoveAt(RelevantVertices.Count - 1);
     }
 
     public bool HasBeenVisited(Position? position)
@@ -121,10 +115,5 @@ public class Wavefront
     public double DistanceTo(Position position)
     {
         return DistanceToRootFromSource + RootVertex.Position.DistanceInMTo(position);
-    }
-
-    public void IgnoreVertex(Vertex vertex)
-    {
-        _possiblyVisibleVertices = new Queue<Vertex>(_possiblyVisibleVertices.Where(v => v != vertex));
     }
 }
