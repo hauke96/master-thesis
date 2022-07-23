@@ -42,8 +42,6 @@ public class Wavefront
     private Wavefront(double fromAngle, double toAngle, Vertex rootVertex,
         double distanceToRootFromSource)
     {
-        // TODO make sure that the angle area doesn't exceed the 0° line. But 0° to 360° should be allowed.
-
         FromAngle = fromAngle;
         ToAngle = toAngle;
         RootVertex = rootVertex;

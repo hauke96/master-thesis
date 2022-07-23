@@ -53,7 +53,6 @@ public class Vertex
     /// <summary>
     /// Returns the neighbor that's right (=counter clockwise) or equal to the angle of the given position.
     /// </summary>
-    // TODO Tests
     public Position? RightNeighbor(Position basePosition)
     {
         var index = _neighbors.FindLastIndex(neighborPosition =>
@@ -65,7 +64,6 @@ public class Vertex
     /// <summary>
     /// Returns the neighbor that's left (=clockwise) or equal to the angle of the given position.
     /// </summary>
-    // TODO Tests
     public Position? LeftNeighbor(Position basePosition)
     {
         var index = _neighbors.FindIndex(neighborPosition =>

@@ -36,7 +36,6 @@ namespace Wavefront
             }
         }
 
-        // TODO Tests
         public Dictionary<Position, List<Position>> GetNeighborsFromObstacleVertices(
             List<NetTopologySuite.Geometries.Geometry> obstacles)
         {
@@ -131,7 +130,6 @@ namespace Wavefront
 
         public void ProcessNextEvent(Position targetPosition)
         {
-            // TODO Use sorted queue (prioroty queue?)
             var wavefront = Wavefronts.First();
             var currentVertex = wavefront.GetNextVertex();
 
