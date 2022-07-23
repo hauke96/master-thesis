@@ -419,7 +419,8 @@ namespace Wavefront.Tests
                 public void EqualAngleBetweenFromAndTo()
                 {
                     Assert.True(wavefronts.IsEmpty());
-                    wavefrontAlgorithm.AddWavefrontIfValid(wavefrontAlgorithm.Vertices.ToList(), 10, rootVertex, 10, 10);
+                    wavefrontAlgorithm.AddWavefrontIfValid(wavefrontAlgorithm.Vertices.ToList(), 10, rootVertex, 10,
+                        10);
                     Assert.True(wavefronts.IsEmpty());
                 }
 
@@ -427,7 +428,8 @@ namespace Wavefront.Tests
                 public void NewWavefrontWouldBeInvalid()
                 {
                     Assert.True(wavefronts.IsEmpty());
-                    wavefrontAlgorithm.AddWavefrontIfValid(wavefrontAlgorithm.Vertices.ToList(), 10, rootVertex, 10, 11);
+                    wavefrontAlgorithm.AddWavefrontIfValid(wavefrontAlgorithm.Vertices.ToList(), 10, rootVertex, 10,
+                        11);
                     Assert.True(wavefronts.IsEmpty());
                 }
 
@@ -436,7 +438,8 @@ namespace Wavefront.Tests
                 {
                     Assert.True(wavefronts.IsEmpty());
 
-                    wavefrontAlgorithm.AddWavefrontIfValid(wavefrontAlgorithm.Vertices.ToList(), 10, rootVertex, 190, 360);
+                    wavefrontAlgorithm.AddWavefrontIfValid(wavefrontAlgorithm.Vertices.ToList(), 10, rootVertex, 190,
+                        360);
 
                     Assert.AreEqual(1, wavefronts.Count);
                     var wavefront = wavefronts.ToList()[0];
@@ -541,7 +544,8 @@ namespace Wavefront.Tests
                 [Test]
                 public void NoNeighborToEast()
                 {
-                    var wavefront = Wavefront.New(190, 350, new Vertex(8, 4.5), wavefrontAlgorithm.Vertices.ToList(), 10)!;
+                    var wavefront = Wavefront.New(190, 350, new Vertex(8, 4.5), wavefrontAlgorithm.Vertices.ToList(),
+                        10)!;
                     wavefrontAlgorithm.AddWavefront(wavefront);
                     var vertex = multiVertexLineVertices[1];
                     wavefront.RemoveNextVertex();
@@ -570,7 +574,8 @@ namespace Wavefront.Tests
                 [Test]
                 public void NeighborsOutsideWavefront_NotVisited()
                 {
-                    var wavefront = Wavefront.New(300, 330, new Vertex(8, 2), wavefrontAlgorithm.Vertices.ToList(), 10)!;
+                    var wavefront = Wavefront.New(300, 330, new Vertex(8, 2), wavefrontAlgorithm.Vertices.ToList(),
+                        10)!;
                     wavefrontAlgorithm.AddWavefront(wavefront);
                     var vertex = multiVertexLineVertices[1];
                     Assert.IsFalse(wavefront.HasBeenVisited(multiVertexLineObstacle[2].ToPosition()));
@@ -591,7 +596,8 @@ namespace Wavefront.Tests
                 [Test]
                 public void NeighborsInsideWavefront_NotVisited()
                 {
-                    var wavefront = Wavefront.New(270, 360, new Vertex(8, 2), wavefrontAlgorithm.Vertices.ToList(), 10)!;
+                    var wavefront = Wavefront.New(270, 360, new Vertex(8, 2), wavefrontAlgorithm.Vertices.ToList(),
+                        10)!;
                     wavefrontAlgorithm.AddWavefront(wavefront);
                     var vertex = multiVertexLineVertices[1];
                     Assert.IsFalse(wavefront.HasBeenVisited(multiVertexLineObstacle[0].ToPosition()));
@@ -617,17 +623,17 @@ namespace Wavefront.Tests
                     wavefrontAlgorithm.AddWavefront(wavefront);
                     var vertex = multiVertexLineVertices[1];
                     wavefront.RemoveNextVertex();
-                    Assert.IsTrue(wavefront.HasBeenVisited(multiVertexLineObstacle[2].ToPosition()));
                     wavefront.RemoveNextVertex();
                     Assert.IsTrue(wavefront.HasBeenVisited(multiVertexLineObstacle[0].ToPosition()));
+                    Assert.IsTrue(wavefront.HasBeenVisited(multiVertexLineObstacle[2].ToPosition()));
                     Assert.AreEqual(vertex, wavefront.GetNextVertex());
 
                     wavefrontAlgorithm.HandleNeighbors(vertex, wavefront, out var angleShadowFrom,
                         out var angleShadowTo, out var createdWavefront);
 
                     Assert.IsFalse(createdWavefront);
-                    Assert.IsTrue(Math.Abs(angleShadowFrom - 90) < 1);
-                    Assert.IsTrue(Math.Abs(angleShadowTo - 180) < 1);
+                    Assert.AreEqual(90, angleShadowFrom, 0.1);
+                    Assert.AreEqual(180, angleShadowTo, 0.1);
 
                     Assert.AreEqual(1, wavefronts.Count);
                     var w = wavefronts.ToList()[0];
@@ -664,7 +670,8 @@ namespace Wavefront.Tests
                 [Test]
                 public void InnerCornerOnLine_NotCreatingNewWavefront()
                 {
-                    var wavefront = Wavefront.New(0, 90, multiVertexLineVertices[0], wavefrontAlgorithm.Vertices.ToList(), 1)!;
+                    var wavefront = Wavefront.New(0, 90, multiVertexLineVertices[0],
+                        wavefrontAlgorithm.Vertices.ToList(), 1)!;
                     wavefrontAlgorithm.AddWavefront(wavefront);
                     var vertex = multiVertexLineVertices[1];
 
