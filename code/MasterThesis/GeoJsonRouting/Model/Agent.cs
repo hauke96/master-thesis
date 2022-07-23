@@ -43,7 +43,7 @@ namespace GeoJsonRouting.Model
             }
 
             var currentWaypoint = Waypoints.Peek();
-            Console.WriteLine($"Tick with current waypoint {currentWaypoint}");
+            // Console.WriteLine($"Tick with current waypoint {currentWaypoint}");
 
             var distanceToTargetInM = Position.DistanceInMTo(currentWaypoint);
             if (distanceToTargetInM == 0)
