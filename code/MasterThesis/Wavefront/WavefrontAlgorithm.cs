@@ -50,7 +50,13 @@ namespace Wavefront
 
                 var isClosed = Equals(obstacle.Coordinates.First(), obstacle.Coordinates.Last());
 
-                obstacle.Coordinates.Each((index, coordinate) =>
+                var coordinates = obstacle.Coordinates.ToList();
+                if (isClosed)
+                {
+                    coordinates.RemoveAt(coordinates.Count - 1);
+                }
+
+                coordinates.Each((index, coordinate) =>
                 {
                     var position = coordinate.ToPosition();
                     if (!positionToNeighbors.ContainsKey(position))
@@ -59,16 +65,16 @@ namespace Wavefront
                     }
 
                     Coordinate? nextCoordinate =
-                        index + 1 < obstacle.Coordinates.Length ? obstacle.Coordinates[index + 1] : null;
-                    Coordinate? previousCoordinate = index - 1 >= 0 ? obstacle.Coordinates[index - 1] : null;
+                        index + 1 < coordinates.Count ? coordinates[index + 1] : null;
+                    Coordinate? previousCoordinate = index - 1 >= 0 ? coordinates[index - 1] : null;
                     if (isClosed && nextCoordinate == null)
                     {
-                        nextCoordinate = obstacle.Coordinates.First();
+                        nextCoordinate = coordinates.First();
                     }
 
                     if (isClosed && previousCoordinate == null)
                     {
-                        previousCoordinate = obstacle.Coordinates[^2];
+                        previousCoordinate = coordinates[^1];
                     }
 
                     if (nextCoordinate != null)

@@ -70,51 +70,77 @@ namespace Wavefront.Tests
 
             public class NeighborsFromObstacleVertices : WithWavefrontAlgorithm
             {
-                [SetUp]
-                public void setup()
-                {
-                }
-
                 [Test]
                 public void GetNeighborsFromObstacleVertices_SimpleLineString()
                 {
+                    var obstacle = simpleLineObstacle;
                     var positionToNeighbors =
                         wavefrontAlgorithm.GetNeighborsFromObstacleVertices(
-                            new List<NetTopologySuite.Geometries.Geometry> { simpleLineObstacle });
+                            new List<NetTopologySuite.Geometries.Geometry> { obstacle });
 
                     Assert.AreEqual(2, positionToNeighbors.Count);
 
-                    Assert.AreEqual(1, positionToNeighbors[simpleLineObstacle[0].ToPosition()].Count);
-                    Assert.AreEqual(simpleLineObstacle[1].ToPosition(),
-                        positionToNeighbors[simpleLineObstacle[0].ToPosition()][0]);
+                    Assert.AreEqual(1, positionToNeighbors[obstacle[0].ToPosition()].Count);
+                    Assert.Contains(obstacle[1].ToPosition(), positionToNeighbors[obstacle[0].ToPosition()]);
 
-                    Assert.AreEqual(1, positionToNeighbors[simpleLineObstacle[1].ToPosition()].Count);
-                    Assert.AreEqual(simpleLineObstacle[0].ToPosition(),
-                        positionToNeighbors[simpleLineObstacle[1].ToPosition()][0]);
+                    Assert.AreEqual(1, positionToNeighbors[obstacle[1].ToPosition()].Count);
+                    Assert.Contains(obstacle[0].ToPosition(), positionToNeighbors[obstacle[1].ToPosition()]);
                 }
 
                 [Test]
                 public void GetNeighborsFromObstacleVertices_MultiVertexLineString()
                 {
+                    var obstacle = multiVertexLineObstacle;
                     var positionToNeighbors =
                         wavefrontAlgorithm.GetNeighborsFromObstacleVertices(
-                            new List<NetTopologySuite.Geometries.Geometry> { multiVertexLineObstacle });
+                            new List<NetTopologySuite.Geometries.Geometry> { obstacle });
 
                     Assert.AreEqual(3, positionToNeighbors.Count);
 
-                    Assert.AreEqual(1, positionToNeighbors[multiVertexLineObstacle[0].ToPosition()].Count);
-                    Assert.AreEqual(multiVertexLineObstacle[1].ToPosition(),
-                        positionToNeighbors[multiVertexLineObstacle[0].ToPosition()][0]);
+                    Assert.AreEqual(1, positionToNeighbors[obstacle[0].ToPosition()].Count);
+                    Assert.Contains(obstacle[1].ToPosition(), positionToNeighbors[obstacle[0].ToPosition()]);
 
-                    Assert.AreEqual(2, positionToNeighbors[multiVertexLineObstacle[1].ToPosition()].Count);
-                    Assert.AreEqual(multiVertexLineObstacle[2].ToPosition(),
-                        positionToNeighbors[multiVertexLineObstacle[1].ToPosition()][0]);
-                    Assert.AreEqual(multiVertexLineObstacle[0].ToPosition(),
-                        positionToNeighbors[multiVertexLineObstacle[1].ToPosition()][1]);
+                    Assert.AreEqual(2, positionToNeighbors[obstacle[1].ToPosition()].Count);
+                    Assert.Contains(obstacle[2].ToPosition(), positionToNeighbors[obstacle[1].ToPosition()]);
+                    Assert.Contains(obstacle[0].ToPosition(), positionToNeighbors[obstacle[1].ToPosition()]);
 
-                    Assert.AreEqual(1, positionToNeighbors[multiVertexLineObstacle[2].ToPosition()].Count);
-                    Assert.AreEqual(multiVertexLineObstacle[1].ToPosition(),
-                        positionToNeighbors[multiVertexLineObstacle[2].ToPosition()][0]);
+                    Assert.AreEqual(1, positionToNeighbors[obstacle[2].ToPosition()].Count);
+                    Assert.Contains(obstacle[1].ToPosition(), positionToNeighbors[obstacle[2].ToPosition()]);
+                }
+
+                [Test]
+                public void GetNeighborsFromObstacleVertices_Polygon()
+                {
+                    var obstacle = new LineString(new[]
+                    {
+                        new Coordinate(1, 2.5),
+                        new Coordinate(2.5, 1),
+                        new Coordinate(3.5, 2),
+                        new Coordinate(2, 3.5),
+                        new Coordinate(1, 2.5)
+                    });
+
+                    var positionToNeighbors =
+                        wavefrontAlgorithm.GetNeighborsFromObstacleVertices(
+                            new List<NetTopologySuite.Geometries.Geometry> { obstacle });
+
+                    Assert.AreEqual(4, positionToNeighbors.Count);
+
+                    Assert.AreEqual(2, positionToNeighbors[obstacle[0].ToPosition()].Count);
+                    Assert.Contains(obstacle[1].ToPosition(), positionToNeighbors[obstacle[0].ToPosition()]);
+                    Assert.Contains(obstacle[3].ToPosition(), positionToNeighbors[obstacle[0].ToPosition()]);
+
+                    Assert.AreEqual(2, positionToNeighbors[obstacle[1].ToPosition()].Count);
+                    Assert.Contains(obstacle[0].ToPosition(), positionToNeighbors[obstacle[1].ToPosition()]);
+                    Assert.Contains(obstacle[2].ToPosition(), positionToNeighbors[obstacle[1].ToPosition()]);
+
+                    Assert.AreEqual(2, positionToNeighbors[obstacle[2].ToPosition()].Count);
+                    Assert.Contains(obstacle[1].ToPosition(), positionToNeighbors[obstacle[2].ToPosition()]);
+                    Assert.Contains(obstacle[3].ToPosition(), positionToNeighbors[obstacle[2].ToPosition()]);
+
+                    Assert.AreEqual(2, positionToNeighbors[obstacle[3].ToPosition()].Count);
+                    Assert.Contains(obstacle[0].ToPosition(), positionToNeighbors[obstacle[3].ToPosition()]);
+                    Assert.Contains(obstacle[2].ToPosition(), positionToNeighbors[obstacle[3].ToPosition()]);
                 }
             }
 
