@@ -12,6 +12,8 @@ namespace Wavefront.Tests
 {
     public class WavefrontAlgorithmTest
     {
+        private static readonly double FLOAT_TOLERANCE = 0.01;
+
         public class WithWavefrontAlgorithm
         {
             static WavefrontAlgorithm wavefrontAlgorithm;
@@ -215,8 +217,8 @@ namespace Wavefront.Tests
                     Assert.AreEqual(wavefront, w);
 
                     w = wavefrontAlgorithm.Wavefronts.ToList()[1];
-                    Assert.IsTrue(Math.Abs(w.FromAngle - 225) < 1);
-                    Assert.IsTrue(Math.Abs(w.ToAngle - 270) < 1);
+                    Assert.AreEqual(224.95, w.FromAngle, FLOAT_TOLERANCE);
+                    Assert.AreEqual(270, w.ToAngle, FLOAT_TOLERANCE);
                     Assert.AreEqual(multiVertexLineObstacle[1], w.RootVertex.Coordinate);
                 }
 
@@ -283,12 +285,12 @@ namespace Wavefront.Tests
 
                     Assert.AreEqual(2, wavefrontAlgorithm.Wavefronts.Count);
                     var w = wavefronts.ToList()[0];
-                    Assert.AreEqual(0, w.FromAngle, 0.1);
-                    Assert.AreEqual(127.1, w.ToAngle, 0.1);
+                    Assert.AreEqual(0, w.FromAngle, FLOAT_TOLERANCE);
+                    Assert.AreEqual(127.1, w.ToAngle, FLOAT_TOLERANCE);
 
                     w = wavefronts.ToList()[1];
-                    Assert.AreEqual(wavefront.FromAngle, w.FromAngle, 0.1);
-                    Assert.AreEqual(360, w.ToAngle, 0.1);
+                    Assert.AreEqual(wavefront.FromAngle, w.FromAngle, FLOAT_TOLERANCE);
+                    Assert.AreEqual(360, w.ToAngle, FLOAT_TOLERANCE);
                 }
             }
 
@@ -332,7 +334,7 @@ namespace Wavefront.Tests
                     Assert.AreEqual(wavefront, w);
 
                     w = wavefrontAlgorithm.Wavefronts.ToList()[1];
-                    Assert.IsTrue(Math.Abs(w.FromAngle - 18.43) < 1);
+                    Assert.AreEqual(18.43, w.FromAngle, FLOAT_TOLERANCE);
                     Assert.AreEqual(90, w.ToAngle);
                     Assert.AreEqual(multiVertexLineObstacle[0], w.RootVertex.Coordinate);
                 }
@@ -346,18 +348,18 @@ namespace Wavefront.Tests
                     Assert.AreEqual(3, wavefrontAlgorithm.Wavefronts.Count);
 
                     var w = wavefrontAlgorithm.Wavefronts.ToList()[0];
-                    Assert.IsTrue(Math.Abs(w.FromAngle - 18.43) < 1);
+                    Assert.AreEqual(18.43, w.FromAngle, FLOAT_TOLERANCE);
                     Assert.AreEqual(90, w.ToAngle);
                     Assert.AreEqual(multiVertexLineObstacle[0], w.RootVertex.Coordinate);
 
                     w = wavefrontAlgorithm.Wavefronts.ToList()[1];
                     Assert.AreEqual(0, w.FromAngle);
-                    Assert.IsTrue(Math.Abs(w.ToAngle - 33.69) < 1);
+                    Assert.AreEqual(33.67, w.ToAngle, FLOAT_TOLERANCE);
                     Assert.AreEqual(multiVertexLineObstacle[1], w.RootVertex.Coordinate);
 
                     w = wavefrontAlgorithm.Wavefronts.ToList()[2];
-                    Assert.IsTrue(Math.Abs(w.FromAngle - 33.69) < 1);
-                    Assert.IsTrue(Math.Abs(w.ToAngle - 350) < 1);
+                    Assert.AreEqual(33.67, w.FromAngle, FLOAT_TOLERANCE);
+                    Assert.AreEqual(350, w.ToAngle, FLOAT_TOLERANCE);
                     Assert.AreEqual(wavefront.RootVertex, w.RootVertex);
                 }
             }
@@ -401,14 +403,14 @@ namespace Wavefront.Tests
 
                     var w = wavefrontAlgorithm.Wavefronts.ToList()[0];
                     Assert.AreEqual(0, w.FromAngle);
-                    Assert.IsTrue(Math.Abs(w.ToAngle - 90) < 1);
+                    Assert.AreEqual(90, w.ToAngle, FLOAT_TOLERANCE);
 
                     w = wavefrontAlgorithm.Wavefronts.ToList()[1];
-                    Assert.IsTrue(Math.Abs(w.FromAngle - 270) < 1);
-                    Assert.IsTrue(Math.Abs(w.ToAngle - 355) < 1);
+                    Assert.AreEqual(270, w.FromAngle, FLOAT_TOLERANCE);
+                    Assert.AreEqual(355, w.ToAngle, FLOAT_TOLERANCE);
 
                     w = wavefrontAlgorithm.Wavefronts.ToList()[2];
-                    Assert.IsTrue(Math.Abs(w.FromAngle - 315) < 1);
+                    Assert.AreEqual(315.03, w.FromAngle, FLOAT_TOLERANCE);
                     Assert.AreEqual(360, w.ToAngle);
                 }
             }
@@ -466,8 +468,8 @@ namespace Wavefront.Tests
                         out var angleShadowTo, out var createdWavefront);
 
                     Assert.IsTrue(createdWavefront);
-                    Assert.IsTrue(Math.Abs(angleShadowFrom - 18.435) < 1);
-                    Assert.IsTrue(Math.Abs(angleShadowTo - 33.69) < 1);
+                    Assert.AreEqual(18.435, angleShadowFrom, FLOAT_TOLERANCE);
+                    Assert.AreEqual(33.67, angleShadowTo, FLOAT_TOLERANCE);
 
                     Assert.AreEqual(2, wavefronts.Count);
                     var w = wavefronts.ToList()[0];
@@ -475,7 +477,7 @@ namespace Wavefront.Tests
 
                     w = wavefronts.ToList()[1];
                     Assert.AreEqual(0, w.FromAngle);
-                    Assert.IsTrue(Math.Abs(w.ToAngle - 33.69) < 1);
+                    Assert.AreEqual(33.67, w.ToAngle, FLOAT_TOLERANCE);
                     Assert.AreEqual(1, w.RelevantVertices.Count);
                     Assert.AreEqual(multiVertexLineObstacle[2].ToPosition(), w.RelevantVertices.First().Position);
                     Assert.AreEqual(vertex, w.RootVertex);
@@ -502,14 +504,14 @@ namespace Wavefront.Tests
                     Assert.AreEqual(wavefront, w);
 
                     w = wavefronts.ToList()[1];
-                    Assert.IsTrue(Math.Abs(w.FromAngle - 0) < 1);
-                    Assert.IsTrue(Math.Abs(w.ToAngle - 90) < 1);
+                    Assert.AreEqual(0, w.FromAngle, FLOAT_TOLERANCE);
+                    Assert.AreEqual(90, w.ToAngle, FLOAT_TOLERANCE);
                     Assert.AreEqual(2, w.RelevantVertices.Count);
                     Assert.AreEqual(vertex, w.RootVertex);
 
                     w = wavefronts.ToList()[2];
-                    Assert.IsTrue(Math.Abs(w.FromAngle - 270) < 1);
-                    Assert.IsTrue(Math.Abs(w.ToAngle - 360) < 1);
+                    Assert.AreEqual(270, w.FromAngle, FLOAT_TOLERANCE);
+                    Assert.AreEqual(360, w.ToAngle, FLOAT_TOLERANCE);
                     Assert.AreEqual(2, w.RelevantVertices.Count);
                     Assert.AreEqual(vertex, w.RootVertex);
                 }
@@ -535,8 +537,8 @@ namespace Wavefront.Tests
                     Assert.AreEqual(wavefront, w);
 
                     w = wavefronts.ToList()[1];
-                    Assert.IsTrue(Math.Abs(w.FromAngle - 0) < 1);
-                    Assert.IsTrue(Math.Abs(w.ToAngle - 90) < 1);
+                    Assert.AreEqual(0, w.FromAngle, FLOAT_TOLERANCE);
+                    Assert.AreEqual(90, w.ToAngle, FLOAT_TOLERANCE);
                     Assert.AreEqual(1, w.RelevantVertices.Count);
                     Assert.AreEqual(vertex, w.RootVertex);
                 }
@@ -556,16 +558,16 @@ namespace Wavefront.Tests
                         out var angleShadowTo, out var createdWavefront);
 
                     Assert.IsTrue(createdWavefront);
-                    Assert.IsTrue(Math.Abs(angleShadowTo - 243.43) < 1);
-                    Assert.IsTrue(Math.Abs(angleShadowFrom - 213.69) < 1);
+                    Assert.AreEqual(243.37, angleShadowTo, FLOAT_TOLERANCE);
+                    Assert.AreEqual(213.63, angleShadowFrom, FLOAT_TOLERANCE);
 
                     Assert.AreEqual(2, wavefronts.Count);
                     var w = wavefronts.ToList()[0];
                     Assert.AreEqual(wavefront, w);
 
                     w = wavefronts.ToList()[1];
-                    Assert.IsTrue(Math.Abs(w.FromAngle - 213.69) < 1);
-                    Assert.IsTrue(Math.Abs(w.ToAngle - 270) < 1);
+                    Assert.AreEqual(213.63, w.FromAngle, FLOAT_TOLERANCE);
+                    Assert.AreEqual(270, w.ToAngle, FLOAT_TOLERANCE);
                     Assert.AreEqual(1, w.RelevantVertices.Count);
                     Assert.AreEqual(multiVertexLineObstacle[0].ToPosition(), w.RelevantVertices.First().Position);
                     Assert.AreEqual(vertex, w.RootVertex);
@@ -632,8 +634,8 @@ namespace Wavefront.Tests
                         out var angleShadowTo, out var createdWavefront);
 
                     Assert.IsFalse(createdWavefront);
-                    Assert.AreEqual(90, angleShadowFrom, 0.1);
-                    Assert.AreEqual(180, angleShadowTo, 0.1);
+                    Assert.AreEqual(90, angleShadowFrom, FLOAT_TOLERANCE);
+                    Assert.AreEqual(180, angleShadowTo, FLOAT_TOLERANCE);
 
                     Assert.AreEqual(1, wavefronts.Count);
                     var w = wavefronts.ToList()[0];
@@ -662,8 +664,8 @@ namespace Wavefront.Tests
                     Assert.AreEqual(wavefront, w);
 
                     w = wavefronts.ToList()[1];
-                    Assert.IsTrue(Math.Abs(w.FromAngle - 225) < 1);
-                    Assert.IsTrue(Math.Abs(w.ToAngle - 270) < 1);
+                    Assert.AreEqual(224.95, w.FromAngle, FLOAT_TOLERANCE);
+                    Assert.AreEqual(270, w.ToAngle, FLOAT_TOLERANCE);
                     Assert.AreEqual(multiVertexLineObstacle[1], w.RootVertex.Coordinate);
                 }
 
