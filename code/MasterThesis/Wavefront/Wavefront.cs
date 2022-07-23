@@ -1,5 +1,6 @@
 using Mars.Common;
 using Mars.Interfaces.Environments;
+using Mars.Numerics;
 using ServiceStack;
 using Wavefront.Geometry;
 
@@ -66,8 +67,10 @@ public class Wavefront
         vertices
             .Sort((v1, v2) =>
             {
-                var distanceInMToC1 = RootVertex.Position.DistanceInMTo(Position.CreateGeoPosition(v1.X, v1.Y));
-                var distanceInMToC2 = RootVertex.Position.DistanceInMTo(Position.CreateGeoPosition(v2.X, v2.Y));
+                var distanceInMToC1 = Distance.Euclidean(RootVertex.Position.PositionArray,
+                    Position.CreateGeoPosition(v1.X, v1.Y).PositionArray);
+                var distanceInMToC2 = Distance.Euclidean(RootVertex.Position.PositionArray,
+                    Position.CreateGeoPosition(v2.X, v2.Y).PositionArray);
 
                 return (int)(distanceInMToC2 - distanceInMToC1);
             });
@@ -113,6 +116,7 @@ public class Wavefront
 
     public double DistanceTo(Position position)
     {
-        return DistanceToRootFromSource + RootVertex.Position.DistanceInMTo(position);
+        // The euclidean distance is much faster and will probably work for nearly all real world cases.
+        return DistanceToRootFromSource + Distance.Euclidean(RootVertex.Position.PositionArray, position.PositionArray);
     }
 }
