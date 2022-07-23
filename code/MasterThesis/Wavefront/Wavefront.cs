@@ -1,7 +1,6 @@
 using Mars.Common;
 using Mars.Interfaces.Environments;
 using Mars.Numerics;
-using ServiceStack;
 using Wavefront.Geometry;
 
 namespace Wavefront;
@@ -11,14 +10,15 @@ public class Wavefront
     public double FromAngle { get; }
     public double ToAngle { get; }
     public Vertex RootVertex { get; }
+    public double DistanceToNextVertex { get; private set; }
 
     /// <summary>
     /// The distance from the source of the routing to the root of this event.
     /// </summary>
     public double DistanceToRootFromSource { get; }
 
-    public List<Vertex> RelevantVertices;
-    private readonly List<Position> _visitedVertices;
+    public LinkedList<Vertex> RelevantVertices;
+    private readonly LinkedList<Position> _visitedVertices;
 
     /// <summary>
     /// Creates a new wavefront if it's valid. A wavefront is *not* valid when there are no events ahead.
@@ -26,11 +26,11 @@ public class Wavefront
     /// The new wavefront or null if the new wavefront would not be valid.
     /// </returns>
     /// </summary>
-    public static Wavefront? New(double fromAngle, double toAngle, Vertex rootVertex, List<Vertex> allVertices,
+    public static Wavefront? New(double fromAngle, double toAngle, Vertex rootVertex, ICollection<Vertex> allVertices,
         double distanceToRootFromSource)
     {
         var wavefront = new Wavefront(fromAngle, toAngle, rootVertex, distanceToRootFromSource);
-        wavefront.FilterAndEnqueueVertices(rootVertex, allVertices);
+        wavefront.FilterAndEnqueueVertices(allVertices);
 
         if (wavefront.RelevantVertices.Count == 0)
         {
@@ -50,33 +50,28 @@ public class Wavefront
 
         // Get the vertices that are possibly visible. There's not collision detection here but all vertices are at
         // least within the range of this wavefront.
-        RelevantVertices = new List<Vertex>();
-        _visitedVertices = new List<Position>();
+        RelevantVertices = new LinkedList<Vertex>();
+        _visitedVertices = new LinkedList<Position>();
     }
 
-    private void FilterAndEnqueueVertices(Vertex rootVertex, List<Vertex> vertices)
+    private void FilterAndEnqueueVertices(ICollection<Vertex> vertices)
     {
-        vertices = vertices
-            .FindAll(vertex =>
+        foreach (var vertex in vertices)
+        {
+            var bearing = RootVertex.Position.GetBearing(vertex.Position);
+            var relevant = !Equals(RootVertex, vertex) && (Angle.IsBetween(FromAngle, bearing, ToAngle) ||
+                                                           Angle.AreEqual(FromAngle, bearing) ||
+                                                           Angle.AreEqual(ToAngle, bearing));
+            if (relevant)
             {
-                var bearing = RootVertex.Position.GetBearing(vertex.Position);
-                return !Equals(rootVertex, vertex) && (Angle.IsBetween(FromAngle, bearing, ToAngle) ||
-                                                       Angle.AreEqual(FromAngle, bearing) ||
-                                                       Angle.AreEqual(ToAngle, bearing));
-            });
-        vertices
-            .Sort((v1, v2) =>
-            {
-                var distanceInMToC1 = Distance.Euclidean(RootVertex.Position.PositionArray,
-                    Position.CreateGeoPosition(v1.X, v1.Y).PositionArray);
-                var distanceInMToC2 = Distance.Euclidean(RootVertex.Position.PositionArray,
-                    Position.CreateGeoPosition(v2.X, v2.Y).PositionArray);
+                RelevantVertices.AddFirst(vertex);
+            }
+        }
 
-                return (int)(distanceInMToC2 - distanceInMToC1);
-            });
+        RelevantVertices = new LinkedList<Vertex>(RelevantVertices.OrderBy(vertex =>
+            Distance.Euclidean(RootVertex.Position.PositionArray, vertex.Position.PositionArray)));
 
-        RelevantVertices.Clear();
-        vertices.Each(vertex => RelevantVertices.Add(vertex));
+        UpdateDistanceToNextVertex();
     }
 
     /// <summary>
@@ -84,18 +79,18 @@ public class Wavefront
     /// </summary>
     public Vertex? GetNextVertex()
     {
-        if (RelevantVertices.Count == 0)
-        {
-            return null;
-        }
-
-        return RelevantVertices.Last();
+        return RelevantVertices.First?.Value;
     }
 
     public void RemoveNextVertex()
     {
-        _visitedVertices.Add(RelevantVertices.Last().Position);
-        RelevantVertices.RemoveAt(RelevantVertices.Count - 1);
+        var nextVertex = GetNextVertex();
+        if (nextVertex != null)
+        {
+            _visitedVertices.AddLast(nextVertex.Position);
+            RelevantVertices.RemoveFirst();
+            UpdateDistanceToNextVertex();
+        }
     }
 
     public bool HasBeenVisited(Position? position)
@@ -103,15 +98,17 @@ public class Wavefront
         return position != null && _visitedVertices.Contains(position);
     }
 
-    public double DistanceToNextVertex()
+    private void UpdateDistanceToNextVertex()
     {
         var nextVertex = GetNextVertex();
         if (nextVertex == null)
         {
-            return 0;
+            DistanceToNextVertex = 0;
         }
-
-        return DistanceTo(nextVertex.Position);
+        else
+        {
+            DistanceToNextVertex = DistanceTo(nextVertex.Position);
+        }
     }
 
     public double DistanceTo(Position position)

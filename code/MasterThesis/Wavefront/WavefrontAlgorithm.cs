@@ -14,26 +14,22 @@ namespace Wavefront
 
         public readonly Dictionary<Position, Position?> PositionToPredecessor;
         public readonly LinkedList<Wavefront> Wavefronts;
-        public readonly List<Vertex> Vertices;
+        public readonly LinkedList<Vertex> Vertices;
 
         public WavefrontAlgorithm(List<NetTopologySuite.Geometries.Geometry> obstacles,
             LinkedList<Wavefront>? wavefronts = null)
         {
             Obstacles = obstacles.Map(geometry => new Obstacle(geometry));
-            Vertices = new List<Vertex>();
+            Vertices = new LinkedList<Vertex>();
             PositionToPredecessor = new Dictionary<Position, Position?>();
 
             var positionToNeighbors = GetNeighborsFromObstacleVertices(Obstacles);
             positionToNeighbors.Keys.Each(position =>
             {
-                Vertices.Add(new Vertex(position, positionToNeighbors[position]));
+                Vertices.AddFirst(new Vertex(position, positionToNeighbors[position]));
             });
 
-            Wavefronts = new LinkedList<Wavefront>();
-            if (wavefronts != null)
-            {
-                Wavefronts.AddRange(wavefronts);
-            }
+            Wavefronts = wavefronts ?? new LinkedList<Wavefront>();
         }
 
         public Dictionary<Position, List<Position>> GetNeighborsFromObstacleVertices(
@@ -90,7 +86,7 @@ namespace Wavefront
 
         public List<Position> Route(Position source, Position target)
         {
-            Vertices.Add(new Vertex(target));
+            Vertices.AddFirst(new Vertex(target));
             PositionToPredecessor[source] = null;
 
             var initialWavefront = Wavefront.New(0, 360, new Vertex(source), Vertices, 0);
@@ -104,7 +100,7 @@ namespace Wavefront
             Log.Init();
             Log.I($"Routing from {source} to {target}");
             Log.D($"Initial wavefront at {initialWavefront.RootVertex.Position}");
-            Log.D($"Wavefront vertices {initialWavefront.RelevantVertices.Map(v => v.Position.ToString()).Join(", ")}");
+            // Log.D($"Wavefront vertices {initialWavefront.RelevantVertices.Map(v => v.Position.ToString()).Join(", ")}");
 
             while (!PositionToPredecessor.ContainsKey(target))
             {
@@ -128,23 +124,24 @@ namespace Wavefront
 
         public void ProcessNextEvent(Position targetPosition)
         {
-            var wavefront = Wavefronts.First();
+            var wavefrontNode = Wavefronts.First;
+            var wavefront = wavefrontNode.Value;
             var currentVertex = wavefront.GetNextVertex();
 
-            Log.D(
-                $"Process wavefront (" +
-                $"total wavefront={Wavefronts.Count}," +
-                $"m from start={(int)wavefront.DistanceToRootFromSource}," +
-                $"m to target={(int)wavefront.RootVertex.Position.DistanceInMTo(targetPosition)})" +
-                $"at {wavefront.RootVertex.Position} from {wavefront.FromAngle}° to {wavefront.ToAngle}°",
-                "",
-                1);
+            // Log.D(
+            //     $"Process wavefront (" +
+            //     $"total wavefront={Wavefronts.Count}," +
+            //     $"m from start={(int)wavefront.DistanceToRootFromSource}," +
+            //     $"m to target={(int)wavefront.RootVertex.Position.DistanceInMTo(targetPosition)})" +
+            //     $"at {wavefront.RootVertex.Position} from {wavefront.FromAngle}° to {wavefront.ToAngle}°",
+            //     "",
+            //     1);
 
             if (currentVertex == null)
             {
                 Log.D("No next vertex, remove wavefront");
                 // This wavefront doesn't have any events ahead, to we can remove it. 
-                Wavefronts.Remove(wavefront);
+                Wavefronts.Remove(wavefrontNode);
                 return;
             }
 
@@ -152,7 +149,7 @@ namespace Wavefront
             if (currentVertexHasBeenVisitedBefore)
             {
                 Log.D($"Vertex at {currentVertex.Position} has been visited before");
-                RemoveNextVertex(wavefront);
+                RemoveNextVertex(wavefrontNode);
                 return;
             }
 
@@ -160,7 +157,7 @@ namespace Wavefront
             if (!isCurrentVertexVisible)
             {
                 Log.D($"Vertex at {currentVertex.Position} is not visible");
-                RemoveNextVertex(wavefront);
+                RemoveNextVertex(wavefrontNode);
                 return;
             }
 
@@ -170,13 +167,13 @@ namespace Wavefront
                 PositionToPredecessor[currentVertex.Position] = wavefront.RootVertex.Position;
                 Log.D($"Set predecessor of target to {wavefront.RootVertex.Position}");
                 wavefront.RemoveNextVertex();
-                Wavefronts.Remove(wavefront);
+                Wavefronts.Remove(wavefrontNode);
                 return;
             }
 
             Log.D($"Next vertex at {currentVertex.Position}");
 
-            RemoveNextVertex(wavefront);
+            wavefrontNode = RemoveNextVertex(wavefrontNode);
             Log.D("Drop vertex from wavefront");
 
             double angleShadowFrom;
@@ -189,13 +186,13 @@ namespace Wavefront
             if (newWavefrontCreatedAtEventRoot)
             {
                 PositionToPredecessor[currentVertex.Position] = wavefront.RootVertex.Position;
-                Log.I($"Set predecessor of {currentVertex.Position} to {wavefront.RootVertex.Position}");
+                Log.D($"Set predecessor of {currentVertex.Position} to {wavefront.RootVertex.Position}");
             }
 
             if (!Double.IsNaN(angleShadowFrom) && !Double.IsNaN(angleShadowTo))
             {
                 Log.D($"Remove old wavefront from {wavefront.FromAngle}° to {wavefront.ToAngle}° and create new ones");
-                Wavefronts.Remove(wavefront);
+                Wavefronts.Remove(wavefrontNode);
                 AddNewWavefront(wavefront.RelevantVertices, wavefront.RootVertex, wavefront.DistanceToRootFromSource,
                     wavefront.FromAngle, angleShadowFrom);
                 AddNewWavefront(wavefront.RelevantVertices, wavefront.RootVertex, wavefront.DistanceToRootFromSource,
@@ -203,11 +200,11 @@ namespace Wavefront
             }
         }
 
-        private void RemoveNextVertex(Wavefront wavefront)
+        private LinkedListNode<Wavefront> RemoveNextVertex(LinkedListNode<Wavefront> wavefrontNode)
         {
-            wavefront.RemoveNextVertex();
-            Wavefronts.Remove(wavefront);
-            AddWavefront(wavefront);
+            wavefrontNode.Value.RemoveNextVertex();
+            Wavefronts.Remove(wavefrontNode);
+            return AddWavefront(wavefrontNode.Value);
         }
 
         // TODO document rotation idea of this method
@@ -385,7 +382,7 @@ namespace Wavefront
             }
         }
 
-        public bool AddNewWavefront(List<Vertex> vertices, Vertex root, double distanceToRootFromSource,
+        public bool AddNewWavefront(ICollection<Vertex> vertices, Vertex root, double distanceToRootFromSource,
             double fromAngle, double toAngle)
         {
             bool newWavefrontCreated = false;
@@ -414,7 +411,7 @@ namespace Wavefront
             return newWavefrontCreated;
         }
 
-        public bool AddWavefrontIfValid(List<Vertex> relevantVertices, double distanceFromSourceToVertex,
+        public bool AddWavefrontIfValid(ICollection<Vertex> relevantVertices, double distanceFromSourceToVertex,
             Vertex rootVertex, double fromAngle, double toAngle)
         {
             var newWavefront = Wavefront.New(fromAngle, toAngle, rootVertex, relevantVertices,
@@ -423,7 +420,7 @@ namespace Wavefront
             {
                 Log.D(
                     $"New wavefront at {newWavefront.RootVertex.Position} with {newWavefront.RelevantVertices.Count} relevant vertices from {fromAngle}° to {toAngle}°");
-                Log.D($"Relevant vertices: {newWavefront.RelevantVertices.Map(v => v.Position.ToString()).Join(", ")}");
+                // Log.D($"Relevant vertices: {newWavefront.RelevantVertices.Map(v => v.Position.ToString()).Join(", ")}");
                 AddWavefront(newWavefront);
                 return true;
             }
@@ -461,22 +458,21 @@ namespace Wavefront
             return false;
         }
 
-        public void AddWavefront(Wavefront newWavefront)
+        public LinkedListNode<Wavefront> AddWavefront(Wavefront newWavefront)
         {
-            var distanceToNextVertex = newWavefront.DistanceToNextVertex();
+            var distanceToNextVertex = newWavefront.DistanceToNextVertex;
             var node = Wavefronts.First;
-            for (var i = 0; i < Wavefronts.Count; i++)
+            while (node != null)
             {
-                if (node.Value.DistanceToNextVertex() > distanceToNextVertex)
+                if (node.Value.DistanceToNextVertex > distanceToNextVertex)
                 {
-                    Wavefronts.AddBefore(node, newWavefront);
-                    return;
+                    return Wavefronts.AddBefore(node, newWavefront);
                 }
 
                 node = node.Next;
             }
 
-            Wavefronts.AddLast(newWavefront);
+            return Wavefronts.AddLast(newWavefront);
         }
     }
 }
