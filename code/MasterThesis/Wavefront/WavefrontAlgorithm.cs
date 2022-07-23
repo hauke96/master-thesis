@@ -10,7 +10,7 @@ namespace Wavefront
 {
     public class WavefrontAlgorithm
     {
-        private readonly List<NetTopologySuite.Geometries.Geometry> Obstacles;
+        private readonly List<Obstacle> Obstacles;
 
         public readonly Dictionary<Position, Position?> PositionToPredecessor;
         public readonly LinkedList<Wavefront> Wavefronts;
@@ -19,7 +19,7 @@ namespace Wavefront
         public WavefrontAlgorithm(List<NetTopologySuite.Geometries.Geometry> obstacles,
             LinkedList<Wavefront>? wavefronts = null)
         {
-            Obstacles = obstacles;
+            Obstacles = obstacles.Map(geometry => new Obstacle(geometry));
             Vertices = new List<Vertex>();
             PositionToPredecessor = new Dictionary<Position, Position?>();
 
@@ -37,20 +37,18 @@ namespace Wavefront
         }
 
         public Dictionary<Position, List<Position>> GetNeighborsFromObstacleVertices(
-            List<NetTopologySuite.Geometries.Geometry> obstacles)
+            List<Obstacle> obstacles)
         {
             var positionToNeighbors = new Dictionary<Position, List<Position>>();
             obstacles.Each(obstacle =>
             {
-                if (obstacle.Coordinates.Length <= 1)
+                if (obstacle.Coordinates.Count <= 1)
                 {
                     return;
                 }
 
-                var isClosed = Equals(obstacle.Coordinates.First(), obstacle.Coordinates.Last());
-
-                var coordinates = obstacle.Coordinates.ToList();
-                if (isClosed)
+                var coordinates = obstacle.Coordinates.CreateCopy();
+                if (obstacle.IsClosed)
                 {
                     coordinates.RemoveAt(coordinates.Count - 1);
                 }
@@ -66,12 +64,12 @@ namespace Wavefront
                     Coordinate? nextCoordinate =
                         index + 1 < coordinates.Count ? coordinates[index + 1] : null;
                     Coordinate? previousCoordinate = index - 1 >= 0 ? coordinates[index - 1] : null;
-                    if (isClosed && nextCoordinate == null)
+                    if (obstacle.IsClosed && nextCoordinate == null)
                     {
                         nextCoordinate = coordinates.First();
                     }
 
-                    if (isClosed && previousCoordinate == null)
+                    if (obstacle.IsClosed && previousCoordinate == null)
                     {
                         previousCoordinate = coordinates[^1];
                     }
@@ -449,18 +447,14 @@ namespace Wavefront
 
             foreach (var obstacle in Obstacles)
             {
-                if (obstacle.Coordinates.Length < 2 || !obstacle.EnvelopeInternal.Intersects(envelope))
+                if (!obstacle.CanIntersect(envelope))
                 {
                     continue;
                 }
 
-                for (int i = 0; i < obstacle.Coordinates.Length - 1; i++)
+                if (obstacle.IntersectsWithLine(coordinateStart, coordinateEnd))
                 {
-                    if (Intersect.DoIntersect(coordinateStart, coordinateEnd, obstacle.Coordinates[i],
-                            obstacle.Coordinates[i + 1]))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
 

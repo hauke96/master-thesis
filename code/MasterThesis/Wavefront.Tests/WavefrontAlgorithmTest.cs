@@ -75,8 +75,7 @@ namespace Wavefront.Tests
                 {
                     var obstacle = simpleLineObstacle;
                     var positionToNeighbors =
-                        wavefrontAlgorithm.GetNeighborsFromObstacleVertices(
-                            new List<NetTopologySuite.Geometries.Geometry> { obstacle });
+                        wavefrontAlgorithm.GetNeighborsFromObstacleVertices(new List<Obstacle> { new(obstacle) });
 
                     Assert.AreEqual(2, positionToNeighbors.Count);
 
@@ -92,8 +91,7 @@ namespace Wavefront.Tests
                 {
                     var obstacle = multiVertexLineObstacle;
                     var positionToNeighbors =
-                        wavefrontAlgorithm.GetNeighborsFromObstacleVertices(
-                            new List<NetTopologySuite.Geometries.Geometry> { obstacle });
+                        wavefrontAlgorithm.GetNeighborsFromObstacleVertices(new List<Obstacle> { new(obstacle) });
 
                     Assert.AreEqual(3, positionToNeighbors.Count);
 
@@ -121,8 +119,7 @@ namespace Wavefront.Tests
                     });
 
                     var positionToNeighbors =
-                        wavefrontAlgorithm.GetNeighborsFromObstacleVertices(
-                            new List<NetTopologySuite.Geometries.Geometry> { obstacle });
+                        wavefrontAlgorithm.GetNeighborsFromObstacleVertices(new List<Obstacle> { new(obstacle) });
 
                     Assert.AreEqual(4, positionToNeighbors.Count);
 
