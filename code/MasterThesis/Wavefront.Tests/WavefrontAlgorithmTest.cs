@@ -173,6 +173,7 @@ namespace Wavefront.Tests
                 {
                     var vertices = new List<Vertex>();
                     vertices.Add(new Vertex(6.5, 3.1));
+                    vertices.Add(multiVertexLineVertices[1]);
                     // Between but slightly below the multi-vertex-line
                     var wavefront = Wavefront.New(0, 90, new Vertex(6.5, 2.9), vertices, 1)!;
                     wavefrontAlgorithm.AddWavefront(wavefront);
@@ -180,15 +181,16 @@ namespace Wavefront.Tests
                     wavefrontAlgorithm.ProcessNextEvent(targetPosition);
 
                     Assert.AreEqual(1, wavefrontAlgorithm.Wavefronts.Count);
-                    Assert.AreEqual(0, wavefront.RelevantVertices.Count);
+                    Assert.AreEqual(1, wavefront.RelevantVertices.Count);
                 }
 
                 [Test]
                 public void EventVertexHasAlreadyBeenProcessed()
                 {
                     var vertices = new List<Vertex>();
-                    var nextVertex = new Vertex(multiVertexLineObstacle.Coordinates[0].ToPosition());
+                    var nextVertex = multiVertexLineVertices[0];
                     vertices.Add(nextVertex);
+                    vertices.Add(multiVertexLineVertices[1]);
                     var wavefront = Wavefront.New(0, 90, new Vertex(5, 2), vertices, 1)!;
                     wavefrontAlgorithm.AddWavefront(wavefront);
                     wavefrontAlgorithm.PositionToPredecessor[nextVertex.Position] = Position.CreateGeoPosition(1, 1);
@@ -196,7 +198,7 @@ namespace Wavefront.Tests
                     wavefrontAlgorithm.ProcessNextEvent(targetPosition);
 
                     Assert.AreEqual(1, wavefrontAlgorithm.Wavefronts.Count);
-                    Assert.AreEqual(0, wavefront.RelevantVertices.Count);
+                    Assert.AreEqual(1, wavefront.RelevantVertices.Count);
                 }
 
                 [Test]

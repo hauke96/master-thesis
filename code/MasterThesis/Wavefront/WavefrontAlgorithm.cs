@@ -173,7 +173,7 @@ namespace Wavefront
 
             Log.D($"Next vertex at {currentVertex.Position}");
 
-            wavefrontNode = RemoveNextVertex(wavefrontNode);
+            var wavefrontRemoved = RemoveNextVertex(wavefrontNode);
             Log.D("Drop vertex from wavefront");
 
             double angleShadowFrom;
@@ -192,7 +192,11 @@ namespace Wavefront
             if (!Double.IsNaN(angleShadowFrom) && !Double.IsNaN(angleShadowTo))
             {
                 Log.D($"Remove old wavefront from {wavefront.FromAngle}° to {wavefront.ToAngle}° and create new ones");
-                Wavefronts.Remove(wavefrontNode);
+                if (!wavefrontRemoved)
+                {
+                    Wavefronts.Remove(wavefrontNode);
+                }
+
                 AddNewWavefront(wavefront.RelevantVertices, wavefront.RootVertex, wavefront.DistanceToRootFromSource,
                     wavefront.FromAngle, angleShadowFrom);
                 AddNewWavefront(wavefront.RelevantVertices, wavefront.RootVertex, wavefront.DistanceToRootFromSource,
@@ -200,11 +204,10 @@ namespace Wavefront
             }
         }
 
-        private LinkedListNode<Wavefront> RemoveNextVertex(LinkedListNode<Wavefront> wavefrontNode)
+        private bool RemoveNextVertex(LinkedListNode<Wavefront> wavefrontNode)
         {
             wavefrontNode.Value.RemoveNextVertex();
-            Wavefronts.Remove(wavefrontNode);
-            return AddWavefront(wavefrontNode.Value);
+            return MoveWavefrontToCorrectPosition(wavefrontNode);
         }
 
         // TODO document rotation idea of this method
@@ -458,7 +461,48 @@ namespace Wavefront
             return false;
         }
 
-        public LinkedListNode<Wavefront> AddWavefront(Wavefront newWavefront)
+        /// <summary>
+        /// Moves the given wavefront to the correct position. If the wavefront has no next vertex, it'll be removed
+        /// from the list of wavefronts.
+        /// </summary>
+        /// <returns>true when removed from list, false when still in list.</returns>
+        private bool MoveWavefrontToCorrectPosition(LinkedListNode<Wavefront> wavefrontNode)
+        {
+            var distanceToNextVertex = wavefrontNode.Value.DistanceToNextVertex;
+            Wavefronts.Remove(wavefrontNode);
+
+            // Wavefront has no next vertex -> kill the wavefront by removing it from the list
+            if (wavefrontNode.Value.DistanceToNextVertex == 0)
+            {
+                return true;
+            }
+
+            // The next wavefront vertex is further away -> we can start looking from the next wavefront as this list
+            // is sorted increasingly.
+            var node = wavefrontNode.Next;
+            while (node != null)
+            {
+                if (node.Value.DistanceToNextVertex > distanceToNextVertex)
+                {
+                    break;
+                }
+
+                node = node.Next;
+            }
+
+            if (node == null)
+            {
+                Wavefronts.AddLast(wavefrontNode);
+            }
+            else
+            {
+                Wavefronts.AddBefore(node, wavefrontNode);
+            }
+
+            return false;
+        }
+
+        public void AddWavefront(Wavefront newWavefront)
         {
             var distanceToNextVertex = newWavefront.DistanceToNextVertex;
             var node = Wavefronts.First;
@@ -466,13 +510,14 @@ namespace Wavefront
             {
                 if (node.Value.DistanceToNextVertex > distanceToNextVertex)
                 {
-                    return Wavefronts.AddBefore(node, newWavefront);
+                    Wavefronts.AddBefore(node, newWavefront);
+                    return;
                 }
 
                 node = node.Next;
             }
 
-            return Wavefronts.AddLast(newWavefront);
+            Wavefronts.AddLast(newWavefront);
         }
     }
 }
