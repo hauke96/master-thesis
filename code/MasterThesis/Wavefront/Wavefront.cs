@@ -16,7 +16,7 @@ public class Wavefront
     /// </summary>
     public double DistanceToRootFromSource { get; }
 
-    public LinkedList<Vertex> RelevantVertices;
+    public SortedLinkedList<Vertex> RelevantVertices;
     private readonly LinkedList<Position> _visitedVertices;
 
     /// <summary>
@@ -52,7 +52,7 @@ public class Wavefront
 
         // Get the vertices that are possibly visible. There's not collision detection here but all vertices are at
         // least within the range of this wavefront.
-        RelevantVertices = new LinkedList<Vertex>();
+        RelevantVertices = new SortedLinkedList<Vertex>();
         _visitedVertices = new LinkedList<Position>();
     }
 
@@ -66,12 +66,13 @@ public class Wavefront
                                                            Angle.AreEqual(ToAngle, bearing));
             if (relevant)
             {
-                RelevantVertices.AddFirst(vertex);
+                RelevantVertices.Add(vertex,
+                    Distance.Euclidean(RootVertex.Position.PositionArray, vertex.Position.PositionArray));
             }
         }
 
-        RelevantVertices = new LinkedList<Vertex>(RelevantVertices.OrderBy(vertex =>
-            Distance.Euclidean(RootVertex.Position.PositionArray, vertex.Position.PositionArray)));
+        // RelevantVertices = new LinkedList<Vertex>(RelevantVertices.OrderBy(vertex =>
+        // Distance.Euclidean(RootVertex.Position.PositionArray, vertex.Position.PositionArray)));
 
         UpdateDistanceToNextVertex();
     }
@@ -81,7 +82,7 @@ public class Wavefront
     /// </summary>
     public Vertex? GetNextVertex()
     {
-        return RelevantVertices.First?.Value;
+        return RelevantVertices.First?.Value.Value;
     }
 
     public void RemoveNextVertex()

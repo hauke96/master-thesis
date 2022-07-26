@@ -481,7 +481,8 @@ namespace Wavefront.Tests
                     Assert.AreEqual(0, w.FromAngle);
                     Assert.AreEqual(33.69, w.ToAngle, FLOAT_TOLERANCE);
                     Assert.AreEqual(1, w.RelevantVertices.Count);
-                    Assert.AreEqual(multiVertexLineObstacle[2].ToPosition(), w.RelevantVertices.First().Position);
+                    Assert.AreEqual(multiVertexLineObstacle[2].ToPosition(),
+                        w.RelevantVertices.First?.Value.Value.Position);
                     Assert.AreEqual(vertex, w.RootVertex);
                 }
 
@@ -571,7 +572,8 @@ namespace Wavefront.Tests
                     Assert.AreEqual(213.69, w.FromAngle, FLOAT_TOLERANCE);
                     Assert.AreEqual(270, w.ToAngle, FLOAT_TOLERANCE);
                     Assert.AreEqual(1, w.RelevantVertices.Count);
-                    Assert.AreEqual(multiVertexLineObstacle[0].ToPosition(), w.RelevantVertices.First().Position);
+                    Assert.AreEqual(multiVertexLineObstacle[0].ToPosition(),
+                        w.RelevantVertices.First?.Value.Value.Position);
                     Assert.AreEqual(vertex, w.RootVertex);
                 }
 
