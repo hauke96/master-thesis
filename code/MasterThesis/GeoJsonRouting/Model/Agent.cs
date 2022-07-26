@@ -8,6 +8,7 @@ using Mars.Interfaces.Environments;
 using Mars.Interfaces.Layers;
 using ServiceStack;
 using Wavefront;
+using Wavefront.Geometry;
 using Position = Mars.Interfaces.Environments.Position;
 
 namespace GeoJsonRouting.Model
@@ -66,7 +67,7 @@ namespace GeoJsonRouting.Model
                 return;
             }
 
-            var bearing = Position.GetBearing(currentWaypoint);
+            var bearing = Angle.GetBearing(Position, currentWaypoint);
             SharedEnvironment.Environment.MoveTowards(this, bearing, STEP_SIZE);
 
             // Thread.Sleep(TimeSpan.FromMilliseconds(0.5));

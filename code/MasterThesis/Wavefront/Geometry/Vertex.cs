@@ -47,7 +47,7 @@ public class Vertex
     {
         Position = position;
         _neighbors = neighbors;
-        _neighbors.Sort((p1, p2) => (int)(Position.GetBearing(p1) - Position.GetBearing(p2)));
+        _neighbors.Sort((p1, p2) => (int)(Angle.GetBearing(Position, p1) - Angle.GetBearing(Position, p2)));
     }
 
     /// <summary>
@@ -56,7 +56,7 @@ public class Vertex
     public Position? RightNeighbor(Position basePosition)
     {
         var index = _neighbors.FindLastIndex(neighborPosition =>
-            Position.GetBearing(neighborPosition) <= Position.GetBearing(basePosition));
+            Angle.GetBearing(Position, neighborPosition) <= Angle.GetBearing(Position, basePosition));
         index = index >= 0 ? index : _neighbors.Count - 1;
         return index >= 0 ? _neighbors[index] : null;
     }
@@ -67,7 +67,7 @@ public class Vertex
     public Position? LeftNeighbor(Position basePosition)
     {
         var index = _neighbors.FindIndex(neighborPosition =>
-            Position.GetBearing(neighborPosition) > Position.GetBearing(basePosition));
+            Angle.GetBearing(Position, neighborPosition) > Angle.GetBearing(Position, basePosition));
         index = index >= 0 ? index : 0;
         return index < _neighbors.Count ? _neighbors[index] : null;
     }

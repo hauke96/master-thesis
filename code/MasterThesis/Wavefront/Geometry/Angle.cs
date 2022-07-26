@@ -1,24 +1,34 @@
+using Mars.Interfaces.Environments;
+using Mars.Numerics;
+
 namespace Wavefront.Geometry;
 
 public class Angle
 {
     private const double FLOAT_TOLERANCE = 0.0001;
 
+    public static double GetBearing(Position a, Position b)
+    {
+        var degrees = MathHelper.ToDegrees(Math.Atan2(b.X - a.X, b.Y - a.Y));
+        return StrictNormalize(degrees);
+    }
+
     /// <summary>
     /// Checks if the angle "angle" is between a and b.
     /// </summary>
     public static bool IsBetween(double a, double angle, double b)
     {
-        var isLowerOrEqual = NormalizedLowerEqual(a, b, out a, out b);
-        if (isLowerOrEqual)
+        a = Normalize(a);
+        b = Normalize(b);
+        angle = Normalize(angle);
+
+        // 0° is between a and b -> check from a to 360 and 0 to b
+        if (a < b || AreEqual(a, b))
         {
-            angle = Normalize(angle);
             return a < angle && angle < b;
         }
 
-        // We exceed the 0° border: Check if "angle" is NOT between b and a (which is the opposite part of the
-        // imaginary circle and has no overlap with the 0° border.
-        return !(LowerEqual(b, angle) && LowerEqual(angle, a));
+        return b > angle || angle > a;
     }
 
     public static double Difference(double a, double b)
@@ -41,10 +51,22 @@ public class Angle
 
     /// <summary>
     /// Like "Normalize(double)" but 360° will be turned into 0.
+    ///
+    /// Assumption: -360 <= a < 720
     /// </summary>
     public static double StrictNormalize(double a)
     {
-        return (a % 360 + 360) % 360;
+        if (a >= 360.0)
+        {
+            return a - 360.0;
+        }
+
+        if (a < 0.0)
+        {
+            return a + 360.0;
+        }
+
+        return a;
     }
 
     /// <summary>
@@ -77,8 +99,8 @@ public class Angle
     {
         a = StrictNormalize(a);
         b = StrictNormalize(b);
-        GetEnclosingAngles(a, b, out a, out b);
-        return Difference(a, b) < FLOAT_TOLERANCE;
+        var diff = a >= b ? a - b : b - a;
+        return diff < FLOAT_TOLERANCE;
     }
 
     /// <summary>
@@ -109,16 +131,5 @@ public class Angle
         a = Normalize(a);
         b = Normalize(b);
         return a < b;
-    }
-
-    /// <summary>
-    /// Returns a <= b. The equality check is made with a little bit of tolerance to compensate floating point inaccuracy.
-    /// The given angles are normalized and returned via the two output variables.
-    /// </summary>
-    public static bool NormalizedLowerEqual(double a, double b, out double aNew, out double bNew)
-    {
-        aNew = Normalize(a);
-        bNew = Normalize(b);
-        return AreEqual(aNew, bNew) || aNew < bNew;
     }
 }

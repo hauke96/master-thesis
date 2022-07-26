@@ -1,4 +1,3 @@
-using Mars.Common;
 using Mars.Interfaces.Environments;
 using Mars.Numerics;
 using Wavefront.Geometry;
@@ -22,6 +21,8 @@ public class Wavefront
 
     /// <summary>
     /// Creates a new wavefront if it's valid. A wavefront is *not* valid when there are no events ahead.
+    ///
+    /// Precondition: 0 <= fromAngle < toAngle <= 360
     /// <returns>
     /// The new wavefront or null if the new wavefront would not be valid.
     /// </returns>
@@ -29,6 +30,7 @@ public class Wavefront
     public static Wavefront? New(double fromAngle, double toAngle, Vertex rootVertex, ICollection<Vertex> allVertices,
         double distanceToRootFromSource)
     {
+        // TODO enforce precondition
         var wavefront = new Wavefront(fromAngle, toAngle, rootVertex, distanceToRootFromSource);
         wavefront.FilterAndEnqueueVertices(allVertices);
 
@@ -58,7 +60,7 @@ public class Wavefront
     {
         foreach (var vertex in vertices)
         {
-            var bearing = RootVertex.Position.GetBearing(vertex.Position);
+            var bearing = Angle.GetBearing(RootVertex.Position, vertex.Position);
             var relevant = !Equals(RootVertex, vertex) && (Angle.IsBetween(FromAngle, bearing, ToAngle) ||
                                                            Angle.AreEqual(FromAngle, bearing) ||
                                                            Angle.AreEqual(ToAngle, bearing));

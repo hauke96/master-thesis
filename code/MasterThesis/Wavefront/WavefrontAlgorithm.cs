@@ -1,6 +1,4 @@
 using Mars.Common;
-using Mars.Common.Core.Collections;
-using Mars.Interfaces.Environments;
 using NetTopologySuite.Geometries;
 using ServiceStack;
 using Wavefront.Geometry;
@@ -234,18 +232,18 @@ namespace Wavefront
             Log.D($"rightNeighbor={rightNeighbor}, leftNeighbor={leftNeighbor}");
 
             var angleRootToRightNeighbor = rightNeighbor != null
-                ? wavefront.RootVertex.Position.GetBearing(rightNeighbor)
+                ? Angle.GetBearing(wavefront.RootVertex.Position, rightNeighbor)
                 : double.NaN;
             var angleRootToLeftNeighbor = leftNeighbor != null
-                ? wavefront.RootVertex.Position.GetBearing(leftNeighbor)
+                ? Angle.GetBearing(wavefront.RootVertex.Position, leftNeighbor)
                 : double.NaN;
-            var angleRootToCurrentVertex = wavefront.RootVertex.Position.GetBearing(currentVertex.Position);
+            var angleRootToCurrentVertex = Angle.GetBearing(wavefront.RootVertex.Position, currentVertex.Position);
 
             var angleVertexToRightNeighbor = rightNeighbor != null
-                ? currentVertex.Position.GetBearing(rightNeighbor)
+                ? Angle.GetBearing(currentVertex.Position, rightNeighbor)
                 : double.NaN;
             var angleVertexToLeftNeighbor = leftNeighbor != null
-                ? currentVertex.Position.GetBearing(leftNeighbor)
+                ? Angle.GetBearing(currentVertex.Position, leftNeighbor)
                 : double.NaN;
 
             // Rotate such that the current vertex of always north/up of the wavefront root
@@ -407,8 +405,13 @@ namespace Wavefront
             }
             else
             {
-                newWavefrontCreated |=
-                    AddWavefrontIfValid(vertices, distanceToRootFromSource, root, fromAngle, toAngle);
+                var verticesInAngleArea = vertices.Where(v =>
+                {
+                    var bearing = Angle.GetBearing(root.Position, v.Position);
+                    return fromAngle <= bearing && bearing <= toAngle;
+                }).ToList();
+                newWavefrontCreated |= AddWavefrontIfValid(verticesInAngleArea, distanceToRootFromSource, root,
+                    fromAngle, toAngle);
             }
 
             return newWavefrontCreated;

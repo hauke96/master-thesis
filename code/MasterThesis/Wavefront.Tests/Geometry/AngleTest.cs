@@ -30,7 +30,7 @@ public class AngleTest
         Assert.True(Angle.IsBetween(-350, -300, -200));
 
         // 60, 10, 160
-        Assert.False(Angle.IsBetween(-300 - 360 - 360, -350, -200));
+        Assert.False(Angle.IsBetween(60 - 360, -350, -200));
     }
 
     [Test]
@@ -52,7 +52,7 @@ public class AngleTest
     {
         Assert.AreEqual(90, Angle.Normalize(90));
         Assert.AreEqual(0, Angle.Normalize(0));
-        Assert.AreEqual(0, Angle.Normalize(720));
+        Assert.AreEqual(359, Angle.Normalize(719));
         Assert.AreEqual(90, Angle.Normalize(-270));
         Assert.AreEqual(180, Angle.Normalize(-180));
         Assert.AreEqual(360, Angle.Normalize(360));
@@ -64,7 +64,7 @@ public class AngleTest
     {
         Assert.AreEqual(90, Angle.StrictNormalize(90));
         Assert.AreEqual(0, Angle.StrictNormalize(0));
-        Assert.AreEqual(0, Angle.StrictNormalize(720));
+        Assert.AreEqual(359, Angle.StrictNormalize(719));
         Assert.AreEqual(90, Angle.StrictNormalize(-270));
         Assert.AreEqual(180, Angle.StrictNormalize(-180));
         Assert.AreEqual(0, Angle.StrictNormalize(360));
@@ -105,14 +105,14 @@ public class AngleTest
     public void AreEqual()
     {
         Assert.True(Angle.AreEqual(0, 0));
-        Assert.True(Angle.AreEqual(0, 0.0001));
+        Assert.True(Angle.AreEqual(0, 0.00009));
         Assert.True(Angle.AreEqual(1.0001, 1));
         Assert.True(Angle.AreEqual(10, 10));
         Assert.True(Angle.AreEqual(10, 10.00001));
         Assert.True(Angle.AreEqual(9.99999, 10.00001));
         Assert.True(Angle.AreEqual(360, 0));
         Assert.True(Angle.AreEqual(0, 360));
-        Assert.True(Angle.AreEqual(1000, 280));
+        Assert.True(Angle.AreEqual(640, 280));
 
         Assert.False(Angle.AreEqual(0, 0.010000001));
         Assert.False(Angle.AreEqual(0, 1));
