@@ -87,7 +87,7 @@ namespace Wavefront
             Vertices.AddFirst(new Vertex(target));
             PositionToPredecessor[source] = null;
 
-            var initialWavefront = Wavefront.New(0, 360, new Vertex(source), Vertices, 0);
+            var initialWavefront = Wavefront.New(0, 360, new Vertex(source), Vertices, 0, false);
             if (initialWavefront == null)
             {
                 return new List<Position>();
@@ -196,9 +196,9 @@ namespace Wavefront
                 }
 
                 AddNewWavefront(wavefront.RelevantVertices, wavefront.RootVertex, wavefront.DistanceToRootFromSource,
-                    wavefront.FromAngle, angleShadowFrom);
+                    wavefront.FromAngle, angleShadowFrom, true);
                 AddNewWavefront(wavefront.RelevantVertices, wavefront.RootVertex, wavefront.DistanceToRootFromSource,
-                    angleShadowTo, wavefront.ToAngle);
+                    angleShadowTo, wavefront.ToAngle, true);
             }
         }
 
@@ -337,7 +337,7 @@ namespace Wavefront
             if (newWavefrontNeeded)
             {
                 createdWavefrontAtCurrentVertex = AddNewWavefront(Vertices, currentVertex,
-                    wavefront.DistanceTo(currentVertex.Position), angleWavefrontFrom, angleWavefrontTo);
+                    wavefront.DistanceTo(currentVertex.Position), angleWavefrontFrom, angleWavefrontTo, false);
             }
 
             double angleRightShadowFrom = Double.NaN;
@@ -384,7 +384,7 @@ namespace Wavefront
         }
 
         public bool AddNewWavefront(ICollection<Vertex> vertices, Vertex root, double distanceToRootFromSource,
-            double fromAngle, double toAngle)
+            double fromAngle, double toAngle, bool verticesFromWavefrontWithSameRoot)
         {
             bool newWavefrontCreated = false;
 
@@ -400,28 +400,25 @@ namespace Wavefront
                 $"Angles for new wavefront (from={fromAngle}°, to={toAngle}°) exceed 0° border? {Angle.IsBetween(fromAngle, 0, toAngle)}");
             if (Angle.IsBetween(fromAngle, 0, toAngle))
             {
-                newWavefrontCreated |= AddWavefrontIfValid(vertices, distanceToRootFromSource, root, fromAngle, 360);
-                newWavefrontCreated |= AddWavefrontIfValid(vertices, distanceToRootFromSource, root, 0, toAngle);
+                newWavefrontCreated |= AddWavefrontIfValid(vertices, distanceToRootFromSource, root, fromAngle, 360,
+                    verticesFromWavefrontWithSameRoot);
+                newWavefrontCreated |= AddWavefrontIfValid(vertices, distanceToRootFromSource, root, 0, toAngle,
+                    verticesFromWavefrontWithSameRoot);
             }
             else
             {
-                var verticesInAngleArea = vertices.Where(v =>
-                {
-                    var bearing = Angle.GetBearing(root.Position, v.Position);
-                    return fromAngle <= bearing && bearing <= toAngle;
-                }).ToList();
-                newWavefrontCreated |= AddWavefrontIfValid(verticesInAngleArea, distanceToRootFromSource, root,
-                    fromAngle, toAngle);
+                newWavefrontCreated |= AddWavefrontIfValid(vertices, distanceToRootFromSource, root,
+                    fromAngle, toAngle, verticesFromWavefrontWithSameRoot);
             }
 
             return newWavefrontCreated;
         }
 
         public bool AddWavefrontIfValid(ICollection<Vertex> relevantVertices, double distanceFromSourceToVertex,
-            Vertex rootVertex, double fromAngle, double toAngle)
+            Vertex rootVertex, double fromAngle, double toAngle, bool verticesFromWavefrontWithSameRoot)
         {
             var newWavefront = Wavefront.New(fromAngle, toAngle, rootVertex, relevantVertices,
-                distanceFromSourceToVertex);
+                distanceFromSourceToVertex, verticesFromWavefrontWithSameRoot);
             if (newWavefront != null)
             {
                 Log.D(

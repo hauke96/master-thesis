@@ -28,11 +28,11 @@ public class Wavefront
     /// </returns>
     /// </summary>
     public static Wavefront? New(double fromAngle, double toAngle, Vertex rootVertex, ICollection<Vertex> allVertices,
-        double distanceToRootFromSource)
+        double distanceToRootFromSource, bool verticesFromWavefrontWithSameRoot)
     {
         // TODO enforce precondition
         var wavefront = new Wavefront(fromAngle, toAngle, rootVertex, distanceToRootFromSource);
-        wavefront.FilterAndEnqueueVertices(allVertices);
+        wavefront.FilterAndEnqueueVertices(allVertices, verticesFromWavefrontWithSameRoot);
 
         if (wavefront.RelevantVertices.Count == 0)
         {
@@ -56,19 +56,25 @@ public class Wavefront
         _visitedVertices = new LinkedList<Position>();
     }
 
-    private void FilterAndEnqueueVertices(ICollection<Vertex> vertices)
+    private void FilterAndEnqueueVertices(ICollection<Vertex> vertices, bool verticesFromWavefrontWithSameRoot)
     {
         foreach (var vertex in vertices)
         {
             var bearing = Angle.GetBearing(RootVertex.Position, vertex.Position);
             if (IsRelevant(vertex, bearing))
             {
-                RelevantVertices.AddFirst(vertex);
+                RelevantVertices.AddLast(vertex);
             }
         }
 
-        RelevantVertices = new LinkedList<Vertex>(RelevantVertices.OrderBy(vertex =>
-            Distance.Euclidean(RootVertex.Position.PositionArray, vertex.Position.PositionArray)));
+        if (!verticesFromWavefrontWithSameRoot)
+        {
+            // If the wavefront come from a wavefront with the same root vertex, we don't need to sort anything because
+            // the list is already sorted. But here we have vertices from a different source and therefore we must
+            // sort them.
+            RelevantVertices = new LinkedList<Vertex>(RelevantVertices.OrderBy(vertex =>
+                Distance.Euclidean(RootVertex.Position.PositionArray, vertex.Position.PositionArray)));
+        }
 
         UpdateDistanceToNextVertex();
     }
