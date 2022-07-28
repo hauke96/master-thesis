@@ -405,12 +405,7 @@ namespace Wavefront
             }
             else
             {
-                var verticesInAngleArea = vertices.Where(v =>
-                {
-                    var bearing = Angle.GetBearing(root.Position, v.Position);
-                    return fromAngle <= bearing && bearing <= toAngle;
-                }).ToList();
-                newWavefrontCreated |= AddWavefrontIfValid(verticesInAngleArea, distanceToRootFromSource, root,
+                newWavefrontCreated |= AddWavefrontIfValid(vertices, distanceToRootFromSource, root,
                     fromAngle, toAngle);
             }
 

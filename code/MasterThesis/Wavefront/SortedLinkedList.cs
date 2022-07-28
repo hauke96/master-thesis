@@ -4,7 +4,7 @@ namespace Wavefront;
 
 public class SortedLinkedList<T> : ICollection<T>
 {
-    private readonly Dictionary<int, LinkedListNode<SortedLinkedListNode<T>>> _index;
+    private LinkedListNode<SortedLinkedListNode<T>>?[] _index;
     private readonly int _accuracy;
     private readonly LinkedList<SortedLinkedListNode<T>> _list;
 
@@ -12,28 +12,66 @@ public class SortedLinkedList<T> : ICollection<T>
     public bool IsReadOnly => false;
     public LinkedListNode<SortedLinkedListNode<T>>? First => Count > 0 ? _list.First : null;
 
-    public SortedLinkedList(int accuracy = 2)
+    public SortedLinkedList(int accuracy = 0)
     {
         _list = new LinkedList<SortedLinkedListNode<T>>();
-        _index = new Dictionary<int, LinkedListNode<SortedLinkedListNode<T>>>();
+        _index = new LinkedListNode<SortedLinkedListNode<T>>[100];
         _accuracy = accuracy;
     }
 
     public void Add(T item)
     {
-        Add(item, 0);
+        throw new NotImplementedException();
     }
 
-    public LinkedListNode<SortedLinkedListNode<T>> Add(T value, double sortingKey)
+    public void AddLast(SortedLinkedListNode<T> node)
     {
-        Log.I($"Add item {value} with key {sortingKey}");
-        var key = GetKey(sortingKey);
-        if (!_index.ContainsKey(key))
+        if (_list.Last != null && _list.Last.Value.Key > node.Key)
         {
-            return AddItemToBin(value, sortingKey, _list.First, key);
+            throw new InvalidOperationException();
         }
 
-        return AddItemToBin(value, sortingKey, _index[key], key);
+        var indexKey = GetKey(node.Key);
+        var newNode = _list.AddLast(node);
+        if (_index[indexKey] == null)
+        {
+            _index[indexKey] = newNode;
+        }
+    }
+
+    public void Add(T value, double sortingKey, double bearingFromWavefront)
+    {
+        var indexKey = GetKey(sortingKey);
+        var node = _index[indexKey];
+        if (node == null)
+        {
+            node = _list.First;
+        }
+
+        while (node != null)
+        {
+            if (node.Value.Key > sortingKey)
+            {
+                break;
+            }
+
+            node = node.Next;
+        }
+
+        LinkedListNode<SortedLinkedListNode<T>> newNode;
+        if (node == null)
+        {
+            newNode = _list.AddLast(new SortedLinkedListNode<T>(sortingKey, value, bearingFromWavefront));
+        }
+        else
+        {
+            newNode = _list.AddBefore(node, new SortedLinkedListNode<T>(sortingKey, value, bearingFromWavefront));
+        }
+
+        if (_index[indexKey] == null || sortingKey < _index[indexKey].Value.Key)
+        {
+            _index[indexKey] = newNode;
+        }
     }
 
     public void RemoveFirst()
@@ -47,23 +85,25 @@ public class SortedLinkedList<T> : ICollection<T>
     public void Remove(LinkedListNode<SortedLinkedListNode<T>> node)
     {
         var key = GetKey(node.Value.Key);
-        if (!_index.ContainsKey(key) || _index.ContainsKey(key) && !_index[key].Equals(node))
+        var indexContainsKey = IndexContains(key);
+
+        if (!indexContainsKey || indexContainsKey && !_index[key]!.Equals(node))
         {
             _list.Remove(node);
         }
-        else if (_index.ContainsKey(key) && _index[key].Equals(node))
+        else if (indexContainsKey && _index[key]!.Equals(node))
         {
-            var nextNode = _index[key].Next;
+            var nextNode = _index[key]!.Next;
             if (nextNode == null)
             {
-                _index.Remove(key);
+                _index[key] = null;
             }
             else
             {
-                var nextNodeKey = (int)nextNode.Value.Key >> _accuracy;
+                var nextNodeKey = GetKey(nextNode.Value.Key);
                 if (key != nextNodeKey)
                 {
-                    _index.Remove(key);
+                    _index[key] = null;
                 }
                 else
                 {
@@ -100,7 +140,7 @@ public class SortedLinkedList<T> : ICollection<T>
 
     public void Clear()
     {
-        _index.Clear();
+        _index = new LinkedListNode<SortedLinkedListNode<T>>[2000];
         _list.Clear();
     }
 
@@ -109,85 +149,84 @@ public class SortedLinkedList<T> : ICollection<T>
         return _list.Any(node => node.Value.Equals(item));
     }
 
-    public void CopyTo(T[] array, int arrayIndex)
+    private bool IndexContains(int key)
     {
-        throw new NotImplementedException();
-    }
-
-    private LinkedListNode<SortedLinkedListNode<T>> AddItemToBin(T value, double sortingKey,
-        LinkedListNode<SortedLinkedListNode<T>>? node, int key)
-    {
-        while (node != null)
-        {
-            if (node.Value.Key > sortingKey)
-            {
-                break;
-            }
-
-            node = node.Next;
-        }
-
-        LinkedListNode<SortedLinkedListNode<T>> newNode;
-        if (node == null)
-        {
-            newNode = _list.AddLast(new SortedLinkedListNode<T>(sortingKey, value));
-        }
-        else
-        {
-            newNode = _list.AddBefore(node, new SortedLinkedListNode<T>(sortingKey, value));
-        }
-
-        if (!_index.ContainsKey(key) || _index[key].Equals(node))
-        {
-            _index[key] = newNode;
-        }
-
-        return newNode;
+        return _index[key] != null;
     }
 
     private int GetKey(double sortingKey)
     {
-        return (int)(sortingKey * 1000) >> _accuracy;
+        var key = (int)(sortingKey * 100000) >> _accuracy;
+        if (key >= _index.Length)
+        {
+            return _index.Length - 1;
+        }
+
+        return key;
     }
 
     public IEnumerator<T> GetEnumerator()
     {
-        return new SortedLinkedListEnumerator<T>(_list);
+        return new Enumerator(this);
     }
 
     IEnumerator IEnumerable.GetEnumerator()
     {
         return GetEnumerator();
     }
-}
 
-public class SortedLinkedListEnumerator<T> : IEnumerator<T>
-{
-    private readonly LinkedList<SortedLinkedListNode<T>> _list;
-    private LinkedListNode<SortedLinkedListNode<T>>? _node;
-
-    public SortedLinkedListEnumerator(LinkedList<SortedLinkedListNode<T>> list)
+    public void CopyTo(T[] array, int arrayIndex)
     {
-        _list = list;
-        _node = list.First;
+        var node = _list.First;
+        for (var i = 0; i < _list.Count; i++)
+        {
+            if (i == arrayIndex)
+            {
+                array[arrayIndex] = node.Value.Value;
+            }
+        }
+
+        throw new InvalidOperationException();
     }
 
-    public bool MoveNext()
+    public struct Enumerator : IEnumerator<T>
     {
-        _node = _node?.Next;
-        return _node?.Next != null;
-    }
+        private readonly SortedLinkedList<T> _list;
+        private LinkedListNode<SortedLinkedListNode<T>> _node;
+        private T _current;
 
-    public void Reset()
-    {
-        _node = _list.First;
-    }
+        internal Enumerator(SortedLinkedList<T> list)
+        {
+            _list = list;
+            _node = list.First;
+            _current = default;
+        }
 
-    public T Current => _node.Value.Value;
+        public T Current => _current;
 
-    object? IEnumerator.Current => _node?.Value;
+        object? IEnumerator.Current => Current;
 
-    public void Dispose()
-    {
+        public bool MoveNext()
+        {
+            if (_node == null)
+            {
+                return false;
+            }
+
+            _current = _node.Value.Value;
+            _node = _node.Next;
+
+            return true;
+        }
+
+        void IEnumerator.Reset()
+        {
+            _current = default;
+            _node = _list.First;
+        }
+
+        public void Dispose()
+        {
+        }
     }
 }

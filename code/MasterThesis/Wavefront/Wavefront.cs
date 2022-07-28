@@ -1,3 +1,4 @@
+using System.Collections;
 using Mars.Interfaces.Environments;
 using Mars.Numerics;
 using Wavefront.Geometry;
@@ -32,7 +33,14 @@ public class Wavefront
     {
         // TODO enforce precondition
         var wavefront = new Wavefront(fromAngle, toAngle, rootVertex, distanceToRootFromSource);
-        wavefront.FilterAndEnqueueVertices(allVertices);
+        if (allVertices is SortedLinkedList<Vertex>)
+        {
+            wavefront.FilterAndEnqueueVertices((SortedLinkedList<Vertex>)allVertices);
+        }
+        else
+        {
+            wavefront.FilterAndEnqueueVertices(allVertices);
+        }
 
         if (wavefront.RelevantVertices.Count == 0)
         {
@@ -42,8 +50,7 @@ public class Wavefront
         return wavefront;
     }
 
-    private Wavefront(double fromAngle, double toAngle, Vertex rootVertex,
-        double distanceToRootFromSource)
+    private Wavefront(double fromAngle, double toAngle, Vertex rootVertex, double distanceToRootFromSource)
     {
         FromAngle = fromAngle;
         ToAngle = toAngle;
@@ -52,7 +59,7 @@ public class Wavefront
 
         // Get the vertices that are possibly visible. There's not collision detection here but all vertices are at
         // least within the range of this wavefront.
-        RelevantVertices = new SortedLinkedList<Vertex>();
+        RelevantVertices = new SortedLinkedList<Vertex>(5);
         _visitedVertices = new LinkedList<Position>();
     }
 
@@ -61,20 +68,51 @@ public class Wavefront
         foreach (var vertex in vertices)
         {
             var bearing = Angle.GetBearing(RootVertex.Position, vertex.Position);
-            var relevant = !Equals(RootVertex, vertex) && (Angle.IsBetween(FromAngle, bearing, ToAngle) ||
-                                                           Angle.AreEqual(FromAngle, bearing) ||
-                                                           Angle.AreEqual(ToAngle, bearing));
-            if (relevant)
+            if (IsRelevant(vertex, bearing))
             {
                 RelevantVertices.Add(vertex,
-                    Distance.Euclidean(RootVertex.Position.PositionArray, vertex.Position.PositionArray));
+                    Distance.Euclidean(RootVertex.Position.PositionArray, vertex.Position.PositionArray), bearing);
             }
         }
 
-        // RelevantVertices = new LinkedList<Vertex>(RelevantVertices.OrderBy(vertex =>
-        // Distance.Euclidean(RootVertex.Position.PositionArray, vertex.Position.PositionArray)));
+        UpdateDistanceToNextVertex();
+    }
+
+    /// <summary>
+    /// Same as FilterAndEnqueueVertices(ICollection<Vertex>) but with one very important (!) assumption:
+    ///
+    /// The given list MUST come from a wavefront with the same root vertex!
+    ///
+    /// This method here re-uses the bearing and also uses the sorting of the given list. This only works if the
+    /// wavefront these vertices came from has the same root vertex. 
+    /// </summary>
+    private void FilterAndEnqueueVertices(SortedLinkedList<Vertex> vertices)
+    {
+        var node = vertices.First;
+        while (node != null)
+        {
+            var vertex = node.Value.Value;
+            var bearing = node.Value.BearingFromWavefront;
+            if (IsRelevant(vertex, bearing))
+            {
+                RelevantVertices.AddLast(node.Value);
+            }
+
+            node = node.Next;
+        }
 
         UpdateDistanceToNextVertex();
+    }
+
+    private bool IsRelevant(Vertex vertex, double bearing)
+    {
+        if (bearing == 0 && Equals(RootVertex, vertex))
+        {
+            // 0° is an indicator that the vertex might be the current root -> therefore not relevant
+            return false;
+        }
+
+        return Angle.IsBetweenEqual(FromAngle, bearing, ToAngle);
     }
 
     /// <summary>
