@@ -20,6 +20,24 @@ public class AngleTest
     }
 
     [Test]
+    public void IsBetweenEqual()
+    {
+        Assert.True(Angle.IsBetweenEqual(0, 40, 90));
+        Assert.True(Angle.IsBetweenEqual(10, 180, 200));
+        Assert.True(Angle.IsBetweenEqual(0, 90, 360));
+        Assert.True(Angle.IsBetweenEqual(0, 0, 90));
+        Assert.True(Angle.IsBetweenEqual(0, 90, 90));
+        Assert.True(Angle.IsBetweenEqual(90, 90 - 0.0001, 360));
+        Assert.True(Angle.IsBetweenEqual(269.99236701900003, 180.00763299072972, 180.00763298898323));
+        Assert.True(Angle.IsBetweenEqual(0, 360, 360));
+        Assert.True(Angle.IsBetweenEqual(10, 10, 10));
+
+        Assert.False(Angle.IsBetweenEqual(0, 90, 45));
+        Assert.False(Angle.IsBetweenEqual(45, 20, 45));
+        Assert.False(Angle.IsBetweenEqual(10, 339, 10));
+    }
+
+    [Test]
     public void IsBetween_noZeroDegreeOverlap_outside360DegreeArea()
     {
         // 0, 40, 90

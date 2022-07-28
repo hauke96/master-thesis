@@ -22,13 +22,32 @@ public class Angle
         b = Normalize(b);
         angle = Normalize(angle);
 
-        // 0° is between a and b -> check from a to 360 and 0 to b
+        // 0° is NOT between a and b -> normal check
         if (a < b || AreEqual(a, b))
         {
             return a < angle && angle < b;
         }
 
         return b > angle || angle > a;
+    }
+
+    /// <summary>
+    /// Checks if the angle "angle" is between a and b including being equal to a or b.
+    /// This method assumes that all angles are correctly normalized.
+    /// </summary>
+    public static bool IsBetweenEqual(double a, double angle, double b)
+    {
+        // As other equal methods do: Allow some small inaccuracy for floats
+        a -= FLOAT_TOLERANCE;
+        b += FLOAT_TOLERANCE;
+        if (a > b)
+        {
+            // a to b exceeds to 0° border
+            angle = angle < b ? angle + 360.0 : angle;
+            b += 360.0;
+        }
+
+        return a <= angle && angle <= b;
     }
 
     public static double Difference(double a, double b)
@@ -99,6 +118,14 @@ public class Angle
     {
         a = StrictNormalize(a);
         b = StrictNormalize(b);
+        return NormalizedAreEqual(a, b);
+    }
+
+    /// <summary>
+    /// Actual logic for the AreEqual method. Assumes that parameters are correctly normalized.
+    /// </summary>
+    private static bool NormalizedAreEqual(double a, double b)
+    {
         var diff = a >= b ? a - b : b - a;
         return diff < FLOAT_TOLERANCE;
     }

@@ -61,10 +61,7 @@ public class Wavefront
         foreach (var vertex in vertices)
         {
             var bearing = Angle.GetBearing(RootVertex.Position, vertex.Position);
-            var relevant = !Equals(RootVertex, vertex) && (Angle.IsBetween(FromAngle, bearing, ToAngle) ||
-                                                           Angle.AreEqual(FromAngle, bearing) ||
-                                                           Angle.AreEqual(ToAngle, bearing));
-            if (relevant)
+            if (IsRelevant(vertex, bearing))
             {
                 RelevantVertices.AddFirst(vertex);
             }
@@ -74,6 +71,17 @@ public class Wavefront
             Distance.Euclidean(RootVertex.Position.PositionArray, vertex.Position.PositionArray)));
 
         UpdateDistanceToNextVertex();
+    }
+
+    private bool IsRelevant(Vertex vertex, double bearing)
+    {
+        if (bearing == 0 && Equals(RootVertex, vertex))
+        {
+            // 0° is an indicator that the vertex might be the current root -> therefore not relevant
+            return false;
+        }
+
+        return Angle.IsBetweenEqual(FromAngle, bearing, ToAngle);
     }
 
     /// <summary>
