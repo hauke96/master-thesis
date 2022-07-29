@@ -806,6 +806,91 @@ namespace Wavefront.Tests
                         Position.CreateGeoPosition(3, 5)));
                 }
             }
+
+            public class MoveWavefrontToCorrectPosition : WithWavefrontAlgorithm
+            {
+                private Wavefront w0;
+                private Wavefront w1;
+                private Wavefront w2;
+                private Wavefront w3;
+                
+                [SetUp]
+                public void Setup()
+                {
+                    var root = new Vertex(0, 1);
+                    var vertices = new List<Vertex>();
+                    vertices.Add(new Vertex(1, 1));
+                    vertices.Add(new Vertex(2, 1));
+                    vertices.Add(new Vertex(3, 1));
+                    vertices.Add(new Vertex(4, 1));
+                    vertices.Add(new Vertex(5, 1));
+                    vertices.Add(new Vertex(6, 1));
+
+                    w0 = Wavefront.New(0, 90, root, vertices, 1);
+                    w1 = Wavefront.New(1, 90, root, new List<Vertex>
+                    {
+                        vertices[1],
+                        vertices[2],
+                        vertices[3],
+                        vertices[4],
+                        vertices[5],
+                    }, 1);
+                    w2 = Wavefront.New(2, 90, root, new List<Vertex>
+                    {
+                        vertices[2],
+                        vertices[3],
+                        vertices[4],
+                        vertices[5],
+                    }, 1);
+                    w3 = Wavefront.New(3, 90, root, new List<Vertex>
+                    {
+                        vertices[3],
+                        vertices[4],
+                        vertices[5],
+                    }, 1);
+
+                    wavefrontAlgorithm.AddWavefront(w0);
+                    wavefrontAlgorithm.AddWavefront(w1);
+                    wavefrontAlgorithm.AddWavefront(w2);
+                    wavefrontAlgorithm.AddWavefront(w3);
+                    Assert.AreEqual(4, wavefrontAlgorithm.Wavefronts.Count);
+                    Assert.AreEqual(w0, wavefrontAlgorithm.Wavefronts.ToList()[0]);
+                    Assert.AreEqual(w1, wavefrontAlgorithm.Wavefronts.ToList()[1]);
+                    Assert.AreEqual(w2, wavefrontAlgorithm.Wavefronts.ToList()[2]);
+                    Assert.AreEqual(w3, wavefrontAlgorithm.Wavefronts.ToList()[3]);
+                }
+
+                [Test]
+                public void FirstWavefrontRemovedOnce_SameDistanceAsSecondWavefront()
+                {
+                    w0.RemoveNextVertex();
+
+                    var w0Node = wavefrontAlgorithm.Wavefronts.Find(w0);
+                    wavefrontAlgorithm.MoveWavefrontToCorrectPosition(w0Node);
+                    
+                    Assert.AreEqual(4, wavefrontAlgorithm.Wavefronts.Count);
+                    Assert.AreEqual(w0, wavefrontAlgorithm.Wavefronts.ToList()[0]);
+                    Assert.AreEqual(w1, wavefrontAlgorithm.Wavefronts.ToList()[1]);
+                    Assert.AreEqual(w2, wavefrontAlgorithm.Wavefronts.ToList()[2]);
+                    Assert.AreEqual(w3, wavefrontAlgorithm.Wavefronts.ToList()[3]);
+                }
+
+                [Test]
+                public void FirstWavefrontRemovedTwice_Moved()
+                {
+                    w0.RemoveNextVertex();
+                    w0.RemoveNextVertex();
+
+                    var w0Node = wavefrontAlgorithm.Wavefronts.Find(w0);
+                    wavefrontAlgorithm.MoveWavefrontToCorrectPosition(w0Node);
+                    
+                    Assert.AreEqual(4, wavefrontAlgorithm.Wavefronts.Count);
+                    Assert.AreEqual(w1, wavefrontAlgorithm.Wavefronts.ToList()[0]);
+                    Assert.AreEqual(w0, wavefrontAlgorithm.Wavefronts.ToList()[1]);
+                    Assert.AreEqual(w2, wavefrontAlgorithm.Wavefronts.ToList()[2]);
+                    Assert.AreEqual(w3, wavefrontAlgorithm.Wavefronts.ToList()[3]);
+                }
+            }
         }
 
         public class Route

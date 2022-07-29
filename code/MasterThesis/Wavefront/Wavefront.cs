@@ -1,4 +1,3 @@
-using System.Collections;
 using Mars.Interfaces.Environments;
 using Mars.Numerics;
 using Wavefront.Geometry;
@@ -130,8 +129,9 @@ public class Wavefront
         {
             _visitedVertices.AddLast(nextVertex.Position);
             RelevantVertices.RemoveFirst();
-            UpdateDistanceToNextVertex();
         }
+
+        UpdateDistanceToNextVertex();
     }
 
     public bool HasBeenVisited(Position? position)
@@ -156,5 +156,10 @@ public class Wavefront
     {
         // The euclidean distance is much faster and will probably work for nearly all real world cases.
         return DistanceToRootFromSource + Distance.Euclidean(RootVertex.Position.PositionArray, position.PositionArray);
+    }
+    
+    public override String ToString()
+    {
+        return $"(root={RootVertex.Position}, from={FromAngle}, to={ToAngle}, vertices={RelevantVertices.Count})";
     }
 }
