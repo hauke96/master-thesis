@@ -166,4 +166,18 @@ public class SortedLinkedListTest
         Assert.AreEqual(elements[1].ToString(), itemsFromList[1]);
         Assert.AreEqual(elements[0].ToString(), itemsFromList[4]);
     }
+
+    [Test]
+    public void Find()
+    {
+        list.Add("4.9", 4.9, 4.9);
+        list.Add("5.00001", 5.00001, 5.00001);
+        list.Add("1", 1, 1);
+        list.Add("5", 5, 5);
+
+        Assert.AreEqual("4.9", list.Find("4.9").Value.Value);
+        Assert.AreEqual("5.00001", list.Find("5.00001").Value.Value);
+        Assert.AreEqual("1", list.Find("1").Value.Value);
+        Assert.AreEqual("5", list.Find("5").Value.Value);
+    }
 }

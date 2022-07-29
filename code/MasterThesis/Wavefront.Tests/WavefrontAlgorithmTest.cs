@@ -400,7 +400,7 @@ namespace Wavefront.Tests
                 [Test]
                 public void ReplacesOriginalWavefront()
                 {
-                    Assert.Contains(wavefront, wavefrontAlgorithm.Wavefronts);
+                    Assert.IsNotNull(wavefrontAlgorithm.Wavefronts.Find(wavefront));
                     Assert.AreEqual(3, wavefrontAlgorithm.Wavefronts.Count);
 
                     var w = wavefrontAlgorithm.Wavefronts.ToList()[0];
@@ -813,7 +813,7 @@ namespace Wavefront.Tests
                 private Wavefront w1;
                 private Wavefront w2;
                 private Wavefront w3;
-                
+
                 [SetUp]
                 public void Setup()
                 {
@@ -867,7 +867,7 @@ namespace Wavefront.Tests
 
                     var w0Node = wavefrontAlgorithm.Wavefronts.Find(w0);
                     wavefrontAlgorithm.MoveWavefrontToCorrectPosition(w0Node);
-                    
+
                     Assert.AreEqual(4, wavefrontAlgorithm.Wavefronts.Count);
                     Assert.AreEqual(w0, wavefrontAlgorithm.Wavefronts.ToList()[0]);
                     Assert.AreEqual(w1, wavefrontAlgorithm.Wavefronts.ToList()[1]);
@@ -883,7 +883,7 @@ namespace Wavefront.Tests
 
                     var w0Node = wavefrontAlgorithm.Wavefronts.Find(w0);
                     wavefrontAlgorithm.MoveWavefrontToCorrectPosition(w0Node);
-                    
+
                     Assert.AreEqual(4, wavefrontAlgorithm.Wavefronts.Count);
                     Assert.AreEqual(w1, wavefrontAlgorithm.Wavefronts.ToList()[0]);
                     Assert.AreEqual(w0, wavefrontAlgorithm.Wavefronts.ToList()[1]);

@@ -1,4 +1,5 @@
 using System.Collections;
+using ServiceStack;
 
 namespace Wavefront;
 
@@ -39,9 +40,21 @@ public class SortedLinkedList<T> : ICollection<T>
         }
     }
 
-    public void Add(T value, double sortingKey, double bearingFromWavefront)
+    public void Add(T value, double sortingKey, double bearingFromWavefront = 0)
     {
-        var indexKey = GetKey(sortingKey);
+        var newNode = new SortedLinkedListNode<T>(sortingKey, value, bearingFromWavefront);
+        Add(newNode);
+    }
+
+    public void Add(SortedLinkedListNode<T> newNode)
+    {
+        LinkedListNode<SortedLinkedListNode<T>> newListNode = new LinkedListNode<SortedLinkedListNode<T>>(newNode);
+        Add(newListNode);
+    }
+
+    public void Add(LinkedListNode<SortedLinkedListNode<T>> newNode)
+    {
+        var indexKey = GetKey(newNode.Value.Key);
         var node = _index[indexKey];
         if (node == null)
         {
@@ -50,7 +63,7 @@ public class SortedLinkedList<T> : ICollection<T>
 
         while (node != null)
         {
-            if (node.Value.Key > sortingKey)
+            if (node.Value.Key >= newNode.Value.Key)
             {
                 break;
             }
@@ -58,17 +71,16 @@ public class SortedLinkedList<T> : ICollection<T>
             node = node.Next;
         }
 
-        LinkedListNode<SortedLinkedListNode<T>> newNode;
         if (node == null)
         {
-            newNode = _list.AddLast(new SortedLinkedListNode<T>(sortingKey, value, bearingFromWavefront));
+            _list.AddLast(newNode);
         }
         else
         {
-            newNode = _list.AddBefore(node, new SortedLinkedListNode<T>(sortingKey, value, bearingFromWavefront));
+            _list.AddBefore(node, newNode);
         }
 
-        if (_index[indexKey] == null || sortingKey < _index[indexKey].Value.Key)
+        if (_index[indexKey] == null || newNode.Value.Key <= _index[indexKey].Value.Key)
         {
             _index[indexKey] = newNode;
         }
@@ -128,7 +140,7 @@ public class SortedLinkedList<T> : ICollection<T>
         {
             if (node.Value.Value.Equals(entryToRemove))
             {
-                Remove(node);
+                Remove(node.Value);
                 return true;
             }
 
@@ -136,6 +148,11 @@ public class SortedLinkedList<T> : ICollection<T>
         }
 
         return false;
+    }
+
+    public void Remove(SortedLinkedListNode<T> node)
+    {
+        _list.Remove(node);
     }
 
     public void Clear()
@@ -147,6 +164,22 @@ public class SortedLinkedList<T> : ICollection<T>
     public bool Contains(T item)
     {
         return _list.Any(node => node.Value.Equals(item));
+    }
+
+    public LinkedListNode<SortedLinkedListNode<T>>? Find(T item)
+    {
+        var node = _list.First;
+        while (node != null)
+        {
+            if (Equals(node.Value.Value, item))
+            {
+                return node;
+            }
+
+            node = node.Next;
+        }
+
+        return null;
     }
 
     private bool IndexContains(int key)
@@ -180,13 +213,13 @@ public class SortedLinkedList<T> : ICollection<T>
         var node = _list.First;
         for (var i = 0; i < _list.Count; i++)
         {
-            if (i == arrayIndex)
+            if (i >= arrayIndex)
             {
-                array[arrayIndex] = node.Value.Value;
+                array[i] = node.Value.Value;
             }
-        }
 
-        throw new InvalidOperationException();
+            node = node.Next;
+        }
     }
 
     public struct Enumerator : IEnumerator<T>

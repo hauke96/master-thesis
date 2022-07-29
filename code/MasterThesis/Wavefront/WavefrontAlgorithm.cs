@@ -11,11 +11,10 @@ namespace Wavefront
         private readonly List<Obstacle> Obstacles;
 
         public readonly Dictionary<Position, Position?> PositionToPredecessor;
-        public readonly LinkedList<Wavefront> Wavefronts;
+        public readonly SortedLinkedList<Wavefront> Wavefronts;
         public readonly LinkedList<Vertex> Vertices;
 
-        public WavefrontAlgorithm(List<NetTopologySuite.Geometries.Geometry> obstacles,
-            LinkedList<Wavefront>? wavefronts = null)
+        public WavefrontAlgorithm(List<NetTopologySuite.Geometries.Geometry> obstacles)
         {
             Obstacles = obstacles.Map(geometry => new Obstacle(geometry));
             Vertices = new LinkedList<Vertex>();
@@ -27,7 +26,7 @@ namespace Wavefront
                 Vertices.AddFirst(new Vertex(position, positionToNeighbors[position]));
             });
 
-            Wavefronts = wavefronts ?? new LinkedList<Wavefront>();
+            Wavefronts = new SortedLinkedList<Wavefront>(4);
         }
 
         public Dictionary<Position, List<Position>> GetNeighborsFromObstacleVertices(
@@ -123,7 +122,7 @@ namespace Wavefront
         public void ProcessNextEvent(Position targetPosition)
         {
             var wavefrontNode = Wavefronts.First;
-            var wavefront = wavefrontNode.Value;
+            var wavefront = wavefrontNode.Value.Value;
             var currentVertex = wavefront.GetNextVertex();
 
             // Log.D(
@@ -202,9 +201,9 @@ namespace Wavefront
             }
         }
 
-        private bool RemoveNextVertex(LinkedListNode<Wavefront> wavefrontNode)
+        private bool RemoveNextVertex(LinkedListNode<SortedLinkedListNode<Wavefront>> wavefrontNode)
         {
-            wavefrontNode.Value.RemoveNextVertex();
+            wavefrontNode.Value.Value.RemoveNextVertex();
             return MoveWavefrontToCorrectPosition(wavefrontNode);
         }
 
@@ -464,54 +463,68 @@ namespace Wavefront
         /// from the list of wavefronts.
         /// </summary>
         /// <returns>true when removed from list, false when still in list.</returns>
-        public bool MoveWavefrontToCorrectPosition(LinkedListNode<Wavefront> wavefrontNode)
+        public bool MoveWavefrontToCorrectPosition(LinkedListNode<SortedLinkedListNode<Wavefront>> wavefrontNode)
         {
-            // TODO tests -> this method doesn't work correct
-            var distanceToNextVertex = wavefrontNode.Value.DistanceToNextVertex;
-            var node = wavefrontNode.Next;
             Wavefronts.Remove(wavefrontNode);
+            var wavefront = wavefrontNode.Value.Value;
 
-            // Wavefront has no next vertex -> kill the wavefront by removing it from the list
-            if (wavefrontNode.Value.DistanceToNextVertex == 0)
+            if (wavefront.DistanceToNextVertex == 0)
             {
                 return true;
             }
 
-            // The next wavefront vertex is further away -> we can start looking from the next wavefront as this list
-            // is sorted increasingly.
-            while (node != null && node.Value.DistanceToNextVertex < distanceToNextVertex)
-            {
-                node = node.Next;
-            }
-
-            if (node == null)
-            {
-                Wavefronts.AddLast(wavefrontNode);
-            }
-            else
-            {
-                Wavefronts.AddBefore(node, wavefrontNode);
-            }
+            wavefrontNode.Value.Key = wavefront.DistanceToNextVertex;
+            Wavefronts.Add(wavefrontNode);
 
             return false;
+
+            // // TODO tests -> this method doesn't work correct
+            // var distanceToNextVertex = wavefrontNode.Value.DistanceToNextVertex;
+            // var node = wavefrontNode.Next;
+            // Wavefronts.Remove(wavefrontNode);
+            //
+            // // Wavefront has no next vertex -> kill the wavefront by removing it from the list
+            // if (wavefrontNode.Value.DistanceToNextVertex == 0)
+            // {
+            //     return true;
+            // }
+            //
+            // // The next wavefront vertex is further away -> we can start looking from the next wavefront as this list
+            // // is sorted increasingly.
+            // while (node != null && node.Value.DistanceToNextVertex < distanceToNextVertex)
+            // {
+            //     node = node.Next;
+            // }
+            //
+            // if (node == null)
+            // {
+            //     Wavefronts.AddLast(wavefrontNode);
+            // }
+            // else
+            // {
+            //     Wavefronts.AddBefore(node, wavefrontNode);
+            // }
+            //
+            // return false;
         }
 
         public void AddWavefront(Wavefront newWavefront)
         {
-            var distanceToNextVertex = newWavefront.DistanceToNextVertex;
-            var node = Wavefronts.First;
-            while (node != null)
-            {
-                if (node.Value.DistanceToNextVertex > distanceToNextVertex)
-                {
-                    Wavefronts.AddBefore(node, newWavefront);
-                    return;
-                }
-
-                node = node.Next;
-            }
-
-            Wavefronts.AddLast(newWavefront);
+            Wavefronts.Add(newWavefront, newWavefront.DistanceToNextVertex);
+            // var distanceToNextVertex = newWavefront.DistanceToNextVertex;
+            // var node = Wavefronts.First;
+            // while (node != null)
+            // {
+            //     if (node.Value.DistanceToNextVertex > distanceToNextVertex)
+            //     {
+            //         Wavefronts.AddBefore(node, newWavefront);
+            //         return;
+            //     }
+            //
+            //     node = node.Next;
+            // }
+            //
+            // Wavefronts.AddLast(newWavefront);
         }
     }
 }
