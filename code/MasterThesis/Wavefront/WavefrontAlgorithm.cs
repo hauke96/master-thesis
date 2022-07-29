@@ -466,9 +466,11 @@ namespace Wavefront
         /// from the list of wavefronts.
         /// </summary>
         /// <returns>true when removed from list, false when still in list.</returns>
-        private bool MoveWavefrontToCorrectPosition(LinkedListNode<Wavefront> wavefrontNode)
+        public bool MoveWavefrontToCorrectPosition(LinkedListNode<Wavefront> wavefrontNode)
         {
+            // TODO tests -> this method doesn't work correct
             var distanceToNextVertex = wavefrontNode.Value.DistanceToNextVertex;
+            var node = wavefrontNode.Next;
             Wavefronts.Remove(wavefrontNode);
 
             // Wavefront has no next vertex -> kill the wavefront by removing it from the list
@@ -479,14 +481,8 @@ namespace Wavefront
 
             // The next wavefront vertex is further away -> we can start looking from the next wavefront as this list
             // is sorted increasingly.
-            var node = wavefrontNode.Next;
-            while (node != null)
+            while (node != null && node.Value.DistanceToNextVertex < distanceToNextVertex)
             {
-                if (node.Value.DistanceToNextVertex > distanceToNextVertex)
-                {
-                    break;
-                }
-
                 node = node.Next;
             }
 

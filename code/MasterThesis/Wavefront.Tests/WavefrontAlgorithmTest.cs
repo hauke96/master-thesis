@@ -306,7 +306,8 @@ namespace Wavefront.Tests
                 public void Setup()
                 {
                     nextVertex = multiVertexLineVertices[0];
-                    wavefront = Wavefront.New(0, 350, new Vertex(5, 0), wavefrontAlgorithm.Vertices.ToList(), 1, false)!;
+                    wavefront = Wavefront.New(0, 350, new Vertex(5, 0), wavefrontAlgorithm.Vertices.ToList(), 1,
+                        false)!;
                     wavefrontAlgorithm.AddWavefront(wavefront);
                     targetPosition = Position.CreateGeoPosition(10, 10);
 
@@ -377,7 +378,8 @@ namespace Wavefront.Tests
                 {
                     nextVertex = multiVertexLineVertices[0];
                     // Add wavefront close to the next vertex
-                    wavefront = Wavefront.New(270, 355, new Vertex(6.2, 2.8), wavefrontAlgorithm.Vertices.ToList(), 1, false)!;
+                    wavefront = Wavefront.New(270, 355, new Vertex(6.2, 2.8), wavefrontAlgorithm.Vertices.ToList(), 1,
+                        false)!;
                     wavefrontAlgorithm.AddWavefront(wavefront);
                     targetPosition = Position.CreateGeoPosition(10, 10);
 
@@ -459,7 +461,8 @@ namespace Wavefront.Tests
                 [Test]
                 public void NoNeighborToWest()
                 {
-                    var wavefront = Wavefront.New(0, 90, new Vertex(5, 0), wavefrontAlgorithm.Vertices.ToList(), 10, false)!;
+                    var wavefront = Wavefront.New(0, 90, new Vertex(5, 0), wavefrontAlgorithm.Vertices.ToList(), 10,
+                        false)!;
                     wavefrontAlgorithm.AddWavefront(wavefront);
                     var vertex = multiVertexLineVertices[1];
                     wavefront.RemoveNextVertex();
@@ -623,7 +626,8 @@ namespace Wavefront.Tests
                 [Test]
                 public void NeighborsInsideWavefront_BothVisited()
                 {
-                    var wavefront = Wavefront.New(0, 270, new Vertex(6, 4), wavefrontAlgorithm.Vertices.ToList(), 10, false)!;
+                    var wavefront = Wavefront.New(0, 270, new Vertex(6, 4), wavefrontAlgorithm.Vertices.ToList(), 10,
+                        false)!;
                     wavefrontAlgorithm.AddWavefront(wavefront);
                     var vertex = multiVertexLineVertices[1];
                     wavefront.RemoveNextVertex();
@@ -718,7 +722,8 @@ namespace Wavefront.Tests
                 {
                     Assert.True(wavefronts.IsEmpty());
 
-                    wavefrontAlgorithm.AddNewWavefront(wavefrontAlgorithm.Vertices.ToList(), rootVertex, 10, 190, 350, false);
+                    wavefrontAlgorithm.AddNewWavefront(wavefrontAlgorithm.Vertices.ToList(), rootVertex, 10, 190, 350,
+                        false);
 
                     Assert.AreEqual(1, wavefronts.Count);
                     var wavefront = wavefronts.ToList()[0];
@@ -733,7 +738,8 @@ namespace Wavefront.Tests
                 {
                     Assert.True(wavefronts.IsEmpty());
 
-                    wavefrontAlgorithm.AddNewWavefront(wavefrontAlgorithm.Vertices.ToList(), rootVertex, 10, 190, 90, false);
+                    wavefrontAlgorithm.AddNewWavefront(wavefrontAlgorithm.Vertices.ToList(), rootVertex, 10, 190, 90,
+                        false);
 
                     Assert.AreEqual(2, wavefronts.Count);
 
@@ -802,6 +808,91 @@ namespace Wavefront.Tests
                         Position.CreateGeoPosition(1, 5)));
                     Assert.False(wavefrontAlgorithm.TrajectoryCollidesWithObstacle(Position.CreateGeoPosition(1, 5),
                         Position.CreateGeoPosition(3, 5)));
+                }
+            }
+
+            public class MoveWavefrontToCorrectPosition : WithWavefrontAlgorithm
+            {
+                private Wavefront w0;
+                private Wavefront w1;
+                private Wavefront w2;
+                private Wavefront w3;
+                
+                [SetUp]
+                public void Setup()
+                {
+                    var root = new Vertex(0, 1);
+                    var vertices = new List<Vertex>();
+                    vertices.Add(new Vertex(1, 1));
+                    vertices.Add(new Vertex(2, 1));
+                    vertices.Add(new Vertex(3, 1));
+                    vertices.Add(new Vertex(4, 1));
+                    vertices.Add(new Vertex(5, 1));
+                    vertices.Add(new Vertex(6, 1));
+
+                    w0 = Wavefront.New(0, 90, root, vertices, 1, false);
+                    w1 = Wavefront.New(1, 90, root, new List<Vertex>
+                    {
+                        vertices[1],
+                        vertices[2],
+                        vertices[3],
+                        vertices[4],
+                        vertices[5],
+                    }, 1, false);
+                    w2 = Wavefront.New(2, 90, root, new List<Vertex>
+                    {
+                        vertices[2],
+                        vertices[3],
+                        vertices[4],
+                        vertices[5],
+                    }, 1, false);
+                    w3 = Wavefront.New(3, 90, root, new List<Vertex>
+                    {
+                        vertices[3],
+                        vertices[4],
+                        vertices[5],
+                    }, 1, false);
+
+                    wavefrontAlgorithm.AddWavefront(w0);
+                    wavefrontAlgorithm.AddWavefront(w1);
+                    wavefrontAlgorithm.AddWavefront(w2);
+                    wavefrontAlgorithm.AddWavefront(w3);
+                    Assert.AreEqual(4, wavefrontAlgorithm.Wavefronts.Count);
+                    Assert.AreEqual(w0, wavefrontAlgorithm.Wavefronts.ToList()[0]);
+                    Assert.AreEqual(w1, wavefrontAlgorithm.Wavefronts.ToList()[1]);
+                    Assert.AreEqual(w2, wavefrontAlgorithm.Wavefronts.ToList()[2]);
+                    Assert.AreEqual(w3, wavefrontAlgorithm.Wavefronts.ToList()[3]);
+                }
+
+                [Test]
+                public void FirstWavefrontRemovedOnce_SameDistanceAsSecondWavefront()
+                {
+                    w0.RemoveNextVertex();
+
+                    var w0Node = wavefrontAlgorithm.Wavefronts.Find(w0);
+                    wavefrontAlgorithm.MoveWavefrontToCorrectPosition(w0Node);
+                    
+                    Assert.AreEqual(4, wavefrontAlgorithm.Wavefronts.Count);
+                    Assert.AreEqual(w0, wavefrontAlgorithm.Wavefronts.ToList()[0]);
+                    Assert.AreEqual(w1, wavefrontAlgorithm.Wavefronts.ToList()[1]);
+                    Assert.AreEqual(w2, wavefrontAlgorithm.Wavefronts.ToList()[2]);
+                    Assert.AreEqual(w3, wavefrontAlgorithm.Wavefronts.ToList()[3]);
+                }
+
+                [Test]
+                public void FirstWavefrontRemovedTwice_Moved()
+                {
+                    w0.RemoveNextVertex();
+                    w0.RemoveNextVertex();
+
+                    var w0Node = wavefrontAlgorithm.Wavefronts.Find(w0);
+                    wavefrontAlgorithm.MoveWavefrontToCorrectPosition(w0Node);
+                    
+                    Assert.AreEqual(4, wavefrontAlgorithm.Wavefronts.Count);
+                    Assert.AreEqual(w1, wavefrontAlgorithm.Wavefronts.ToList()[0]);
+                    Assert.AreEqual(w0, wavefrontAlgorithm.Wavefronts.ToList()[1]);
+                    Assert.AreEqual(w2, wavefrontAlgorithm.Wavefronts.ToList()[2]);
+                    Assert.AreEqual(w3, wavefrontAlgorithm.Wavefronts.ToList()[3]);
                 }
             }
         }
