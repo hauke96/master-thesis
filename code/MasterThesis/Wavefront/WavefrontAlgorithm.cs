@@ -1,4 +1,5 @@
 using Mars.Common;
+using Mars.Common.Collections;
 using NetTopologySuite.Geometries;
 using ServiceStack;
 using Wavefront.Geometry;
@@ -11,11 +12,10 @@ namespace Wavefront
         private readonly List<Obstacle> Obstacles;
 
         public readonly Dictionary<Position, Position?> PositionToPredecessor;
-        public readonly LinkedList<Wavefront> Wavefronts;
+        public readonly FibonacciHeap<Wavefront, double> Wavefronts;
         public readonly LinkedList<Vertex> Vertices;
 
-        public WavefrontAlgorithm(List<NetTopologySuite.Geometries.Geometry> obstacles,
-            LinkedList<Wavefront>? wavefronts = null)
+        public WavefrontAlgorithm(List<NetTopologySuite.Geometries.Geometry> obstacles)
         {
             Obstacles = obstacles.Map(geometry => new Obstacle(geometry));
             Vertices = new LinkedList<Vertex>();
@@ -27,7 +27,7 @@ namespace Wavefront
                 Vertices.AddFirst(new Vertex(position, positionToNeighbors[position]));
             });
 
-            Wavefronts = wavefronts ?? new LinkedList<Wavefront>();
+            Wavefronts = new FibonacciHeap<Wavefront, double>(0);
         }
 
         public Dictionary<Position, List<Position>> GetNeighborsFromObstacleVertices(
@@ -98,7 +98,6 @@ namespace Wavefront
             Log.Init();
             Log.I($"Routing from {source} to {target}");
             Log.D($"Initial wavefront at {initialWavefront.RootVertex.Position}");
-            // Log.D($"Wavefront vertices {initialWavefront.RelevantVertices.Map(v => v.Position.ToString()).Join(", ")}");
 
             while (!PositionToPredecessor.ContainsKey(target))
             {
@@ -122,24 +121,15 @@ namespace Wavefront
 
         public void ProcessNextEvent(Position targetPosition)
         {
-            var wavefrontNode = Wavefronts.First;
-            var wavefront = wavefrontNode.Value;
+            var wavefrontNode = Wavefronts.Min();
+            var wavefront = wavefrontNode.Data;
             var currentVertex = wavefront.GetNextVertex();
-
-            // Log.D(
-            //     $"Process wavefront (" +
-            //     $"total wavefront={Wavefronts.Count}," +
-            //     $"m from start={(int)wavefront.DistanceToRootFromSource}," +
-            //     $"m to target={(int)wavefront.RootVertex.Position.DistanceInMTo(targetPosition)})" +
-            //     $"at {wavefront.RootVertex.Position} from {wavefront.FromAngle}° to {wavefront.ToAngle}°",
-            //     "",
-            //     1);
 
             if (currentVertex == null)
             {
                 Log.D("No next vertex, remove wavefront");
                 // This wavefront doesn't have any events ahead, to we can remove it. 
-                Wavefronts.Remove(wavefrontNode);
+                Wavefronts.RemoveMin();
                 return;
             }
 
@@ -147,7 +137,8 @@ namespace Wavefront
             if (currentVertexHasBeenVisitedBefore)
             {
                 Log.D($"Vertex at {currentVertex.Position} has been visited before");
-                RemoveNextVertex(wavefrontNode);
+                RemoveAndUpdateWavefront(wavefrontNode);
+                AddWavefront(wavefront);
                 return;
             }
 
@@ -155,7 +146,8 @@ namespace Wavefront
             if (!isCurrentVertexVisible)
             {
                 Log.D($"Vertex at {currentVertex.Position} is not visible");
-                RemoveNextVertex(wavefrontNode);
+                RemoveAndUpdateWavefront(wavefrontNode);
+                AddWavefront(wavefront);
                 return;
             }
 
@@ -164,14 +156,13 @@ namespace Wavefront
                 Log.I($"Target reached ({currentVertex.Position})", "", 1);
                 PositionToPredecessor[currentVertex.Position] = wavefront.RootVertex.Position;
                 Log.D($"Set predecessor of target to {wavefront.RootVertex.Position}");
-                wavefront.RemoveNextVertex();
-                Wavefronts.Remove(wavefrontNode);
+                RemoveAndUpdateWavefront(wavefrontNode);
                 return;
             }
 
             Log.D($"Next vertex at {currentVertex.Position}");
 
-            var wavefrontRemoved = RemoveNextVertex(wavefrontNode);
+            RemoveAndUpdateWavefront(wavefrontNode);
             Log.D("Drop vertex from wavefront");
 
             double angleShadowFrom;
@@ -190,22 +181,23 @@ namespace Wavefront
             if (!Double.IsNaN(angleShadowFrom) && !Double.IsNaN(angleShadowTo))
             {
                 Log.D($"Remove old wavefront from {wavefront.FromAngle}° to {wavefront.ToAngle}° and create new ones");
-                if (!wavefrontRemoved)
-                {
-                    Wavefronts.Remove(wavefrontNode);
-                }
 
                 AddNewWavefront(wavefront.RelevantVertices, wavefront.RootVertex, wavefront.DistanceToRootFromSource,
                     wavefront.FromAngle, angleShadowFrom, true);
                 AddNewWavefront(wavefront.RelevantVertices, wavefront.RootVertex, wavefront.DistanceToRootFromSource,
                     angleShadowTo, wavefront.ToAngle, true);
             }
+            else
+            {
+                AddWavefront(wavefront);
+            }
         }
 
-        private bool RemoveNextVertex(LinkedListNode<Wavefront> wavefrontNode)
+        private void RemoveAndUpdateWavefront(FibonacciHeapNode<Wavefront, double> wavefrontNode)
         {
-            wavefrontNode.Value.RemoveNextVertex();
-            return MoveWavefrontToCorrectPosition(wavefrontNode);
+            var wavefront = wavefrontNode.Data;
+            Wavefronts.RemoveMin();
+            wavefront.RemoveNextVertex();
         }
 
         // TODO document rotation idea of this method
@@ -282,18 +274,12 @@ namespace Wavefront
                 Log.Note("Both neighbors on west side");
                 angleWavefrontFrom = Math.Max(angleVertexToRightNeighbor, angleVertexToLeftNeighbor);
                 angleWavefrontTo = 360;
-
-                // angleShadowFrom = Math.Min(angleRootToRightNeighbor, angleRootToLeftNeighbor);
-                // angleShadowTo = 360;
             }
             else if (bothNeighborsOnEastSide && !Angle.AreEqual(angleCurrentWavefrontFrom, 0))
             {
                 Log.Note("Both neighbors on east side");
                 angleWavefrontFrom = 0;
                 angleWavefrontTo = Math.Min(angleVertexToRightNeighbor, angleVertexToLeftNeighbor);
-
-                // angleShadowFrom = 0;
-                // angleShadowTo = Math.Max(angleRootToRightNeighbor, angleRootToLeftNeighbor);
             }
 
             Log.D($"Wavefront goes from={angleWavefrontFrom}° to={angleWavefrontTo}°");
@@ -423,8 +409,8 @@ namespace Wavefront
             {
                 Log.D(
                     $"New wavefront at {newWavefront.RootVertex.Position} with {newWavefront.RelevantVertices.Count} relevant vertices from {fromAngle}° to {toAngle}°");
-                // Log.D($"Relevant vertices: {newWavefront.RelevantVertices.Map(v => v.Position.ToString()).Join(", ")}");
-                AddWavefront(newWavefront);
+                Wavefronts.Insert(
+                    new FibonacciHeapNode<Wavefront, double>(newWavefront, newWavefront.DistanceToNextVertex));
                 return true;
             }
 
@@ -461,59 +447,15 @@ namespace Wavefront
             return false;
         }
 
-        /// <summary>
-        /// Moves the given wavefront to the correct position. If the wavefront has no next vertex, it'll be removed
-        /// from the list of wavefronts.
-        /// </summary>
-        /// <returns>true when removed from list, false when still in list.</returns>
-        public bool MoveWavefrontToCorrectPosition(LinkedListNode<Wavefront> wavefrontNode)
-        {
-            // TODO tests -> this method doesn't work correct
-            var distanceToNextVertex = wavefrontNode.Value.DistanceToNextVertex;
-            var node = wavefrontNode.Next;
-            Wavefronts.Remove(wavefrontNode);
-
-            // Wavefront has no next vertex -> kill the wavefront by removing it from the list
-            if (wavefrontNode.Value.DistanceToNextVertex == 0)
-            {
-                return true;
-            }
-
-            // The next wavefront vertex is further away -> we can start looking from the next wavefront as this list
-            // is sorted increasingly.
-            while (node != null && node.Value.DistanceToNextVertex < distanceToNextVertex)
-            {
-                node = node.Next;
-            }
-
-            if (node == null)
-            {
-                Wavefronts.AddLast(wavefrontNode);
-            }
-            else
-            {
-                Wavefronts.AddBefore(node, wavefrontNode);
-            }
-
-            return false;
-        }
-
         public void AddWavefront(Wavefront newWavefront)
         {
-            var distanceToNextVertex = newWavefront.DistanceToNextVertex;
-            var node = Wavefronts.First;
-            while (node != null)
+            if (newWavefront.DistanceToNextVertex == 0)
             {
-                if (node.Value.DistanceToNextVertex > distanceToNextVertex)
-                {
-                    Wavefronts.AddBefore(node, newWavefront);
-                    return;
-                }
-
-                node = node.Next;
+                return;
             }
 
-            Wavefronts.AddLast(newWavefront);
+            Wavefronts.Insert(
+                new FibonacciHeapNode<Wavefront, double>(newWavefront, newWavefront.DistanceToNextVertex));
         }
     }
 }
