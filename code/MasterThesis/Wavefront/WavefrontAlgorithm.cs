@@ -9,25 +9,24 @@ namespace Wavefront
 {
     public class WavefrontAlgorithm
     {
+        private readonly int knnSearchNeighbors = 1000;
+        
         private readonly List<Obstacle> Obstacles;
 
         public readonly Dictionary<Position, Position?> PositionToPredecessor;
         public readonly FibonacciHeap<Wavefront, double> Wavefronts;
-        public readonly LinkedList<Vertex> Vertices;
+        public readonly Dictionary<Vertex, List<Vertex>> VertexNeighbors;
+        public readonly List<Vertex> Vertices;
 
         public WavefrontAlgorithm(List<NetTopologySuite.Geometries.Geometry> obstacles)
         {
             Obstacles = obstacles.Map(geometry => new Obstacle(geometry));
-            Vertices = new LinkedList<Vertex>();
             PositionToPredecessor = new Dictionary<Position, Position?>();
+            Wavefronts = new FibonacciHeap<Wavefront, double>(0);
 
             var positionToNeighbors = GetNeighborsFromObstacleVertices(Obstacles);
-            positionToNeighbors.Keys.Each(position =>
-            {
-                Vertices.AddFirst(new Vertex(position, positionToNeighbors[position]));
-            });
-
-            Wavefronts = new FibonacciHeap<Wavefront, double>(0);
+            Vertices = positionToNeighbors.Keys.Map(position => new Vertex(position, positionToNeighbors[position]));
+            VertexNeighbors = WavefrontPreprocessor.CalculateKnn(Vertices, knnSearchNeighbors);
         }
 
         public Dictionary<Position, List<Position>> GetNeighborsFromObstacleVertices(
@@ -84,10 +83,20 @@ namespace Wavefront
 
         public List<Position> Route(Position source, Position target)
         {
-            Vertices.AddFirst(new Vertex(target));
+            var targetVertex = new Vertex(target);
+            Vertices.Add(targetVertex);
+            var neighborsOfTarget = WavefrontPreprocessor.GetNeighborsForVertex(Vertices, targetVertex, knnSearchNeighbors);
+            
+            // TODO Find a better way to add the target to the existing neighbors lists?
+            neighborsOfTarget.Each(neighbor => VertexNeighbors[neighbor].Add(targetVertex));
+
+
             PositionToPredecessor[source] = null;
 
-            var initialWavefront = Wavefront.New(0, 360, new Vertex(source), Vertices, 0, false);
+            var sourceVertex = new Vertex(source);
+            VertexNeighbors[sourceVertex] =
+                WavefrontPreprocessor.GetNeighborsForVertex(Vertices, sourceVertex, knnSearchNeighbors);
+            var initialWavefront = Wavefront.New(0, 360, sourceVertex, VertexNeighbors[sourceVertex], 0, false);
             if (initialWavefront == null)
             {
                 return new List<Position>();
@@ -103,6 +112,9 @@ namespace Wavefront
             {
                 ProcessNextEvent(target);
             }
+            
+            // Clean up the list for future uses of the Route() method
+            neighborsOfTarget.Each(neighbor => VertexNeighbors[neighbor].Remove(targetVertex));
 
             var waypoints = new List<Position>();
             var nextPosition = target;
@@ -322,7 +334,7 @@ namespace Wavefront
 
             if (newWavefrontNeeded)
             {
-                createdWavefrontAtCurrentVertex = AddNewWavefront(Vertices, currentVertex,
+                createdWavefrontAtCurrentVertex = AddNewWavefront(currentVertex,
                     wavefront.DistanceTo(currentVertex.Position), angleWavefrontFrom, angleWavefrontTo, false);
             }
 
@@ -367,6 +379,13 @@ namespace Wavefront
 
                 Log.D($"There were two shadows -> merged shadow goes from {angleShadowFrom}° to {angleShadowTo}°");
             }
+        }
+
+        private bool AddNewWavefront(Vertex root, double distanceToRootFromSource, double fromAngle, double toAngle,
+            bool verticesFromWavefrontWithSameRoot)
+        {
+            return AddNewWavefront(VertexNeighbors[root], root, distanceToRootFromSource, fromAngle, toAngle,
+                verticesFromWavefrontWithSameRoot);
         }
 
         public bool AddNewWavefront(ICollection<Vertex> vertices, Vertex root, double distanceToRootFromSource,
