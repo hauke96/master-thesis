@@ -40,11 +40,18 @@ namespace Wavefront.Geometry
 
             var orientation1 = Orientation(start2, end2, start1);
             var orientation2 = Orientation(start2, end2, end1);
+            if (orientation1 == orientation2)
+            {
+                return false;
+            }
             var orientation3 = Orientation(start1, end1, start2);
             var orientation4 = Orientation(start1, end1, end2);
+            if (orientation3 == orientation4)
+            {
+                return false;
+            }
 
-            return (orientation1 != orientation2 && orientation3 != orientation4) &&
-                   !(orientation1 == 0 && IsOnSegment(start2, end2, start1) ||
+            return !(orientation1 == 0 && IsOnSegment(start2, end2, start1) ||
                      orientation2 == 0 && IsOnSegment(start2, end2, end1) ||
                      orientation3 == 0 && IsOnSegment(start1, end1, start2) ||
                      orientation4 == 0 && IsOnSegment(start1, end1, end2));
