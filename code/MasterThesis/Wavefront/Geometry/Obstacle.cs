@@ -1,4 +1,6 @@
+using Mars.Common;
 using NetTopologySuite.Geometries;
+using Position = Mars.Interfaces.Environments.Position;
 
 namespace Wavefront.Geometry
 {
@@ -7,11 +9,13 @@ namespace Wavefront.Geometry
         public readonly List<Coordinate> Coordinates;
         public readonly Envelope Envelope;
         public readonly bool IsClosed;
+        public readonly Position Center;
 
         public Obstacle(NetTopologySuite.Geometries.Geometry geometry)
         {
             Coordinates = geometry.Coordinates.ToList();
             Envelope = geometry.EnvelopeInternal;
+            Center = geometry.Centroid.Coordinate.ToPosition();
             IsClosed = Equals(Coordinates.First(), Coordinates.Last());
         }
 

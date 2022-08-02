@@ -9,7 +9,7 @@ namespace Wavefront
 {
     public class WavefrontAlgorithm
     {
-        private readonly int knnSearchNeighbors = 1000;
+        private readonly int knnSearchNeighbors = 100;
         
         private readonly List<Obstacle> Obstacles;
 
@@ -26,7 +26,7 @@ namespace Wavefront
 
             var positionToNeighbors = GetNeighborsFromObstacleVertices(Obstacles);
             Vertices = positionToNeighbors.Keys.Map(position => new Vertex(position, positionToNeighbors[position]));
-            VertexNeighbors = WavefrontPreprocessor.CalculateKnn(Vertices, knnSearchNeighbors);
+            VertexNeighbors = WavefrontPreprocessor.CalculateKnn(Obstacles, Vertices, knnSearchNeighbors);
         }
 
         public Dictionary<Position, List<Position>> GetNeighborsFromObstacleVertices(
@@ -85,7 +85,7 @@ namespace Wavefront
         {
             var targetVertex = new Vertex(target);
             Vertices.Add(targetVertex);
-            var neighborsOfTarget = WavefrontPreprocessor.GetNeighborsForVertex(Vertices, targetVertex, knnSearchNeighbors);
+            var neighborsOfTarget = WavefrontPreprocessor.GetNeighborsForVertex(Obstacles, Vertices, targetVertex, knnSearchNeighbors);
             
             // TODO Find a better way to add the target to the existing neighbors lists?
             neighborsOfTarget.Each(neighbor => VertexNeighbors[neighbor].Add(targetVertex));
@@ -95,7 +95,7 @@ namespace Wavefront
 
             var sourceVertex = new Vertex(source);
             VertexNeighbors[sourceVertex] =
-                WavefrontPreprocessor.GetNeighborsForVertex(Vertices, sourceVertex, knnSearchNeighbors);
+                WavefrontPreprocessor.GetNeighborsForVertex(Obstacles, Vertices, sourceVertex, knnSearchNeighbors);
             var initialWavefront = Wavefront.New(0, 360, sourceVertex, VertexNeighbors[sourceVertex], 0, false);
             if (initialWavefront == null)
             {
@@ -154,14 +154,14 @@ namespace Wavefront
                 return;
             }
 
-            var isCurrentVertexVisible = IsPositionVisible(wavefront.RootVertex.Position, currentVertex.Position);
-            if (!isCurrentVertexVisible)
-            {
-                Log.D($"Vertex at {currentVertex.Position} is not visible");
-                RemoveAndUpdateWavefront(wavefrontNode);
-                AddWavefront(wavefront);
-                return;
-            }
+            // var isCurrentVertexVisible = IsPositionVisible(wavefront.RootVertex.Position, currentVertex.Position);
+            // if (!isCurrentVertexVisible)
+            // {
+            //     Log.D($"Vertex at {currentVertex.Position} is not visible");
+            //     RemoveAndUpdateWavefront(wavefrontNode);
+            //     AddWavefront(wavefront);
+            //     return;
+            // }
 
             if (Equals(currentVertex.Position, targetPosition))
             {
@@ -435,34 +435,6 @@ namespace Wavefront
 
             Log.D(
                 $"New wavefront at {rootVertex.Position} from {fromAngle}° to {toAngle}° wouldn't have any vertices -> ignore it");
-            return false;
-        }
-
-        private bool IsPositionVisible(Position startPosition, Position endPosition)
-        {
-            return !TrajectoryCollidesWithObstacle(startPosition, endPosition);
-        }
-
-        public bool TrajectoryCollidesWithObstacle(Position startPosition, Position endPosition)
-        {
-            var envelope = new Envelope(startPosition.ToCoordinate(), endPosition.ToCoordinate());
-
-            var coordinateStart = startPosition.ToCoordinate();
-            var coordinateEnd = endPosition.ToCoordinate();
-
-            foreach (var obstacle in Obstacles)
-            {
-                if (!obstacle.CanIntersect(envelope))
-                {
-                    continue;
-                }
-
-                if (obstacle.IntersectsWithLine(coordinateStart, coordinateEnd))
-                {
-                    return true;
-                }
-            }
-
             return false;
         }
 
