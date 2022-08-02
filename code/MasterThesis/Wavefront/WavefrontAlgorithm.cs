@@ -18,9 +18,9 @@ namespace Wavefront
         public readonly Dictionary<Vertex, List<Vertex>> VertexNeighbors;
         public readonly List<Vertex> Vertices;
 
-        public WavefrontAlgorithm(List<NetTopologySuite.Geometries.Geometry> obstacles)
+        public WavefrontAlgorithm(List<Obstacle> obstacles)
         {
-            Obstacles = obstacles.Map(geometry => new Obstacle(geometry));
+            Obstacles = obstacles;
             PositionToPredecessor = new Dictionary<Position, Position?>();
             Wavefronts = new FibonacciHeap<Wavefront, double>(0);
 

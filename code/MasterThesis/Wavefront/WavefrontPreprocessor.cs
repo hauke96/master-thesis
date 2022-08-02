@@ -54,12 +54,7 @@ public class WavefrontPreprocessor
         return neighborList;
     }
 
-    private static bool IsPositionVisible(List<Obstacle> obstacles, Position startPosition, Position endPosition)
-    {
-        return !TrajectoryCollidesWithObstacle(obstacles, startPosition, endPosition);
-    }
-
-    private static bool TrajectoryCollidesWithObstacle(List<Obstacle> obstacles, Position startPosition,
+    public static bool TrajectoryCollidesWithObstacle(List<Obstacle> obstacles, Position startPosition,
         Position endPosition)
     {
         var envelope = new Envelope(startPosition.ToCoordinate(), endPosition.ToCoordinate());
