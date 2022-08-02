@@ -19,6 +19,7 @@ public class Wavefront
     public LinkedList<Vertex> RelevantVertices;
     private readonly LinkedList<Position> _visitedVertices;
 
+    // ReSharper disable InvalidXmlDocComment
     /// <summary>
     /// Creates a new wavefront if it's valid. A wavefront is *not* valid when there are no events ahead.
     ///

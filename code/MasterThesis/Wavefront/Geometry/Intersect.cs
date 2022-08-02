@@ -7,7 +7,7 @@ namespace Wavefront.Geometry
     ///
     /// Credit goes to Cormen 3rd edition chapter 33.1. 
     /// </summary>
-    public class Intersect
+    public static class Intersect
     {
         /// <summary>
         /// Precondition: The segments p, q and r are collinear (-> Orientation(p, q, r) should return 0).
@@ -44,6 +44,7 @@ namespace Wavefront.Geometry
             {
                 return false;
             }
+
             var orientation3 = Orientation(start1, end1, start2);
             var orientation4 = Orientation(start1, end1, end2);
             if (orientation3 == orientation4)

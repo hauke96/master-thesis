@@ -6,7 +6,7 @@ namespace Wavefront.Geometry;
 public class Vertex
 {
     private readonly List<Position> _neighbors;
-    private Position _position;
+    private readonly Position _position;
 
     public Position Position
     {
@@ -15,16 +15,11 @@ public class Vertex
         private init
         {
             _position = value;
-            _coordinate = new Coordinate(_position.X, _position.Y);
+            Coordinate = new Coordinate(_position.X, _position.Y);
         }
     }
 
-    private Coordinate _coordinate;
-
-    public Coordinate Coordinate
-    {
-        get => _coordinate;
-    }
+    public Coordinate Coordinate { get; private init; }
 
     public double X => Position.X;
     public double Y => Position.Y;
@@ -75,7 +70,7 @@ public class Vertex
         return Equals(obj as Vertex);
     }
 
-    public bool Equals(Vertex? other)
+    private bool Equals(Vertex? other)
     {
         return other != null && Position.Equals(other.Position);
     }
