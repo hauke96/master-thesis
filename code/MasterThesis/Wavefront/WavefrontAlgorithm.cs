@@ -157,15 +157,6 @@ namespace Wavefront
                 return;
             }
 
-            // var isCurrentVertexVisible = IsPositionVisible(wavefront.RootVertex.Position, currentVertex.Position);
-            // if (!isCurrentVertexVisible)
-            // {
-            //     Log.D($"Vertex at {currentVertex.Position} is not visible");
-            //     RemoveAndUpdateWavefront(wavefrontNode);
-            //     AddWavefront(wavefront);
-            //     return;
-            // }
-
             if (Equals(currentVertex.Position, targetPosition))
             {
                 Log.I($"Target reached ({currentVertex.Position})", "", 1);

@@ -114,23 +114,11 @@ public class WavefrontPreprocessor
                                           obstacle.IntersectsWithLine(vertex.Coordinate, otherVertex.Coordinate);
             }
 
-
-            // if (TrajectoryCollidesWithObstacle(possiblyCollidingObstacles, vertex.Coordinate, otherVertex.Coordinate))
-            // {
-            // continue;
-            // }
-
             if (!intersectsWithObstacle)
             {
-                // Console.WriteLine($"  Add {otherVertex} with distance {distance}");
                 neighborList.Add(otherVertex);
             }
         }
-        //
-        // neighborList = neighborList
-        //     .OrderBy(v => Distance.Euclidean(vertex.Position.PositionArray, v.Position.PositionArray))
-        //     .Take(neighborCount)
-        //     .ToList();
 
         return neighborList;
     }
@@ -140,26 +128,6 @@ public class WavefrontPreprocessor
         foreach (var area in shadowAreas)
         {
             if (Angle.IsBetween(area[0], angle, area[1]) && distance > area[2])
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public static bool TrajectoryCollidesWithObstacle(IList<Obstacle> obstacles, Coordinate start, Coordinate end)
-    {
-        var envelope = new Envelope(start, end);
-
-        foreach (var obstacle in obstacles)
-        {
-            if (!obstacle.CanIntersect(envelope))
-            {
-                continue;
-            }
-
-            if (obstacle.IntersectsWithLine(start, end))
             {
                 return true;
             }
