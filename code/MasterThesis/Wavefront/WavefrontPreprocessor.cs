@@ -1,3 +1,4 @@
+using Mars.Common;
 using Mars.Common.Collections;
 using Mars.Numerics;
 using NetTopologySuite.Geometries;
@@ -12,11 +13,17 @@ public class WavefrontPreprocessor
     public static Dictionary<Vertex, List<Vertex>> CalculateKnn(QuadTree<Obstacle> obstacles, List<Vertex> vertices,
         int neighborCount)
     {
+        Log.Init();
         var result = new Dictionary<Vertex, List<Vertex>>();
 
+        var i = 1;
         foreach (var vertex in vertices)
         {
+            Log.I($"Vertex {i}/{vertices.Count} : {vertex}");
+            i++;
             result[vertex] = GetNeighborsForVertex(obstacles, new List<Vertex>(vertices), vertex, neighborCount);
+            // Log.I($"============================");
+            // Thread.Sleep(2000);
         }
 
         return result;
@@ -30,7 +37,7 @@ public class WavefrontPreprocessor
         // [0] = Angle from
         // [1] = Angle to
         // [2] = Distance
-        var shadowAreas = new List<double[]>();
+        var shadowAreas = new LinkedList<double[]>();
         var obstaclesCastingShadow = new List<Obstacle>();
 
         vertices.Remove(vertex);
@@ -40,6 +47,7 @@ public class WavefrontPreprocessor
         for (var i = 0; i < sortedVertices.Count && neighborList.Count < neighborCount; i++)
         {
             var otherVertex = sortedVertices[i];
+            // Log.I($"otherVertex {otherVertex}");
             if (Equals(otherVertex, vertex))
             {
                 continue;
@@ -50,21 +58,105 @@ public class WavefrontPreprocessor
             var isInShadowArea = IsInShadowArea(shadowAreas, angle, distance);
             if (isInShadowArea)
             {
+                // Log.I($"in shadow area");
                 continue;
             }
 
             var envelope = new Envelope(vertex.Coordinate, otherVertex.Coordinate);
-            var possiblyCollidingObstacles = obstacles.Query(envelope);
+            var possiblyCollidingObstacles = new LinkedList<Obstacle>();
+            obstacles.Query(envelope, (Action<Obstacle>)(obj => possiblyCollidingObstacles.AddLast(obj)));
+            // .OrderBy(o =>
+            // {
+            //     var minDistance = o.Coordinates.Map(c =>
+            //         Distance.Euclidean(vertex.Position.PositionArray, c.ToPosition().PositionArray)).Min();
+            //     return minDistance;
+            // })
+            // .ToList();
+            // Log.I($"possiblyCollidingObstacles {possiblyCollidingObstacles.Count} many");
 
             var intersectsWithObstacle = false;
 
             foreach (var obstacle in possiblyCollidingObstacles)
             {
+                // Log.I($"obstacle {obstacle.Envelope.Centre}");
                 if (!obstaclesCastingShadow.Contains(obstacle))
                 {
-                    var (angleFrom, angleTo, maxDistance) = obstacle.GetAngleAreaOfObstacle(vertex);
+                    var (newAreaAngleFrom, newAreaAngleTo, newAreaDistance) = obstacle.GetAngleAreaOfObstacle(vertex);
 
-                    shadowAreas.Add(new[] { angleFrom, angleTo, maxDistance });
+                    if (newAreaAngleFrom == newAreaAngleTo)
+                    {
+                        continue;
+                    }
+
+                    LinkedListNode<double[]>? insertAfter = null;
+
+                    double mergedAreaFrom = newAreaAngleFrom;
+                    double mergedAreaTo = newAreaAngleTo;
+                    double mergedAreaDistance = newAreaDistance;
+                    var newAngleAreaNeeded = true;
+                    var mergeNeeded = false;
+
+                    var shadowAreaNode = shadowAreas.First;
+                    while (shadowAreaNode != null)
+                    {
+                        var nextNode = shadowAreaNode.Next;
+                        var shadowArea = shadowAreaNode.Value;
+
+                        var newFromInShadowArea = Angle.IsBetweenEqual(shadowArea[0], mergedAreaFrom, shadowArea[1]);
+                        var newToInShadowArea = Angle.IsBetweenEqual(shadowArea[0], mergedAreaTo, shadowArea[1]);
+                        var currentAreaIntersectsNew =
+                            Angle.IsBetweenEqual(mergedAreaFrom, shadowArea[0], mergedAreaTo) ||
+                            Angle.IsBetweenEqual(mergedAreaFrom, shadowArea[1], mergedAreaTo);
+
+                        if (newFromInShadowArea && newToInShadowArea)
+                        {
+                            // New shadow area completely within existing one -> nothing to do
+                            newAngleAreaNeeded = false;
+                            break;
+                        }
+
+                        if (currentAreaIntersectsNew)
+                        {
+                            mergedAreaFrom = Math.Min(mergedAreaFrom, shadowArea[0]);
+                            mergedAreaTo = Math.Max(mergedAreaTo, shadowArea[1]);
+                            mergedAreaDistance = Math.Max(newAreaDistance, shadowArea[2]);
+                            shadowAreas.Remove(shadowArea);
+                            mergeNeeded = true;
+                        }
+
+                        if (!mergeNeeded)
+                        {
+                            // Push further forward until last node before the new area
+                            insertAfter = shadowAreaNode;
+                        }
+
+                        shadowAreaNode = nextNode;
+                    }
+
+                    if (!newAngleAreaNeeded)
+                    {
+                        continue;
+                    }
+
+                    var newShadowArea = new[]
+                    {
+                        mergedAreaFrom,
+                        mergedAreaTo,
+                        mergedAreaDistance
+                    };
+
+                    if (insertAfter == null)
+                    {
+                        shadowAreas.AddFirst(newShadowArea);
+                    }
+                    else
+                    {
+                        shadowAreas.AddAfter(insertAfter, newShadowArea);
+                    }
+
+                    // Log.I($"shadowAreas {shadowAreas.Map(v => "(" + v[0] + "-" + v[1] + ")").Join(", ")}");
+                    // Log.I($"shadowAreas {shadowAreas.Count}");
+
                     obstaclesCastingShadow.Add(obstacle);
                 }
 
@@ -81,7 +173,7 @@ public class WavefrontPreprocessor
         return neighborList;
     }
 
-    private static bool IsInShadowArea(List<double[]> shadowAreas, double angle, double distance)
+    private static bool IsInShadowArea(ICollection<double[]> shadowAreas, double angle, double distance)
     {
         foreach (var area in shadowAreas)
         {
