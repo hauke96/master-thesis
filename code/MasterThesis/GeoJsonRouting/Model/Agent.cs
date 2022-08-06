@@ -88,10 +88,13 @@ namespace GeoJsonRouting.Model
             {
                 var obstacleGeometries =
                     ObstacleLayer.Features.Map(f => new Wavefront.Geometry.Obstacle(f.VectorStructured.Geometry));
-                var wavefrontAlgorithm = new WavefrontAlgorithm(obstacleGeometries);
                 var watch = Stopwatch.StartNew();
+                
+                var wavefrontAlgorithm = new WavefrontAlgorithm(obstacleGeometries);
+                Console.WriteLine($"Algorithm creation: {watch.ElapsedMilliseconds}ms");
+                
+                watch.Reset();
                 Waypoints = new Queue<Position>(wavefrontAlgorithm.Route(Position, Target.Position));
-                watch.Stop();
                 Console.WriteLine($"Routing duration: {watch.ElapsedMilliseconds}ms");
             }
             catch (Exception e)

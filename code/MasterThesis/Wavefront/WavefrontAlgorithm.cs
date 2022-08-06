@@ -11,7 +11,7 @@ namespace Wavefront
     {
         private readonly int knnSearchNeighbors = 100;
         
-        private readonly List<Obstacle> _obstacles;
+        private readonly QuadTree<Obstacle> _obstacles;
         private readonly Dictionary<Vertex, List<Vertex>> _vertexNeighbors;
 
         public readonly Dictionary<Position, Position?> PositionToPredecessor;
@@ -20,11 +20,13 @@ namespace Wavefront
 
         public WavefrontAlgorithm(List<Obstacle> obstacles)
         {
-            _obstacles = obstacles;
+            _obstacles = new QuadTree<Obstacle>();
+            obstacles.Each(obstacle => _obstacles.Insert(obstacle.Envelope, obstacle));
+            
             PositionToPredecessor = new Dictionary<Position, Position?>();
             Wavefronts = new FibonacciHeap<Wavefront, double>(0);
 
-            var positionToNeighbors = GetNeighborsFromObstacleVertices(_obstacles);
+            var positionToNeighbors = GetNeighborsFromObstacleVertices(obstacles);
             Vertices = positionToNeighbors.Keys.Map(position => new Vertex(position, positionToNeighbors[position]));
             _vertexNeighbors = WavefrontPreprocessor.CalculateKnn(_obstacles, Vertices, knnSearchNeighbors);
         }
@@ -83,19 +85,20 @@ namespace Wavefront
 
         public List<Position> Route(Position source, Position target)
         {
+            var sourceVertex = new Vertex(source);
+            Vertices.Add(sourceVertex);
+            
             var targetVertex = new Vertex(target);
             Vertices.Add(targetVertex);
-            var neighborsOfTarget = WavefrontPreprocessor.GetNeighborsForVertex(_obstacles, Vertices, targetVertex, knnSearchNeighbors);
             
+            PositionToPredecessor[source] = null;
+            _vertexNeighbors[sourceVertex] =
+                WavefrontPreprocessor.GetNeighborsForVertex(_obstacles, Vertices, sourceVertex, knnSearchNeighbors);
+            
+            var neighborsOfTarget = WavefrontPreprocessor.GetNeighborsForVertex(_obstacles, Vertices, targetVertex, knnSearchNeighbors);
             // TODO Find a better way to add the target to the existing neighbors lists?
             neighborsOfTarget.Each(neighbor => _vertexNeighbors[neighbor].Add(targetVertex));
 
-
-            PositionToPredecessor[source] = null;
-
-            var sourceVertex = new Vertex(source);
-            _vertexNeighbors[sourceVertex] =
-                WavefrontPreprocessor.GetNeighborsForVertex(_obstacles, Vertices, sourceVertex, knnSearchNeighbors);
             var initialWavefront = Wavefront.New(0, 360, sourceVertex, _vertexNeighbors[sourceVertex], 0, false);
             if (initialWavefront == null)
             {

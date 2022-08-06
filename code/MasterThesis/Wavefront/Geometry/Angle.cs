@@ -9,7 +9,16 @@ public class Angle
 
     public static double GetBearing(Position a, Position b)
     {
-        var degrees = MathHelper.ToDegrees(Math.Atan2(b.X - a.X, b.Y - a.Y));
+        var aX = a.X;
+        var aY = a.Y;
+        var bX = b.X;
+        var bY = b.Y;
+        return GetBearing(aX, aY, bX, bY);
+    }
+
+    public static double GetBearing(double aX, double aY, double bX, double bY)
+    {
+        var degrees = MathHelper.ToDegrees(Math.Atan2(bX - aX, bY - aY));
         return StrictNormalize(degrees);
     }
 
