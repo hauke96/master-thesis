@@ -93,7 +93,7 @@ namespace GeoJsonRouting.Model
                 var wavefrontAlgorithm = new WavefrontAlgorithm(obstacleGeometries);
                 Console.WriteLine($"Algorithm creation: {watch.ElapsedMilliseconds}ms");
                 
-                watch.Reset();
+                watch.Restart();
                 Waypoints = new Queue<Position>(wavefrontAlgorithm.Route(Position, Target.Position));
                 Console.WriteLine($"Routing duration: {watch.ElapsedMilliseconds}ms");
             }
