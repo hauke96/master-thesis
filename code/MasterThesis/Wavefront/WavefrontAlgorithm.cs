@@ -312,7 +312,7 @@ namespace Wavefront
             }
 
             var neighborWillBeVisitedByWavefront = wavefrontRootIsSecondLastLineVertex &&
-                                                   Angle.IsBetween(angleCurrentWavefrontFrom, angleWavefrontFrom,
+                                                   Angle.IsBetweenWithNormalize(angleCurrentWavefrontFrom, angleWavefrontFrom,
                                                        angleCurrentWavefrontTo);
             var newWavefrontNeeded = !double.IsNaN(angleWavefrontFrom) && !double.IsNaN(angleWavefrontTo) &&
                                      !neighborWillBeVisitedByWavefront;
@@ -396,8 +396,8 @@ namespace Wavefront
              * makes range checks easier and has no further reason.
              */
             Log.D(
-                $"Angles for new wavefront (from={fromAngle}°, to={toAngle}°) exceed 0° border? {Angle.IsBetween(fromAngle, 0, toAngle)}");
-            if (Angle.IsBetween(fromAngle, 0, toAngle))
+                $"Angles for new wavefront (from={fromAngle}°, to={toAngle}°) exceed 0° border? {Angle.IsBetweenWithNormalize(fromAngle, 0, toAngle)}");
+            if (Angle.IsBetweenWithNormalize(fromAngle, 0, toAngle))
             {
                 newWavefrontCreated |= AddWavefrontIfValid(vertices, distanceToRootFromSource, root, fromAngle, 360,
                     verticesFromWavefrontWithSameRoot);

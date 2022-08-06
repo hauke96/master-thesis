@@ -1,22 +1,41 @@
 using Mars.Common.Collections;
 using Mars.Numerics;
 using NetTopologySuite.Geometries;
-using ServiceStack;
 using Wavefront.Geometry;
+using Wavefront.Index;
 
 namespace Wavefront;
 
 // TODO Tests
 public class WavefrontPreprocessor
 {
+    private class AngleArea
+    {
+        public double From { get; }
+        public double To { get; }
+        public double Distance { get; }
+
+        public AngleArea(double from, double to, double distance)
+        {
+            From = from;
+            To = to;
+            Distance = distance;
+        }
+    }
+
     public static Dictionary<Vertex, List<Vertex>> CalculateKnn(QuadTree<Obstacle> obstacles, List<Vertex> vertices,
         int neighborCount)
     {
         var result = new Dictionary<Vertex, List<Vertex>>();
 
+        var i = 1;
         foreach (var vertex in vertices)
         {
+            Log.I($"Vertex {i}/{vertices.Count} : {vertex}");
+            i++;
             result[vertex] = GetNeighborsForVertex(obstacles, new List<Vertex>(vertices), vertex, neighborCount);
+            // Log.I($"============================");
+            // Thread.Sleep(2000);
         }
 
         return result;
@@ -27,10 +46,12 @@ public class WavefrontPreprocessor
     {
         var neighborList = new List<Vertex>();
 
+        var shadowAreas = new CITree<AngleArea>();
+
         // [0] = Angle from
         // [1] = Angle to
         // [2] = Distance
-        var shadowAreas = new List<double[]>();
+        // var shadowAreas = new List<double[]>();
         var obstaclesCastingShadow = new List<Obstacle>();
 
         vertices.Remove(vertex);
@@ -46,25 +67,29 @@ public class WavefrontPreprocessor
             }
 
             var angle = Angle.GetBearing(vertex.Position, otherVertex.Position);
-            var distance = Distance.Euclidean(vertex.Position.PositionArray, otherVertex.Position.PositionArray);
-            var isInShadowArea = IsInShadowArea(shadowAreas, angle, distance);
+            var distanceToOtherVertex = Distance.Euclidean(vertex.Position.PositionArray, otherVertex.Position.PositionArray);
+            var isInShadowArea = IsInShadowArea(shadowAreas, angle, distanceToOtherVertex);
             if (isInShadowArea)
             {
                 continue;
             }
 
             var envelope = new Envelope(vertex.Coordinate, otherVertex.Coordinate);
-            var possiblyCollidingObstacles = obstacles.Query(envelope);
+            var possiblyCollidingObstacles = new LinkedList<Obstacle>();
+            obstacles.Query(envelope, (Action<Obstacle>)(obj => possiblyCollidingObstacles.AddLast(obj)));
 
             var intersectsWithObstacle = false;
 
-            foreach (var obstacle in possiblyCollidingObstacles)
+            for (var node = possiblyCollidingObstacles.First; node != null && !intersectsWithObstacle; node = node.Next)
             {
+                var obstacle = node.Value;
                 if (!obstaclesCastingShadow.Contains(obstacle))
                 {
-                    var (angleFrom, angleTo, maxDistance) = obstacle.GetAngleAreaOfObstacle(vertex);
+                    var (angleFrom, angleTo, distance) = obstacle.GetAngleAreaOfObstacle(vertex);
 
-                    shadowAreas.Add(new[] { angleFrom, angleTo, maxDistance });
+                    // TODO merge angle areas
+                    shadowAreas.Insert(angleFrom, angleTo, new AngleArea(angleFrom, angleTo, distance));
+                    
                     obstaclesCastingShadow.Add(obstacle);
                 }
 
@@ -81,11 +106,12 @@ public class WavefrontPreprocessor
         return neighborList;
     }
 
-    private static bool IsInShadowArea(List<double[]> shadowAreas, double angle, double distance)
+    private static bool IsInShadowArea(CITree<AngleArea> shadowAreas, double angle, double distance)
     {
-        foreach (var area in shadowAreas)
+        var angleAreas = shadowAreas.Query(angle);
+        foreach (var area in angleAreas)
         {
-            if (Angle.IsBetween(area[0], angle, area[1]) && distance > area[2])
+            if (distance > area.Distance)
             {
                 return true;
             }

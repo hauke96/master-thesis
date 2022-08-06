@@ -8,15 +8,15 @@ public class AngleTest
     [Test]
     public void IsBetween_noZeroDegreeOverlap()
     {
-        Assert.True(Angle.IsBetween(0, 40, 90));
-        Assert.True(Angle.IsBetween(10, 180, 200));
-        Assert.True(Angle.IsBetween(0, 90, 360));
+        Assert.True(Angle.IsBetweenWithNormalize(0, 40, 90));
+        Assert.True(Angle.IsBetweenWithNormalize(10, 180, 200));
+        Assert.True(Angle.IsBetweenWithNormalize(0, 90, 360));
 
-        Assert.False(Angle.IsBetween(10, 180, 180));
-        Assert.False(Angle.IsBetween(180, 180, 200));
-        Assert.False(Angle.IsBetween(0, 90, 361));
-        Assert.False(Angle.IsBetween(-1, 90, 360));
-        Assert.False(Angle.IsBetween(0, 90, 45));
+        Assert.False(Angle.IsBetweenWithNormalize(10, 180, 180));
+        Assert.False(Angle.IsBetweenWithNormalize(180, 180, 200));
+        Assert.False(Angle.IsBetweenWithNormalize(0, 90, 361));
+        Assert.False(Angle.IsBetweenWithNormalize(-1, 90, 360));
+        Assert.False(Angle.IsBetweenWithNormalize(0, 90, 45));
     }
 
     [Test]
@@ -41,28 +41,28 @@ public class AngleTest
     public void IsBetween_noZeroDegreeOverlap_outside360DegreeArea()
     {
         // 0, 40, 90
-        Assert.True(Angle.IsBetween(0, 40, 450));
+        Assert.True(Angle.IsBetweenWithNormalize(0, 40, 450));
         // 180, 200, 250
-        Assert.True(Angle.IsBetween(-180, 200, 250));
+        Assert.True(Angle.IsBetweenWithNormalize(-180, 200, 250));
         // 10, 60, 160
-        Assert.True(Angle.IsBetween(-350, -300, -200));
+        Assert.True(Angle.IsBetweenWithNormalize(-350, -300, -200));
 
         // 60, 10, 160
-        Assert.False(Angle.IsBetween(60 - 360, -350, -200));
+        Assert.False(Angle.IsBetweenWithNormalize(60 - 360, -350, -200));
     }
 
     [Test]
     public void IsBetween_withZeroDegreeOverlap()
     {
-        Assert.True(Angle.IsBetween(300, 40, 90));
-        Assert.True(Angle.IsBetween(-60, 40, 90));
-        Assert.True(Angle.IsBetween(300, 350, 20));
+        Assert.True(Angle.IsBetweenWithNormalize(300, 40, 90));
+        Assert.True(Angle.IsBetweenWithNormalize(-60, 40, 90));
+        Assert.True(Angle.IsBetweenWithNormalize(300, 350, 20));
 
-        Assert.False(Angle.IsBetween(300, 20, 20));
-        Assert.False(Angle.IsBetween(300, 300, 20));
-        Assert.False(Angle.IsBetween(300, 180, 90));
+        Assert.False(Angle.IsBetweenWithNormalize(300, 20, 20));
+        Assert.False(Angle.IsBetweenWithNormalize(300, 300, 20));
+        Assert.False(Angle.IsBetweenWithNormalize(300, 180, 90));
         // 10, 180, 90
-        Assert.False(Angle.IsBetween(-300, 180, 90));
+        Assert.False(Angle.IsBetweenWithNormalize(-300, 180, 90));
     }
 
     [Test]

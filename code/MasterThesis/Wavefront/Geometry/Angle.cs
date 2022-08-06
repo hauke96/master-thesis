@@ -25,7 +25,7 @@ public class Angle
     /// <summary>
     /// Checks if the angle "angle" is between a and b.
     /// </summary>
-    public static bool IsBetween(double a, double angle, double b)
+    public static bool IsBetweenWithNormalize(double a, double angle, double b)
     {
         a = Normalize(a);
         b = Normalize(b);
@@ -38,6 +38,22 @@ public class Angle
         }
 
         return b > angle || angle > a;
+    }
+
+    /// <summary>
+    /// Checks if the angle "angle" is between a and b.
+    /// This method assumes that all angles are correctly normalized.
+    /// </summary>
+    public static bool IsBetween(double a, double angle, double b)
+    {
+        if (a > b)
+        {
+            // a to b exceeds to 0° border
+            angle = angle < b ? angle + 360.0 : angle;
+            b += 360.0;
+        }
+
+        return a < angle && angle < b;
     }
 
     /// <summary>
