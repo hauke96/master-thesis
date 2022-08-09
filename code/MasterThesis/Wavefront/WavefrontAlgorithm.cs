@@ -28,7 +28,7 @@ namespace Wavefront
 
             var positionToNeighbors = GetNeighborsFromObstacleVertices(obstacles);
             Vertices = positionToNeighbors.Keys.Map(position => new Vertex(position, positionToNeighbors[position]));
-            _vertexNeighbors = WavefrontPreprocessor.CalculateKnn(_obstacles, Vertices, knnSearchNeighbors);
+            _vertexNeighbors = WavefrontPreprocessor.CalculateVisibleKnn(_obstacles, Vertices, knnSearchNeighbors);
         }
 
         public Dictionary<Position, List<Position>> GetNeighborsFromObstacleVertices(
@@ -93,9 +93,9 @@ namespace Wavefront
             
             PositionToPredecessor[source] = null;
             _vertexNeighbors[sourceVertex] =
-                WavefrontPreprocessor.GetNeighborsForVertex(_obstacles, Vertices, sourceVertex, knnSearchNeighbors);
+                WavefrontPreprocessor.GetVisibleNeighborsForVertex(_obstacles, Vertices, sourceVertex, knnSearchNeighbors);
             
-            var neighborsOfTarget = WavefrontPreprocessor.GetNeighborsForVertex(_obstacles, Vertices, targetVertex, knnSearchNeighbors);
+            var neighborsOfTarget = WavefrontPreprocessor.GetVisibleNeighborsForVertex(_obstacles, Vertices, targetVertex, knnSearchNeighbors);
             // TODO Find a better way to add the target to the existing neighbors lists?
             neighborsOfTarget.Each(neighbor => _vertexNeighbors[neighbor].Add(targetVertex));
 

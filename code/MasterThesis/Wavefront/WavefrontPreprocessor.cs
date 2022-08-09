@@ -1,9 +1,7 @@
 using Mars.Common.Collections;
 using Mars.Numerics;
 using NetTopologySuite.Geometries;
-using ServiceStack;
 using Wavefront.Geometry;
-using Wavefront.Index;
 
 namespace Wavefront;
 
@@ -16,10 +14,6 @@ public class WavefrontPreprocessor
         public double To { get; }
         public double Distance { get; }
 
-        // From and to values but ensures that "from <= to"
-        public double OrderedFrom => From <= To ? From : From - 360;
-        public double OrderedTo => To;
-
         public AngleArea(double from, double to, double distance)
         {
             From = from;
@@ -28,7 +22,7 @@ public class WavefrontPreprocessor
         }
     }
 
-    public static Dictionary<Vertex, List<Vertex>> CalculateKnn(QuadTree<Obstacle> obstacles, List<Vertex> vertices,
+    public static Dictionary<Vertex, List<Vertex>> CalculateVisibleKnn(QuadTree<Obstacle> obstacles, List<Vertex> vertices,
         int neighborCount)
     {
         var result = new Dictionary<Vertex, List<Vertex>>();
@@ -38,7 +32,7 @@ public class WavefrontPreprocessor
         {
             Log.I($"Vertex {i}/{vertices.Count} : {vertex}");
             i++;
-            result[vertex] = GetNeighborsForVertex(obstacles, new List<Vertex>(vertices), vertex, neighborCount);
+            result[vertex] = GetVisibleNeighborsForVertex(obstacles, new List<Vertex>(vertices), vertex, neighborCount);
             // Log.I($"============================");
             // Thread.Sleep(2000);
         }
@@ -46,18 +40,18 @@ public class WavefrontPreprocessor
         return result;
     }
 
-    public static List<Vertex> GetNeighborsForVertex(QuadTree<Obstacle> obstacles, List<Vertex> vertices, Vertex vertex,
+    public static List<Vertex> GetVisibleNeighborsForVertex(QuadTree<Obstacle> obstacles, List<Vertex> vertices, Vertex vertex,
         int neighborCount)
     {
         var neighborList = new List<Vertex>();
 
-        var shadowAreas = new CITree<AngleArea>();
+        var shadowAreas = new LinkedList<AngleArea>();
 
         // [0] = Angle from
         // [1] = Angle to
         // [2] = Distance
         // var shadowAreas = new List<double[]>();
-        var obstaclesCastingShadow = new List<Obstacle>();
+        var obstaclesCastingShadow = new HashSet<Obstacle>();
 
         vertices.Remove(vertex);
         var sortedVertices = vertices
@@ -81,23 +75,17 @@ public class WavefrontPreprocessor
             }
 
             var envelope = new Envelope(vertex.Coordinate, otherVertex.Coordinate);
-            var possiblyCollidingObstacles = new LinkedList<Obstacle>();
-            obstacles.Query(envelope, (Action<Obstacle>)(obj => possiblyCollidingObstacles.AddLast(obj)));
+            var possiblyCollidingObstacles = new List<Obstacle>(100);
+            obstacles.Query(envelope, (Action<Obstacle>)(obj => possiblyCollidingObstacles.Add(obj)));
 
             var intersectsWithObstacle = false;
 
-            for (var node = possiblyCollidingObstacles.First; node != null && !intersectsWithObstacle; node = node.Next)
+            foreach(Obstacle obstacle in possiblyCollidingObstacles)
             {
-                var obstacle = node.Value;
                 if (!obstaclesCastingShadow.Contains(obstacle))
                 {
                     var (angleFrom, angleTo, distance) = obstacle.GetAngleAreaOfObstacle(vertex);
-
-                    var existingAreas = shadowAreas.Query(angleFrom, angleTo);
-                    (angleFrom, angleTo, distance) = Merge(existingAreas, angleFrom, angleTo, distance);
-
-                    existingAreas.Each(area => shadowAreas.Remove(area.From, area.To, area));
-                    shadowAreas.Insert(angleFrom, angleTo, new AngleArea(angleFrom, angleTo, distance));
+                    shadowAreas.AddLast(new AngleArea(angleFrom, angleTo, distance));
 
                     obstaclesCastingShadow.Add(obstacle);
                 }
@@ -111,44 +99,20 @@ public class WavefrontPreprocessor
                 neighborList.Add(otherVertex);
             }
         }
-        
-        // Log.I($"Shadows: {shadowAreas.Count}");
 
         return neighborList;
     }
 
-    private static bool IsInShadowArea(CITree<AngleArea> shadowAreas, double angle, double distance)
+    private static bool IsInShadowArea(ICollection<AngleArea> shadowAreas, double angle, double distance)
     {
-        var angleAreas = shadowAreas.Query(angle);
-        foreach (var area in angleAreas)
+        foreach (var area in shadowAreas)
         {
-            if (distance > area.Value.Distance)
+            if (distance > area.Distance && Angle.IsBetweenEqual(area.From, angle, area.To))
             {
                 return true;
             }
         }
 
         return false;
-    }
-
-    public static (double, double, double) Merge(ICollection<CITreeNode<AngleArea>> angleAreas, double from, double to, double distance)
-    {
-        if (angleAreas.IsEmpty())
-        {
-            return (from, to, distance);
-        }
-        
-        from = Angle.StrictNormalize(from);
-        to = Angle.StrictNormalize(to);
-        
-        var areaOverlappingFrom = angleAreas.FirstOrDefault(area => Angle.IsBetweenEqual(area.From, from, area.To));
-        var areaOverlappingTo = angleAreas.FirstOrDefault(area => Angle.IsBetweenEqual(area.From, to, area.To));
-        var areaDistance = angleAreas.Max(area => area.Value.Distance);
-
-        var resultFrom = Angle.Normalize(Math.Min(areaOverlappingFrom?.Value.OrderedFrom ?? from, from));
-        var resultTo = Angle.Normalize(Math.Max(areaOverlappingTo?.Value.OrderedTo ?? to, to));
-        var resultDistance = Math.Max(distance, areaDistance);
-
-        return (resultFrom, resultTo, resultDistance);
     }
 }

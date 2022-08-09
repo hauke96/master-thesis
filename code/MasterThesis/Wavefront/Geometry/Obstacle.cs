@@ -8,10 +8,12 @@ namespace Wavefront.Geometry
         public readonly List<Coordinate> Coordinates;
         public readonly Envelope Envelope;
         public readonly bool IsClosed;
+        public readonly int Hash;
 
         public Obstacle(NetTopologySuite.Geometries.Geometry geometry)
         {
             Coordinates = geometry.Coordinates.ToList();
+            Hash = (int)geometry.Coordinates.Sum(coordinate => coordinate.X * 7919 + coordinate.Y * 4813);
             Envelope = geometry.EnvelopeInternal;
             IsClosed = Equals(Coordinates.First(), Coordinates.Last());
         }
@@ -96,6 +98,11 @@ namespace Wavefront.Geometry
             }
 
             return (angleFrom, angleTo, maxDistance);
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash;
         }
     }
 }
