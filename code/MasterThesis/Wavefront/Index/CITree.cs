@@ -7,8 +7,8 @@ namespace Wavefront.Index;
 
 public class CITreeNode<T>
 {
-    public double From { get; }
-    public double To { get; }
+    public double From { get; set; }
+    public double To { get; set; }
     public T Value { get; }
 
     public CITreeNode(double from, double to, T value)
@@ -51,6 +51,13 @@ public class CITree<T> : Bintree<CITreeNode<T>>
         return Query(at, at);
     }
 
+    public LinkedList<CITreeNode<T>> QueryAll()
+    {
+        var result = new LinkedList<CITreeNode<T>>();
+        base.Query(null, result);
+        return result;
+    }
+
     public IList<CITreeNode<T>> Query(double from, double to)
     {
         from = Angle.Normalize(from);
@@ -75,12 +82,12 @@ public class CITree<T> : Bintree<CITreeNode<T>>
             .Where(node => Angle.GreaterEqual(node.To, from) && Angle.LowerEqual(node.From, to));
     }
 
-    public void Remove(double from, double to, CITreeNode<T> value)
+    public void Remove(CITreeNode<T> value)
     {
-        if (!base.Remove(new Interval(from, to), value))
+        if (!base.Remove(new Interval(value.From, value.To), value))
         {
             Log.I($"Available intervals:\n  {Query(null).Map(a => a.From + " - " + a.To).Join("\n  ")}");
-            throw new InvalidOperationException($"Interval item {from} - {to} not found");
+            throw new InvalidOperationException($"Interval item {value.From} - {value.To} not found");
         }
     }
 }

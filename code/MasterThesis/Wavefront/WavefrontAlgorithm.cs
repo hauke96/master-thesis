@@ -1,6 +1,7 @@
 using Mars.Common;
 using Mars.Common.Collections;
 using NetTopologySuite.Geometries;
+using NetTopologySuite.Index.Strtree;
 using ServiceStack;
 using Wavefront.Geometry;
 using Position = Mars.Interfaces.Environments.Position;
@@ -11,7 +12,7 @@ namespace Wavefront
     {
         private readonly int knnSearchNeighbors = 100;
         
-        private readonly QuadTree<Obstacle> _obstacles;
+        private readonly STRtree<Obstacle> _obstacles;
         private readonly Dictionary<Vertex, List<Vertex>> _vertexNeighbors;
 
         public readonly Dictionary<Position, Position?> PositionToPredecessor;
@@ -20,7 +21,7 @@ namespace Wavefront
 
         public WavefrontAlgorithm(List<Obstacle> obstacles)
         {
-            _obstacles = new QuadTree<Obstacle>();
+            _obstacles = new STRtree<Obstacle>();
             obstacles.Each(obstacle => _obstacles.Insert(obstacle.Envelope, obstacle));
             
             PositionToPredecessor = new Dictionary<Position, Position?>();

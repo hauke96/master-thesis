@@ -5,7 +5,7 @@ namespace Wavefront.Geometry;
 
 public class Angle
 {
-    private const double FLOAT_TOLERANCE = 0.0001;
+    public const double FLOAT_TOLERANCE = 0.0001;
 
     public static double GetBearing(Position a, Position b)
     {

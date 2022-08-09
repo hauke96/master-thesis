@@ -8,10 +8,12 @@ namespace Wavefront.Geometry
         public readonly List<Coordinate> Coordinates;
         public readonly Envelope Envelope;
         public readonly bool IsClosed;
+        public readonly double Hash;
 
         public Obstacle(NetTopologySuite.Geometries.Geometry geometry)
         {
             Coordinates = geometry.Coordinates.ToList();
+            Hash = geometry.Coordinates.Sum(coordinate => coordinate.X + coordinate.Y);
             Envelope = geometry.EnvelopeInternal;
             IsClosed = Equals(Coordinates.First(), Coordinates.Last());
         }
