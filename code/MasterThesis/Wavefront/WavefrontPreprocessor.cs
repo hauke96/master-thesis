@@ -1,6 +1,7 @@
 using Mars.Common.Collections;
 using Mars.Numerics;
 using NetTopologySuite.Geometries;
+using ServiceStack;
 using Wavefront.Geometry;
 using Wavefront.Index;
 
@@ -9,11 +10,15 @@ namespace Wavefront;
 // TODO Tests
 public class WavefrontPreprocessor
 {
-    private class AngleArea
+    public class AngleArea
     {
         public double From { get; }
         public double To { get; }
         public double Distance { get; }
+
+        // From and to values but ensures that "from <= to"
+        public double OrderedFrom => From <= To ? From : From - 360;
+        public double OrderedTo => To;
 
         public AngleArea(double from, double to, double distance)
         {
@@ -67,7 +72,8 @@ public class WavefrontPreprocessor
             }
 
             var angle = Angle.GetBearing(vertex.Position, otherVertex.Position);
-            var distanceToOtherVertex = Distance.Euclidean(vertex.Position.PositionArray, otherVertex.Position.PositionArray);
+            var distanceToOtherVertex =
+                Distance.Euclidean(vertex.Position.PositionArray, otherVertex.Position.PositionArray);
             var isInShadowArea = IsInShadowArea(shadowAreas, angle, distanceToOtherVertex);
             if (isInShadowArea)
             {
@@ -87,9 +93,12 @@ public class WavefrontPreprocessor
                 {
                     var (angleFrom, angleTo, distance) = obstacle.GetAngleAreaOfObstacle(vertex);
 
-                    // TODO merge angle areas
+                    var existingAreas = shadowAreas.Query(angleFrom, angleTo);
+                    (angleFrom, angleTo, distance) = Merge(existingAreas, angleFrom, angleTo, distance);
+
+                    existingAreas.Each(area => shadowAreas.Remove(area.From, area.To, area));
                     shadowAreas.Insert(angleFrom, angleTo, new AngleArea(angleFrom, angleTo, distance));
-                    
+
                     obstaclesCastingShadow.Add(obstacle);
                 }
 
@@ -102,6 +111,8 @@ public class WavefrontPreprocessor
                 neighborList.Add(otherVertex);
             }
         }
+        
+        // Log.I($"Shadows: {shadowAreas.Count}");
 
         return neighborList;
     }
@@ -111,12 +122,33 @@ public class WavefrontPreprocessor
         var angleAreas = shadowAreas.Query(angle);
         foreach (var area in angleAreas)
         {
-            if (distance > area.Distance)
+            if (distance > area.Value.Distance)
             {
                 return true;
             }
         }
 
         return false;
+    }
+
+    public static (double, double, double) Merge(ICollection<CITreeNode<AngleArea>> angleAreas, double from, double to, double distance)
+    {
+        if (angleAreas.IsEmpty())
+        {
+            return (from, to, distance);
+        }
+        
+        from = Angle.StrictNormalize(from);
+        to = Angle.StrictNormalize(to);
+        
+        var areaOverlappingFrom = angleAreas.FirstOrDefault(area => Angle.IsBetweenEqual(area.From, from, area.To));
+        var areaOverlappingTo = angleAreas.FirstOrDefault(area => Angle.IsBetweenEqual(area.From, to, area.To));
+        var areaDistance = angleAreas.Max(area => area.Value.Distance);
+
+        var resultFrom = Angle.Normalize(Math.Min(areaOverlappingFrom?.Value.OrderedFrom ?? from, from));
+        var resultTo = Angle.Normalize(Math.Max(areaOverlappingTo?.Value.OrderedTo ?? to, to));
+        var resultDistance = Math.Max(distance, areaDistance);
+
+        return (resultFrom, resultTo, resultDistance);
     }
 }

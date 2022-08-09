@@ -43,7 +43,7 @@ public class CITree<T> : Bintree<CITreeNode<T>>
         }
     }
 
-    public IList<T> Query(double at)
+    public IList<CITreeNode<T>> Query(double at)
     {
         // var result = new LinkedList<T>();
         // base.Query(new Interval(at, at), result);
@@ -51,7 +51,7 @@ public class CITree<T> : Bintree<CITreeNode<T>>
         return Query(at, at);
     }
 
-    public IList<T> Query(double from, double to)
+    public IList<CITreeNode<T>> Query(double from, double to)
     {
         from = Angle.Normalize(from);
         to = Angle.Normalize(to);
@@ -63,22 +63,24 @@ public class CITree<T> : Bintree<CITreeNode<T>>
             var result = new LinkedList<CITreeNode<T>>();
             result.AddRange(QueryExact(from, 360));
             result.AddRange(QueryExact(0, to));
-            return result.Map(node => node.Value).Distinct().ToList();
+            return result.Distinct().ToList();
         }
 
-        return QueryExact(from, to).Map(node => node.Value);
+        return QueryExact(from, to).ToList();
     }
 
     private IEnumerable<CITreeNode<T>> QueryExact(double from, double to)
     {
-        return base.Query(new Interval(from, to)).Where(node =>
-        {
-            return Angle.GreaterEqual(node.To, from) && Angle.LowerEqual(node.From, to);
-        });
+        return base.Query(new Interval(from, to))
+            .Where(node => Angle.GreaterEqual(node.To, from) && Angle.LowerEqual(node.From, to));
     }
 
-    // public void Remove(double from, double to, T value)
-    // {
-    //     base.Remove(new Interval(from, to), value);
-    // }
+    public void Remove(double from, double to, CITreeNode<T> value)
+    {
+        if (!base.Remove(new Interval(from, to), value))
+        {
+            Log.I($"Available intervals:\n  {Query(null).Map(a => a.From + " - " + a.To).Join("\n  ")}");
+            throw new InvalidOperationException($"Interval item {from} - {to} not found");
+        }
+    }
 }
