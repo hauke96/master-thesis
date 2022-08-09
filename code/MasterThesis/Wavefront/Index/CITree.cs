@@ -20,7 +20,8 @@ public class CITreeNode<T>
 }
 
 /// <summary>
-/// This is a one dimensional R-tree but the one dimension is a circle so every range values are modulo 360.
+/// This is a one dimensional Bin-Tree (like a Quad-Tree but with one dimension). Important: The one dimension is a
+/// circle so every range values are modulo 360.
 /// </summary>
 public class CITree<T> : Bintree<CITreeNode<T>>
 {
