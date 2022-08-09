@@ -16,7 +16,7 @@ public class CITreeTest
         _tree.Insert(330, 360, "330-360");
         _tree.Insert(0, 50, "0-50");
 
-        IList<string> result;
+        IList<CITreeNode<string>> result;
         result = _tree.Query(320);
         Assert.AreEqual(0, result.Count);
         

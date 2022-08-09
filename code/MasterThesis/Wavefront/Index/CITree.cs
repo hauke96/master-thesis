@@ -63,7 +63,7 @@ public class CITree<T> : Bintree<CITreeNode<T>>
             var result = new LinkedList<CITreeNode<T>>();
             result.AddRange(QueryExact(from, 360));
             result.AddRange(QueryExact(0, to));
-            return result.Distinct().ToList();
+            return result.DistinctBy(node => node.Value).ToList();
         }
 
         return QueryExact(from, to).ToList();
