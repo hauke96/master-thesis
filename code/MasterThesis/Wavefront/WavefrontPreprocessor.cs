@@ -2,6 +2,7 @@ using Mars.Common.Collections;
 using Mars.Numerics;
 using NetTopologySuite.Geometries;
 using Wavefront.Geometry;
+using Wavefront.Index;
 
 namespace Wavefront;
 
@@ -20,9 +21,15 @@ public class WavefrontPreprocessor
             To = to;
             Distance = distance;
         }
+
+        public override int GetHashCode()
+        {
+            return (int)(Distance * 7919);
+        }
     }
 
-    public static Dictionary<Vertex, List<Vertex>> CalculateVisibleKnn(QuadTree<Obstacle> obstacles, List<Vertex> vertices,
+    public static Dictionary<Vertex, List<Vertex>> CalculateVisibleKnn(QuadTree<Obstacle> obstacles,
+        List<Vertex> vertices,
         int neighborCount)
     {
         var result = new Dictionary<Vertex, List<Vertex>>();
@@ -40,12 +47,13 @@ public class WavefrontPreprocessor
         return result;
     }
 
-    public static List<Vertex> GetVisibleNeighborsForVertex(QuadTree<Obstacle> obstacles, List<Vertex> vertices, Vertex vertex,
+    public static List<Vertex> GetVisibleNeighborsForVertex(QuadTree<Obstacle> obstacles, List<Vertex> vertices,
+        Vertex vertex,
         int neighborCount)
     {
         var neighborList = new List<Vertex>();
 
-        var shadowAreas = new LinkedList<AngleArea>();
+        var shadowAreas = new BinIndex<AngleArea>(360);
 
         // [0] = Angle from
         // [1] = Angle to
@@ -75,24 +83,23 @@ public class WavefrontPreprocessor
             }
 
             var envelope = new Envelope(vertex.Coordinate, otherVertex.Coordinate);
-            var possiblyCollidingObstacles = new List<Obstacle>(100);
-            obstacles.Query(envelope, (Action<Obstacle>)(obj => possiblyCollidingObstacles.Add(obj)));
-
             var intersectsWithObstacle = false;
-
-            foreach(Obstacle obstacle in possiblyCollidingObstacles)
+            obstacles.Query(envelope, (Action<Obstacle>)(obstacle =>
             {
                 if (!obstaclesCastingShadow.Contains(obstacle))
                 {
                     var (angleFrom, angleTo, distance) = obstacle.GetAngleAreaOfObstacle(vertex);
-                    shadowAreas.AddLast(new AngleArea(angleFrom, angleTo, distance));
+                    shadowAreas.Add(angleFrom, angleTo, new AngleArea(angleFrom, angleTo, distance));
 
                     obstaclesCastingShadow.Add(obstacle);
                 }
 
-                intersectsWithObstacle |= obstacle.CanIntersect(envelope) &&
-                                          obstacle.IntersectsWithLine(vertex.Coordinate, otherVertex.Coordinate);
-            }
+                if (intersectsWithObstacle)
+                {
+                    intersectsWithObstacle |= obstacle.CanIntersect(envelope) &&
+                                              obstacle.IntersectsWithLine(vertex.Coordinate, otherVertex.Coordinate);
+                }
+            }));
 
             if (!intersectsWithObstacle)
             {
@@ -103,9 +110,9 @@ public class WavefrontPreprocessor
         return neighborList;
     }
 
-    private static bool IsInShadowArea(ICollection<AngleArea> shadowAreas, double angle, double distance)
+    private static bool IsInShadowArea(BinIndex<AngleArea> shadowAreas, double angle, double distance)
     {
-        foreach (var area in shadowAreas)
+        foreach (var area in shadowAreas.Query(angle))
         {
             if (distance > area.Distance && Angle.IsBetweenEqual(area.From, angle, area.To))
             {
