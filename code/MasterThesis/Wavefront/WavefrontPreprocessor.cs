@@ -33,15 +33,21 @@ public class WavefrontPreprocessor
         int neighborCount)
     {
         var result = new Dictionary<Vertex, List<Vertex>>();
+        Log.I($"Calculate nearest {neighborCount} visible neighbors for each vertex");
 
         var i = 1;
+        var verticesPerPercent = vertices.Count / 100d;
+        var nextProcessOutput = verticesPerPercent;
         foreach (var vertex in vertices)
         {
-            Log.I($"Vertex {i}/{vertices.Count} : {vertex}");
+            if (i > nextProcessOutput)
+            {
+                Log.I($"  {(int)(i/verticesPerPercent)}% done");
+                nextProcessOutput += verticesPerPercent;
+            }
             i++;
+            
             result[vertex] = GetVisibleNeighborsForVertex(obstacles, new List<Vertex>(vertices), vertex, neighborCount);
-            // Log.I($"============================");
-            // Thread.Sleep(2000);
         }
 
         return result;
@@ -58,7 +64,6 @@ public class WavefrontPreprocessor
         // [0] = Angle from
         // [1] = Angle to
         // [2] = Distance
-        // var shadowAreas = new List<double[]>();
         var obstaclesCastingShadow = new HashSet<Obstacle>();
 
         vertices.Remove(vertex);
