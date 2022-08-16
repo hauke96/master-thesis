@@ -18,14 +18,14 @@ public class BinIndex<T>
 
     public void Add(double from, double to, T value)
     {
-        if (from < 0 || 360 < from)
+        if (from < 0 || _maxKey < from)
         {
-            throw new ArgumentException($"From-Key must be >=0 and <=360 but was {from}");
+            throw new ArgumentException($"From-Key must be >=0 and <={_maxKey} but was {from}");
         }
 
-        if (to < 0 || 360 < to)
+        if (to < 0 || _maxKey < to)
         {
-            throw new ArgumentException($"To-Key must be >=0 and <=360 but was {to}");
+            throw new ArgumentException($"To-Key must be >=0 and <={_maxKey} but was {to}");
         }
 
         var fromIndex = GetIndexFromKey(from);
