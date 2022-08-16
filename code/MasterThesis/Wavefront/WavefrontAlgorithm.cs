@@ -26,8 +26,13 @@ namespace Wavefront
             PositionToPredecessor = new Dictionary<Position, Position?>();
             Wavefronts = new FibonacciHeap<Wavefront, double>(0);
 
+            Log.I("Get direct neighbors on each obstacle geometry");
             var positionToNeighbors = GetNeighborsFromObstacleVertices(obstacles);
+            
+            Log.I("Create map of direct neighbor vertices on the obstacle geometries");
             Vertices = positionToNeighbors.Keys.Map(position => new Vertex(position, positionToNeighbors[position]));
+            
+            Log.I("Calculate KNN to get visible vertices");
             _vertexNeighbors = WavefrontPreprocessor.CalculateVisibleKnn(_obstacles, Vertices, knnSearchNeighbors);
         }
 

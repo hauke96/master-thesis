@@ -19,11 +19,15 @@ namespace GeoJsonRouting.Layer
 
         private Position FindOrCreateLocation(string attributeName)
         {
-            var startPosition = Features.First(feature => feature.VectorStructured.Attributes.Exists(attributeName))
-                .VectorStructured.Geometry.Coordinates[0].ToPosition();
+            foreach (var feature in Features)
+            {
+                if (feature.VectorStructured.Attributes.Exists(attributeName))
+                {
+                    return feature.VectorStructured.Geometry.Coordinates[0].ToPosition();
+                }
+            }
 
-            return startPosition ??
-                   PositionHelper.RandomPositionFromGeometry(SharedEnvironment.Environment.BoundingBox);
+            return PositionHelper.RandomPositionFromGeometry(SharedEnvironment.Environment.BoundingBox);
         }
     }
 }

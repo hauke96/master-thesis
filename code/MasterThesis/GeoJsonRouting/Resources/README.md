@@ -14,7 +14,18 @@ The `osm-exports` folder contains real OpenStreetMap exports, see the license fi
 
 ## New export via overpass
 1. Go to https://overpass-turbo.eu
-2. Paste the following query:
+2. Paste your query (see examples below)
+3. Press "Run"
+4. Click "Export" and download the result as GeoJSON
+5. Open the file in an editor of your choice (QGIS, JOSM, ...)
+6. Add start node with the attribute `start=...` (the value is irrelevant, the key will be used in the import of this file)
+7. Do the same for the target with `target=...`
+8. Save the file somewhere here and you're done
+
+### Query examples
+
+Get buildings and barriers (fence, wall, etc.) within the current visible map:
+
 ```
 [out:json][timeout:25];
 (
@@ -25,9 +36,17 @@ out body;
 >;
 out skel qt;
 ```
-3. Press "Run"
-4. Click "Export" and download the result as GeoJSON
-5. Open the file in an editor of your choice (QGIS, JOSM, ...)
-6. Add start node with the attribute `start=...` (the value is irrelevant, the key will be used in the import of this file)
-7. Do the same for the target with `target=...`
-8. Save the file somewhere here and you're done
+
+Get buildings and barriers in Hamburg, Germany:
+
+```
+[out:json][timeout:2500];
+{{geocodeArea:Hamburg}}->.searchArea;
+(
+  way["building"](area.searchArea);
+  way["barrier"](area.searchArea);
+);
+out body;
+>;
+out skel qt;
+```
