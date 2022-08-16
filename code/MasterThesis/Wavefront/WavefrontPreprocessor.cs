@@ -91,6 +91,11 @@ public class WavefrontPreprocessor
             var intersectsWithObstacle = false;
             obstacles.Query(envelope, (Action<Obstacle>)(obstacle =>
             {
+                if (intersectsWithObstacle)
+                {
+                    return;
+                }
+                
                 if (!obstaclesCastingShadow.Contains(obstacle))
                 {
                     var (angleFrom, angleTo, distance) = obstacle.GetAngleAreaOfObstacle(vertex);
@@ -99,7 +104,7 @@ public class WavefrontPreprocessor
                     obstaclesCastingShadow.Add(obstacle);
                 }
 
-                if (intersectsWithObstacle)
+                if (!intersectsWithObstacle)
                 {
                     intersectsWithObstacle |= obstacle.CanIntersect(envelope) &&
                                               obstacle.IntersectsWithLine(vertex.Coordinate, otherVertex.Coordinate);
