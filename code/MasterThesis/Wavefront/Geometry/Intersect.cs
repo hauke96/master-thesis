@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using NetTopologySuite.Geometries;
 
 namespace Wavefront.Geometry
@@ -17,7 +18,7 @@ namespace Wavefront.Geometry
             return Math.Min(start.X, end.X) <= p.X && p.X <= Math.Max(start.X, end.X) &&
                    Math.Min(start.Y, end.Y) <= p.Y && p.Y <= Math.Max(start.Y, end.Y);
         }
-
+        
         public static int Orientation(Coordinate p0, Coordinate p1, Coordinate p2)
         {
             var val = (p1.X - p0.X) * (p2.Y - p0.Y) - (p2.X - p0.X) * (p1.Y - p0.Y);

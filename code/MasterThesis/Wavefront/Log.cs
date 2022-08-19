@@ -13,9 +13,9 @@ public class Log
 
     public static int LogLevel = INFO;
 
-    public static void Init()
+    public static void Init(int normalCallDepth = -1)
     {
-        _normalCallDepth = GetCallDepth();
+        _normalCallDepth = normalCallDepth != -1 ? normalCallDepth : GetCallDepth();
     }
 
     public static void I(string message, string prefix = "", int manualIndentOffset = 0)
