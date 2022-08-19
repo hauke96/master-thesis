@@ -37,7 +37,7 @@ namespace Wavefront.Geometry
         }
 
         /// <summary>
-        /// Calculates the shadow area seen from a given vertex.
+        /// Calculates the shadow area and max distance seen from a given vertex.
         /// </summary>
         public (double, double, double) GetAngleAreaOfObstacle(Vertex vertex)
         {

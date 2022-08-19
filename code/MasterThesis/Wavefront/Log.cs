@@ -29,7 +29,8 @@ public class Log
     {
         if (LogLevel <= DEBUG)
         {
-            I(message, prefix, GetCallDepth() - _normalCallDepth + (manualIndentOffset - 1));
+            var indentDepth = GetCallDepth() - _normalCallDepth + (manualIndentOffset - 1);
+            I(message, prefix, indentDepth > 0 ? indentDepth : 0);
         }
     }
 

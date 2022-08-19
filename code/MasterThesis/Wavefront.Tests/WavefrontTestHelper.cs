@@ -24,7 +24,10 @@ public class WavefrontTestHelper
         [SetUp]
         public void Setup()
         {
+            Log.LogLevel = Log.DEBUG;
             Log.Init();
+
+            WavefrontPreprocessor.BaseLength = 1;
 
             multiVertexLineObstacle = new LineString(new[]
             {
@@ -65,6 +68,12 @@ public class WavefrontTestHelper
 
             wavefrontAlgorithm = new WavefrontAlgorithm(obstacles);
             rootVertex = new Vertex(Position.CreateGeoPosition(5, 2));
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            Log.LogLevel = Log.INFO;
         }
     }
 }

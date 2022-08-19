@@ -1,6 +1,7 @@
 using Mars.Common;
 using Mars.Common.Collections;
 using NetTopologySuite.Geometries;
+using NetTopologySuite.Index.Strtree;
 using ServiceStack;
 using Wavefront.Geometry;
 using Position = Mars.Interfaces.Environments.Position;
@@ -10,8 +11,9 @@ namespace Wavefront
     public class WavefrontAlgorithm
     {
         private readonly int knnSearchNeighbors = 100;
-        
-        private readonly QuadTree<Obstacle> _obstacles;
+
+        // TODO rename
+        public readonly STRtree<Obstacle> _obstacles;
         private readonly Dictionary<Vertex, List<Vertex>> _vertexNeighbors;
 
         public readonly Dictionary<Position, Position?> PositionToPredecessor;
@@ -20,18 +22,20 @@ namespace Wavefront
 
         public WavefrontAlgorithm(List<Obstacle> obstacles)
         {
-            _obstacles = new QuadTree<Obstacle>();
-            obstacles.Each(obstacle => _obstacles.Insert(obstacle.Envelope, obstacle));
-            
             PositionToPredecessor = new Dictionary<Position, Position?>();
             Wavefronts = new FibonacciHeap<Wavefront, double>(0);
+            _obstacles = new STRtree<Obstacle>();
+
+            Log.I("Insert obstacles into index");
+            obstacles.Each(obstacle => _obstacles.Insert(obstacle.Envelope, obstacle));
+            _obstacles.Build();
 
             Log.I("Get direct neighbors on each obstacle geometry");
             var positionToNeighbors = GetNeighborsFromObstacleVertices(obstacles);
-            
+
             Log.I("Create map of direct neighbor vertices on the obstacle geometries");
             Vertices = positionToNeighbors.Keys.Map(position => new Vertex(position, positionToNeighbors[position]));
-            
+
             Log.I("Calculate KNN to get visible vertices");
             _vertexNeighbors = WavefrontPreprocessor.CalculateVisibleKnn(_obstacles, Vertices, knnSearchNeighbors);
         }
@@ -92,15 +96,21 @@ namespace Wavefront
         {
             var sourceVertex = new Vertex(source);
             Vertices.Add(sourceVertex);
-            
+
             var targetVertex = new Vertex(target);
             Vertices.Add(targetVertex);
-            
+
+            var vertexTree = new STRtree<Vertex>();
+            Vertices.Each(v => vertexTree.Insert(new Envelope(v.Coordinate), v));
+
             PositionToPredecessor[source] = null;
             _vertexNeighbors[sourceVertex] =
-                WavefrontPreprocessor.GetVisibleNeighborsForVertex(_obstacles, Vertices, sourceVertex, knnSearchNeighbors);
-            
-            var neighborsOfTarget = WavefrontPreprocessor.GetVisibleNeighborsForVertex(_obstacles, Vertices, targetVertex, knnSearchNeighbors);
+                WavefrontPreprocessor.GetVisibleNeighborsForVertex(_obstacles, vertexTree, sourceVertex,
+                    knnSearchNeighbors);
+
+            var neighborsOfTarget =
+                WavefrontPreprocessor.GetVisibleNeighborsForVertex(_obstacles, vertexTree, targetVertex,
+                    knnSearchNeighbors);
             // TODO Find a better way to add the target to the existing neighbors lists?
             neighborsOfTarget.Each(neighbor => _vertexNeighbors[neighbor].Add(targetVertex));
 
@@ -120,7 +130,7 @@ namespace Wavefront
             {
                 ProcessNextEvent(target);
             }
-            
+
             // Clean up the list for future uses of the Route() method
             neighborsOfTarget.Each(neighbor => _vertexNeighbors[neighbor].Remove(targetVertex));
 
@@ -317,7 +327,8 @@ namespace Wavefront
             }
 
             var neighborWillBeVisitedByWavefront = wavefrontRootIsSecondLastLineVertex &&
-                                                   Angle.IsBetweenWithNormalize(angleCurrentWavefrontFrom, angleWavefrontFrom,
+                                                   Angle.IsBetweenWithNormalize(angleCurrentWavefrontFrom,
+                                                       angleWavefrontFrom,
                                                        angleCurrentWavefrontTo);
             var newWavefrontNeeded = !double.IsNaN(angleWavefrontFrom) && !double.IsNaN(angleWavefrontTo) &&
                                      !neighborWillBeVisitedByWavefront;
