@@ -82,9 +82,11 @@ Are passed to the preprocessor → s. below under "Visibility check for vertices
 
 **What the algorithm does:** It checks whether a vertex is visible or if it's hidden by an obstacle (= in the shadow of that obstacle).
 
-**Current implementation:** A list of shadow areas (s. [Algorithm descriptions](ALGORITHMS.md) for further details) is maintained and used to check if a vertex is within one of these areas and therefore not visible to a root vertex.
+**Current implementation:** A list of shadow areas (s. [Algorithm descriptions](ALGORITHMS.md) for further details) is maintained and used to check if a single vertex is within one of these areas and therefore not visible to a root vertex.
 
-**Alternatives:** Just rely on normal geometric collision checks. This is already done, when no shadow area was found but such collision checks are always rather slow compared to simple boolean expressions for a shadow area check.
+**Alternatives:**
+* Just rely on normal geometric collision checks. This is already done, when no shadow area was found but such collision checks are always rather slow compared to simple boolean expressions for a shadow area check.
+* Previous implementations checked the whole area of an obstacle for within-relation (so full intersection) with a shadow area. But since the `BinIndex` class is used (s. below), only point-checks are used to see whether a single point is within a shadow area.
 
 ## Algorithms
 
@@ -111,7 +113,7 @@ Prior to the current implementation, a vertex possibly had a left and a right ne
 
 ### Preprocessing
 
-#### Collision detection
+#### Detecting intersections
 
 **What the algorithm does:** It wants to check whether to lines (not line strings, just two lines a→b and c→d) intersect.
 
