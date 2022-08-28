@@ -1,11 +1,14 @@
 using System.Diagnostics;
 using GeoJsonRouting.Layer;
 using Mars.Common;
+using Mars.Components.Environments.Cartesian;
 using Mars.Components.Layers;
 using Mars.Interfaces.Agents;
 using Mars.Interfaces.Annotations;
 using Mars.Interfaces.Environments;
 using Mars.Interfaces.Layers;
+using Mars.Numerics;
+using NetTopologySuite.Geometries;
 using ServiceStack;
 using Wavefront;
 using Wavefront.Geometry;
@@ -13,10 +16,9 @@ using Position = Mars.Interfaces.Environments.Position;
 
 namespace GeoJsonRouting.Model
 {
-    // TODO Find a better name than just "Agent".
-    public class Agent : IPositionable, IAgent<VectorLayer>
+    public class Agent : IPositionable, IAgent<VectorLayer>, IVisible, ICollidable
     {
-        private static readonly int STEP_SIZE = 1;
+        private static readonly double STEP_SIZE = 0.0001;
 
         [PropertyDescription] public UnregisterAgent UnregisterHandle { get; set; }
         [PropertyDescription] public ObstacleLayer ObstacleLayer { get; set; }
@@ -24,7 +26,8 @@ namespace GeoJsonRouting.Model
         public Position? Position { get; set; }
         public Guid ID { get; set; }
 
-        public Queue<Position> Waypoints = new Queue<Position>();
+        private Position? _targetPosition;
+        private Queue<Position> _waypoints = new();
 
         public void Init(VectorLayer layer)
         {
@@ -35,24 +38,22 @@ namespace GeoJsonRouting.Model
             if (Position == null)
             {
                 Position = ObstacleLayer.GetStart();
-                Target.Position = ObstacleLayer.GetTarget();
-                // Waypoints.Enqueue(Target.Position);
+                _targetPosition = ObstacleLayer.GetTarget();
 
                 DetermineNewWaypoints();
 
-                SharedEnvironment.Environment.Insert(this);
+                SharedEnvironment.Environment.Insert(this, new Point(Position.ToCoordinate()));
             }
 
-            var currentWaypoint = Waypoints.Peek();
-            // Console.WriteLine($"Tick with current waypoint {currentWaypoint}");
+            var currentWaypoint = _waypoints.Peek();
 
-            var distanceToTargetInM = Position.DistanceInMTo(currentWaypoint);
-            if (distanceToTargetInM == 0)
+            var distanceToTarget = Distance.Euclidean(currentWaypoint.PositionArray, Position.PositionArray);
+            if (distanceToTarget <= STEP_SIZE)
             {
-                Waypoints.Dequeue();
+                _waypoints.Dequeue();
 
                 // The current waypoint was the last one -> we're done
-                if (Waypoints.Count == 0)
+                if (_waypoints.Count == 0)
                 {
                     Console.WriteLine($"Target {currentWaypoint} reached.");
                     Kill();
@@ -61,40 +62,22 @@ namespace GeoJsonRouting.Model
                 return;
             }
 
-            if (distanceToTargetInM < STEP_SIZE)
-            {
-                SharedEnvironment.Environment.MoveTo(this, currentWaypoint);
-                return;
-            }
-
             var bearing = Angle.GetBearing(Position, currentWaypoint);
-            SharedEnvironment.Environment.MoveTowards(this, bearing, STEP_SIZE);
-
-            // Thread.Sleep(TimeSpan.FromMilliseconds(0.5));
+            Position = SharedEnvironment.Environment.Move(this, bearing, STEP_SIZE).Centroid.Coordinate.ToPosition();
         }
 
         private void DetermineNewWaypoints()
         {
-            // Target.NewPosition();
-            // ResetPosition();
-            //
-            // if (Target.Position.Y >= 0.12)
-            // {
-            //     SharedEnvironment.Environment.Remove(this);
-            //     return;
-            // }
-
             try
             {
-                var obstacleGeometries =
-                    ObstacleLayer.Features.Map(f => new Wavefront.Geometry.Obstacle(f.VectorStructured.Geometry));
+                var obstacleGeometries = ObstacleLayer.Features.Map(f => new Obstacle(f.VectorStructured.Geometry));
                 var watch = Stopwatch.StartNew();
-                
+
                 var wavefrontAlgorithm = new WavefrontAlgorithm(obstacleGeometries);
                 Console.WriteLine($"Algorithm creation: {watch.ElapsedMilliseconds}ms");
-                
+
                 watch.Restart();
-                Waypoints = new Queue<Position>(wavefrontAlgorithm.Route(Position, Target.Position));
+                _waypoints = new Queue<Position>(wavefrontAlgorithm.Route(Position, _targetPosition));
                 Console.WriteLine($"Routing duration: {watch.ElapsedMilliseconds}ms");
             }
             catch (Exception e)
@@ -108,6 +91,16 @@ namespace GeoJsonRouting.Model
         {
             SharedEnvironment.Environment.Remove(this);
             UnregisterHandle.Invoke(ObstacleLayer, this);
+        }
+
+        public VisibilityKind? HandleExploration(IEntity collisionEntity)
+        {
+            return VisibilityKind.Opaque;
+        }
+        
+        public CollisionKind? HandleCollision(IEntity collisionEntity)
+        {
+            return CollisionKind.Pass;
         }
     }
 }

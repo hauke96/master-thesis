@@ -1,4 +1,3 @@
-using GeoJsonRouting.Model;
 using Mars.Common;
 using Mars.Components.Layers;
 using Position = Mars.Interfaces.Environments.Position;
@@ -27,7 +26,7 @@ namespace GeoJsonRouting.Layer
                 }
             }
 
-            return PositionHelper.RandomPositionFromGeometry(SharedEnvironment.Environment.BoundingBox);
+            throw new Exception("Could not find start or target node");
         }
     }
 }
