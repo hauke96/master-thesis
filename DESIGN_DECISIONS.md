@@ -98,15 +98,34 @@ Are passed to the preprocessor → s. below under "Visibility check for vertices
 
 **Alternatives** and how they perform compared to the current implementation:
 
-1. `Geometry.Intersect`: About 18 times slower
-2. `IPreparedGeometry.Intersect`: About 3 times slower
-3. `IntersectionComputer.Intersection`: About 1.5 times slower
+1. `Geometry.Intersect`: About 70 times slower (not tested if results are correct)
+2. `IPreparedGeometry.Intersect`: About 9 times slower (not tested if results are correct)
+3. `IntersectionComputer.Intersection`: About 3 times slower (+ not the same functionality → unit tests fail)
 
 #### Shadow areas
 
 ##### Index
 
-// TODO 1D R-Tree
+###### CITree - A 1D Quadtree for intervals
+
+Storing and querying shadow areas is a challenge, because the 360° == 0° equality and the fast of different distances makes it harder than standard interval problems. Also the data structure should only return full overlaps, not only intersections. Nevertheless, the NetTopologySuite has a `Bintree` implementation, which is a 1D Quadtree and can be used for intervals.
+
+However, I extended the `Bintree` class to create my own `CITree` (cyclic intervall tree) implementation. To make it work with angles, I needed own `Add` and `Query` methods. Unofrtunately this implementation was not sufficiently fast and this had several reasons:
+
+1. Queries overlapping the 360°/0° border had to be cut into two queries → more overhead
+2. Same for insertions even though inserting is faster
+3. Query results had to be filtered because 1.) the quastree result only contains "candidate items which may overlap the query interval" (quote of doc.) and 2.) to get entries which are entirely within the given query interval
+4. Query results needed to be unique, so a `Distinct()` call for separate queries (s. above) were necessary
+
+All in all the performance - even for point queries - was worse than just using a list of intervals.
+
+###### BinIndex - A bin based index for intervals
+
+The current implementation uses the `BinIndex` which is a bin based index. Each bin contains several interval objects and queries quite fast because the underlying data structure is an array. The bin size is by default 1, so each bin covers a 1° area.
+
+Because the current algorithm uses this index to check whether a single vertex is within any area, the query method just takes an angle and returns a collection of shadow areas. The query method then calculates the bin of the given angle and returns the content of this bin.
+
+Using the mid sized Stellingen OSM dataset, all 4.7 mio. calls of the `Query` method combined just need 60ms and all 230k `Add` calls about 400-500ms.
 
 ##### Merging
 
