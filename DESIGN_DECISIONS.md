@@ -90,24 +90,42 @@ Are passed to the preprocessor → s. below under "Visibility check for vertices
 
 ## Algorithms
 
-### Routing algorithm
-
 For full details on the routing, see the [ALGORITHMS.md](./ALGORITHMS.md) file.
 
-#### Handling neighbors
+### Routing: Handling neighbors
 
-**Handling neighbors?** When a wavelet reaches a vertex, several things might happen:
+#### Motivation: Why handling neighbors?
+
+When a wavelet reaches a vertex, several things might happen:
 
 * The wavelet dies because of several reasons:
 	* There are no further vertices in the angle area of the wavelet
 	* The wavelet reached the inside corner of a line/polygon and therefore cannot continue
-* A new wavelet will be created when there's a shadow casted by the obstacle
+* A new wavelet will be created when there's a shadow cast by the obstacle
 * The wavelets angle area will be reduces because parts of it are within a shadow and therefore irrelevant for the current wavelet
 * The wavelet will be split into two because the obstacle is right in the middle of the wavelets angle area
 
 Also some combinations of the above can happen, e.g. the wavelet might cast a shadow, so its angle area will be adjusted, and a new wavelet will be spawned covering the shadow area.
 
-Prior to the current implementation, a vertex possibly had a left and a right neighbor. The current implementation allows an arbitrary amount of neighbors but it's still possible to get the left and right neighbors seen from a given reference angle (e.g. a vertex has neighbors at 10°, 20° and 30°, so the right and left neighbors relative to 15° would be 10° and 20°). A special case is a vertex with only one neighbor, however, the current implementation doesn't care and returns the same neighbor vertex for left and right.
+#### Data structure
+
+Prior to the current implementation, a vertex possibly had a left and a right neighbor.
+
+The current implementation allows an arbitrary amount of neighbors but it's still possible to get the left and right neighbors seen from a given reference angle (e.g. a vertex has neighbors at 10°, 20° and 30°, so the right and left neighbors relative to 15° would be 10° and 20°).
+
+A special case is a vertex with only one neighbor, however, the current implementation doesn't care and returns the same neighbor vertex for left and right. This is also the desired behavior for later processing of these neighbors.
+
+#### Rotation of angles
+
+When handling neighbors of a vertex `v`, the first thing that's done is to calculate all relevant angles. The angle between to root of the wavelet and the neighbors but also the angles between `v` and its neighbors.
+
+In a second step, all those angles are rotated so that the angle `a` between the wavelets root vertex and `v` is 0°. So every angle is rotated by `-a°`.
+
+#### Handling shadows and adjust wavelet
+
+Thanks to the rotation, it's very easy to check whether a shadow is cast by the wavelet or not: When left and right neighbors are on the same side (between 0° and 180° or 180° and 360°), a shadow is cast and a new wavelet needs to be created.
+
+The angle area of the existing wavelet may have to be adjusted. This only happens when 1.) a shadow is cast and 2.) the neighbor, where the shadow is cast, has been visited before. The second condition is important to not adjust the wavelet too early, because in the "triangle" between wavelet, current vertex and neighbor might exist further vertices. Those vertices might be skipped when the wavelet is adjusted too early.
 
 ## Optimizations
 
