@@ -4,7 +4,7 @@
 
 * Distance: I use the euclidean distance since it's a lot faster to compute than the haversine distance. The inaccuracy is negligible since distances are usually small (< 100m).
 
-## Objects: Wavelet, vertices and obstacles
+## Entities: Wavelet, vertices and obstacles
 
 ### Vertex
 
@@ -85,6 +85,27 @@ Are passed to the preprocessor → s. below under "Visibility check for vertices
 **Current implementation:** A list of shadow areas (s. [Algorithm descriptions](ALGORITHMS.md) for further details) is maintained and used to check if a vertex is within one of these areas and therefore not visible to a root vertex.
 
 **Alternatives:** Just rely on normal geometric collision checks. This is already done, when no shadow area was found but such collision checks are always rather slow compared to simple boolean expressions for a shadow area check.
+
+## Algorithms
+
+### Routing algorithm
+
+For full details on the routing, see the [ALGORITHMS.md](./ALGORITHMS.md) file.
+
+#### Handling neighbors
+
+**Handling neighbors?** When a wavelet reaches a vertex, several things might happen:
+
+* The wavelet dies because of several reasons:
+	* There are no further vertices in the angle area of the wavelet
+	* The wavelet reached the inside corner of a line/polygon and therefore cannot continue
+* A new wavelet will be created when there's a shadow casted by the obstacle
+* The wavelets angle area will be reduces because parts of it are within a shadow and therefore irrelevant for the current wavelet
+* The wavelet will be split into two because the obstacle is right in the middle of the wavelets angle area
+
+Also some combinations of the above can happen, e.g. the wavelet might cast a shadow, so its angle area will be adjusted, and a new wavelet will be spawned covering the shadow area.
+
+Prior to the current implementation, a vertex possibly had a left and a right neighbor. The current implementation allows an arbitrary amount of neighbors but it's still possible to get the left and right neighbors seen from a given reference angle (e.g. a vertex has neighbors at 10°, 20° and 30°, so the right and left neighbors relative to 15° would be 10° and 20°). A special case is a vertex with only one neighbor, however, the current implementation doesn't care and returns the same neighbor vertex for left and right.
 
 ## Optimizations
 
