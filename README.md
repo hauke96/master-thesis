@@ -1,7 +1,15 @@
 # Master thesis
 
-This repositoty contains all content for my master thesis.
+This repository contains all content for my master thesis.
 
 ## Folder structure
 
-* `code`: Contains all source code files regarding the C# project.
+* [`code`](./code) contains all source code files regarding the C# project.
+
+## Documentation
+
+See the following files for more details about the algorithm, design decisions and more:
+
+* [TERMINOLOGY.md](./TERMINOLOGY.md) contains definition for certain terms used in other documentation and the code.
+* [DESIGN_DECISIONS.md](./DESIGN_DECISIONS.md) describes several decisions on things like data structures and optimizations as well as possible alternatives and implementations that are no longer used.
+* [ALGORITHMS.md](./ALGORITHMS.md) gives an overview on the main algorithms used.
