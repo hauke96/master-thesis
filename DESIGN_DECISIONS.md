@@ -231,3 +231,6 @@ the NetTopologySuite `STRtree` class uses by default the normal array based `Lis
 
 [0]
 https://github.com/NetTopologySuite/NetTopologySuite/blob/c5be50bb638be90ef8eb8c63456ae393194beba2/src/NetTopologySuite/Index/Strtree/AbstractSTRtree.cs#L279
+
+**Parallelism:**
+One could (hopefully) easily parallel the preprocessing by dividing the vertices in bins, every thread then works on one bin.
