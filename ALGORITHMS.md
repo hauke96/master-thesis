@@ -2,7 +2,7 @@
 
 ## Preprocessing
 
-Basiacally creates a KNN visibility graph, so it finds the k nearest visible vertices for each given vertex.
+Basically creates a KNN visibility graph, so it finds the k nearest visible vertices for each given vertex.
 
 ### Shadows
 
@@ -15,7 +15,7 @@ This is a method to simplify visibility checks because a shadow-check ("Is this 
 ### The algorithm
 
 1. Loop over each vertex `v`
-	1. Initialize list of visible neigbors, bin index of shadow areas and set of obstacles casting a shadow (kept to later check if an obstacle has been processed before)
+	1. Initialize list of visible neighbors, bin index of shadow areas and set of obstacles casting a shadow (kept to later check if an obstacle has been processed before)
 	2. Sort all vertices by their distance to `v`. Potential optimization: Use index to get only a part of all vertices to reduce sorting costs.
 	3. Loop over each sorted vertex `s` from near to far away
 		1. Check if `s` is in a shadow area, if so, continue with next sorted vertex
@@ -37,6 +37,6 @@ This is a method to simplify visibility checks because a shadow-check ("Is this 
 		4. Rotate all angles so that the angle "`w` to `v`" is 0
 		5. Calculate angle area of potentially new wavefront
 		6. If a new wavefront should be created (angles != NaN && neighbors won't be visited by current wavelet), then do so
-		7. Calculate and return angle area of shadow casted by current wavelet `w`
+		7. Calculate and return angle area of shadow cast by current wavelet `w`
 	5. Store predecessor relationship (predecessor of `v` is root of `w`)
 	6. Split `w` if it's casting a shadow and insert potentially new wavelet(s) into wavelet queue

@@ -2,7 +2,7 @@
 
 ## General
 
-* Distance: I use the euclidean distance since it's a lot faster to compute than the haversine distance. The inaccuracy is negligible since distances are usually small (< 100m).
+* Distance: I use the euclidean distance since it's a lot faster to compute than the Haversine distance. The inaccuracy is negligible since distances are usually small (< 100m).
 
 ## Entities: Wavelet, vertices and obstacles
 
@@ -37,7 +37,7 @@ Wavelet-wavelet and wavelet-edge collisions are ignored (including any bisector 
 
 ### Wavefront
 
-* Relevant vertices: LinkedList instead of a queue/heap:
+* Relevant vertices: Linked list instead of a queue/heap:
 	1. When a wavefront is split into two, we can just use the existing relevant vertices of the old wavefront and just filter them by their angle. This is way faster than creating and filling a new priority queue or heap.
 	2. Removing the min element in a min-heap (at least in the `FibonacciHeap` implementation of the MARS framework) is in O(log n) amortized. Getting and removing the first element in a linked list is both in O(1).
 
@@ -45,9 +45,9 @@ Wavelet-wavelet and wavelet-edge collisions are ignored (including any bisector 
 
 #### Wavelets: Heap instead of list
 
-**What the algorithm does:** Increase the distance of a wavelet when the nearest vertex is being processe → The wavelet moves further back in the sorted data structure.
+**What the algorithm does:** Increase the distance of a wavelet when the nearest vertex is being processed → The wavelet moves further back in the sorted data structure.
 
-**Current implementation:** Use a fibonacci heap. Whenever a re-sort is needed for a wavelet, it'll be removed from the heap and re-added with the updated key.
+**Current implementation:** Use a Fibonacci heap. Whenever a re-sort is needed for a wavelet, it'll be removed from the heap and re-added with the updated key.
 
 1. Inserting happens quite often and uses just O(1) in a heap instead of up to O(n + log n) in a sorted list (either O(log n) search + O(n) insert in a List or O(n) search and O(1) insert in LinkedList)
 2. Removal happens slightly less often and takes just O(log n) even though a linked list would be faster with O(1)
@@ -57,10 +57,10 @@ Wavelet-wavelet and wavelet-edge collisions are ignored (including any bisector 
 I also tried to implement a sorted linked list with an bin based index on top (s. branch `custom-sorted-linked-list`).
 The index just took the key of an element (in this case the wavelets distance from source), did some rounding of that number make the bin larger.
 A bin then just pointed to the first `LinkedListNode` of that bin in the list.
-The performance was okay but didn't improve the overall performane.
+The performance was okay but didn't improve the overall performance.
 Also the rounding of the key wasn't working to well and a lot of bins were empty while others were quite full.
 
-**Conclusion:** Insert + remove take about O(log n) using the fibonacci heap and at least O(n) in a list
+**Conclusion:** Insert + remove take about O(log n) using the Fibonacci heap and at least O(n) in a list
 
 #### Obstacles
 
@@ -147,15 +147,15 @@ The angle area of the existing wavelet may have to be adjusted. This only happen
 
 ##### Index
 
-###### CITree - A 1D Quadtree for intervals
+###### CITree - A 1D quadtree for intervals
 
-Storing and querying shadow areas is a challenge, because the 360° == 0° equality and the fast of different distances makes it harder than standard interval problems. Also the data structure should only return full overlaps, not only intersections. Nevertheless, the NetTopologySuite has a `Bintree` implementation, which is a 1D Quadtree and can be used for intervals.
+Storing and querying shadow areas is a challenge, because the 360° == 0° equality and the fast of different distances makes it harder than standard interval problems. Also the data structure should only return full overlaps, not only intersections. Nevertheless, the NetTopologySuite has a `Bintree` implementation, which is a 1D quadtree and can be used for intervals.
 
-However, I extended the `Bintree` class to create my own `CITree` (cyclic intervall tree) implementation. To make it work with angles, I needed own `Add` and `Query` methods. Unofrtunately this implementation was not sufficiently fast and this had several reasons:
+However, I extended the `Bintree` class to create my own `CITree` (cyclic intervall tree) implementation. To make it work with angles, I needed own `Add` and `Query` methods. Unfortunately this implementation was not sufficiently fast and this had several reasons:
 
 1. Queries overlapping the 360°/0° border had to be cut into two queries → more overhead
 2. Same for insertions even though inserting is faster
-3. Query results had to be filtered because 1.) the quastree result only contains "candidate items which may overlap the query interval" (quote of doc.) and 2.) to get entries which are entirely within the given query interval
+3. Query results had to be filtered because 1.) the quadtree result only contains "candidate items which may overlap the query interval" (quote of doc.) and 2.) to get entries which are entirely within the given query interval
 4. Query results needed to be unique, so a `Distinct()` call for separate queries (s. above) were necessary
 
 All in all the performance - even for point queries - was worse than just using a list of intervals.
@@ -180,7 +180,7 @@ First, we're dealing with angles here and an area of 350° to 10° is not the sa
 Second, there's a distance to consider.
 
 If two areas are merged, the further distance of those has to be used for the new area, otherwise results might not be correct anymore.
-This, however, reduces the efficiency as vertices that were in the nearer shadow area are not necessarrily within the new and further shadow area. Example: Area `a` is from 10° to 20° and 3m away, area `b` from 20° to 30° and 10m away. The merged area is then from 10° to 30° and 10m away. A vertex at 15° and 8m away was hidden by `a` but is not anymore in the new merged area, therefore an expensive collision check will be performed.
+This, however, reduces the efficiency as vertices that were in the nearer shadow area are not necessarily within the new and further shadow area. Example: Area `a` is from 10° to 20° and 3m away, area `b` from 20° to 30° and 10m away. The merged area is then from 10° to 30° and 10m away. A vertex at 15° and 8m away was hidden by `a` but is not anymore in the new merged area, therefore an expensive collision check will be performed.
 
 ###### Implementations
 
