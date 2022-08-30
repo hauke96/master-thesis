@@ -220,7 +220,6 @@ Currently the MARS `QuadTree` is used. I tried using the NetTopologySuite `STRtr
 **Spatial pruning:**
 This could be helpful for preprocessing when the nearest neighbors need to be found. Use several growing queries to get near vertices. If the first queries didn't contain enough nearest visible vertices, increase the query range. This can be done by rectangular queries so that no area is queried twice.
 
-
 #### Miscellaneous
 
 **Other programming language:**
@@ -234,3 +233,6 @@ https://github.com/NetTopologySuite/NetTopologySuite/blob/c5be50bb638be90ef8eb8c
 
 **Parallelism:**
 One could (hopefully) easily parallel the preprocessing by dividing the vertices in bins, every thread then works on one bin.
+
+**Hershberger & Suri Algorithmus:**
+This is also a wave propagation algorithm which is theoretically faster than Mitchells algorithm I'm using right now. However it's a 50+ page paper and sounds quite complicated. The question is: Is it worth the work? My thesis is not about implementing a very performant routing engine but rather to enhance routing results for agent based simulations.
