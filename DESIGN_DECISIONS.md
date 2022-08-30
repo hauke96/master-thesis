@@ -190,3 +190,44 @@ Either there were too many difficulties in the implementation to work on that ap
 1. Whenever a new shadow area was created, try to merge it with others
 2. Create a 1D R-Tree to store the shadow area intervals. Whenever an area exceeds the 360°/0° border, split it into two. Whenever a new shadow area was created, query for existing ones and merge all of them.
 3. A relaxation approach: Whenever a merge happened, check for further merge opportunities. Repeat this until no further merges are possible.
+
+### Ideas for further optimizations
+
+#### Routing strategies
+
+**Bidirectional routing:**
+Start two wavelets from source and target node and stop routing when the two routing routines (or however this may be implemented) meet each other at the same node.
+
+**Selection of next vertex:**
+The current implementation sorts the wavelets by their distance to the next vertex. Then the wavelet at the front of the list is chosen (it has the lowest distance to the next vertex). One idea is to sort the wavelets by their distance to the target. This reduces the amount of wavelets moving in the opposite direction. But when to stop? When a wavelet reaches the target, it's not necessarily the shortest route that has been found.
+
+**Line between source and target:**
+Create a line between source and target. Spawn several wavelets along vertices next to this line. This reduces the amount of wavefront moving away from source and target vertex. Start routing and connect the separate ways that are found. Does this work, is the resulting route the shortest? 
+
+#### Data structures
+
+**X-Fast trie / Y-Fast trie:**
+Such data structure could be used to store and access the wavelets. However only the smallest wavelet needs to be accessed, so complex queries are no use case here. Also, storing wavelets is not a performance issue.
+
+**KNN-Graph:**
+This could be used to store vertices and retrieve the nearest neighbors. I tried this already but the problem is: We don't want to know the nearest neighbors but the nearest *visible* neighbors. So the KNN-Graph would have to store a lot more than *K* neighbors so that later the *K* nearest visible neighbors can be found. But maybe it works quite well to set *K = 1000* (or 10.000?), because maybe the 100 nearest visible neighbors are all within the 1000 (or 10.000) general nearest neighbors. It's not perfect but might help.
+
+**Faster index for obstacles:**
+Currently the MARS `QuadTree` is used. I tried using the NetTopologySuite `STRtree` but without success. First, I have to implement my own visitor class to not collect everything as an array list (s. below). Second, even though less objects were returned (about half as much as when using the `QuadTree`) and less intersection checks needed to be made (about four times less) it was slower. Maybe the `STRtree` is generally slower than the `QuadTree`?
+
+#### Algorithms
+
+**Spatial pruning:**
+This could be helpful for preprocessing when the nearest neighbors need to be found. Use several growing queries to get near vertices. If the first queries didn't contain enough nearest visible vertices, increase the query range. This can be done by rectangular queries so that no area is queried twice.
+
+
+#### Miscellaneous
+
+**Other programming language:**
+I don't have the impression that C# (including the libraries) is meant to be used for high performance applications.
+
+Example:
+the NetTopologySuite `STRtree` class uses by default the normal array based `List` class to collect the resulting features [0]. Due to the resize of the array, a lot of data has to be copied over and over again decreasing the performance significantly.
+
+[0]
+https://github.com/NetTopologySuite/NetTopologySuite/blob/c5be50bb638be90ef8eb8c63456ae393194beba2/src/NetTopologySuite/Index/Strtree/AbstractSTRtree.cs#L279
