@@ -3,16 +3,16 @@ namespace Wavefront.Index;
 public class BinIndex<T>
 {
     private readonly int _maxKey;
-    private readonly List<T>[] _index;
+    private readonly LinkedList<T>[] _index;
 
     public BinIndex(int maxKey, int binSize = 1)
     {
         _maxKey = maxKey;
         var binCount = (int)Math.Ceiling((double)_maxKey / binSize);
-        _index = new List<T>[binCount];
+        _index = new LinkedList<T>[binCount];
         for (var i = 0; i < _index.Length; i++)
         {
-            _index[i] = new List<T>();
+            _index[i] = new LinkedList<T>();
         }
     }
 
@@ -33,11 +33,11 @@ public class BinIndex<T>
 
         for (var i = fromIndex; i != toIndex; i = (i + 1) % _index.Length)
         {
-            _index[i].Add(value);
+            _index[i].AddLast(value);
         }
     }
 
-    public List<T> Query(double key)
+    public LinkedList<T> Query(double key)
     {
         var index = GetIndexFromKey(key);
         return _index[index];
