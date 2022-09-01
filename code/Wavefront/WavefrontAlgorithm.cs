@@ -88,7 +88,7 @@ namespace Wavefront
             return positionToNeighbors;
         }
 
-        public List<Position> Route(Position source, Position target)
+        public List<Waypoint> Route(Position source, Position target)
         {
             var sourceVertex = new Vertex(source);
             Vertices.Add(sourceVertex);
@@ -110,7 +110,7 @@ namespace Wavefront
             var initialWavefront = Wavefront.New(0, 360, sourceVertex, _vertexNeighbors[sourceVertex], 0, false);
             if (initialWavefront == null)
             {
-                return new List<Position>();
+                return new List<Waypoint>();
             }
 
             AddWavefront(initialWavefront);
@@ -127,12 +127,13 @@ namespace Wavefront
             // Clean up the list for future uses of the Route() method
             neighborsOfTarget.Each(neighbor => _vertexNeighbors[neighbor].Remove(targetVertex));
 
-            var waypoints = new List<Position>();
+            var waypoints = new List<Waypoint>();
             var nextPosition = target;
 
             while (nextPosition != null)
             {
-                waypoints.Add(nextPosition);
+                // TODO fill with real order and date
+                waypoints.Add(new Waypoint(nextPosition, 0, 0));
                 nextPosition = PositionToPredecessor.ContainsKey(nextPosition)
                     ? PositionToPredecessor[nextPosition]
                     : null;

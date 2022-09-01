@@ -27,7 +27,7 @@ namespace GeoJsonRouting.Model
         public Guid ID { get; set; }
 
         private Position? _targetPosition;
-        private Queue<Position> _waypoints = new();
+        private Queue<Waypoint> _waypoints = new();
 
         public void Init(VectorLayer layer)
         {
@@ -47,7 +47,7 @@ namespace GeoJsonRouting.Model
 
             var currentWaypoint = _waypoints.Peek();
 
-            var distanceToTarget = Distance.Euclidean(currentWaypoint.PositionArray, Position.PositionArray);
+            var distanceToTarget = Distance.Euclidean(currentWaypoint.Position.PositionArray, Position.PositionArray);
             if (distanceToTarget <= STEP_SIZE)
             {
                 _waypoints.Dequeue();
@@ -62,7 +62,7 @@ namespace GeoJsonRouting.Model
                 return;
             }
 
-            var bearing = Angle.GetBearing(Position, currentWaypoint);
+            var bearing = Angle.GetBearing(Position, currentWaypoint.Position);
             Position = SharedEnvironment.Environment.Move(this, bearing, STEP_SIZE).Centroid.Coordinate.ToPosition();
         }
 
@@ -77,7 +77,7 @@ namespace GeoJsonRouting.Model
                 Console.WriteLine($"Algorithm creation: {watch.ElapsedMilliseconds}ms");
 
                 watch.Restart();
-                _waypoints = new Queue<Position>(wavefrontAlgorithm.Route(Position, _targetPosition));
+                _waypoints = new Queue<Waypoint>(wavefrontAlgorithm.Route(Position, _targetPosition));
                 Console.WriteLine($"Routing duration: {watch.ElapsedMilliseconds}ms");
             }
             catch (Exception e)
