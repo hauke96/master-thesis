@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Mars.Common.Collections;
 using Mars.Numerics;
 using NetTopologySuite.Geometries;
@@ -38,11 +39,13 @@ public class WavefrontPreprocessor
         var i = 1;
         var verticesPerPercent = vertices.Count / 100d;
         var nextProcessOutput = verticesPerPercent;
+        var stopWatch = new Stopwatch();
         foreach (var vertex in vertices)
         {
             if (i > nextProcessOutput)
             {
-                Log.I($"  {(int)(i/verticesPerPercent)}% done");
+                Log.I($"  {(int)(i/verticesPerPercent)}% done ({stopWatch.ElapsedMilliseconds}ms)");
+                stopWatch.Restart();
                 nextProcessOutput += verticesPerPercent;
             }
             i++;
