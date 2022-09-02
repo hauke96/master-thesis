@@ -9,6 +9,8 @@ using Mars.Interfaces.Environments;
 using Mars.Interfaces.Layers;
 using Mars.Numerics;
 using NetTopologySuite.Geometries;
+using NetTopologySuite.IO;
+using Newtonsoft.Json;
 using ServiceStack;
 using Wavefront;
 using Wavefront.Geometry;
@@ -77,8 +79,12 @@ namespace GeoJsonRouting.Model
                 Console.WriteLine($"Algorithm creation: {watch.ElapsedMilliseconds}ms");
 
                 watch.Restart();
+
                 var routingResult = wavefrontAlgorithm.Route(Position, _targetPosition);
                 _waypoints = new Queue<Waypoint>(routingResult.OptimalRoute);
+
+                WriteRoutesToFile(routingResult.AllRoutes);
+
                 Console.WriteLine($"Routing duration: {watch.ElapsedMilliseconds}ms");
             }
             catch (Exception e)
@@ -86,6 +92,31 @@ namespace GeoJsonRouting.Model
                 Console.WriteLine(e);
                 throw;
             }
+        }
+
+        private async void WriteRoutesToFile(List<List<Waypoint>> routes)
+        {
+            var geometry = RoutesToGeometryCollection(routes);
+
+            var serializer = GeoJsonSerializer.Create();
+            await using var stringWriter = new StringWriter();
+            using var jsonWriter = new JsonTextWriter(stringWriter);
+
+            serializer.Serialize(jsonWriter, geometry);
+            var geoJson = stringWriter.ToString();
+
+            await File.WriteAllTextAsync("agent-routes.geojson", geoJson);
+        }
+
+        private GeometryCollection RoutesToGeometryCollection(List<List<Waypoint>> routes)
+        {
+            var geometries = routes.Map(r => (Geometry)RouteToLineString(r));
+            return new GeometryCollection(geometries.ToArray());
+        }
+
+        private LineString RouteToLineString(List<Waypoint> route)
+        {
+            return new LineString(route.Map(w => w.Position.ToCoordinate()).ToArray());
         }
 
         private void Kill()
@@ -98,7 +129,7 @@ namespace GeoJsonRouting.Model
         {
             return VisibilityKind.Opaque;
         }
-        
+
         public CollisionKind? HandleCollision(IEntity collisionEntity)
         {
             return CollisionKind.Pass;
