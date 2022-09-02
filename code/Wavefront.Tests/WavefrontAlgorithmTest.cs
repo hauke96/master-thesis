@@ -639,7 +639,6 @@ namespace Wavefront.Tests
             }
         }
 
-
         public class Route
         {
             static WavefrontAlgorithm wavefrontAlgorithm;
@@ -804,6 +803,49 @@ namespace Wavefront.Tests
                 Assert.AreEqual(Position.CreateGeoPosition(3.5, 2), waypoints[2]);
                 Assert.AreEqual(Position.CreateGeoPosition(3, 3.5), waypoints[3]);
                 Assert.AreEqual(Position.CreateGeoPosition(3.5, 4.5), waypoints[4]);
+            }
+        }
+
+        public class RouteWithOverlappingObstacles
+        {
+            // Real world problem: Route was going through barriers
+
+            static WavefrontAlgorithm wavefrontAlgorithm;
+
+            [SetUp]
+            public void Setup()
+            {
+                var obstacle = new LineString(new[]
+                {
+                    new Coordinate(0, 0),
+                    new Coordinate(3, 0),
+                    new Coordinate(3, 1),
+                    new Coordinate(0, 1),
+                    new Coordinate(0, 0)
+                });
+                var line = new LineString(new[]
+                {
+                    new Coordinate(0, 0),
+                    new Coordinate(0, 1)
+                });
+                var obstacleGeometries = new List<NetTopologySuite.Geometries.Geometry>();
+                obstacleGeometries.Add(obstacle);
+                obstacleGeometries.Add(line);
+
+                var obstacles = obstacleGeometries.Map(geometry => new Obstacle(geometry));
+
+                wavefrontAlgorithm = new WavefrontAlgorithm(obstacles);
+            }
+
+            [Test]
+            public void TargetWithinObstacle()
+            {
+                var source = Position.CreateGeoPosition(1, 2);
+                var target = Position.CreateGeoPosition(2, 0.5);
+                var routingResult = wavefrontAlgorithm.Route(source, target);
+                var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
+
+                Assert.AreEqual(0, waypoints.Count);
             }
         }
 

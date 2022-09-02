@@ -68,7 +68,7 @@ namespace Wavefront
             Log.I($"Routing from {source} to {target}");
             Log.D($"Initial wavefront at {initialWavefront.RootVertex.Position}");
 
-            while (!PositionToPredecessor.ContainsKey(target))
+            while (!PositionToPredecessor.ContainsKey(target) && !Wavefronts.IsEmpty())
             {
                 ProcessNextEvent(target);
             }
@@ -105,6 +105,12 @@ namespace Wavefront
                 nextPosition = PositionToPredecessor.ContainsKey(nextPosition)
                     ? PositionToPredecessor[nextPosition]
                     : null;
+            }
+
+            if (waypoints.Count == 1)
+            {
+                // Special case: No route found -> Return empty list instead of a list with just the given position in it.
+                return new List<Waypoint>();
             }
 
             waypoints.Reverse();
