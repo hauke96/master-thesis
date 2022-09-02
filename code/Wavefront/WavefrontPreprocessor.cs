@@ -1,9 +1,12 @@
 using System.Diagnostics;
+using Mars.Common;
 using Mars.Common.Collections;
 using Mars.Numerics;
 using NetTopologySuite.Geometries;
+using ServiceStack;
 using Wavefront.Geometry;
 using Wavefront.Index;
+using Position = Mars.Interfaces.Environments.Position;
 
 namespace Wavefront;
 
@@ -29,6 +32,68 @@ public class WavefrontPreprocessor
         }
     }
 
+    public static Dictionary<Position, List<Position>> GetNeighborsFromObstacleVertices(List<Obstacle> obstacles)
+    {
+        // TODO Use Set<Position> to avoid duplicates?
+        var positionToNeighbors = new Dictionary<Position, List<Position>>();
+        obstacles.Each(obstacle =>
+        {
+            if (obstacle.Coordinates.Count <= 1)
+            {
+                return;
+            }
+
+            var coordinates = obstacle.Coordinates.CreateCopy().Distinct().ToList();
+            coordinates.Each((index, coordinate) =>
+            {
+                var position = coordinate.ToPosition();
+                if (!positionToNeighbors.ContainsKey(position))
+                {
+                    positionToNeighbors[position] = new List<Position>();
+                }
+
+                Coordinate? nextCoordinate =
+                    index + 1 < coordinates.Count ? coordinates[index + 1] : null;
+                Coordinate? previousCoordinate = index - 1 >= 0 ? coordinates[index - 1] : null;
+                if (obstacle.IsClosed && nextCoordinate == null)
+                {
+                    nextCoordinate = coordinates.First();
+                }
+
+                if (obstacle.IsClosed && previousCoordinate == null)
+                {
+                    previousCoordinate = coordinates[^1];
+                }
+
+                if (nextCoordinate != null)
+                {
+                    var nextVertexVisible = !obstacles.Any(o =>
+                        !obstacle.Equals(o) &&
+                        o.HasLineSegment(coordinate, nextCoordinate) ||
+                        o.IntersectsWithLine(coordinate, nextCoordinate));
+                    if (nextVertexVisible)
+                    {
+                        positionToNeighbors[position].Add(nextCoordinate.ToPosition());
+                    }
+                }
+
+                if (previousCoordinate != null)
+                {
+                    var previousVertexVisible =
+                        !obstacles.Any(o =>
+                            !obstacle.Equals(o) &&
+                            o.HasLineSegment(coordinate, previousCoordinate) ||
+                            o.IntersectsWithLine(coordinate, previousCoordinate));
+                    if (previousVertexVisible)
+                    {
+                        positionToNeighbors[position].Add(previousCoordinate.ToPosition());
+                    }
+                }
+            });
+        });
+        return positionToNeighbors;
+    }
+
     public static Dictionary<Vertex, List<Vertex>> CalculateVisibleKnn(QuadTree<Obstacle> obstacles,
         List<Vertex> vertices,
         int neighborCount)
@@ -44,12 +109,13 @@ public class WavefrontPreprocessor
         {
             if (i > nextProcessOutput)
             {
-                Log.I($"  {(int)(i/verticesPerPercent)}% done ({stopWatch.ElapsedMilliseconds}ms)");
+                Log.I($"  {(int)(i / verticesPerPercent)}% done ({stopWatch.ElapsedMilliseconds}ms)");
                 stopWatch.Restart();
                 nextProcessOutput += verticesPerPercent;
             }
+
             i++;
-            
+
             result[vertex] = GetVisibleNeighborsForVertex(obstacles, new List<Vertex>(vertices), vertex, neighborCount);
         }
 
@@ -98,7 +164,7 @@ public class WavefrontPreprocessor
                 {
                     return;
                 }
-                
+
                 if (!obstaclesCastingShadow.Contains(obstacle))
                 {
                     var (angleFrom, angleTo, distance) = obstacle.GetAngleAreaOfObstacle(vertex);

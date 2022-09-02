@@ -14,80 +14,6 @@ namespace Wavefront.Tests
     public class WavefrontAlgorithmTest
     {
         private static readonly double FLOAT_TOLERANCE = 0.01;
-
-        public class NeighborsFromObstacleVertices : WavefrontTestHelper.WithWavefrontAlgorithm
-        {
-            [Test]
-            public void GetNeighborsFromObstacleVertices_SimpleLineString()
-            {
-                var obstacle = simpleLineObstacle;
-                var positionToNeighbors =
-                    wavefrontAlgorithm.GetNeighborsFromObstacleVertices(new List<Obstacle> { new(obstacle) });
-
-                Assert.AreEqual(2, positionToNeighbors.Count);
-
-                Assert.AreEqual(1, positionToNeighbors[obstacle[0].ToPosition()].Count);
-                Assert.Contains(obstacle[1].ToPosition(), positionToNeighbors[obstacle[0].ToPosition()]);
-
-                Assert.AreEqual(1, positionToNeighbors[obstacle[1].ToPosition()].Count);
-                Assert.Contains(obstacle[0].ToPosition(), positionToNeighbors[obstacle[1].ToPosition()]);
-            }
-
-            [Test]
-            public void GetNeighborsFromObstacleVertices_MultiVertexLineString()
-            {
-                var obstacle = multiVertexLineObstacle;
-                var positionToNeighbors =
-                    wavefrontAlgorithm.GetNeighborsFromObstacleVertices(new List<Obstacle> { new(obstacle) });
-
-                Assert.AreEqual(3, positionToNeighbors.Count);
-
-                Assert.AreEqual(1, positionToNeighbors[obstacle[0].ToPosition()].Count);
-                Assert.Contains(obstacle[1].ToPosition(), positionToNeighbors[obstacle[0].ToPosition()]);
-
-                Assert.AreEqual(2, positionToNeighbors[obstacle[1].ToPosition()].Count);
-                Assert.Contains(obstacle[2].ToPosition(), positionToNeighbors[obstacle[1].ToPosition()]);
-                Assert.Contains(obstacle[0].ToPosition(), positionToNeighbors[obstacle[1].ToPosition()]);
-
-                Assert.AreEqual(1, positionToNeighbors[obstacle[2].ToPosition()].Count);
-                Assert.Contains(obstacle[1].ToPosition(), positionToNeighbors[obstacle[2].ToPosition()]);
-            }
-
-            [Test]
-            public void GetNeighborsFromObstacleVertices_Polygon()
-            {
-                var obstacle = new LineString(new[]
-                {
-                    new Coordinate(1, 2.5),
-                    new Coordinate(2.5, 1),
-                    new Coordinate(3.5, 2),
-                    new Coordinate(2, 3.5),
-                    new Coordinate(1, 2.5)
-                });
-
-                var positionToNeighbors =
-                    wavefrontAlgorithm.GetNeighborsFromObstacleVertices(new List<Obstacle> { new(obstacle) });
-
-                Assert.AreEqual(4, positionToNeighbors.Count);
-
-                Assert.AreEqual(2, positionToNeighbors[obstacle[0].ToPosition()].Count);
-                Assert.Contains(obstacle[1].ToPosition(), positionToNeighbors[obstacle[0].ToPosition()]);
-                Assert.Contains(obstacle[3].ToPosition(), positionToNeighbors[obstacle[0].ToPosition()]);
-
-                Assert.AreEqual(2, positionToNeighbors[obstacle[1].ToPosition()].Count);
-                Assert.Contains(obstacle[0].ToPosition(), positionToNeighbors[obstacle[1].ToPosition()]);
-                Assert.Contains(obstacle[2].ToPosition(), positionToNeighbors[obstacle[1].ToPosition()]);
-
-                Assert.AreEqual(2, positionToNeighbors[obstacle[2].ToPosition()].Count);
-                Assert.Contains(obstacle[1].ToPosition(), positionToNeighbors[obstacle[2].ToPosition()]);
-                Assert.Contains(obstacle[3].ToPosition(), positionToNeighbors[obstacle[2].ToPosition()]);
-
-                Assert.AreEqual(2, positionToNeighbors[obstacle[3].ToPosition()].Count);
-                Assert.Contains(obstacle[0].ToPosition(), positionToNeighbors[obstacle[3].ToPosition()]);
-                Assert.Contains(obstacle[2].ToPosition(), positionToNeighbors[obstacle[3].ToPosition()]);
-            }
-        }
-
         public class ProcessNextEvent : WavefrontTestHelper.WithWavefrontAlgorithm
         {
             Position targetPosition;
@@ -750,7 +676,8 @@ namespace Wavefront.Tests
                 var sourceVertex = Position.CreateGeoPosition(3.5, 1.5);
                 var targetVertex = Position.CreateGeoPosition(1.5, 1.5);
 
-                var waypoints = wavefrontAlgorithm.Route(sourceVertex, targetVertex);
+                var routingResult = wavefrontAlgorithm.Route(sourceVertex, targetVertex);
+                var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.Contains(sourceVertex, waypoints);
                 Assert.Contains(targetVertex, waypoints);
@@ -763,7 +690,8 @@ namespace Wavefront.Tests
                 var sourceVertex = Position.CreateGeoPosition(3.5, 1.5);
                 var targetVertex = Position.CreateGeoPosition(1.5, 2.5);
 
-                var waypoints = wavefrontAlgorithm.Route(sourceVertex, targetVertex);
+                var routingResult = wavefrontAlgorithm.Route(sourceVertex, targetVertex);
+                var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.AreEqual(3, waypoints.Count);
                 Assert.Contains(sourceVertex, waypoints);
@@ -778,7 +706,8 @@ namespace Wavefront.Tests
                 var sourceVertex = Position.CreateGeoPosition(3.5, 2.5);
                 var targetVertex = Position.CreateGeoPosition(1.5, 2.5);
 
-                var waypoints = wavefrontAlgorithm.Route(sourceVertex, targetVertex);
+                var routingResult = wavefrontAlgorithm.Route(sourceVertex, targetVertex);
+                var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.Contains(sourceVertex, waypoints);
                 Assert.Contains(Position.CreateGeoPosition(multiVertexLineObstacle[1].X, multiVertexLineObstacle[1].Y),
@@ -796,7 +725,8 @@ namespace Wavefront.Tests
                 var sourceVertex = Position.CreateGeoPosition(1.5, 2.5);
                 var targetVertex = Position.CreateGeoPosition(3.5, 2.5);
 
-                var waypoints = wavefrontAlgorithm.Route(sourceVertex, targetVertex);
+                var routingResult = wavefrontAlgorithm.Route(sourceVertex, targetVertex);
+                var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.Contains(sourceVertex, waypoints);
                 Assert.Contains(Position.CreateGeoPosition(multiVertexLineObstacle[0].X, multiVertexLineObstacle[0].Y),
@@ -814,7 +744,8 @@ namespace Wavefront.Tests
                 var sourceVertex = Position.CreateGeoPosition(6, 3);
                 var targetVertex = Position.CreateGeoPosition(7, 3);
 
-                var waypoints = wavefrontAlgorithm.Route(sourceVertex, targetVertex);
+                var routingResult = wavefrontAlgorithm.Route(sourceVertex, targetVertex);
+                var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.Contains(sourceVertex, waypoints);
                 Assert.Contains(Position.CreateGeoPosition(rotatedLineObstacle[0].X, rotatedLineObstacle[0].Y),
@@ -863,8 +794,9 @@ namespace Wavefront.Tests
             [Test]
             public void Routing()
             {
-                var waypoints = wavefrontAlgorithm.Route(Position.CreateGeoPosition(2, 1),
+                var routingResult = wavefrontAlgorithm.Route(Position.CreateGeoPosition(2, 1),
                     Position.CreateGeoPosition(3.5, 4.5));
+                var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.AreEqual(5, waypoints.Count);
                 Assert.AreEqual(Position.CreateGeoPosition(2, 1), waypoints[0]);

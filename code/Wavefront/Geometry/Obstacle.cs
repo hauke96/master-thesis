@@ -1,3 +1,4 @@
+using Mars.Common.Compat;
 using Mars.Numerics;
 using NetTopologySuite.Geometries;
 
@@ -34,6 +35,30 @@ namespace Wavefront.Geometry
             }
 
             return false;
+        }
+
+        public bool HasLineSegment(Coordinate coordinateStart, Coordinate coordinateEnd)
+        {
+            // Initialize start indices far away from each other because the distance matters below.
+            var indexStart = -10;
+            var indexEnd = -20;
+            for (int i = 0; i < Coordinates.Count && (indexStart < 0 || indexEnd < 0); i++)
+            {
+                if (Coordinates[i].Equals(coordinateStart))
+                {
+                    indexStart = i;
+                }
+                else if (Coordinates[i].Equals(coordinateEnd))
+                {
+                    indexEnd = i;
+                }
+            }
+
+            // Start and end coordinates are right next to each other, no other vertex is in between them. This has
+            // also to be checked if the first and last coordinates are found.
+            return Math.Abs(indexStart - indexEnd) == 1 ||
+                   indexStart == 0 && indexEnd == Coordinates.Count - 2 ||
+                   indexEnd == 0 && indexStart == Coordinates.Count - 2;
         }
 
         /// <summary>

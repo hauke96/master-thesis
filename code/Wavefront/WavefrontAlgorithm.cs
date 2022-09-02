@@ -28,65 +28,13 @@ namespace Wavefront
             Wavefronts = new FibonacciHeap<Wavefront, double>(0);
 
             Log.I("Get direct neighbors on each obstacle geometry");
-            var positionToNeighbors = GetNeighborsFromObstacleVertices(obstacles);
+            var positionToNeighbors = WavefrontPreprocessor.GetNeighborsFromObstacleVertices(obstacles);
 
             Log.I("Create map of direct neighbor vertices on the obstacle geometries");
             Vertices = positionToNeighbors.Keys.Map(position => new Vertex(position, positionToNeighbors[position]));
 
             Log.I("Calculate KNN to get visible vertices");
             _vertexNeighbors = WavefrontPreprocessor.CalculateVisibleKnn(_obstacles, Vertices, knnSearchNeighbors);
-        }
-
-        public Dictionary<Position, List<Position>> GetNeighborsFromObstacleVertices(
-            List<Obstacle> obstacles)
-        {
-            var positionToNeighbors = new Dictionary<Position, List<Position>>();
-            obstacles.Each(obstacle =>
-            {
-                if (obstacle.Coordinates.Count <= 1)
-                {
-                    return;
-                }
-
-                var coordinates = obstacle.Coordinates.CreateCopy();
-                if (obstacle.IsClosed)
-                {
-                    coordinates.RemoveAt(coordinates.Count - 1);
-                }
-
-                coordinates.Each((index, coordinate) =>
-                {
-                    var position = coordinate.ToPosition();
-                    if (!positionToNeighbors.ContainsKey(position))
-                    {
-                        positionToNeighbors[position] = new List<Position>();
-                    }
-
-                    Coordinate? nextCoordinate =
-                        index + 1 < coordinates.Count ? coordinates[index + 1] : null;
-                    Coordinate? previousCoordinate = index - 1 >= 0 ? coordinates[index - 1] : null;
-                    if (obstacle.IsClosed && nextCoordinate == null)
-                    {
-                        nextCoordinate = coordinates.First();
-                    }
-
-                    if (obstacle.IsClosed && previousCoordinate == null)
-                    {
-                        previousCoordinate = coordinates[^1];
-                    }
-
-                    if (nextCoordinate != null)
-                    {
-                        positionToNeighbors[position].Add(nextCoordinate.ToPosition());
-                    }
-
-                    if (previousCoordinate != null)
-                    {
-                        positionToNeighbors[position].Add(previousCoordinate.ToPosition());
-                    }
-                });
-            });
-            return positionToNeighbors;
         }
 
         public RoutingResult Route(Position source, Position target)
@@ -141,7 +89,7 @@ namespace Wavefront
             // Find all positions which are *not* a predecessor of some other position. This means we found all leafs
             // of our predecessor tree.
             var leafPositions = positions.Where(p => !predecessors.Contains(p));
-            
+
             return leafPositions.Map(GetOptimalRoute);
         }
 
