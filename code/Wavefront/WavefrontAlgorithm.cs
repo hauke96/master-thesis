@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Mars.Common;
 using Mars.Common.Collections;
 using NetTopologySuite.Geometries;
@@ -88,7 +89,7 @@ namespace Wavefront
             return positionToNeighbors;
         }
 
-        public List<Waypoint> Route(Position source, Position target)
+        public RoutingResult Route(Position source, Position target)
         {
             var sourceVertex = new Vertex(source);
             Vertices.Add(sourceVertex);
@@ -110,7 +111,7 @@ namespace Wavefront
             var initialWavefront = Wavefront.New(0, 360, sourceVertex, _vertexNeighbors[sourceVertex], 0, false);
             if (initialWavefront == null)
             {
-                return new List<Waypoint>();
+                return new RoutingResult();
             }
 
             AddWavefront(initialWavefront);
@@ -127,8 +128,27 @@ namespace Wavefront
             // Clean up the list for future uses of the Route() method
             neighborsOfTarget.Each(neighbor => _vertexNeighbors[neighbor].Remove(targetVertex));
 
+            var waypoints = GetOptimalRoute(target);
+
+            return new RoutingResult(waypoints, GetAllRoutes());
+        }
+
+        private List<List<Waypoint>> GetAllRoutes()
+        {
+            var positions = PositionToPredecessor.Keys.ToList();
+            var predecessors = PositionToPredecessor.Values.ToImmutableHashSet();
+
+            // Find all positions which are *not* a predecessor of some other position. This means we found all leafs
+            // of our predecessor tree.
+            var leafPositions = positions.Where(p => !predecessors.Contains(p));
+            
+            return leafPositions.Map(GetOptimalRoute);
+        }
+
+        private List<Waypoint> GetOptimalRoute(Position start)
+        {
             var waypoints = new List<Waypoint>();
-            var nextPosition = target;
+            var nextPosition = start;
 
             while (nextPosition != null)
             {

@@ -77,7 +77,8 @@ namespace GeoJsonRouting.Model
                 Console.WriteLine($"Algorithm creation: {watch.ElapsedMilliseconds}ms");
 
                 watch.Restart();
-                _waypoints = new Queue<Waypoint>(wavefrontAlgorithm.Route(Position, _targetPosition));
+                var routingResult = wavefrontAlgorithm.Route(Position, _targetPosition);
+                _waypoints = new Queue<Waypoint>(routingResult.OptimalRoute);
                 Console.WriteLine($"Routing duration: {watch.ElapsedMilliseconds}ms");
             }
             catch (Exception e)
