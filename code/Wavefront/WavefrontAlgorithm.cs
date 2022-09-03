@@ -1,7 +1,5 @@
 using System.Collections.Immutable;
-using Mars.Common;
 using Mars.Common.Collections;
-using NetTopologySuite.Geometries;
 using ServiceStack;
 using Wavefront.Geometry;
 using Position = Mars.Interfaces.Environments.Position;
@@ -15,7 +13,13 @@ namespace Wavefront
         private readonly QuadTree<Obstacle> _obstacles;
         private readonly Dictionary<Vertex, List<Vertex>> _vertexNeighbors;
 
+        // Stores the predecessor of each visited vertex position. Recursively following the predecessors up to the
+        // source gives the shortest path from the source to the given position.
         public readonly Dictionary<Position, Position?> PositionToPredecessor;
+        
+        // Stores the known wavefront roots so that wavefront are only spawned at newly visited vertices.
+        public readonly HashSet<Position> WavefrontRoots;
+        
         public readonly FibonacciHeap<Wavefront, double> Wavefronts;
         public readonly List<Vertex> Vertices;
 
@@ -25,6 +29,7 @@ namespace Wavefront
             obstacles.Each(obstacle => _obstacles.Insert(obstacle.Envelope, obstacle));
 
             PositionToPredecessor = new Dictionary<Position, Position?>();
+            WavefrontRoots = new HashSet<Position>();
             Wavefronts = new FibonacciHeap<Wavefront, double>(0);
 
             Log.I("Get direct neighbors on each obstacle geometry");
@@ -131,7 +136,7 @@ namespace Wavefront
                 return;
             }
 
-            var currentVertexHasBeenVisitedBefore = PositionToPredecessor.ContainsKey(currentVertex.Position);
+            var currentVertexHasBeenVisitedBefore = WavefrontRoots.Contains(currentVertex.Position);
             if (currentVertexHasBeenVisitedBefore)
             {
                 // Log.D($"Vertex at {currentVertex.Position} has been visited before");
@@ -144,6 +149,7 @@ namespace Wavefront
             {
                 Log.I($"Target reached ({currentVertex.Position})", "", 1);
                 PositionToPredecessor[currentVertex.Position] = wavefront.RootVertex.Position;
+                WavefrontRoots.Add(currentVertex.Position);
                 // Log.D($"Set predecessor of target to {wavefront.RootVertex.Position}");
                 RemoveAndUpdateWavefront(wavefrontNode);
                 return;
@@ -161,9 +167,10 @@ namespace Wavefront
                 out var newWavefrontCreatedAtEventRoot);
             // Log.D($"Handled neighbors, shadow from {angleShadowFrom}° to {angleShadowTo}°");
 
+            PositionToPredecessor[currentVertex.Position] = wavefront.RootVertex.Position;
             if (newWavefrontCreatedAtEventRoot)
             {
-                PositionToPredecessor[currentVertex.Position] = wavefront.RootVertex.Position;
+                WavefrontRoots.Add(currentVertex.Position);
                 // Log.D($"Set predecessor of {currentVertex.Position} to {wavefront.RootVertex.Position}");
             }
 

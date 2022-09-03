@@ -65,6 +65,7 @@ namespace Wavefront.Tests
                 var wavefront = Wavefront.New(0, 90, new Vertex(5, 2), vertices, 1, false)!;
                 wavefrontAlgorithm.AddWavefront(wavefront);
                 wavefrontAlgorithm.PositionToPredecessor[nextVertex.Position] = Position.CreateGeoPosition(1, 1);
+                wavefrontAlgorithm.WavefrontRoots.Add(nextVertex.Position);
 
                 wavefrontAlgorithm.ProcessNextEvent(targetPosition);
 

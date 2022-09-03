@@ -1,13 +1,86 @@
 using System.Collections.Generic;
 using Mars.Common;
+using Mars.Common.Collections;
 using NetTopologySuite.Geometries;
 using NUnit.Framework;
+using ServiceStack;
 using Wavefront.Geometry;
+using Position = Mars.Interfaces.Environments.Position;
 
 namespace Wavefront.Tests;
 
 public class WavefrontPreprocessorTest
 {
+    public class WithObstacles
+    {
+        private QuadTree<Obstacle> obstacleQuadTree;
+        private List<Vertex> vertices;
+        private LineString multiVertexLineObstacle;
+        private LineString rotatedLineObstacle;
+        private Dictionary<Position, List<Position>> positionToNeighbors;
+
+        [SetUp]
+        public void Setup()
+        {
+            multiVertexLineObstacle = new LineString(new[]
+            {
+                new Coordinate(2, 2),
+                new Coordinate(3, 2),
+                new Coordinate(3, 5)
+            });
+            rotatedLineObstacle = new LineString(new[]
+            {
+                new Coordinate(5, 3),
+                new Coordinate(6.5, 3.5),
+                new Coordinate(7.5, 0.5)
+            });
+            var obstacleGeometries = new List<NetTopologySuite.Geometries.Geometry>();
+            obstacleGeometries.Add(multiVertexLineObstacle);
+            obstacleGeometries.Add(rotatedLineObstacle);
+
+            var obstacles = obstacleGeometries.Map(geometry => new Obstacle(geometry));
+
+            positionToNeighbors = WavefrontPreprocessor.GetNeighborsFromObstacleVertices(obstacles);
+            vertices = positionToNeighbors.Keys.Map(position => new Vertex(position, positionToNeighbors[position]));
+
+            obstacleQuadTree = new QuadTree<Obstacle>();
+            obstacles.Each(obstacle => obstacleQuadTree.Insert(obstacle.Envelope, obstacle));
+        }
+
+        [Test]
+        public void PositionToNeighbors_MultiVertexLineObstacle()
+        {
+            AssertPositionToNeighbors(multiVertexLineObstacle);
+        }
+
+        [Test]
+        public void PositionToNeighbors_RotatedLineObstacle()
+        {
+            AssertPositionToNeighbors(rotatedLineObstacle);
+        }
+
+        private void AssertPositionToNeighbors(LineString obstacle)
+        {
+            var expected = new List<Position> { obstacle[1].ToPosition() };
+            var actual = positionToNeighbors[obstacle[0].ToPosition()];
+            Assert.AreEqual(expected, actual);
+
+            expected = new List<Position> { obstacle[0].ToPosition(), obstacle[2].ToPosition() };
+            actual = positionToNeighbors[obstacle[1].ToPosition()];
+            CollectionAssert.AreEquivalent(expected, actual);
+
+            expected = new List<Position> { obstacle[1].ToPosition() };
+            actual = positionToNeighbors[obstacle[2].ToPosition()];
+            Assert.AreEqual(expected, actual);
+        }
+
+        [Test]
+        public void CalculateVisibleKnn()
+        {
+            WavefrontPreprocessor.CalculateVisibleKnn(obstacleQuadTree, vertices, 100);
+        }
+    }
+
     [Test]
     public void GetNeighborsFromObstacleVertices_SimpleLineString()
     {
