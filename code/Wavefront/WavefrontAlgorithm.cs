@@ -178,10 +178,36 @@ namespace Wavefront
             {
                 // Log.D($"Remove old wavefront from {wavefront.FromAngle}° to {wavefront.ToAngle}° and create new ones");
 
-                AddNewWavefront(wavefront.RelevantVertices, wavefront.RootVertex, wavefront.DistanceToRootFromSource,
-                    wavefront.FromAngle, angleShadowFrom, true);
-                AddNewWavefront(wavefront.RelevantVertices, wavefront.RootVertex, wavefront.DistanceToRootFromSource,
-                    angleShadowTo, wavefront.ToAngle, true);
+                var fromAngleInShadowArea = Angle.IsBetween(angleShadowFrom, wavefront.FromAngle, angleShadowTo);
+                var toAngleInShadowArea = Angle.IsBetween(angleShadowFrom, wavefront.ToAngle, angleShadowTo);
+
+                if (fromAngleInShadowArea && toAngleInShadowArea)
+                {
+                    AddNewWavefront(wavefront.RelevantVertices, wavefront.RootVertex,
+                        wavefront.DistanceToRootFromSource,
+                        angleShadowTo, angleShadowFrom, true);
+                }
+                else if (fromAngleInShadowArea)
+                {
+                    AddNewWavefront(wavefront.RelevantVertices, wavefront.RootVertex,
+                        wavefront.DistanceToRootFromSource,
+                        angleShadowTo, wavefront.ToAngle, true);
+                }
+                else if (toAngleInShadowArea)
+                {
+                    AddNewWavefront(wavefront.RelevantVertices, wavefront.RootVertex,
+                        wavefront.DistanceToRootFromSource,
+                        wavefront.FromAngle, angleShadowTo, true);
+                }
+                else
+                {
+                    AddNewWavefront(wavefront.RelevantVertices, wavefront.RootVertex,
+                        wavefront.DistanceToRootFromSource,
+                        wavefront.FromAngle, angleShadowFrom, true);
+                    AddNewWavefront(wavefront.RelevantVertices, wavefront.RootVertex,
+                        wavefront.DistanceToRootFromSource,
+                        angleShadowTo, wavefront.ToAngle, true);
+                }
             }
             else
             {
