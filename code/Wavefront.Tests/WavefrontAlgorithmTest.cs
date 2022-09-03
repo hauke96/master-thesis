@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime;
 using Mars.Common;
 using Mars.Common.Collections;
 using NetTopologySuite.Geometries;
@@ -14,6 +16,7 @@ namespace Wavefront.Tests
     public class WavefrontAlgorithmTest
     {
         private static readonly double FLOAT_TOLERANCE = 0.01;
+
         public class ProcessNextEvent : WavefrontTestHelper.WithWavefrontAlgorithm
         {
             Position targetPosition;
@@ -34,7 +37,7 @@ namespace Wavefront.Tests
                 // Remove last remaining vertex
                 wavefront.RemoveNextVertex();
 
-                wavefrontAlgorithm.ProcessNextEvent(targetPosition);
+                wavefrontAlgorithm.ProcessNextEvent(targetPosition, new Stopwatch());
 
                 Assert.AreEqual(0, wavefrontAlgorithm.Wavefronts.Count);
             }
@@ -49,7 +52,7 @@ namespace Wavefront.Tests
                 var wavefront = Wavefront.New(0, 90, new Vertex(6.5, 2.9), vertices, 1, false)!;
                 wavefrontAlgorithm.AddWavefront(wavefront);
 
-                wavefrontAlgorithm.ProcessNextEvent(targetPosition);
+                wavefrontAlgorithm.ProcessNextEvent(targetPosition, new Stopwatch());
 
                 Assert.AreEqual(1, wavefrontAlgorithm.Wavefronts.Count);
                 Assert.AreEqual(1, wavefront.RelevantVertices.Count);
@@ -64,10 +67,11 @@ namespace Wavefront.Tests
                 vertices.Add(multiVertexLineVertices[1]);
                 var wavefront = Wavefront.New(0, 90, new Vertex(5, 2), vertices, 1, false)!;
                 wavefrontAlgorithm.AddWavefront(wavefront);
-                wavefrontAlgorithm.PositionToPredecessor[nextVertex.Position] = Position.CreateGeoPosition(1, 1);
+                wavefrontAlgorithm.WaypointToPredecessor[new Waypoint(nextVertex.Position, 0, 0)] =
+                    new Waypoint(Position.CreateGeoPosition(1, 1), 0, 0);
                 wavefrontAlgorithm.WavefrontRoots.Add(nextVertex.Position);
 
-                wavefrontAlgorithm.ProcessNextEvent(targetPosition);
+                wavefrontAlgorithm.ProcessNextEvent(targetPosition, new Stopwatch());
 
                 Assert.AreEqual(1, wavefrontAlgorithm.Wavefronts.Count);
                 Assert.AreEqual(1, wavefront.RelevantVertices.Count);
@@ -83,7 +87,7 @@ namespace Wavefront.Tests
                 wavefrontAlgorithm.AddWavefront(wavefront);
                 Assert.AreEqual(multiVertexLineVertices[1].Position, wavefront.GetNextVertex()?.Position);
 
-                wavefrontAlgorithm.ProcessNextEvent(targetPosition);
+                wavefrontAlgorithm.ProcessNextEvent(targetPosition, new Stopwatch());
 
                 Assert.AreEqual(2, wavefrontAlgorithm.Wavefronts.Count);
 
@@ -108,10 +112,17 @@ namespace Wavefront.Tests
                 var wavefront = Wavefront.New(0, 90, sourceVertex, vertices, 1, false)!;
                 wavefrontAlgorithm.AddWavefront(wavefront);
 
-                wavefrontAlgorithm.ProcessNextEvent(targetPosition);
+                var rootWaypoint = new Waypoint(wavefront.RootVertex.Position, 0, 0);
+                wavefrontAlgorithm.WaypointToPredecessor[rootWaypoint] = null;
+                wavefrontAlgorithm.PositionToWaypoint[rootWaypoint.Position] = rootWaypoint;
 
+                wavefrontAlgorithm.ProcessNextEvent(targetPosition, new Stopwatch());
+
+                var targetWaypoint =
+                    wavefrontAlgorithm.WaypointToPredecessor.Keys.First(k => k.Position.Equals(targetPosition));
+                Assert.NotNull(wavefrontAlgorithm.WaypointToPredecessor[targetWaypoint]);
                 Assert.AreEqual(wavefront.RootVertex.Position,
-                    wavefrontAlgorithm.PositionToPredecessor[targetPosition]);
+                    wavefrontAlgorithm.WaypointToPredecessor[targetWaypoint].Position);
                 Assert.AreEqual(0, wavefrontAlgorithm.Wavefronts.Count);
                 Assert.AreEqual(0, wavefront.RelevantVertices.Count);
             }
@@ -156,7 +167,7 @@ namespace Wavefront.Tests
                 Assert.IsTrue(wavefront.HasBeenVisited(vertices.ElementAt(3).Position));
                 Assert.AreEqual(vertex, wavefront.GetNextVertex());
 
-                wavefrontAlgorithm.ProcessNextEvent(targetPosition);
+                wavefrontAlgorithm.ProcessNextEvent(targetPosition, new Stopwatch());
 
                 Assert.AreEqual(2, wavefrontAlgorithm.Wavefronts.Count);
                 var wavefronts = ToList(wavefrontAlgorithm.Wavefronts);
@@ -167,6 +178,26 @@ namespace Wavefront.Tests
                 w = wavefronts[1];
                 Assert.AreEqual(wavefront.FromAngle, w.FromAngle, FLOAT_TOLERANCE);
                 Assert.AreEqual(360, w.ToAngle, FLOAT_TOLERANCE);
+            }
+            [Test]
+            public void FromAndToWithinShadowArea()
+            {
+                var wavefront = Wavefront.New(10, 350, new Vertex(6.5, 2.5), wavefrontAlgorithm.Vertices.ToList(), 1,
+                    false)!;
+                var vertex = multiVertexLineVertices[1];
+                wavefront.RemoveNextVertex();
+                Assert.IsTrue(wavefront.HasBeenVisited(multiVertexLineObstacle[0].ToPosition()));
+                Assert.AreEqual(vertex, wavefront.GetNextVertex());
+                wavefrontAlgorithm.AddWavefront(wavefront);
+
+                wavefrontAlgorithm.ProcessNextEvent(targetPosition, new Stopwatch());
+
+                var wavefronts = ToList(wavefrontAlgorithm.Wavefronts);
+                Assert.AreEqual(2, wavefronts.Count);
+                Assert.AreEqual(0, wavefronts[0].FromAngle);
+                Assert.AreEqual(45, wavefronts[0].ToAngle);
+                Assert.AreEqual(45, wavefronts[1].FromAngle);
+                Assert.AreEqual(315, wavefronts[1].ToAngle);
             }
         }
 
@@ -185,14 +216,21 @@ namespace Wavefront.Tests
                 wavefrontAlgorithm.AddWavefront(wavefront);
                 targetPosition = Position.CreateGeoPosition(10, 10);
 
-                wavefrontAlgorithm.ProcessNextEvent(targetPosition);
+                var rootWaypoint = new Waypoint(wavefront.RootVertex.Position, 0, 0);
+                wavefrontAlgorithm.WaypointToPredecessor[rootWaypoint] = null;
+                wavefrontAlgorithm.PositionToWaypoint[rootWaypoint.Position] = rootWaypoint;
+
+                wavefrontAlgorithm.ProcessNextEvent(targetPosition, new Stopwatch());
             }
 
             [Test]
             public void SetsPredecessorCorrectly()
             {
+                var waypoint =
+                    wavefrontAlgorithm.WaypointToPredecessor.Keys.First(k => k.Position.Equals(nextVertex.Position));
+                Assert.NotNull(wavefrontAlgorithm.WaypointToPredecessor[waypoint]);
                 Assert.AreEqual(wavefront.RootVertex.Position,
-                    wavefrontAlgorithm.PositionToPredecessor[nextVertex.Position]);
+                    wavefrontAlgorithm.WaypointToPredecessor[waypoint].Position);
             }
 
             [Test]
@@ -220,7 +258,7 @@ namespace Wavefront.Tests
             [Test]
             public void NextVertexCastingShadow()
             {
-                wavefrontAlgorithm.ProcessNextEvent(targetPosition);
+                wavefrontAlgorithm.ProcessNextEvent(targetPosition, new Stopwatch());
 
                 var wavefronts = ToList(wavefrontAlgorithm.Wavefronts);
                 Assert.IsFalse(wavefronts.Contains(wavefront));
@@ -250,7 +288,7 @@ namespace Wavefront.Tests
             Position targetPosition;
 
             [SetUp]
-            public void setup()
+            public void Setup()
             {
                 nextVertex = multiVertexLineVertices[0];
                 // Add wavefront close to the next vertex
@@ -259,14 +297,21 @@ namespace Wavefront.Tests
                 wavefrontAlgorithm.AddWavefront(wavefront);
                 targetPosition = Position.CreateGeoPosition(10, 10);
 
-                wavefrontAlgorithm.ProcessNextEvent(targetPosition);
+                var rootWaypoint = new Waypoint(wavefront.RootVertex.Position, 0, 0);
+                wavefrontAlgorithm.WaypointToPredecessor[rootWaypoint] = null;
+                wavefrontAlgorithm.PositionToWaypoint[rootWaypoint.Position] = rootWaypoint;
+
+                wavefrontAlgorithm.ProcessNextEvent(targetPosition, new Stopwatch());
             }
 
             [Test]
             public void SetsPredecessorCorrectly()
             {
+                var waypoint =
+                    wavefrontAlgorithm.WaypointToPredecessor.Keys.First(k => k.Position.Equals(nextVertex.Position));
+                Assert.NotNull(wavefrontAlgorithm.WaypointToPredecessor[waypoint]);
                 Assert.AreEqual(wavefront.RootVertex.Position,
-                    wavefrontAlgorithm.PositionToPredecessor[nextVertex.Position]);
+                    wavefrontAlgorithm.WaypointToPredecessor[waypoint].Position);
             }
 
             [Test]

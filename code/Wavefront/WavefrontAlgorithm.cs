@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Mars.Common.Collections;
 using ServiceStack;
 using Wavefront.Geometry;
@@ -15,11 +16,12 @@ namespace Wavefront
 
         // Stores the predecessor of each visited vertex position. Recursively following the predecessors up to the
         // source gives the shortest path from the source to the given position.
-        public readonly Dictionary<Position, Position?> PositionToPredecessor;
-        
+        public readonly Dictionary<Waypoint, Waypoint?> WaypointToPredecessor;
+        public readonly Dictionary<Position, Waypoint> PositionToWaypoint;
+
         // Stores the known wavefront roots so that wavefront are only spawned at newly visited vertices.
         public readonly HashSet<Position> WavefrontRoots;
-        
+
         public readonly FibonacciHeap<Wavefront, double> Wavefronts;
         public readonly List<Vertex> Vertices;
 
@@ -28,7 +30,8 @@ namespace Wavefront
             _obstacles = new QuadTree<Obstacle>();
             obstacles.Each(obstacle => _obstacles.Insert(obstacle.Envelope, obstacle));
 
-            PositionToPredecessor = new Dictionary<Position, Position?>();
+            WaypointToPredecessor = new Dictionary<Waypoint, Waypoint?>();
+            PositionToWaypoint = new Dictionary<Position, Waypoint>();
             WavefrontRoots = new HashSet<Position>();
             Wavefronts = new FibonacciHeap<Wavefront, double>(0);
 
@@ -44,13 +47,17 @@ namespace Wavefront
 
         public RoutingResult Route(Position source, Position target)
         {
+            var stopwatch = new Stopwatch();
+
             var sourceVertex = new Vertex(source);
             Vertices.Add(sourceVertex);
 
             var targetVertex = new Vertex(target);
             Vertices.Add(targetVertex);
 
-            PositionToPredecessor[source] = null;
+            SetPredecessor(source, null, stopwatch);
+            WavefrontRoots.Add(source);
+
             _vertexNeighbors[sourceVertex] =
                 WavefrontPreprocessor.GetVisibleNeighborsForVertex(_obstacles, Vertices, sourceVertex,
                     knnSearchNeighbors);
@@ -73,42 +80,43 @@ namespace Wavefront
             Log.I($"Routing from {source} to {target}");
             Log.D($"Initial wavefront at {initialWavefront.RootVertex.Position}");
 
-            while (!PositionToPredecessor.ContainsKey(target) && !Wavefronts.IsEmpty())
+            stopwatch.Start();
+            while (!PositionToWaypoint.ContainsKey(target) && !Wavefronts.IsEmpty())
             {
-                ProcessNextEvent(target);
+                ProcessNextEvent(target, stopwatch);
             }
 
             // Clean up the list for future uses of the Route() method
             neighborsOfTarget.Each(neighbor => _vertexNeighbors[neighbor].Remove(targetVertex));
 
-            var waypoints = GetOptimalRoute(target);
+            var targetWaypoint = WaypointToPredecessor.Keys.First(k => k.Position.Equals(target));
+            var waypoints = GetOptimalRoute(targetWaypoint);
 
             return new RoutingResult(waypoints, GetAllRoutes());
         }
 
         private List<List<Waypoint>> GetAllRoutes()
         {
-            var positions = PositionToPredecessor.Keys.ToList();
-            var predecessors = PositionToPredecessor.Values.ToImmutableHashSet();
+            var waypoints = WaypointToPredecessor.Keys.ToList();
+            var predecessors = WaypointToPredecessor.Values.ToImmutableHashSet();
 
             // Find all positions which are *not* a predecessor of some other position. This means we found all leafs
             // of our predecessor tree.
-            var leafPositions = positions.Where(p => !predecessors.Contains(p));
+            var leafWaypoints = waypoints.Where(p => !predecessors.Contains(p));
 
-            return leafPositions.Map(GetOptimalRoute);
+            return leafWaypoints.Map(GetOptimalRoute);
         }
 
-        private List<Waypoint> GetOptimalRoute(Position start)
+        private List<Waypoint> GetOptimalRoute(Waypoint start)
         {
             var waypoints = new List<Waypoint>();
-            var nextPosition = start;
+            var nextWaypoint = start;
 
-            while (nextPosition != null)
+            while (nextWaypoint != null)
             {
-                // TODO fill with real order and date
-                waypoints.Add(new Waypoint(nextPosition, 0, 0));
-                nextPosition = PositionToPredecessor.ContainsKey(nextPosition)
-                    ? PositionToPredecessor[nextPosition]
+                waypoints.Add(nextWaypoint);
+                nextWaypoint = WaypointToPredecessor.ContainsKey(nextWaypoint)
+                    ? WaypointToPredecessor[nextWaypoint]
                     : null;
             }
 
@@ -122,7 +130,7 @@ namespace Wavefront
             return waypoints;
         }
 
-        public void ProcessNextEvent(Position targetPosition)
+        public void ProcessNextEvent(Position targetPosition, Stopwatch stopwatch)
         {
             var wavefrontNode = Wavefronts.Min();
             var wavefront = wavefrontNode.Data;
@@ -148,7 +156,7 @@ namespace Wavefront
             if (Equals(currentVertex.Position, targetPosition))
             {
                 Log.I($"Target reached ({currentVertex.Position})", "", 1);
-                PositionToPredecessor[currentVertex.Position] = wavefront.RootVertex.Position;
+                SetPredecessor(currentVertex.Position, wavefront.RootVertex.Position, stopwatch);
                 WavefrontRoots.Add(currentVertex.Position);
                 // Log.D($"Set predecessor of target to {wavefront.RootVertex.Position}");
                 RemoveAndUpdateWavefront(wavefrontNode);
@@ -167,7 +175,7 @@ namespace Wavefront
                 out var newWavefrontCreatedAtEventRoot);
             // Log.D($"Handled neighbors, shadow from {angleShadowFrom}° to {angleShadowTo}°");
 
-            PositionToPredecessor[currentVertex.Position] = wavefront.RootVertex.Position;
+            SetPredecessor(currentVertex.Position, wavefront.RootVertex.Position, stopwatch);
             if (newWavefrontCreatedAtEventRoot)
             {
                 WavefrontRoots.Add(currentVertex.Position);
@@ -212,6 +220,23 @@ namespace Wavefront
             else
             {
                 AddWavefront(wavefront);
+            }
+        }
+
+        private void SetPredecessor(Position vertexPosition, Position? predecessorPosition, Stopwatch stopwatch)
+        {
+            Waypoint? predecessor = null;
+            if (predecessorPosition != null)
+            {
+                PositionToWaypoint.TryGetValue(predecessorPosition, out predecessor);
+            }
+
+            Waypoint waypoint;
+            if (!PositionToWaypoint.ContainsKey(vertexPosition))
+            {
+                waypoint = new Waypoint(vertexPosition, PositionToWaypoint.Count, stopwatch.Elapsed.TotalMilliseconds);
+                WaypointToPredecessor[waypoint] = predecessor;
+                PositionToWaypoint[vertexPosition] = waypoint;
             }
         }
 
@@ -427,6 +452,7 @@ namespace Wavefront
                 // $"New wavefront at {newWavefront.RootVertex.Position} with {newWavefront.RelevantVertices.Count} relevant vertices from {fromAngle}° to {toAngle}°");
                 Wavefronts.Insert(
                     new FibonacciHeapNode<Wavefront, double>(newWavefront, newWavefront.DistanceToNextVertex));
+                WavefrontRoots.Add(newWavefront.RootVertex.Position);
                 return true;
             }
 
