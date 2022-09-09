@@ -89,8 +89,13 @@ namespace Wavefront
             // Clean up the list for future uses of the Route() method
             neighborsOfTarget.Each(neighbor => _vertexNeighbors[neighbor].Remove(targetVertex));
 
-            var targetWaypoint = WaypointToPredecessor.Keys.First(k => k.Position.Equals(target));
-            var waypoints = GetOptimalRoute(targetWaypoint);
+            List<Waypoint> waypoints = new List<Waypoint>();
+
+            var targetWaypoints = WaypointToPredecessor.Keys.Where(k => k.Position.Equals(target)).ToList();
+            if (!targetWaypoints.IsEmpty())
+            {
+                waypoints.AddRange(GetOptimalRoute(targetWaypoints.First()));
+            }
 
             return new RoutingResult(waypoints, GetAllRoutes());
         }

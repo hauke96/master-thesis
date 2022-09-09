@@ -852,11 +852,11 @@ namespace Wavefront.Tests
             }
         }
 
-        public class RouteWithOverlappingObstacles
+        public class OverlappingObstacles_LineAndPolygon
         {
             // Real world problem: Route was going through barriers
 
-            static WavefrontAlgorithm wavefrontAlgorithm;
+            private WavefrontAlgorithm wavefrontAlgorithm;
 
             [SetUp]
             public void Setup()
@@ -892,6 +892,55 @@ namespace Wavefront.Tests
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.AreEqual(0, waypoints.Count);
+            }
+        }
+
+        public class OverlappingObstacles_TouchingLines
+        {
+            // Real world problem: Route was going through the vertex where two lines touched
+
+            private WavefrontAlgorithm wavefrontAlgorithm;
+            private LineString line1;
+            private LineString line2;
+
+            [SetUp]
+            public void Setup()
+            {
+                line1 = new LineString(new[]
+                {
+                    new Coordinate(0, 0),
+                    new Coordinate(0, 1),
+                    new Coordinate(0, 2),
+                    new Coordinate(1, 3),
+                });
+                line2 = new LineString(new[]
+                {
+                    new Coordinate(0, 1),
+                    new Coordinate(1, 1)
+                });
+                var obstacleGeometries = new List<NetTopologySuite.Geometries.Geometry>();
+                obstacleGeometries.Add(line1);
+                obstacleGeometries.Add(line2);
+
+                var obstacles = obstacleGeometries.Map(geometry => new Obstacle(geometry));
+
+                wavefrontAlgorithm = new WavefrontAlgorithm(obstacles);
+            }
+
+            [Test]
+            public void RouteAroundTouchingLines()
+            {
+                var source = Position.CreateGeoPosition(0.5, 2.75);
+                var target = Position.CreateGeoPosition(0.2, 0.5);
+                var routingResult = wavefrontAlgorithm.Route(source, target);
+                var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
+
+                Assert.AreEqual(4, waypoints.Count);
+                
+                Assert.AreEqual(source, waypoints[0]);
+                Assert.AreEqual(line1[2].ToPosition(), waypoints[1]);
+                Assert.AreEqual(line1[0].ToPosition(), waypoints[2]);
+                Assert.AreEqual(target, waypoints[3]);
             }
         }
 
