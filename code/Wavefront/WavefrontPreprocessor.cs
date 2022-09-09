@@ -101,6 +101,8 @@ public class WavefrontPreprocessor
             });
         });
 
+        WriteVertexNeighborsToFile(positionToNeighbors);
+
         var result = new Dictionary<Position, List<Position>>();
         positionToNeighbors.Each(pair => result.Add(pair.Key, pair.Value.ToList()));
         return result;
@@ -212,5 +214,38 @@ public class WavefrontPreprocessor
         }
 
         return false;
+    }
+
+    private static async void WriteVertexNeighborsToFile(Dictionary<Position, HashSet<Position>> positionToNeighbors)
+    {
+        var geometries = new List<NetTopologySuite.Geometries.Geometry>();
+        foreach (var pair in positionToNeighbors)
+        {
+            if (pair.Value.IsEmpty())
+            {
+                continue;
+            }
+
+            var coordinates = new List<Coordinate>();
+            coordinates.Add(pair.Key.ToCoordinate());
+            foreach (var position in pair.Value)
+            {
+                coordinates.Add(position.ToCoordinate());
+                coordinates.Add(pair.Key.ToCoordinate());
+            }
+
+            geometries.Add(new LineString(coordinates.ToArray()));
+        }
+
+        var geometry = new GeometryCollection(geometries.ToArray());
+
+        var serializer = GeoJsonSerializer.Create();
+        await using var stringWriter = new StringWriter();
+        using var jsonWriter = new JsonTextWriter(stringWriter);
+
+        serializer.Serialize(jsonWriter, geometry);
+        var geoJson = stringWriter.ToString();
+
+        await File.WriteAllTextAsync("vertex-neighbors.geojson", geoJson);
     }
 }
