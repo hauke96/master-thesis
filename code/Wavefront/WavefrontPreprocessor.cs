@@ -1,8 +1,11 @@
 using System.Diagnostics;
 using Mars.Common;
 using Mars.Common.Collections;
+using Mars.Common.Core;
 using Mars.Numerics;
 using NetTopologySuite.Geometries;
+using NetTopologySuite.IO;
+using Newtonsoft.Json;
 using ServiceStack;
 using Wavefront.Geometry;
 using Wavefront.Index;
@@ -35,7 +38,7 @@ public class WavefrontPreprocessor
     public static Dictionary<Position, List<Position>> GetNeighborsFromObstacleVertices(List<Obstacle> obstacles)
     {
         // TODO Use Set<Position> to avoid duplicates?
-        var positionToNeighbors = new Dictionary<Position, List<Position>>();
+        var positionToNeighbors = new Dictionary<Position, HashSet<Position>>();
         obstacles.Each(obstacle =>
         {
             if (obstacle.Coordinates.Count <= 1)
@@ -49,7 +52,7 @@ public class WavefrontPreprocessor
                 var position = coordinate.ToPosition();
                 if (!positionToNeighbors.ContainsKey(position))
                 {
-                    positionToNeighbors[position] = new List<Position>();
+                    positionToNeighbors[position] = new HashSet<Position>();
                 }
 
                 Coordinate? nextCoordinate =
@@ -67,11 +70,14 @@ public class WavefrontPreprocessor
 
                 if (nextCoordinate != null)
                 {
-                    var nextVertexVisible = !obstacles.Any(o =>
-                        !obstacle.Equals(o) &&
-                        o.HasLineSegment(coordinate, nextCoordinate) ||
-                        o.IntersectsWithLine(coordinate, nextCoordinate));
-                    if (nextVertexVisible)
+                    var nextVertexHidden = obstacles.Any(o =>
+                        o.IsClosed &&
+                        (
+                            !obstacle.Equals(o) &&
+                            o.HasLineSegment(coordinate, nextCoordinate) ||
+                            o.IntersectsWithLine(coordinate, nextCoordinate)
+                        ));
+                    if (!nextVertexHidden)
                     {
                         positionToNeighbors[position].Add(nextCoordinate.ToPosition());
                     }
@@ -81,9 +87,12 @@ public class WavefrontPreprocessor
                 {
                     var previousVertexVisible =
                         !obstacles.Any(o =>
-                            !obstacle.Equals(o) &&
-                            o.HasLineSegment(coordinate, previousCoordinate) ||
-                            o.IntersectsWithLine(coordinate, previousCoordinate));
+                            o.IsClosed &&
+                            (
+                                !obstacle.Equals(o) &&
+                                o.HasLineSegment(coordinate, previousCoordinate) ||
+                                o.IntersectsWithLine(coordinate, previousCoordinate)
+                            ));
                     if (previousVertexVisible)
                     {
                         positionToNeighbors[position].Add(previousCoordinate.ToPosition());
@@ -91,7 +100,10 @@ public class WavefrontPreprocessor
                 }
             });
         });
-        return positionToNeighbors;
+
+        var result = new Dictionary<Position, List<Position>>();
+        positionToNeighbors.Each(pair => result.Add(pair.Key, pair.Value.ToList()));
+        return result;
     }
 
     public static Dictionary<Vertex, List<Vertex>> CalculateVisibleKnn(QuadTree<Obstacle> obstacles,
