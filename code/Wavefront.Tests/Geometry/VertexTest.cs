@@ -18,17 +18,17 @@ public class VertexTest
         neighborPositions.Add(Position.CreateGeoPosition(0, 1)); // left
         var vertex = new Vertex(Position.CreateGeoPosition(1, 1), neighborPositions.ToList());
 
-        var rightNeighbor = vertex.RightNeighbor(Position.CreateGeoPosition(2, 2));
-        Assert.AreEqual(neighborPositions[2], rightNeighbor);
+        var neighbor = vertex.RightNeighbor(Position.CreateGeoPosition(2, 2));
+        Assert.AreEqual(neighborPositions[0], neighbor);
 
-        rightNeighbor = vertex.RightNeighbor(Position.CreateGeoPosition(2, 0));
-        Assert.AreEqual(neighborPositions[0], rightNeighbor);
+        neighbor = vertex.RightNeighbor(Position.CreateGeoPosition(2, 0));
+        Assert.AreEqual(neighborPositions[1], neighbor);
 
-        rightNeighbor = vertex.RightNeighbor(Position.CreateGeoPosition(0, 0));
-        Assert.AreEqual(neighborPositions[1], rightNeighbor);
+        neighbor = vertex.RightNeighbor(Position.CreateGeoPosition(0, 0));
+        Assert.AreEqual(neighborPositions[2], neighbor);
 
-        rightNeighbor = vertex.RightNeighbor(Position.CreateGeoPosition(0, 2));
-        Assert.AreEqual(neighborPositions[2], rightNeighbor);
+        neighbor = vertex.RightNeighbor(Position.CreateGeoPosition(0, 2));
+        Assert.AreEqual(neighborPositions[0], neighbor);
     }
     
     [Test]
@@ -40,16 +40,16 @@ public class VertexTest
         neighborPositions.Add(Position.CreateGeoPosition(0, 1)); // left
         var vertex = new Vertex(Position.CreateGeoPosition(1, 1), neighborPositions.ToList());
 
-        var rightNeighbor = vertex.LeftNeighbor(Position.CreateGeoPosition(2, 2));
-        Assert.AreEqual(neighborPositions[0], rightNeighbor);
+        var neighbor = vertex.LeftNeighbor(Position.CreateGeoPosition(2, 2));
+        Assert.AreEqual(neighborPositions[2], neighbor);
 
-        rightNeighbor = vertex.LeftNeighbor(Position.CreateGeoPosition(2, 0));
-        Assert.AreEqual(neighborPositions[1], rightNeighbor);
+        neighbor = vertex.LeftNeighbor(Position.CreateGeoPosition(2, 0));
+        Assert.AreEqual(neighborPositions[0], neighbor);
 
-        rightNeighbor = vertex.LeftNeighbor(Position.CreateGeoPosition(0, 0));
-        Assert.AreEqual(neighborPositions[2], rightNeighbor);
+        neighbor = vertex.LeftNeighbor(Position.CreateGeoPosition(0, 0));
+        Assert.AreEqual(neighborPositions[1], neighbor);
 
-        rightNeighbor = vertex.LeftNeighbor(Position.CreateGeoPosition(0, 2));
-        Assert.AreEqual(neighborPositions[0], rightNeighbor);
+        neighbor = vertex.LeftNeighbor(Position.CreateGeoPosition(0, 2));
+        Assert.AreEqual(neighborPositions[2], neighbor);
     }
 }

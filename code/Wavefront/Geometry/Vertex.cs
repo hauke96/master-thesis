@@ -1,4 +1,5 @@
 using NetTopologySuite.Geometries;
+using ServiceStack;
 using Position = Mars.Interfaces.Environments.Position;
 
 namespace Wavefront.Geometry;
@@ -44,25 +45,49 @@ public class Vertex
     }
 
     /// <summary>
-    /// Returns the neighbor that's right (=counter clockwise) or equal to the angle of the given position.
+    /// Returns the neighbor that's right (=clockwise) or equal to the angle of the given position.
     /// </summary>
     public Position? RightNeighbor(Position basePosition)
     {
-        var index = _neighbors.FindLastIndex(neighborPosition =>
-            Angle.GetBearing(Position, neighborPosition) <= Angle.GetBearing(Position, basePosition));
-        index = index >= 0 ? index : _neighbors.Count - 1;
-        return index >= 0 ? _neighbors[index] : null;
+        var vertexToBasePositionAngle = Angle.GetBearing(Position, basePosition);
+        var rotatedNeighborAngles = _neighbors
+            .Map(n => Angle.Normalize(Angle.GetBearing(Position, n) - vertexToBasePositionAngle));
+
+        var minAngle = double.PositiveInfinity;
+        var index = -1;
+        rotatedNeighborAngles.Each((i, a) =>
+        {
+            if (a < minAngle)
+            {
+                minAngle = a;
+                index = i;
+            }
+        });
+
+        return 0 <= index && index < _neighbors.Count ? _neighbors[index] : null;
     }
 
     /// <summary>
-    /// Returns the neighbor that's left (=clockwise) or equal to the angle of the given position.
+    /// Returns the neighbor that's left (=counter clockwise) or equal to the angle of the given position.
     /// </summary>
     public Position? LeftNeighbor(Position basePosition)
     {
-        var index = _neighbors.FindIndex(neighborPosition =>
-            Angle.GetBearing(Position, neighborPosition) > Angle.GetBearing(Position, basePosition));
-        index = index >= 0 ? index : 0;
-        return index < _neighbors.Count ? _neighbors[index] : null;
+        var vertexToBasePositionAngle = Angle.GetBearing(Position, basePosition);
+        var rotatedNeighborAngles = _neighbors
+            .Map(n => Angle.Normalize(Angle.GetBearing(Position, n) - vertexToBasePositionAngle));
+
+        var maxAngle = double.NegativeInfinity;
+        var index = -1;
+        rotatedNeighborAngles.Each((i, a) =>
+        {
+            if (a > maxAngle)
+            {
+                maxAngle = a;
+                index = i;
+            }
+        });
+
+        return 0 <= index && index < _neighbors.Count ? _neighbors[index] : null;
     }
 
     public override bool Equals(object? obj)
