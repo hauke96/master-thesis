@@ -794,12 +794,10 @@ namespace Wavefront.Tests
                 var routingResult = wavefrontAlgorithm.Route(sourceVertex, targetVertex);
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
-                Assert.Contains(sourceVertex, waypoints);
-                Assert.Contains(Position.CreateGeoPosition(rotatedLineObstacle[0].X, rotatedLineObstacle[0].Y),
-                    waypoints);
-                Assert.Contains(Position.CreateGeoPosition(rotatedLineObstacle[1].X, rotatedLineObstacle[1].Y),
-                    waypoints);
-                Assert.Contains(targetVertex, waypoints);
+                Assert.AreEqual(sourceVertex, waypoints[0]);
+                Assert.AreEqual(rotatedLineObstacle[0].ToPosition(), waypoints[1]);
+                Assert.AreEqual(rotatedLineObstacle[1].ToPosition(), waypoints[2]);
+                Assert.AreEqual(targetVertex, waypoints[3]);
                 Assert.AreEqual(4, waypoints.Count);
             }
         }
@@ -904,6 +902,7 @@ namespace Wavefront.Tests
             private WavefrontAlgorithm wavefrontAlgorithm;
             private LineString line1;
             private LineString line2;
+            private LineString line3;
 
             [SetUp]
             public void Setup()
@@ -920,6 +919,71 @@ namespace Wavefront.Tests
                     new Coordinate(0, 1),
                     new Coordinate(1, 1)
                 });
+                line3 = new LineString(new[]
+                {
+                    new Coordinate(1, 1),
+                    new Coordinate(1, 3)
+                });
+                var obstacleGeometries = new List<NetTopologySuite.Geometries.Geometry>();
+                obstacleGeometries.Add(line1);
+                obstacleGeometries.Add(line2);
+                obstacleGeometries.Add(line3);
+
+                var obstacles = obstacleGeometries.Map(geometry => new Obstacle(geometry));
+
+                wavefrontAlgorithm = new WavefrontAlgorithm(obstacles);
+            }
+
+            [Test]
+            public void RouteAroundTouchingLines()
+            {
+                var source = Position.CreateGeoPosition(0.2, 2.25);
+                var target = Position.CreateGeoPosition(0.2, 0.5);
+                var routingResult = wavefrontAlgorithm.Route(source, target);
+                var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
+
+                Assert.AreEqual(4, waypoints.Count);
+
+                Assert.AreEqual(source, waypoints[0]);
+                Assert.AreEqual(line1[2].ToPosition(), waypoints[1]);
+                Assert.AreEqual(line1[0].ToPosition(), waypoints[2]);
+                Assert.AreEqual(target, waypoints[3]);
+            }
+
+            [Test]
+            public void RouteIntoClosedObstacle()
+            {
+                var source = Position.CreateGeoPosition(0.2, 2.25);
+                var target = Position.CreateGeoPosition(0.2, 1.5);
+                var routingResult = wavefrontAlgorithm.Route(source, target);
+                var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
+
+                Assert.AreEqual(0, waypoints.Count);
+            }
+        }
+
+        public class TouchingLineEnds
+        {
+            // Real world problem: Route was going through the vertex where two lines touched
+
+            private WavefrontAlgorithm wavefrontAlgorithm;
+            private LineString line1;
+            private LineString line2;
+
+            [SetUp]
+            public void Setup()
+            {
+                line1 = new LineString(new[]
+                {
+                    new Coordinate(0, 0),
+                    new Coordinate(0, 1),
+                    new Coordinate(3, 3),
+                });
+                line2 = new LineString(new[]
+                {
+                    new Coordinate(0, 0),
+                    new Coordinate(1, 0)
+                });
                 var obstacleGeometries = new List<NetTopologySuite.Geometries.Geometry>();
                 obstacleGeometries.Add(line1);
                 obstacleGeometries.Add(line2);
@@ -930,19 +994,34 @@ namespace Wavefront.Tests
             }
 
             [Test]
-            public void RouteAroundTouchingLines()
+            public void RouteBelowTouchingLineEnds()
             {
-                var source = Position.CreateGeoPosition(0.5, 2.75);
-                var target = Position.CreateGeoPosition(0.2, 0.5);
+                var source = Position.CreateGeoPosition(0.1, 1.2);
+                var target = Position.CreateGeoPosition(0.1, -0.1);
                 var routingResult = wavefrontAlgorithm.Route(source, target);
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
-                Assert.AreEqual(4, waypoints.Count);
-                
                 Assert.AreEqual(source, waypoints[0]);
-                Assert.AreEqual(line1[2].ToPosition(), waypoints[1]);
+                Assert.AreEqual(line1[1].ToPosition(), waypoints[1]);
                 Assert.AreEqual(line1[0].ToPosition(), waypoints[2]);
                 Assert.AreEqual(target, waypoints[3]);
+                Assert.AreEqual(4, waypoints.Count);
+            }
+
+            [Test]
+            public void RouteAroundTouchingLineEnds()
+            {
+                var source = Position.CreateGeoPosition(0.1, 1.2);
+                var target = Position.CreateGeoPosition(0.1, 0.1);
+                var routingResult = wavefrontAlgorithm.Route(source, target);
+                var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
+
+                Assert.AreEqual(source, waypoints[0]);
+                Assert.AreEqual(line1[1].ToPosition(), waypoints[1]);
+                Assert.AreEqual(line1[0].ToPosition(), waypoints[2]);
+                Assert.AreEqual(line2[1].ToPosition(), waypoints[3]);
+                Assert.AreEqual(target, waypoints[4]);
+                Assert.AreEqual(5, waypoints.Count);
             }
         }
 
