@@ -69,7 +69,8 @@ namespace Wavefront.Tests
                 wavefrontAlgorithm.AddWavefront(wavefront);
                 wavefrontAlgorithm.WaypointToPredecessor[new Waypoint(nextVertex.Position, 0, 0)] =
                     new Waypoint(Position.CreateGeoPosition(1, 1), 0, 0);
-                wavefrontAlgorithm.WavefrontRoots.Add(nextVertex.Position);
+                wavefrontAlgorithm.WavefrontRootPredecessor.Add(new Waypoint(nextVertex.Position, 0, 0), null);
+                wavefrontAlgorithm.WavefrontRootToWaypoint.Add(nextVertex.Position, wavefrontAlgorithm.WavefrontRootPredecessor.First().Key);
 
                 wavefrontAlgorithm.ProcessNextEvent(targetPosition, new Stopwatch());
 
@@ -179,6 +180,7 @@ namespace Wavefront.Tests
                 Assert.AreEqual(wavefront.FromAngle, w.FromAngle, FLOAT_TOLERANCE);
                 Assert.AreEqual(360, w.ToAngle, FLOAT_TOLERANCE);
             }
+
             [Test]
             public void FromAndToWithinShadowArea()
             {
