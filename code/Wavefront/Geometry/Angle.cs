@@ -156,7 +156,8 @@ public class Angle
     }
 
     /// <summary>
-    /// Returns a >= b. The equality check is made with a little bit of tolerance to compensate floating point inaccuracy.
+    /// Returns a >= b. Both angles will be normalized before checking the greater-equal-relation. The equality check is
+    /// made with a little bit of tolerance to compensate floating point inaccuracy.
     /// </summary>
     public static bool GreaterEqual(double a, double b)
     {
@@ -171,7 +172,8 @@ public class Angle
     }
 
     /// <summary>
-    /// Returns a <= b. The equality check is made with a little bit of tolerance to compensate floating point inaccuracy.
+    /// Returns a <= b. Both angles will be normalized before checking the greater-equal-relation. The equality check is
+    /// made with a little bit of tolerance to compensate floating point inaccuracy.
     /// </summary>
     public static bool LowerEqual(double a, double b)
     {
