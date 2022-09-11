@@ -5,6 +5,7 @@ This repository contains all content for my master thesis.
 ## Folder structure
 
 * [`code`](./code) contains all source code files regarding the C# project.
+* [`visualization`](./visualization) contains files and projects to create visualizations of the data produces by the routing engine. Further information and documentation can be found in this folder.
 
 ## Documentation
 
