@@ -8,14 +8,18 @@ using Mars.Interfaces.Annotations;
 using Mars.Interfaces.Environments;
 using Mars.Interfaces.Layers;
 using Mars.Numerics;
+using MQTTnet.Server;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
+using NetTopologySuite.Geometries.Implementation;
 using NetTopologySuite.IO;
+using NetTopologySuite.IO.Converters;
 using Newtonsoft.Json;
 using ServiceStack;
 using Wavefront;
 using Wavefront.Geometry;
 using Feature = NetTopologySuite.Features.Feature;
+using GeometryFactory = NetTopologySuite.Geometries.GeometryFactory;
 using Position = Mars.Interfaces.Environments.Position;
 
 namespace GeoJsonRouting.Model
@@ -83,7 +87,7 @@ namespace GeoJsonRouting.Model
                 watch.Restart();
                 var routingResult = wavefrontAlgorithm.Route(Position, _targetPosition);
                 Console.WriteLine($"Routing duration: {watch.ElapsedMilliseconds}ms");
-                
+
                 _waypoints = new Queue<Waypoint>(routingResult.OptimalRoute);
 
                 WriteRoutesToFile(routingResult.AllRoutes);
@@ -98,13 +102,23 @@ namespace GeoJsonRouting.Model
 
         private async void WriteRoutesToFile(List<List<Waypoint>> routes)
         {
-            var geometry = RoutesToGeometryCollection(routes);
+            var features = RoutesToGeometryCollection(routes);
 
             var serializer = GeoJsonSerializer.Create();
+            foreach (var converter in serializer.Converters
+                         .Where(c => c is CoordinateConverter || c is GeometryConverter)
+                         .ToList())
+            {
+                serializer.Converters.Remove(converter);
+            }
+
+            serializer.Converters.Add(new CoordinateZMConverter());
+            serializer.Converters.Add(new GeometryZMConverter());
+
             await using var stringWriter = new StringWriter();
             using var jsonWriter = new JsonTextWriter(stringWriter);
 
-            serializer.Serialize(jsonWriter, geometry);
+            serializer.Serialize(jsonWriter, features);
             var geoJson = stringWriter.ToString();
 
             await File.WriteAllTextAsync("agent-routes.geojson", geoJson);
@@ -138,15 +152,35 @@ namespace GeoJsonRouting.Model
             await File.WriteAllTextAsync("agent-points.geojson", geoJson);
         }
 
-        private GeometryCollection RoutesToGeometryCollection(List<List<Waypoint>> routes)
+        private FeatureCollection RoutesToGeometryCollection(List<List<Waypoint>> routes)
         {
-            var geometries = routes.Map(r => (Geometry)RouteToLineString(r));
-            return new GeometryCollection(geometries.ToArray());
+            var featureCollection = new FeatureCollection();
+            routes.Each((i, r) => featureCollection.Add(
+                new Feature(RouteToLineString(r),
+                    new AttributesTable(
+                        new Dictionary<string, object>
+                        {
+                            { "id", i }
+                        }
+                    )
+                )
+            ));
+            return featureCollection;
         }
 
         private LineString RouteToLineString(List<Waypoint> route)
         {
-            return new LineString(route.Map(w => w.Position.ToCoordinate()).ToArray());
+            var baseDate = new DateTime(2010, 1, 1);
+            var unixZero = new DateTime(1970, 1, 1);
+            var coordinateSequence = CoordinateArraySequenceFactory.Instance.Create(route.Count, 3, 1);
+            route.Each((i, w) =>
+            {
+                coordinateSequence.SetX(i, w.Position.X);
+                coordinateSequence.SetY(i, w.Position.Y);
+                coordinateSequence.SetM(i, baseDate.AddSeconds(w.Time).Subtract(unixZero).TotalSeconds);
+            });
+            var geometryFactory = new GeometryFactory(CoordinateArraySequenceFactory.Instance);
+            return new LineString(coordinateSequence, geometryFactory);
         }
 
         private void Kill()
