@@ -1,0 +1,58 @@
+% !TeX spellcheck = en_US
+
+\documentclass[
+	12pt,
+	a4paper,
+	usegeometry,
+	twoside,
+	openright,
+	toc=chapterentrywithdots
+]{scrreprt}
+
+\KOMAoptions{
+	listof=totoc,
+	bibliography=totoc,
+	index=totoc
+}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[ngerman,english]{babel}
+
+\usepackage{lmodern}
+\usepackage{mathpazo}
+\usepackage{microtype}
+
+\usepackage[left=2.5cm, top=2.5cm, right=2.5cm, bottom=2.5cm]{geometry}
+\usepackage{fancyhdr}
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{enumerate}
+\usepackage{multicol}
+
+\usepackage[toc, page]{appendix}
+\usepackage[backend=bibtex8,style=alphabetic]{biblatex}
+\usepackage{hyperref}
+\usepackage[noabbrev]{cleveref}
+
+\pagestyle{fancyplain}
+\fancyfoot[C]{\thepage}
+
+\begin{document}
+	\newgeometry{left=3.5cm, top=3.5cm, right=3.5cm, bottom=3.5cm}
+	
+	\include{titlepage.tex}
+
+	\restoregeometry
+	
+	\tableofcontents
+	\newpage
+	
+	\chapter{Introduction}
+\end{document}
