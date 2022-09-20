@@ -1,7 +1,7 @@
 % !TeX spellcheck = en_US
 
 \documentclass[
-	12pt,
+	11pt,
 	a4paper,
 	usegeometry,
 	twoside,
@@ -58,41 +58,73 @@
 	
 	\chapter{Introduction}
 	
-	\chapter{Fundamentals}
+	\chapter{Preliminaries}
 	
-		\section{Geospatial data}
+		\section{Geospatial data \& GIS}
 		
-		\section{GIS}
+		\section{Routing}
 		
-		\section{Graph based routing}
+			% fastest, shortest path, all shortest...
 		
-		\section{Geometric shortest path problem}
+			\subsection{Graph based}
+		
+			\subsection{Geometric}
 		
 		\section{Agent based systems and simulations}
 		
 	\chapter{Related work}
 	
 	\chapter{Design}
-	
-		\section{Frameworks}
+		
+		\section{Context view}
+		
+		% data source: spatial data
+		
+		\section{Component view}
+		
+		% routing as component, agents using this
+		
+		\section{Runtime view}
+		
+		% tick of an agent with routing descr.
+		
+		\section{Deployment view}
+		
+		% published as framework
 	
 	\chapter{Implementation}
 	
+		\section{Frameworks}
+		
+		% Why what framework? Only if interesting
+	
 		\section{Wavefront propagation algorithm}
+		
+		% Any special features of .NET used? What features used from MARS?
 	
 	\chapter{Evaluation}
 	
-		\section{Used methods and system}
-	
-		\section{Correctness}
+		\section{Performance \& Correctness}
 		
-		\section{Usefulness of routes}
-	
-		\section{Performance}
+			\subsection{Correctness}
+			
+			\subsection{Performance}
+			
+			\subsubsection{Used methods and system}
+			
+			% Maybe: complexity analysis
+			
+			\subsubsection{Results}
 		
-		\section{Accuracy of simulations}
-	
-	\chapter{Results}
+		\section{Quality of routing}
+		
+			\subsection{Usefulness of routes}
+			
+			% How realistic are the routes (= can I go there in real life)? If not: Why not?
+			
+			\subsection{Accuracy of simulations}
+		
+			% Concrete scenario (parameters/model, what happens), evaluation
 	
 	\chapter{Conclusion}
 	
