@@ -1,0 +1,78 @@
+% !TeX spellcheck = en_US
+
+\documentclass[
+	a4paper,
+	11pt,
+	twoside,
+	twocolumn
+]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[ngerman,english]{babel}
+
+%\usepackage{libertine}
+\usepackage[sc]{mathpazo}
+% Maybe this for math: \usepackage{libertinust1math}
+\usepackage{courier}
+\usepackage{microtype}
+
+\usepackage[margin=2.25cm,columnsep=20pt]{geometry}
+\usepackage{fancyhdr}
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+
+\usepackage{titlesec}
+\usepackage{titling}
+
+\usepackage{lipsum}
+
+\usepackage[toc, page]{appendix}
+\usepackage[backend=bibtex8,style=alphabetic]{biblatex}
+\usepackage{hyperref}
+\usepackage[noabbrev]{cleveref}
+
+%
+% Section styling
+%
+\renewcommand\thesection{\Roman{section}}
+\renewcommand\thesubsection{\roman{subsection}}
+\titleformat{\section}[block]{\large\scshape\centering}{\thesection.}{1em}{}
+\titleformat{\subsection}[block]{\large}{\thesubsection.}{1em}{}
+
+%
+% Title styling
+%
+\setlength{\droptitle}{-4\baselineskip} % Move title up
+\pretitle{\begin{center}\Huge\bfseries}
+\posttitle{\end{center}}
+\title{WIP: Improving Multi-Agent Simulations through Geometric Routing}
+\author{%
+	\textsc{Hauke Stieler} \\[1ex]
+	\normalsize Universit\"at Hamburg \\ 
+	\normalsize Department of Informatics \\
+	\normalsize Databases and Information Systems \\
+%	\normalsize \href{mailto:4stieler@informatik.uni-hamburg.de}{4stieler@informatik.uni-hamburg.de}
+}
+\date{\today}
+
+%
+% General page styling
+%
+\pagestyle{fancyplain}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+
+\begin{document}
+	\maketitle
+	
+	\section{Introduction}
+	
+	\lipsum[1]
+	\subsection{Foobar}
+	\lipsum[2-3]
+	\section{Results}
+	\lipsum[4]
+\end{document}
