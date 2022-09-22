@@ -9,8 +9,8 @@ This repository contains all content for my master thesis.
 
 ## Documentation
 
-See the following files for more details about the algorithm, design decisions and more:
+See the following files in the [doc](./doc) folder for more details:
 
-* [TERMINOLOGY.md](./TERMINOLOGY.md) contains definition for certain terms used in other documentation and the code.
-* [DESIGN_DECISIONS.md](./DESIGN_DECISIONS.md) describes several decisions on things like data structures and optimizations as well as possible alternatives and implementations that are no longer used.
-* [ALGORITHMS.md](./ALGORITHMS.md) gives an overview on the main algorithms used.
+* [TERMINOLOGY.md](./doc/TERMINOLOGY.md) contains definition for certain terms used in other documentation and the code.
+* [DESIGN_DECISIONS.md](./doc/DESIGN_DECISIONS.md) describes several decisions on things like data structures and optimizations as well as possible alternatives and implementations that are no longer used.
+* [ALGORITHMS.md](./doc/ALGORITHMS.md) gives an overview on the main algorithms used.
