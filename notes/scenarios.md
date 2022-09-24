@@ -120,3 +120,39 @@ The comparison with a network based simulation is probably possible and would an
 
 * Is the scientific question enough?
 * Are the simulations fast enough to calculate a map as mentioned above? Probably not super important but I think such a map would be a great visualization.
+
+## Airport management
+
+### Idea
+
+Airport building also have a lot of open spaces but also several corridors. This scenario should help to determine possible "bottlenecks" regarding the throughput of people.
+
+### Behavior of agents
+
+Several varieties are conceivable:
+
+* Agents walking around the airport, e.g. from public transport to the gates or ticket desks. 
+* Agents moving away from a detractor
+* Some of the agents moving at once to a different location (e.g. gate of a flight has changed)
+
+### Scientific question
+
+Maybe something like this?
+
+* Is the Hamburg airport ready for extreme situations with above-average amount of moving people?
+
+### Usefulness of geometric routing
+
+Open spaces within the airport (bit also outside the building) are not fully usable with normal network based routing.
+
+### Complexity of development/modeling
+
+Not overly complex. The data situation is interesting as OSM doesn't contain indoor data for the airport.
+
+### Evaluation
+
+Evaluation can be done quite well: Is the same simulation with network based routing determining the same bottlenecks/problems as the geometric routing method?
+
+### Risks and open questions
+
+* Data: Where to get it? OSM doesn't have it. Maybe take a different airport where OSM has good indoor data?
