@@ -85,18 +85,38 @@ Even though train stations have few large open spaces, the platforms are still a
 
 ## Demonstration within the City
 
-// TODO
+Note: This scenario is a bit unclear to me.
 
 ### Idea
 
+Multiple agents moving together through the city. Eventually something happens and the agents are moving more individual through the area.
+
 ### Behavior of agents
+
+Each agent moves away from a detractor to a new location.
 
 ### Scientific question
 
+Possible questions I can think of:
+
+* Can the inner city of hamburg handle panics at large demonstrations?
+* How many people can safely move away from a detractor at any location on [Rathausmarkt|Jungfernstieg|Mönckebergstraße|...] without causing a mass panic?
+
+Maybe a colored map can be calculated to see what locations can handle what amount of people.
+
 ### Usefulness of geometric routing
+
+In extreme situations people will likely walk whereever they think it's good to go. Maybe even fences aren't obstacles anymore. This behavior cannot be modeled with network based routing as a network has no significance in such situations.
 
 ### Complexity of development/modeling
 
+Quite easy because only agents need to be modeled and programmed. The data of OpenStreetMap is probably sufficiently detailed.
+
 ### Evaluation
 
+The comparison with a network based simulation is probably possible and would answer the main questions if the agents behavior and the overall result would be significantly different.
+
 ### Risks and open questions
+
+* Is the scientific question enough?
+* Are the simulations fast enough to calculate a map as mentioned above? Probably not super important but I think such a map would be a great visualization.
