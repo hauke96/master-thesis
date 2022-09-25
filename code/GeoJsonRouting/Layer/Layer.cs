@@ -14,7 +14,7 @@ namespace GeoJsonRouting.Layer
             var layerInitialized = base.InitLayer(layerInitData, registerAgentHandle, unregisterAgent);
 
             var agentManager = layerInitData.Container.Resolve<IAgentManager>();
-            agentManager.Spawn<Agent, Layer>().ToList();
+            var agents = agentManager.Spawn<Agent, Layer>().ToList();
             
             return layerInitialized;
         }

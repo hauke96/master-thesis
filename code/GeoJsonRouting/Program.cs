@@ -15,8 +15,8 @@ namespace GeoJsonRouting
             SharedEnvironment.Init();
 
             var description = new ModelDescription();
-            description.AddLayer<Layer.Layer>();
             description.AddLayer<ObstacleLayer>();
+            description.AddLayer<Layer.Layer>();
             description.AddAgent<Agent, Layer.Layer>();
 
             var file = File.ReadAllText("config.json");

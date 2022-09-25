@@ -8,7 +8,6 @@ using Mars.Interfaces.Annotations;
 using Mars.Interfaces.Environments;
 using Mars.Interfaces.Layers;
 using Mars.Numerics;
-using MQTTnet.Server;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.Geometries.Implementation;
@@ -32,27 +31,35 @@ namespace GeoJsonRouting.Model
         [PropertyDescription] public ObstacleLayer ObstacleLayer { get; set; }
 
         public Position? Position { get; set; }
-        public Guid ID { get; set; }
+        public Guid ID { get; set; } = Guid.NewGuid();
 
         private Position? _targetPosition;
         private Queue<Waypoint> _waypoints = new();
 
         public void Init(VectorLayer layer)
         {
+            Position = ObstacleLayer.GetRandomStart();
+            _targetPosition = ObstacleLayer.GetRandomTarget();
+            
+            DetermineNewWaypoints();
+            
+            SharedEnvironment.Environment.Insert(this, new Point(Position.ToCoordinate()));
         }
 
         public void Tick()
         {
-            if (Position == null)
+            try
             {
-                Position = ObstacleLayer.GetStart();
-                _targetPosition = ObstacleLayer.GetTarget();
-
-                DetermineNewWaypoints();
-
-                SharedEnvironment.Environment.Insert(this, new Point(Position.ToCoordinate()));
+                TickInternal();
             }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+        }
 
+        private void TickInternal()
+        {
             var currentWaypoint = _waypoints.Peek();
 
             var distanceToTarget = Distance.Euclidean(currentWaypoint.Position.PositionArray, Position.PositionArray);
@@ -63,7 +70,6 @@ namespace GeoJsonRouting.Model
                 // The current waypoint was the last one -> we're done
                 if (_waypoints.Count == 0)
                 {
-                    Console.WriteLine($"Target {currentWaypoint} reached.");
                     Kill();
                 }
 
@@ -90,6 +96,7 @@ namespace GeoJsonRouting.Model
 
                 _waypoints = new Queue<Waypoint>(routingResult.OptimalRoute);
 
+                // TODO make these exports agent specific
                 WriteRoutesToFile(routingResult.AllRoutes);
                 WriteVisitedPositionsToFile(routingResult.AllRoutes);
             }
@@ -185,6 +192,7 @@ namespace GeoJsonRouting.Model
 
         private void Kill()
         {
+            Console.WriteLine($"Agent reached target");
             SharedEnvironment.Environment.Remove(this);
             UnregisterHandle.Invoke(ObstacleLayer, this);
         }
