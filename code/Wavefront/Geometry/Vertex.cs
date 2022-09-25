@@ -47,8 +47,18 @@ public class Vertex
     /// <summary>
     /// Returns the neighbor that's right (=clockwise) or equal to the angle of the given position.
     /// </summary>
-    public Position? RightNeighbor(Position basePosition)
+    /// <param name="basePosition">The reference position used to determine the right neighbor in clockwise direction.</param>
+    /// <param name="basePositionIsRightMostNeighbor">Pass true when the given basePosition is maybe itself the right
+    /// most neighbor of all. This is important to know when the wavelet root is one of the neighbors of this vertex:
+    /// The right neighbor depends on the fact if the angle area of that wavelet starts at this vertex or not.</param>
+    public Position? RightNeighbor(Position basePosition, bool basePositionIsRightMostNeighbor = false)
     {
+        var basePositionIsANeighbor = _neighbors.Contains(basePosition);
+        if (basePositionIsANeighbor && basePositionIsRightMostNeighbor)
+        {
+            return basePosition;
+        }
+
         var vertexToBasePositionAngle = Angle.GetBearing(Position, basePosition);
         var rotatedNeighborAngles = _neighbors
             .Map(n => Angle.Normalize(Angle.GetBearing(Position, n) - vertexToBasePositionAngle));
@@ -57,6 +67,10 @@ public class Vertex
         var index = -1;
         rotatedNeighborAngles.Each((i, a) =>
         {
+            // Treat 0° as 360°. If the basePosition is a neighbor, then "a" is 0° for that neighbor. A part of this
+            // situation is already handled above but this ensures that the real right neighbor is returned and not just
+            // the given basePosition just because its angle of 0° is the lowest.
+            a = a == 0 ? 360 : a;
             if (a < minAngle)
             {
                 minAngle = a;
@@ -67,11 +81,23 @@ public class Vertex
         return 0 <= index && index < _neighbors.Count ? _neighbors[index] : null;
     }
 
+    
     /// <summary>
     /// Returns the neighbor that's left (=counter clockwise) or equal to the angle of the given position.
     /// </summary>
-    public Position? LeftNeighbor(Position basePosition)
+    /// <param name="basePosition">The reference position used to determine the left neighbor in counter clockwise
+    /// direction.</param>
+    /// <param name="basePositionIsLeftMostNeighbor">Pass true when the given basePosition is maybe itself the left
+    /// most neighbor of all. This is important to know when the wavelet root is one of the neighbors of this vertex:
+    /// The left neighbor depends on the fact if the angle area of that wavelet ends at this vertex or not.</param>
+    public Position? LeftNeighbor(Position basePosition, bool basePositionIsLeftMostNeighbor = false)
     {
+        var basePositionIsANeighbor = _neighbors.Contains(basePosition);
+        if (basePositionIsANeighbor && basePositionIsLeftMostNeighbor)
+        {
+            return basePosition;
+        }
+
         var vertexToBasePositionAngle = Angle.GetBearing(Position, basePosition);
         var rotatedNeighborAngles = _neighbors
             .Map(n => Angle.Normalize(Angle.GetBearing(Position, n) - vertexToBasePositionAngle));

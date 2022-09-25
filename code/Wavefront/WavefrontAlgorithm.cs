@@ -267,11 +267,15 @@ namespace Wavefront
             angleShadowFrom = Double.NaN;
             angleShadowTo = Double.NaN;
             createdWavefrontAtCurrentVertex = false;
-
-            var rightNeighbor = currentVertex.RightNeighbor(wavefront.RootVertex.Position) ??
-                                currentVertex.LeftNeighbor(wavefront.RootVertex.Position);
-            var leftNeighbor = currentVertex.LeftNeighbor(wavefront.RootVertex.Position) ??
-                               currentVertex.RightNeighbor(wavefront.RootVertex.Position);
+            
+            var angleRootToCurrentVertex = Angle.GetBearing(wavefront.RootVertex.Position, currentVertex.Position);
+            var waveletAngleStartsAtVertex = Angle.AreEqual(wavefront.FromAngle, angleRootToCurrentVertex);
+            var waveletAngleEndsAtVertex = Angle.AreEqual(wavefront.ToAngle, angleRootToCurrentVertex);
+            
+            var rightNeighbor = currentVertex.RightNeighbor(wavefront.RootVertex.Position, waveletAngleStartsAtVertex) ??
+                                currentVertex.LeftNeighbor(wavefront.RootVertex.Position, waveletAngleEndsAtVertex);
+            var leftNeighbor = currentVertex.LeftNeighbor(wavefront.RootVertex.Position, waveletAngleEndsAtVertex) ??
+                               currentVertex.RightNeighbor(wavefront.RootVertex.Position, waveletAngleStartsAtVertex);
 
             if (rightNeighbor == null && leftNeighbor == null)
             {
@@ -287,7 +291,6 @@ namespace Wavefront
             var angleRootToLeftNeighbor = leftNeighbor != null
                 ? Angle.GetBearing(wavefront.RootVertex.Position, leftNeighbor)
                 : double.NaN;
-            var angleRootToCurrentVertex = Angle.GetBearing(wavefront.RootVertex.Position, currentVertex.Position);
 
             var angleVertexToRightNeighbor = rightNeighbor != null
                 ? Angle.GetBearing(currentVertex.Position, rightNeighbor)

@@ -70,7 +70,8 @@ namespace Wavefront.Tests
                 wavefrontAlgorithm.WaypointToPredecessor[new Waypoint(nextVertex.Position, 0, 0)] =
                     new Waypoint(Position.CreateGeoPosition(1, 1), 0, 0);
                 wavefrontAlgorithm.WavefrontRootPredecessor.Add(new Waypoint(nextVertex.Position, 0, 0), null);
-                wavefrontAlgorithm.WavefrontRootToWaypoint.Add(nextVertex.Position, wavefrontAlgorithm.WavefrontRootPredecessor.First().Key);
+                wavefrontAlgorithm.WavefrontRootToWaypoint.Add(nextVertex.Position,
+                    wavefrontAlgorithm.WavefrontRootPredecessor.First().Key);
 
                 wavefrontAlgorithm.ProcessNextEvent(targetPosition, new Stopwatch());
 
@@ -959,6 +960,58 @@ namespace Wavefront.Tests
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.AreEqual(0, waypoints.Count);
+            }
+        }
+
+        public class OverlappingObstacles_PolygonSharingEdge
+        {
+            private List<Obstacle> obstacles;
+            private WavefrontAlgorithm wavefrontAlgorithm;
+            private Position start;
+            private Position target;
+            private LineString obstacle1;
+            private LineString obstacle2;
+
+            [SetUp]
+            public void Setup()
+            {
+                obstacle1 = new LineString(new[]
+                {
+                    new Coordinate(1, 20),
+                    new Coordinate(1, 3),
+                    new Coordinate(4, 3),
+                    new Coordinate(4, 4),
+                });
+                obstacle2 = new LineString(new[]
+                {
+                    new Coordinate(1, 1),
+                    new Coordinate(1, 3),
+                    new Coordinate(4, 3),
+                    new Coordinate(4, 2),
+                });
+
+                obstacles = new List<Obstacle>();
+                obstacles.Add(new Obstacle(obstacle1));
+                obstacles.Add(new Obstacle(obstacle2));
+
+                wavefrontAlgorithm = new WavefrontAlgorithm(obstacles);
+
+                start = Position.CreateGeoPosition(3, 5);
+                target = Position.CreateGeoPosition(0, 3);
+            }
+
+            [Test]
+            public void ShouldNotRouteAlongTouchingEdge()
+            {
+                var result = wavefrontAlgorithm.Route(start, target);
+                var waypoints = result.OptimalRoute.Map(w => w.Position);
+
+                Assert.AreEqual(start, waypoints[0]);
+                Assert.AreEqual(obstacle1[3].ToPosition(), waypoints[1]);
+                Assert.AreEqual(obstacle2[3].ToPosition(), waypoints[2]);
+                Assert.AreEqual(obstacle2[0].ToPosition(), waypoints[3]);
+                Assert.AreEqual(target, waypoints[4]);
+                Assert.AreEqual(5, waypoints.Count);
             }
         }
 
