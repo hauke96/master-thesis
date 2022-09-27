@@ -84,14 +84,9 @@ namespace GeoJsonRouting.Model
         {
             try
             {
-                var obstacleGeometries = ObstacleLayer.Features.Map(f => new Obstacle(f.VectorStructured.Geometry));
                 var watch = Stopwatch.StartNew();
-
-                var wavefrontAlgorithm = new WavefrontAlgorithm(obstacleGeometries);
-                Console.WriteLine($"Algorithm creation: {watch.ElapsedMilliseconds}ms");
-
-                watch.Restart();
-                var routingResult = wavefrontAlgorithm.Route(Position, _targetPosition);
+                var routingResult = ObstacleLayer.WavefrontAlgorithm.Route(Position, _targetPosition);
+                watch.Stop();
                 Console.WriteLine($"Routing duration: {watch.ElapsedMilliseconds}ms");
 
                 _waypoints = new Queue<Waypoint>(routingResult.OptimalRoute);

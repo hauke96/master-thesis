@@ -1,8 +1,11 @@
+using System.Diagnostics;
 using Mars.Common;
 using Mars.Components.Layers;
 using Mars.Interfaces.Data;
 using Mars.Interfaces.Layers;
 using ServiceStack;
+using Wavefront;
+using Wavefront.Geometry;
 using Position = Mars.Interfaces.Environments.Position;
 
 namespace GeoJsonRouting.Layer
@@ -13,6 +16,8 @@ namespace GeoJsonRouting.Layer
         private List<Position> _targetPositions;
         
         private readonly Random _random = new(DateTime.Now.ToString().GetHashCode());
+
+        public WavefrontAlgorithm WavefrontAlgorithm { get; private set; }
 
         public ObstacleLayer()
         {
@@ -33,18 +38,24 @@ namespace GeoJsonRouting.Layer
 
             _startPositions = FindLocationsByKey("start");
             _targetPositions = FindLocationsByKey("target");
+            
+            var obstacleGeometries = Features.Map(f => new Obstacle(f.VectorStructured.Geometry));
+            var watch = Stopwatch.StartNew();
+
+            WavefrontAlgorithm = new WavefrontAlgorithm(obstacleGeometries);
+            Console.WriteLine($"Algorithm creation: {watch.ElapsedMilliseconds}ms");
 
             return true;
         }
 
         public Position GetRandomStart()
         {
-            return _startPositions[_random.Next(_startPositions.Count-1)];
+            return _startPositions[_random.Next(_startPositions.Count)];
         }
 
         public Position GetRandomTarget()
         {
-            return _targetPositions[_random.Next(_targetPositions.Count-1)];
+            return _targetPositions[_random.Next(_targetPositions.Count)];
         }
 
         private List<Position> FindLocationsByKey(string attributeName)
