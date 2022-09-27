@@ -51,12 +51,12 @@ namespace GeoJsonRouting.Layer
 
         public Position GetRandomStart()
         {
-            return _startPositions[_random.Next(_startPositions.Count)];
+            return _startPositions[_random.Next(_startPositions.Count)].Copy();
         }
 
         public Position GetRandomTarget()
         {
-            return _targetPositions[_random.Next(_targetPositions.Count)];
+            return _targetPositions[_random.Next(_targetPositions.Count)].Copy();
         }
 
         private List<Position> FindLocationsByKey(string attributeName)
