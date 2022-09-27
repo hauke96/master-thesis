@@ -33,6 +33,8 @@ public class AngleTest
         Assert.True(Angle.IsBetweenEqual(269.99236701900003, 180.00763299072972, 180.00763298898323));
         Assert.True(Angle.IsBetweenEqual(0, 360, 360));
         Assert.True(Angle.IsBetweenEqual(10, 10, 10));
+        Assert.True(Angle.IsBetweenEqual(270, 180, 180));
+        Assert.True(Angle.IsBetweenEqual(270, 180, 179.9999));
 
         Assert.False(Angle.IsBetweenEqual(0, 90, 45));
         Assert.False(Angle.IsBetweenEqual(45, 20, 45));

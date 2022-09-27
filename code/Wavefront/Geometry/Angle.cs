@@ -68,7 +68,7 @@ public class Angle
         if (a > b)
         {
             // a to b exceeds to 0° border
-            angle = angle < b ? angle + 360.0 : angle;
+            angle = LowerEqual(angle, b) ? angle + 360.0 : angle;
             b += 360.0;
         }
 
