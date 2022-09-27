@@ -201,6 +201,10 @@ namespace Wavefront
 
                 if (fromAngleInShadowArea && toAngleInShadowArea)
                 {
+                    // Both ends of our wavelet are within the shadow area -> Just use the inverted shadow area as
+                    // wavelet angle area. It cannot happen that the wavelets area is completely within the shadow area
+                    // because that would mean this wavelet visited vertices outside its angle area and that's not
+                    // possible. Therefore it's safe to use the inverted shadow area here.
                     AddNewWavefront(wavefront.RelevantVertices, wavefront.RootVertex,
                         wavefront.DistanceToRootFromSource,
                         angleShadowTo, angleShadowFrom, true);
@@ -215,10 +219,12 @@ namespace Wavefront
                 {
                     AddNewWavefront(wavefront.RelevantVertices, wavefront.RootVertex,
                         wavefront.DistanceToRootFromSource,
-                        wavefront.FromAngle, angleShadowTo, true);
+                        wavefront.FromAngle, angleShadowFrom, true);
                 }
                 else
                 {
+                    // Shadow area is completely within the wavelets angle area -> Split out wavelet into two so that
+                    // the area of the shadow is not covered anymore.
                     AddNewWavefront(wavefront.RelevantVertices, wavefront.RootVertex,
                         wavefront.DistanceToRootFromSource,
                         wavefront.FromAngle, angleShadowFrom, true);

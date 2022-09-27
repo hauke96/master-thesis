@@ -130,60 +130,7 @@ namespace Wavefront.Tests
             }
 
             [Test]
-            public void CastingShadowWithRootBeingNeighborOfShadowEdge()
-            {
-                // Real world problem: The shadow ends at 180° but the wavefront ends there as well -> There was a
-                // problem adjusting the wavefront
-
-                var vertices = new List<Vertex>();
-                var line = new LineString(new[]
-                {
-                    new Coordinate(0.05200529027, 0.04528037038),
-                    new Coordinate(0.05200350079, 0.0318479355),
-                    new Coordinate(0.06326695096, 0.03184643498),
-                    new Coordinate(0.06326760583, 0.03676209134),
-                    new Coordinate(0.06327136644, 0.06499057746),
-                });
-                vertices.Add(new Vertex(line.Coordinates[0].ToPosition(), line.Coordinates[^1].ToPosition(),
-                    line.Coordinates[1].ToPosition()));
-                vertices.Add(new Vertex(line.Coordinates[1].ToPosition(), line.Coordinates[0].ToPosition(),
-                    line.Coordinates[2].ToPosition()));
-                vertices.Add(new Vertex(line.Coordinates[2].ToPosition(), line.Coordinates[1].ToPosition(),
-                    line.Coordinates[3].ToPosition()));
-                vertices.Add(new Vertex(line.Coordinates[3].ToPosition(), line.Coordinates[2].ToPosition(),
-                    line.Coordinates[4].ToPosition()));
-                vertices.Add(new Vertex(line.Coordinates[4].ToPosition(), line.Coordinates[3].ToPosition(),
-                    line.Coordinates[^1].ToPosition()));
-                vertices.Add(new Vertex(0.0820386, 0.0409633));
-                vertices.Add(new Vertex(0.0104371, 0.082151));
-
-                var sourceVertex = vertices.ElementAt(0);
-                var vertex = vertices.ElementAt(2);
-
-                var wavefront = Wavefront.New(269.992367019, 180.00763298898323, sourceVertex, vertices, 1, false)!;
-                wavefrontAlgorithm.AddWavefront(wavefront);
-
-                wavefront.RemoveNextVertex();
-                Assert.IsTrue(wavefront.HasBeenVisited(vertices.ElementAt(1).Position));
-                wavefront.RemoveNextVertex();
-                Assert.IsTrue(wavefront.HasBeenVisited(vertices.ElementAt(3).Position));
-                Assert.AreEqual(vertex, wavefront.GetNextVertex());
-
-                wavefrontAlgorithm.ProcessNextEvent(targetPosition, new Stopwatch());
-
-                Assert.AreEqual(2, wavefrontAlgorithm.Wavefronts.Count);
-                var wavefronts = ToList(wavefrontAlgorithm.Wavefronts);
-                var w = wavefronts[0];
-                Assert.AreEqual(0, w.FromAngle, FLOAT_TOLERANCE);
-                Assert.AreEqual(127.1, w.ToAngle, FLOAT_TOLERANCE);
-
-                w = wavefronts[1];
-                Assert.AreEqual(wavefront.FromAngle, w.FromAngle, FLOAT_TOLERANCE);
-                Assert.AreEqual(360, w.ToAngle, FLOAT_TOLERANCE);
-            }
-
-            [Test]
-            public void FromAndToWithinShadowArea()
+            public void WaveletFromAndToWithinShadowArea()
             {
                 var wavefront = Wavefront.New(10, 350, new Vertex(6.5, 2.5), wavefrontAlgorithm.Vertices.ToList(), 1,
                     false)!;
@@ -201,6 +148,54 @@ namespace Wavefront.Tests
                 Assert.AreEqual(45, wavefronts[0].ToAngle);
                 Assert.AreEqual(45, wavefronts[1].FromAngle);
                 Assert.AreEqual(315, wavefronts[1].ToAngle);
+            }
+
+            [Test]
+            public void WaveletFromWithinShadowArea()
+            {
+                wavefrontAlgorithm.Vertices.Add(new Vertex(10, 3));
+                var wavefront = Wavefront.New(0.0001, 90, new Vertex(6, 2), wavefrontAlgorithm.Vertices.ToList(), 1,
+                    false)!;
+                
+                wavefront.RemoveNextVertex();
+                Assert.IsTrue(wavefront.HasBeenVisited(multiVertexLineObstacle[0].ToPosition()));
+                Assert.AreEqual(multiVertexLineVertices[1], wavefront.GetNextVertex());
+                
+                wavefrontAlgorithm.AddWavefront(wavefront);
+                wavefrontAlgorithm.ProcessNextEvent(targetPosition, new Stopwatch());
+
+                var wavefronts = ToList(wavefrontAlgorithm.Wavefronts);
+                Assert.AreEqual(2, wavefronts.Count);
+                Assert.AreEqual(0, wavefronts[0].FromAngle);
+                Assert.AreEqual(45, wavefronts[0].ToAngle);
+                Assert.AreEqual(multiVertexLineVertices[1], wavefronts[0].RootVertex);
+                Assert.AreEqual(45, wavefronts[1].FromAngle);
+                Assert.AreEqual(90, wavefronts[1].ToAngle);
+                Assert.AreEqual(wavefront.RootVertex, wavefronts[1].RootVertex);
+            }
+
+            [Test]
+            public void WaveletToWithinShadowArea()
+            {
+                wavefrontAlgorithm.Vertices.Add(new Vertex(7, 2.8));
+                var wavefront = Wavefront.New(180, 269.9999, new Vertex(8, 4), wavefrontAlgorithm.Vertices.ToList(), 1,
+                    false)!;
+                
+                wavefront.RemoveNextVertex();
+                Assert.IsTrue(wavefront.HasBeenVisited(multiVertexLineObstacle[2].ToPosition()));
+                Assert.AreEqual(multiVertexLineVertices[1], wavefront.GetNextVertex());
+                
+                wavefrontAlgorithm.AddWavefront(wavefront);
+                wavefrontAlgorithm.ProcessNextEvent(targetPosition, new Stopwatch());
+
+                var wavefronts = ToList(wavefrontAlgorithm.Wavefronts);
+                Assert.AreEqual(2, wavefronts.Count);
+                Assert.AreEqual(180, wavefronts[0].FromAngle);
+                Assert.AreEqual(225, wavefronts[0].ToAngle);
+                Assert.AreEqual(wavefront.RootVertex, wavefronts[0].RootVertex);
+                Assert.AreEqual(225, wavefronts[1].FromAngle);
+                Assert.AreEqual(270, wavefronts[1].ToAngle);
+                Assert.AreEqual(multiVertexLineVertices[1], wavefronts[1].RootVertex);
             }
         }
 
