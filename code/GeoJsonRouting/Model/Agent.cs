@@ -23,7 +23,7 @@ using Position = Mars.Interfaces.Environments.Position;
 
 namespace GeoJsonRouting.Model
 {
-    public class Agent : IPositionable, IAgent<VectorLayer>, IVisible, ICollidable
+    public class Agent : ICharacter, IAgent<VectorLayer>
     {
         private static readonly double STEP_SIZE = 0.0001;
 
@@ -32,6 +32,7 @@ namespace GeoJsonRouting.Model
 
         public Position? Position { get; set; }
         public Guid ID { get; set; } = Guid.NewGuid();
+        public double Extent { get; set; }
 
         private Position? _targetPosition;
         private Queue<Waypoint> _waypoints = new();
@@ -43,7 +44,7 @@ namespace GeoJsonRouting.Model
             
             DetermineNewWaypoints();
             
-            SharedEnvironment.Environment.Insert(this, new Point(Position.ToCoordinate()));
+            SharedEnvironment.Environment.Insert(this, Position);
         }
 
         public void Tick()
@@ -77,7 +78,19 @@ namespace GeoJsonRouting.Model
             }
 
             var bearing = Angle.GetBearing(Position, currentWaypoint.Position);
-            Position = SharedEnvironment.Environment.Move(this, bearing, STEP_SIZE).Centroid.Coordinate.ToPosition();
+            Position = SharedEnvironment.Environment.Move(this, bearing, STEP_SIZE);
+        }
+
+        public CollisionKind? HandleCollision(ICharacter other)
+        {
+            return other.Position.DistanceInMTo(Position) <= 0.5 ? CollisionKind.Block : CollisionKind.Pass;
+        }
+
+        private void Kill()
+        {
+            Console.WriteLine("Agent reached target");
+            SharedEnvironment.Environment.Remove(this);
+            UnregisterHandle.Invoke(ObstacleLayer, this);
         }
 
         private void DetermineNewWaypoints()
@@ -183,23 +196,6 @@ namespace GeoJsonRouting.Model
             });
             var geometryFactory = new GeometryFactory(CoordinateArraySequenceFactory.Instance);
             return new LineString(coordinateSequence, geometryFactory);
-        }
-
-        private void Kill()
-        {
-            Console.WriteLine($"Agent reached target");
-            SharedEnvironment.Environment.Remove(this);
-            UnregisterHandle.Invoke(ObstacleLayer, this);
-        }
-
-        public VisibilityKind? HandleExploration(IEntity collisionEntity)
-        {
-            return VisibilityKind.Opaque;
-        }
-
-        public CollisionKind? HandleCollision(IEntity collisionEntity)
-        {
-            return CollisionKind.Pass;
         }
     }
 }

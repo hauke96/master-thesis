@@ -4,11 +4,11 @@ namespace GeoJsonRouting.Model
 {
     public static class SharedEnvironment
     {
-        public static CartesianEnvironment<Agent> Environment { get; set; }
+        public static CollisionEnvironment<ICharacter, IObstacle> Environment { get; set; }
 
         public static void Init()
         {
-            Environment = new CartesianEnvironment<Agent>();
+            Environment = new CollisionEnvironment<ICharacter, IObstacle>();
         }
     }
 }
