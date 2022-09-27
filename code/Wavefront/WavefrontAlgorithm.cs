@@ -16,27 +16,21 @@ namespace Wavefront
 
         // Stores the predecessor of each visited vertex position. Recursively following the predecessors up to the
         // source gives the shortest path from the source to the given position.
-        public readonly Dictionary<Waypoint, Waypoint?> WaypointToPredecessor;
-        public readonly Dictionary<Position, Waypoint> PositionToWaypoint;
+        public Dictionary<Waypoint, Waypoint?> WaypointToPredecessor;
+        public Dictionary<Position, Waypoint> PositionToWaypoint;
 
         // Stores the known wavefront roots and their predecessor so that a) we can determine the shortest route from a
         // position to the source and b) make sure that wavefronts are only spawned at newly visited vertices. 
-        public readonly Dictionary<Waypoint, Waypoint?> WavefrontRootPredecessor;
-        public readonly Dictionary<Position, Waypoint> WavefrontRootToWaypoint;
+        public Dictionary<Waypoint, Waypoint?> WavefrontRootPredecessor;
+        public Dictionary<Position, Waypoint> WavefrontRootToWaypoint;
 
-        public readonly FibonacciHeap<Wavefront, double> Wavefronts;
+        public FibonacciHeap<Wavefront, double> Wavefronts;
         public readonly List<Vertex> Vertices;
 
         public WavefrontAlgorithm(List<Obstacle> obstacles)
         {
             _obstacles = new QuadTree<Obstacle>();
             obstacles.Each(obstacle => _obstacles.Insert(obstacle.Envelope, obstacle));
-
-            WaypointToPredecessor = new Dictionary<Waypoint, Waypoint?>();
-            PositionToWaypoint = new Dictionary<Position, Waypoint>();
-            WavefrontRootPredecessor = new Dictionary<Waypoint, Waypoint?>();
-            WavefrontRootToWaypoint = new Dictionary<Position, Waypoint>();
-            Wavefronts = new FibonacciHeap<Wavefront, double>(0);
 
             Log.I("Get direct neighbors on each obstacle geometry");
             var positionToNeighbors = WavefrontPreprocessor.GetNeighborsFromObstacleVertices(obstacles);
@@ -48,9 +42,20 @@ namespace Wavefront
             _vertexNeighbors = WavefrontPreprocessor.CalculateVisibleKnn(_obstacles, Vertices, knnSearchNeighbors);
         }
 
+        private void Reset()
+        {
+            WaypointToPredecessor = new Dictionary<Waypoint, Waypoint?>();
+            PositionToWaypoint = new Dictionary<Position, Waypoint>();
+            WavefrontRootPredecessor = new Dictionary<Waypoint, Waypoint?>();
+            WavefrontRootToWaypoint = new Dictionary<Position, Waypoint>();
+            Wavefronts = new FibonacciHeap<Wavefront, double>(0);
+        }
+
         public RoutingResult Route(Position source, Position target)
         {
             var stopwatch = new Stopwatch();
+            
+            Reset();
 
             var sourceVertex = new Vertex(source);
             Vertices.Add(sourceVertex);
