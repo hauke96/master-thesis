@@ -78,7 +78,7 @@ namespace GeoJsonRouting.Model
             }
 
             var bearing = Angle.GetBearing(Position, currentWaypoint.Position);
-            Position = SharedEnvironment.Environment.Move(this, bearing, STEP_SIZE);
+            SharedEnvironment.Environment.Move(this, bearing, STEP_SIZE);
         }
 
         public CollisionKind? HandleCollision(ICharacter other)

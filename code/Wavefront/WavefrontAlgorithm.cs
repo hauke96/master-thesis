@@ -9,18 +9,24 @@ namespace Wavefront
 {
     public class WavefrontAlgorithm
     {
+        // Maximum number of visible vertices considered to be neighbors. The term "neighbor" here is the general one
+        // across all obstacles.
         private readonly int knnSearchNeighbors = 100;
 
         private readonly QuadTree<Obstacle> _obstacles;
+        
+        // Map from vertex to neighboring vertices. The term "neighbor" here refers to all vertices with an edge to the
+        // key vertex of a dict entry.
         private readonly Dictionary<Vertex, List<Vertex>> _vertexNeighbors;
 
-        // Stores the predecessor of each visited vertex position. Recursively following the predecessors up to the
-        // source gives the shortest path from the source to the given position.
+        // Stores the predecessor of each visited vertex position. Recursively following the predecessors from a vertex
+        // v to the source gives the shortest path from the source to v.
         public Dictionary<Waypoint, Waypoint?> WaypointToPredecessor;
         public Dictionary<Position, Waypoint> PositionToWaypoint;
 
-        // Stores the known wavefront roots and their predecessor so that a) we can determine the shortest route from a
-        // position to the source and b) make sure that wavefronts are only spawned at newly visited vertices. 
+        // Stores the known wavelet roots and their predecessor to make sure that wavelets are only spawned at vertices
+        // where no other wavelet has been spawned yet. Following the predecessors from the target back to the source
+        // yields the actual route the wavelets took and therefore the shortest path.
         public Dictionary<Waypoint, Waypoint?> WavefrontRootPredecessor;
         public Dictionary<Position, Waypoint> WavefrontRootToWaypoint;
 
@@ -42,6 +48,9 @@ namespace Wavefront
             _vertexNeighbors = WavefrontPreprocessor.CalculateVisibleKnn(_obstacles, Vertices, knnSearchNeighbors);
         }
 
+        /// <summary>
+        /// Clears the results of a previous routing run.
+        /// </summary>
         private void Reset()
         {
             WaypointToPredecessor = new Dictionary<Waypoint, Waypoint?>();
@@ -51,6 +60,11 @@ namespace Wavefront
             Wavefronts = new FibonacciHeap<Wavefront, double>(0);
         }
 
+        /// <summary>
+        /// Calculates the optimal geometric route from the source vertex to the target vertex.
+        /// </summary>
+        /// <returns>The optimal route as well as all other routes found during this method call. Finding these
+        /// alternative routes stopped at the moment the target was reached.</returns>
         public RoutingResult Route(Position source, Position target)
         {
             var stopwatch = new Stopwatch();
@@ -143,6 +157,13 @@ namespace Wavefront
             return waypoints;
         }
 
+        /// <summary>
+        /// Takes the wavelet with the smallest distance to the next vertex and processes that wavelet-vertex event.
+        ///
+        /// This method takes care of everything:
+        /// It adjusts the existing wavelet if needed, creates new wavelets if necessary and stores the predecessor
+        /// relation of the vertices.
+        /// </summary>
         public void ProcessNextEvent(Position targetPosition, Stopwatch stopwatch)
         {
             var wavefrontNode = Wavefronts.Min();
@@ -151,16 +172,16 @@ namespace Wavefront
 
             if (currentVertex == null)
             {
-                // Log.D("No next vertex, remove wavefront");
                 // This wavefront doesn't have any events ahead, to we can remove it. 
                 Wavefronts.RemoveMin();
                 return;
             }
 
-            var currentVertexHasBeenVisitedBefore = WavefrontRootToWaypoint.ContainsKey(currentVertex.Position);
-            if (currentVertexHasBeenVisitedBefore)
+            var currentVertexWasRootOfWaveletBefore = WavefrontRootToWaypoint.ContainsKey(currentVertex.Position);
+            if (currentVertexWasRootOfWaveletBefore)
             {
-                // Log.D($"Vertex at {currentVertex.Position} has been visited before");
+                // The current vertes was already used as a root vertex of a wavelet. This means there are shorter paths
+                // to this vertex and we can ignore it since the path using the current wavelet is not optimal.
                 RemoveAndUpdateWavefront(wavefrontNode);
                 AddWavefront(wavefront);
                 return;
@@ -178,10 +199,12 @@ namespace Wavefront
                 return;
             }
 
-            // Log.D($"Next vertex at {currentVertex.Position}");
-
+            // Updating the current wavelet means that the current vertex is marked as "done" by removing it from the
+            // wavelets vertex queue. This can be done since that vertex is processed right now.
+            // The wavelet is then removed from the list because of the following strategy: If the current wavelet
+            // should be split or adjusted, it's easier to just create new wavelet(s) and add them. If nothing needs to
+            // be done to the current wavelet, it'll just be re-added to the list.
             RemoveAndUpdateWavefront(wavefrontNode);
-            // Log.D("Drop vertex from wavefront");
 
             double angleShadowFrom;
             double angleShadowTo;
