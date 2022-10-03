@@ -30,9 +30,14 @@
 \usepackage{lipsum}
 
 \usepackage[toc, page]{appendix}
-\usepackage[backend=bibtex8,style=alphabetic]{biblatex}
+\usepackage[backend=bibtex8, style=numeric, sorting=none]{biblatex}
 \usepackage{hyperref}
 \usepackage[noabbrev]{cleveref}
+
+%
+% BibTeX
+%
+\addbibresource{sources.bib}
 
 %
 % Section styling
@@ -69,10 +74,52 @@
 	\maketitle
 	
 	\section{Introduction}
+		
+		% agent based sim. often spatial data
+		
+		Simulating complex systems with numerous individuals is a complicated task.
+		Agent-based models help to break down this complexity by simulating each individual separately with its own behavior and decision making. \cite{macal2014introductory}
+		Interactions are also an essential part of such simulating and affect other agents as well as the environment.
+		
+		An agent might be a simulated person but could also be a company, car or other non living part of the simulated world.
+		Many simulations use real people as agents to better understand human behaviors.
+		This often involves a spatial environment where agents can move and interact with each other.
+		Since random movement is rather uninteresting most of the time, algorithms finding optimal paths are involved. 
+		
+		% common routing only on networks
+		In order to let agents move towards a certain target position, path finding and routing algorithms are used to calculate the optimal path.
+		Normal path finding algorithms are well known, optimized and used in countless applications.
+		Popular algorithms such as Dijkstra or A* (and many more) work on graphs with vertices and edges between them.
+		These algorithms are well optimized and speed up methods, such as contraction hierarchies, can improve performance even more.
+		% TODO source on CH performance
+
+		% path finding of agents geometric
+		The world, however, does not consist of fixed lines.
+		
+		
+		% geometr. routing or combination might be beneficial
+		
+	\section{Geometric routing}
 	
-	\lipsum[1]
-	\subsection{Foobar}
-	\lipsum[2-3]
-	\section{Results}
-	\lipsum[4]
+		% multiple strategies: visibility graph vs. continuous dijkstra
+		
+		% visibility graph
+		
+		% cont. dijkstra
+		
+	\section{Considered scenario}
+	
+		% TODO describe this when scenario is fixed
+		
+	\section{Evaluation}
+	
+		% performance: preprocessing, routing
+		
+		% quality: usefulness, accuracy
+	
+	\section{Schedule}
+	
+		% TODO
+	
+	\printbibliography
 \end{document}
