@@ -345,8 +345,8 @@ namespace Wavefront.Tests
             public void EqualAngleBetweenFromAndTo()
             {
                 Assert.True(wavefrontAlgorithm.Wavefronts.IsEmpty());
-                wavefrontAlgorithm.AddWavefrontIfValid(wavefrontAlgorithm.Vertices.ToList(), 10, rootVertex, 10,
-                    10, false);
+                wavefrontAlgorithm.AddWavefrontIfValid(wavefrontAlgorithm.Vertices.ToList(), rootVertex, 10,
+                    10, 10, false);
                 Assert.True(wavefrontAlgorithm.Wavefronts.IsEmpty());
             }
 
@@ -354,8 +354,8 @@ namespace Wavefront.Tests
             public void NewWavefrontWouldBeInvalid()
             {
                 Assert.True(wavefrontAlgorithm.Wavefronts.IsEmpty());
-                wavefrontAlgorithm.AddWavefrontIfValid(wavefrontAlgorithm.Vertices.ToList(), 10, rootVertex, 10,
-                    11, false);
+                wavefrontAlgorithm.AddWavefrontIfValid(wavefrontAlgorithm.Vertices.ToList(), rootVertex, 10,
+                    10, 11, false);
                 Assert.True(wavefrontAlgorithm.Wavefronts.IsEmpty());
             }
 
@@ -364,8 +364,8 @@ namespace Wavefront.Tests
             {
                 Assert.True(wavefrontAlgorithm.Wavefronts.IsEmpty());
 
-                wavefrontAlgorithm.AddWavefrontIfValid(wavefrontAlgorithm.Vertices.ToList(), 10, rootVertex, 190,
-                    360, false);
+                wavefrontAlgorithm.AddWavefrontIfValid(wavefrontAlgorithm.Vertices.ToList(), rootVertex, 10,
+                    190, 360, false);
 
                 Assert.AreEqual(1, wavefrontAlgorithm.Wavefronts.Count);
                 var wavefront = ToList(wavefrontAlgorithm.Wavefronts)[0];

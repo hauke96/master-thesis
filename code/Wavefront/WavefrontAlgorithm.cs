@@ -310,17 +310,6 @@ namespace Wavefront
         }
 
         /// <summary>
-        /// Removes the most relevant vertex from the vertex queue of the wavelet and also removed the whole wavelet
-        /// from the list of wavelets.
-        /// </summary>
-        private void RemoveAndUpdateWavefront(FibonacciHeapNode<Wavefront, double> wavefrontNode)
-        {
-            var wavefront = wavefrontNode.Data;
-            Wavefronts.RemoveMin();
-            wavefront.RemoveNextVertex();
-        }
-
-        /// <summary>
         /// This method considers the given vertex to be visited by the given wavelet. This might cause a shadow casted
         /// by the neighbors of this vertex based on their visited status.
         /// </summary>
@@ -471,15 +460,16 @@ namespace Wavefront
 
             if (newWavefrontNeeded)
             {
-                createdWavefrontAtCurrentVertex = AddNewWavefront(currentVertex,
-                    wavefront.DistanceTo(currentVertex.Position), angleNewWavefrontFrom, angleNewWavefrontTo, false);
+                double distanceToRootFromSource = wavefront.DistanceTo(currentVertex.Position);
+                createdWavefrontAtCurrentVertex = AddNewWavefront(_vertexNeighbors[currentVertex], currentVertex,
+                    distanceToRootFromSource, angleNewWavefrontFrom, angleNewWavefrontTo, false);
             }
 
             // Now the shadow areas to the right and left neighbors will be calculated. Only visited neighbors are
             // considered here, because it can happen that geometries are within the shadow area but closer to the
             // wavelets root than the respective neighbor. In such a scenario a shadow between the wavelet root and an
             // UNvisited neighbor would exclude geometries from being visited at all.
-            
+
             double angleRightShadowFrom = Double.NaN;
             double angleRightShadowTo = Double.NaN;
             if (rightNeighborHasBeenVisited)
@@ -516,14 +506,21 @@ namespace Wavefront
             }
         }
 
-        private bool AddNewWavefront(Vertex root, double distanceToRootFromSource, double fromAngle, double toAngle,
-            bool verticesFromWavefrontWithSameRoot)
-        {
-            return AddNewWavefront(_vertexNeighbors[root], root, distanceToRootFromSource, fromAngle, toAngle,
-                verticesFromWavefrontWithSameRoot);
-        }
-
-        public bool AddNewWavefront(ICollection<Vertex> vertices, Vertex root, double distanceToRootFromSource,
+        /// <summary>
+        /// Adds a new wavelet for the given angles. If the angles exceed the 360°/0° border, then two wavelets will be
+        /// created.
+        /// </summary>
+        /// <param name="relevantVertices">All vertices that should be considered. They will be filtered so that only
+        /// relevant vertices are used in the wavelet.</param>
+        /// <param name="rootVertex">The root vertex of the wavelet.</param>
+        /// <param name="distanceToRootFromSource">The distance from the source to the given root vertex.</param>
+        /// <param name="fromAngle">From angle of the new wavelet.</param>
+        /// <param name="toAngle">To angle of the new wavelet</param>
+        /// <param name="verticesFromWavefrontWithSameRoot">True when the given vertices come from a wavelet with the
+        /// same root. This is a performance tweak to skip sorting the vertices.</param>
+        /// <returns>True when wavelet was created and added, false otherwise.</returns>
+        public bool AddNewWavefront(ICollection<Vertex> relevantVertices, Vertex rootVertex,
+            double distanceToRootFromSource,
             double fromAngle, double toAngle, bool verticesFromWavefrontWithSameRoot)
         {
             bool newWavefrontCreated = false;
@@ -536,52 +533,73 @@ namespace Wavefront
              * old wavefront and create two new ones. One from 300° to 360° and one from 0° to 40°. This simply
              * makes range checks easier and has no further reason.
              */
-            // Log.D(
-            // $"Angles for new wavefront (from={fromAngle}°, to={toAngle}°) exceed 0° border? {Angle.IsBetweenWithNormalize(fromAngle, 0, toAngle)}");
             if (Angle.IsBetweenWithNormalize(fromAngle, 0, toAngle))
             {
-                newWavefrontCreated |= AddWavefrontIfValid(vertices, distanceToRootFromSource, root, fromAngle, 360,
-                    verticesFromWavefrontWithSameRoot);
-                newWavefrontCreated |= AddWavefrontIfValid(vertices, distanceToRootFromSource, root, 0, toAngle,
-                    verticesFromWavefrontWithSameRoot);
+                newWavefrontCreated |= AddWavefrontIfValid(relevantVertices, rootVertex, distanceToRootFromSource,
+                    fromAngle,
+                    360, verticesFromWavefrontWithSameRoot);
+                newWavefrontCreated |= AddWavefrontIfValid(relevantVertices, rootVertex, distanceToRootFromSource, 0,
+                    toAngle, verticesFromWavefrontWithSameRoot);
             }
             else
             {
-                newWavefrontCreated |= AddWavefrontIfValid(vertices, distanceToRootFromSource, root,
-                    fromAngle, toAngle, verticesFromWavefrontWithSameRoot);
+                newWavefrontCreated |= AddWavefrontIfValid(relevantVertices, rootVertex,
+                    distanceToRootFromSource, fromAngle, toAngle, verticesFromWavefrontWithSameRoot);
             }
 
             return newWavefrontCreated;
         }
 
-        public bool AddWavefrontIfValid(ICollection<Vertex> relevantVertices, double distanceFromSourceToVertex,
-            Vertex rootVertex, double fromAngle, double toAngle, bool verticesFromWavefrontWithSameRoot)
+        /// <summary>
+        /// Creates a new wavelet and only adds it to the heap of all wavelets if it's valid.
+        /// </summary>
+        /// <param name="relevantVertices">All vertices that should be considered. They will be filtered so that only
+        /// relevant vertices are used in the wavelet.</param>
+        /// <param name="rootVertex">The root vertex of the wavelet.</param>
+        /// <param name="distanceFromSourceToVertex">The distance from the source to the given root vertex.</param>
+        /// <param name="fromAngle">From angle of the new wavelet.</param>
+        /// <param name="toAngle">To angle of the new wavelet</param>
+        /// <param name="verticesFromWavefrontWithSameRoot">True when the given vertices come from a wavelet with the
+        /// same root. This is a performance tweak to skip sorting the vertices.</param>
+        /// <returns>True when wavelet was created and added, false otherwise.</returns>
+        public bool AddWavefrontIfValid(ICollection<Vertex> relevantVertices,
+            Vertex rootVertex, double distanceFromSourceToVertex,
+            double fromAngle, double toAngle, bool verticesFromWavefrontWithSameRoot)
         {
             var newWavefront = Wavefront.New(fromAngle, toAngle, rootVertex, relevantVertices,
                 distanceFromSourceToVertex, verticesFromWavefrontWithSameRoot);
             if (newWavefront != null)
             {
-                // Log.D(
-                // $"New wavefront at {newWavefront.RootVertex.Position} with {newWavefront.RelevantVertices.Count} relevant vertices from {fromAngle}° to {toAngle}°");
-                Wavefronts.Insert(
-                    new FibonacciHeapNode<Wavefront, double>(newWavefront, newWavefront.DistanceToNextVertex));
+                AddWavefront(newWavefront);
                 return true;
             }
 
-            // Log.D(
-            // $"New wavefront at {rootVertex.Position} from {fromAngle}° to {toAngle}° wouldn't have any vertices -> ignore it");
             return false;
         }
 
-        public void AddWavefront(Wavefront newWavefront)
+        /// <summary>
+        /// Removes the most relevant vertex from the vertex queue of the wavelet and also removed the whole wavelet
+        /// from the list of wavelets.
+        /// </summary>
+        private void RemoveAndUpdateWavefront(FibonacciHeapNode<Wavefront, double> wavefrontNode)
         {
-            if (newWavefront.DistanceToNextVertex == 0)
+            var wavefront = wavefrontNode.Data;
+            Wavefronts.RemoveMin();
+            wavefront.RemoveNextVertex();
+        }
+
+        /// <summary>
+        /// Adds the given wavefront to the current heap if the distance to the next vertex is not zero.
+        /// </summary>
+        public void AddWavefront(Wavefront wavefront)
+        {
+            if (wavefront.DistanceToNextVertex == 0)
             {
                 return;
             }
 
             Wavefronts.Insert(
-                new FibonacciHeapNode<Wavefront, double>(newWavefront, newWavefront.DistanceToNextVertex));
+                new FibonacciHeapNode<Wavefront, double>(wavefront, wavefront.DistanceToNextVertex));
         }
     }
 }
