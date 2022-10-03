@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Mars.Common;
 using Mars.Common.Collections;
 using Mars.Common.Core;
+using Mars.Common.Core.Collections;
 using Mars.Numerics;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
@@ -13,10 +14,13 @@ using Position = Mars.Interfaces.Environments.Position;
 
 namespace Wavefront;
 
-// TODO Tests
 public class WavefrontPreprocessor
 {
-    public class AngleArea
+    /// <summary>
+    /// Helper class modeling an angle area starting at a certain distance. Think of a piece of pizza that doesn't start
+    /// at the center of the pizza but somewhat further out.
+    /// </summary>
+    private class AngleArea
     {
         public double From { get; }
         public double To { get; }
@@ -35,9 +39,24 @@ public class WavefrontPreprocessor
         }
     }
 
+    /// <summary>
+    /// Calculates the neighbor relationship for each vertex in the given obstacles.
+    ///
+    /// Neighbor here means across obstacles.
+    /// </summary>
+    /// <returns>A dict from position to a duplicate free list of all neighbors found.</returns>
     public static Dictionary<Position, List<Position>> GetNeighborsFromObstacleVertices(List<Obstacle> obstacles)
     {
-        // TODO Use Set<Position> to avoid duplicates?
+        // A function that determines if any obstacles if between the two given coordinates.
+        var isCoordinateHidden = (Coordinate coordinate, Coordinate otherCoordinate, Obstacle obstacleOfCoordinate) =>
+            obstacles.Any(o =>
+                o.IsClosed &&
+                (
+                    !obstacleOfCoordinate.Equals(o) &&
+                    o.HasLineSegment(coordinate, otherCoordinate) ||
+                    o.IntersectsWithLine(coordinate, otherCoordinate)
+                ));
+
         var positionToNeighbors = new Dictionary<Position, HashSet<Position>>();
         obstacles.Each(obstacle =>
         {
@@ -46,66 +65,67 @@ public class WavefrontPreprocessor
                 return;
             }
 
-            var coordinates = obstacle.Coordinates.CreateCopy().Distinct().ToList();
-            coordinates.Each((index, coordinate) =>
-            {
-                var position = coordinate.ToPosition();
-                if (!positionToNeighbors.ContainsKey(position))
-                {
-                    positionToNeighbors[position] = new HashSet<Position>();
-                }
-
-                Coordinate? nextCoordinate =
-                    index + 1 < coordinates.Count ? coordinates[index + 1] : null;
-                Coordinate? previousCoordinate = index - 1 >= 0 ? coordinates[index - 1] : null;
-                if (obstacle.IsClosed && nextCoordinate == null)
-                {
-                    nextCoordinate = coordinates.First();
-                }
-
-                if (obstacle.IsClosed && previousCoordinate == null)
-                {
-                    previousCoordinate = coordinates[^1];
-                }
-
-                if (nextCoordinate != null)
-                {
-                    var nextVertexHidden = obstacles.Any(o =>
-                        o.IsClosed &&
-                        (
-                            !obstacle.Equals(o) &&
-                            o.HasLineSegment(coordinate, nextCoordinate) ||
-                            o.IntersectsWithLine(coordinate, nextCoordinate)
-                        ));
-                    if (!nextVertexHidden)
-                    {
-                        positionToNeighbors[position].Add(nextCoordinate.ToPosition());
-                    }
-                }
-
-                if (previousCoordinate != null)
-                {
-                    var previousVertexVisible =
-                        !obstacles.Any(o =>
-                            o.IsClosed &&
-                            (
-                                !obstacle.Equals(o) &&
-                                o.HasLineSegment(coordinate, previousCoordinate) ||
-                                o.IntersectsWithLine(coordinate, previousCoordinate)
-                            ));
-                    if (previousVertexVisible)
-                    {
-                        positionToNeighbors[position].Add(previousCoordinate.ToPosition());
-                    }
-                }
-            });
+            AddNeighborsForObstacle(obstacle, positionToNeighbors, isCoordinateHidden);
         });
 
         WriteVertexNeighborsToFile(positionToNeighbors);
 
+        // Use a list for easier handling later on (Vertices will eventually receive these neighbors and must be able to
+        // sort them).
         var result = new Dictionary<Position, List<Position>>();
         positionToNeighbors.Each(pair => result.Add(pair.Key, pair.Value.ToList()));
         return result;
+    }
+
+    private static void AddNeighborsForObstacle(Obstacle obstacle,
+        Dictionary<Position, HashSet<Position>> positionToNeighbors,
+        Func<Coordinate, Coordinate, Obstacle, bool> isCoordinateHidden)
+    {
+        var coordinates = obstacle.Coordinates.CreateCopy().Distinct().ToList();
+        coordinates.Each((index, coordinate) =>
+        {
+            var position = coordinate.ToPosition();
+            if (!positionToNeighbors.ContainsKey(position))
+            {
+                positionToNeighbors[position] = new HashSet<Position>();
+            }
+
+            Coordinate? nextCoordinate =
+                index + 1 < coordinates.Count ? coordinates[index + 1] : null;
+            Coordinate? previousCoordinate = index - 1 >= 0 ? coordinates[index - 1] : null;
+
+            var neighbors = new HashSet<Position>();
+
+            if (obstacle.IsClosed && nextCoordinate == null)
+            {
+                nextCoordinate = coordinates.First();
+            }
+
+            if (obstacle.IsClosed && previousCoordinate == null)
+            {
+                previousCoordinate = coordinates[^1];
+            }
+
+            if (nextCoordinate != null)
+            {
+                var nextVertexHidden = isCoordinateHidden(coordinate, nextCoordinate, obstacle);
+                if (!nextVertexHidden)
+                {
+                    neighbors.Add(nextCoordinate.ToPosition());
+                }
+            }
+
+            if (previousCoordinate != null)
+            {
+                var previousVertexHidden = isCoordinateHidden(coordinate, previousCoordinate, obstacle);
+                if (!previousVertexHidden)
+                {
+                    neighbors.Add(previousCoordinate.ToPosition());
+                }
+            }
+            
+            positionToNeighbors[position].AddRange(neighbors);
+        });
     }
 
     public static Dictionary<Vertex, List<Vertex>> CalculateVisibleKnn(QuadTree<Obstacle> obstacles,
