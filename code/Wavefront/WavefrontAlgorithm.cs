@@ -46,7 +46,7 @@ namespace Wavefront
 
             Log.I("Calculate KNN to get visible vertices");
             _vertexNeighbors = WavefrontPreprocessor.CalculateVisibleKnn(_obstacles, Vertices, knnSearchNeighbors);
-            
+
             Reset();
         }
 
@@ -339,19 +339,17 @@ namespace Wavefront
             var angleRootToCurrentVertex = Angle.GetBearing(wavefront.RootVertex.Position, currentVertex.Position);
             var waveletAngleStartsAtVertex = Angle.AreEqual(wavefront.FromAngle, angleRootToCurrentVertex);
             var waveletAngleEndsAtVertex = Angle.AreEqual(wavefront.ToAngle, angleRootToCurrentVertex);
-            
-            var rightNeighbor = currentVertex.RightNeighbor(wavefront.RootVertex.Position, waveletAngleStartsAtVertex) ??
-                                currentVertex.LeftNeighbor(wavefront.RootVertex.Position, waveletAngleEndsAtVertex);
+
+            var rightNeighbor =
+                currentVertex.RightNeighbor(wavefront.RootVertex.Position, waveletAngleStartsAtVertex) ??
+                currentVertex.LeftNeighbor(wavefront.RootVertex.Position, waveletAngleEndsAtVertex);
             var leftNeighbor = currentVertex.LeftNeighbor(wavefront.RootVertex.Position, waveletAngleEndsAtVertex) ??
                                currentVertex.RightNeighbor(wavefront.RootVertex.Position, waveletAngleStartsAtVertex);
 
             if (rightNeighbor == null && leftNeighbor == null)
             {
-                // Log.D("Current vertex has no neighbors -> abort");
                 return;
             }
-
-            // Log.D($"rightNeighbor={rightNeighbor}, leftNeighbor={leftNeighbor}");
 
             var angleRootToRightNeighbor = rightNeighbor != null
                 ? Angle.GetBearing(wavefront.RootVertex.Position, rightNeighbor)
@@ -366,77 +364,110 @@ namespace Wavefront
             var angleVertexToLeftNeighbor = leftNeighbor != null
                 ? Angle.GetBearing(currentVertex.Position, leftNeighbor)
                 : double.NaN;
-            
-            // TODO describe rotation idea
 
-            // Rotate such that the current vertex of always north/up of the wavefront root
+            /*
+             * Rotate such that the current vertex of always north/up of the wavefront root.
+             * 
+             * The idea behind it:
+             * When the angles to the right and left neighbor are rotated we can easily check if there's a potential
+             * shadow casted by the neighbors. When both neighbors are on the east side (0°-180°), we know that no other
+             * neighbor is on the west side (180°-360°) and vice versa. This, however, means that there's an edge where
+             * a potential shadow is cast.
+             * If one neighbor is on the west and one on the east side, there's no such shadow.
+             */
             var rotationAngle = -angleRootToCurrentVertex;
-            // Log.D($"Rotate relevant angles by {rotationAngle}°");
             var angleCurrentWavefrontFrom = Angle.Normalize(wavefront.FromAngle + rotationAngle);
             var angleCurrentWavefrontTo = Angle.Normalize(wavefront.ToAngle + rotationAngle);
+            angleRootToRightNeighbor = Angle.Normalize(angleRootToRightNeighbor + rotationAngle);
+            angleRootToLeftNeighbor = Angle.Normalize(angleRootToLeftNeighbor + rotationAngle);
             angleVertexToRightNeighbor = Angle.Normalize(angleVertexToRightNeighbor + rotationAngle);
             angleVertexToLeftNeighbor = Angle.Normalize(angleVertexToLeftNeighbor + rotationAngle);
-            // Log.Note($"angleCurrentWavefrontFrom={angleCurrentWavefrontFrom}");
-            // Log.Note($"angleCurrentWavefrontTo={angleCurrentWavefrontTo}");
-            // Log.Note($"angleVertexToRightNeighbor={angleVertexToRightNeighbor}");
-            // Log.Note($"angleVertexToLeftNeighbor={angleVertexToLeftNeighbor}");
 
+            // Only consider edged to visited vertices to cast a shadow.
             var rightNeighborHasBeenVisited = wavefront.HasBeenVisited(rightNeighbor);
             var leftNeighborHasBeenVisited = wavefront.HasBeenVisited(leftNeighbor);
-            // Log.Note($"rightNeighborHasBeenVisited={rightNeighborHasBeenVisited}");
-            // Log.Note($"leftNeighborHasBeenVisited={leftNeighborHasBeenVisited}");
 
-            // Both neighbors on left/right (aka west/east) side of root+current vertex -> New wavefront needed for the casted shadow
+            // Both neighbors on west/east side of root+current vertex -> New wavefront needed for the shadow
             var bothNeighborsOnWestSide = Angle.GreaterEqual(angleVertexToRightNeighbor, 180) &&
                                           Angle.GreaterEqual(angleVertexToLeftNeighbor, 180);
             var bothNeighborsOnEastSide = Angle.LowerEqual(angleVertexToRightNeighbor, 180) &&
                                           Angle.LowerEqual(angleVertexToLeftNeighbor, 180);
 
-            // Log.Note($"bothNeighborsOnWestSide={bothNeighborsOnWestSide}");
-            // Log.Note($"bothNeighborsOnEastSide={bothNeighborsOnEastSide}");
-            // Log.Note($"currentVertexIsNeighbor={currentVertexIsNeighbor}");
-
             double angleNewWavefrontFrom = Double.NaN;
             double angleNewWavefrontTo = Double.NaN;
+
+            /*
+             * Only set the new wavelet angles when
+             *   a) both neighbors are on the west side and
+             *   b) the to-angle of the current wavelet is not 360°.
+             * This happens when a) is fulfilled and the wavelets to-side ends at an edge. This means that one of the
+             * neighbors is at 180° since it's the root vertex or a vertex on the exact same line between root vertex
+             * and neighbor. In this case, the wavelet has reached an inner corner and no new wavelet is needed. Same
+             * goes in opposite direction for the second case when both neighbors are on the east side.
+             * 
+             * Here's a sketch where V and R are both neighbors and both on the west side but since the wavelets to-
+             * angle is 360°, we know that this in an inner corner and no new wavelet is needed:
+             * 
+             *      V         V = Vertex (one of the neighbors)
+             *       \
+             *        X       X = Current vertex
+             *        |
+             *        |
+             *        R       R = Root of wavelet and also a neighbors
+             */
             if (bothNeighborsOnWestSide && !Angle.AreEqual(angleCurrentWavefrontTo, 360))
             {
-                Log.Note("Both neighbors on west side");
                 angleNewWavefrontFrom = Math.Max(angleVertexToRightNeighbor, angleVertexToLeftNeighbor);
                 angleNewWavefrontTo = 360;
             }
             else if (bothNeighborsOnEastSide && !Angle.AreEqual(angleCurrentWavefrontFrom, 0))
             {
-                Log.Note("Both neighbors on east side");
                 angleNewWavefrontFrom = 0;
                 angleNewWavefrontTo = Math.Min(angleVertexToRightNeighbor, angleVertexToLeftNeighbor);
             }
 
-            // Log.D($"Wavefront goes from={angleWavefrontFrom}° to={angleWavefrontTo}°");
-
-            // Wavefront root vertex is the only neighbor. In other words we reached the end of a line and the wavefront
-            // root vertex is the second last vertex of that line.
+            // Determine if the wavelets root vertex is the only neighbor. In other words see if we reached the end of a
+            // line, because the last vertex of a line has only one neighbor (which means right = left neighbor). If
+            // this neighbor is our wavelet root means that the wavelets root is the second last vertex of that line.
             var wavefrontRootIsSecondLastLineVertex = Equals(rightNeighbor, wavefront.RootVertex.Position) &&
                                                       Equals(leftNeighbor, wavefront.RootVertex.Position);
 
-            // When wavelet is rooted at second last vertex of a line -> This end vertex of the line will be visited
-            // by this wavefront anyway.
-            // When the new wavelet starts within the range of the current one, then the start of the new wavelet will
-            // be visited by the current wavelet as well.
-            var neighborWillBeVisitedByWavefront = wavefrontRootIsSecondLastLineVertex &&
-                                                   Angle.IsBetweenWithNormalize(angleCurrentWavefrontFrom,
-                                                       angleNewWavefrontFrom,
-                                                       angleCurrentWavefrontTo);
+            // When the wavelet is rooted at the second last vertex of a line, then the last vertex of that line will
+            // probably (!) be visited by this wavefront anyway, but only if the angle to that last vertex is exactly
+            // the to- or from-angle of our wavelet. A wavelet could've been split before reaching the last vertex of
+            // the line which means that there could be wavelets rooted at the second last vertex which will never reach
+            // the last vertex of the line.
+            // But when the angle to the right and left neighbor is the from/to angle of the wavelet, then both
+            // neighbors will be visited by our wavefront.
+            var neighborsWillBeVisitedByWavefront = wavefrontRootIsSecondLastLineVertex &&
+                                                    (
+                                                        Angle.AreEqual(angleCurrentWavefrontFrom,
+                                                            angleRootToRightNeighbor) ||
+                                                        Angle.AreEqual(angleCurrentWavefrontTo,
+                                                            angleRootToRightNeighbor)
+                                                    ) &&
+                                                    (
+                                                        Angle.AreEqual(angleCurrentWavefrontFrom,
+                                                            angleRootToLeftNeighbor) ||
+                                                        Angle.AreEqual(angleCurrentWavefrontTo,
+                                                            angleRootToLeftNeighbor)
+                                                    );
+
+            /*
+             * When do we need a new wavelet? Two conditions must hold:
+             *   1) We must've determined some potential from- and to-angles above, which means that there's a reason
+             *      for a new wavelet in the first place.
+             *   2) One of the neighbors will not be visited by the current wavelet. For example when the wavelet
+             *      reached a corner, one neighbor is "behind" that corner and not visible -> new wavelet needed.
+             */
             var newWavefrontNeeded = !double.IsNaN(angleNewWavefrontFrom) && !double.IsNaN(angleNewWavefrontTo) &&
-                                     !neighborWillBeVisitedByWavefront;
+                                     !neighborsWillBeVisitedByWavefront;
 
-            // Log.D(
-            // $"New wavefront needed={newWavefrontNeeded} because: neighborWillBeVisitedByWavefront={neighborWillBeVisitedByWavefront}, " +
-            // $"angleWavefrontFrom={angleWavefrontFrom}°, angleWavefrontTo={angleWavefrontTo}°");
-
-            // Rotate back
-            // Log.D($"Rotate every angle back by {-rotationAngle}°");
+            // Rotate angles back to the actual values because now they are used to determine the return values.
             angleNewWavefrontFrom = Angle.Normalize(angleNewWavefrontFrom - rotationAngle);
             angleNewWavefrontTo = Angle.Normalize(angleNewWavefrontTo - rotationAngle);
+            angleRootToRightNeighbor = Angle.Normalize(angleRootToRightNeighbor - rotationAngle);
+            angleRootToLeftNeighbor = Angle.Normalize(angleRootToLeftNeighbor - rotationAngle);
 
             if (newWavefrontNeeded)
             {
@@ -444,6 +475,11 @@ namespace Wavefront
                     wavefront.DistanceTo(currentVertex.Position), angleNewWavefrontFrom, angleNewWavefrontTo, false);
             }
 
+            // Now the shadow areas to the right and left neighbors will be calculated. Only visited neighbors are
+            // considered here, because it can happen that geometries are within the shadow area but closer to the
+            // wavelets root than the respective neighbor. In such a scenario a shadow between the wavelet root and an
+            // UNvisited neighbor would exclude geometries from being visited at all.
+            
             double angleRightShadowFrom = Double.NaN;
             double angleRightShadowTo = Double.NaN;
             if (rightNeighborHasBeenVisited)
@@ -452,8 +488,6 @@ namespace Wavefront
                     out angleRightShadowTo);
                 angleShadowFrom = angleRightShadowFrom;
                 angleShadowTo = angleRightShadowTo;
-                // Log.D(
-                // $"Right neighbor={rightNeighbor} has been visited casting a shadow from {angleShadowFrom}° to {angleShadowTo}°");
             }
 
             double angleLeftShadowFrom = Double.NaN;
@@ -464,14 +498,11 @@ namespace Wavefront
                     out angleLeftShadowTo);
                 angleShadowFrom = angleLeftShadowFrom;
                 angleShadowTo = angleLeftShadowTo;
-                // Log.D(
-                // $"Left neighbor={leftNeighbor} has been visited casting a shadow from {angleLeftShadowFrom}° to {angleLeftShadowTo}°");
             }
 
-            // When two shadows exist -> merge them because they always touch
+            // When two shadows exist -> merge them because they always touch since the current vertex is in the middle
             if (!Double.IsNaN(angleRightShadowFrom) && !Double.IsNaN(angleLeftShadowFrom))
             {
-                // Log.D("There are two shadows -> merge them");
                 if (Angle.AreEqual(angleRightShadowTo, angleLeftShadowFrom))
                 {
                     angleShadowFrom = angleRightShadowFrom;
@@ -482,8 +513,6 @@ namespace Wavefront
                     angleShadowFrom = angleLeftShadowFrom;
                     angleShadowTo = angleRightShadowTo;
                 }
-
-                // Log.D($"There were two shadows -> merged shadow goes from {angleShadowFrom}° to {angleShadowTo}°");
             }
         }
 
