@@ -46,6 +46,8 @@ namespace Wavefront
 
             Log.I("Calculate KNN to get visible vertices");
             _vertexNeighbors = WavefrontPreprocessor.CalculateVisibleKnn(_obstacles, Vertices, knnSearchNeighbors);
+            
+            Reset();
         }
 
         /// <summary>
