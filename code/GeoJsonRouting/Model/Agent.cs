@@ -32,7 +32,7 @@ namespace GeoJsonRouting.Model
 
         public Position? Position { get; set; }
         public Guid ID { get; set; } = Guid.NewGuid();
-        public double Extent { get; set; }
+        public double Extent { get; set; } = 20; // -> Umrechnung in lat/lon-differenz für Euklidische Distanz
 
         private Position? _targetPosition;
         private Queue<Waypoint> _waypoints = new();
@@ -79,6 +79,7 @@ namespace GeoJsonRouting.Model
 
             var bearing = Angle.GetBearing(Position, currentWaypoint.Position);
             SharedEnvironment.Environment.Move(this, bearing, STEP_SIZE);
+            // TODO Wenn nicht bewegt ggf. andere Position anlaufen
         }
 
         public CollisionKind? HandleCollision(ICharacter other)

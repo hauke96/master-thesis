@@ -35,6 +35,11 @@
 \usepackage[noabbrev]{cleveref}
 
 %
+% Commands
+%
+\newcommand{\bigo}[1]{\mathcal{O}(#1)}
+
+%
 % BibTeX
 %
 \addbibresource{sources.bib}
@@ -118,8 +123,21 @@
 	\section{Geometric routing}
 	
 		% multiple strategies: visibility graph vs. continuous dijkstra
+		Geometric routing is the process of finding the shortest path in the plane from a source to a target location whereby obstacles, such as buildings, walls or waters, should be avoided.
+		The formal problem behind this is the euclidean shortest path problem, which is the problem of finding the shortest path in a euclidean space with polygonal obstacles.
+		This can be generalized to a three dimensional euclidean space with polyhedral obstacles, but my thesis will only cover the two dimensional case.
+		Two main approaches solve this problem yielding an optimal route in a euclidean space.
 		
 		% visibility graph
+		\subsection{Visibility Graph}
+		
+			This approach takes every vertex and creates an edge to every other visible vertex, which ensures that no obstacle is between two connected vertices.
+			Then a normal routing algorithm, such as the Dijkstra's algorithm, can be used to find the shortest path on the visibility graph.
+			
+			A naive approach to create a visibility graph is rather simple: Take each of the $n$ vertices, create edges to all other $n-1$ vertices and finally go through all $n^2$ edges and remove the edges that intersect with an obstacle.
+			Overall this is an algorithm with a runtime of $\bigo{n^3}$ performing $\bigo{n^2}$ many expensive collision detection operations.
+			Nevertheless, there are many improvements on how to construct a visibility graph resulting in significantly lower runtime complexity.
+			For example, Pocchiola and Vegter presented an algorithm using $\bigo{n \log{n} + k}$ time, where $n$ is the number of vertices and $k$ the number of resulting edges, and only $\bigo{n}$ space.\cite{pocchiola1996topologically}
 		
 		% cont. dijkstra
 		
