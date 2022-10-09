@@ -82,6 +82,7 @@ Even though train stations have few large open spaces, the platforms are still a
 ### Risks and open questions
 
 * How difficult is the routing with multiple levels?
+* How difficult is the network based routing with many agents?
 
 ## Demonstration within the City
 

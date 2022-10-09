@@ -1,10 +1,12 @@
 This is a list of related work for my thesis ordered by topic. A summary means that I (roughly) looked into the work and checked that it's somehow related to my topic. The amount of quotations comes from Google Scholar and is just used as a rule of thumb measurement for the importance of the paper.
 
+Conference ranks are done by querying https://www.cs.ox.ac.uk/people/michael.wooldridge/conferences.html and http://www.conferenceranks.com. Good conferences are for example VLDB, SSTD, SIGSPATIAL, SIG... and most IEEE.
+
 # Routing
 
 ## Shortest paths among obstacles in the plane (Mitchell, 1993)
 
-Quoted by 236.
+Quoted by 236. Conf A.
 
 * https://dl.acm.org/doi/abs/10.1145/160985.161156
 
@@ -13,6 +15,8 @@ Quoted by 236.
 To find shortest paths in the open space, Mitchell proposed an sub-quadratic algorithm using wavefronts traveling through space instead of a visibility graph. Each wavefront (or more precise "wavelet") can collide with vertices, edges and other wavelets. It then is split or reduces in size and new wavelets are spawned on vertices. The output of his algorithm is a shortest path map with which such a path can be found in O(log n).
 
 ## Efficient algorithms for Euclidean shortest path and visibility problems with polygonal obstacles (Kapoor, Maheshwari, 1988)
+
+Quoted by 101. Conf A.
 
 They talk about building a visibility graph → is this state of the art?
 
@@ -31,7 +35,7 @@ The result of the algorithm is a shortest path map, where for every location the
 
 ## A Navigation Algorithm for Pedestrian Simulation in Dynamic Environments (Teknomo, Millonig, 2007)
 
-Quoted by 27.
+Quoted by 27. Conf A.
 
 // TODO Look further into it, sounds interesting
 
@@ -47,13 +51,15 @@ They explicitly do not use Mitchells algorithm (because it's too expensive) but 
 
 ## Optimal pedestrian path planning in evacuation scenario (Kasanicky, Zelenka, 2014)
 
+Quoted by 3. Conf C.
+
 * http://147.213.75.17/ojs/index.php/cai/article/view/2814/675
 
 # Agent-based simulations
 
 ## Introductory tutorial: Agent-based modeling and simulation (Macal, North, 2014)
 
-Quoted by 380.
+Quoted by 380. Proceedings of Conf B.
 
 * https://ieeexplore.ieee.org/document/7019874
 * http://simulation.su/uploads/files/default/2014-macal-north.pdf
@@ -102,6 +108,6 @@ Quoted by 28.
 
 ## Multimodel agent-based simulation environment for mass-gatherings and pedestrian dynamics (Karbovskii, et al., 2016)
 
-Quoted by 24.
+Quoted by 24. Conf B4.
 
 * https://www.sciencedirect.com/science/article/abs/pii/S0167739X16303739
