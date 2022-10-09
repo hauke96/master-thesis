@@ -23,6 +23,7 @@
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amssymb}
+\usepackage{nicefrac}
 
 \usepackage{titlesec}
 \usepackage{titling}
@@ -136,10 +137,23 @@
 			
 			A naive approach to create a visibility graph is rather simple: Take each of the $n$ vertices, create edges to all other $n-1$ vertices and finally go through all $n^2$ edges and remove the edges that intersect with an obstacle.
 			Overall this is an algorithm with a runtime of $\bigo{n^3}$ performing $\bigo{n^2}$ many expensive collision detection operations.
+			
 			Nevertheless, there are many improvements on how to construct a visibility graph resulting in significantly lower runtime complexity.
-			For example, Pocchiola and Vegter presented an algorithm using $\bigo{n \log{n} + k}$ time, where $n$ is the number of vertices and $k$ the number of resulting edges, and only $\bigo{n}$ space.\cite{pocchiola1996topologically}
+			One approach using $O(n^2)$ time by Overmars and Welz sorts for each vertex all other vertices by angle and then uses a rotational sweep line to determine visible neighbors. \cite{overmars1988new}
+			A more optimal algorithm, which relies on a pseudotriangulation of the space between the obstacles, was presented by Pocchiola and Vegter running in $\bigo{n \log{n} + k}$ time and only $\bigo{n}$ space, where $n$ is the number of vertices and $k$ the number of resulting edges in the visibility graph.\cite{pocchiola1996topologically}
 		
 		% cont. dijkstra
+		\subsection{Continuous Dijkstra}
+		
+			An alternative to routing on a visibility graph is the continuous dijkstra method, which does not produce a graph for routing but rather finds the shortest path by continuously exploring the space.
+			The main idea behind this method is the one of wavefronts propagating through the space and around polygonal obstacles within that space.
+			The way wavefronts move through space from vertex to vertex has similarities to the node discovery in dijkstras algorithm, hence the name.\cite[9]{mitchell1987discrete}
+			
+			Mitchell proposed an enhanced version of such a wavefront propagation technique that processes certain events what can happen to a wavefront, e.g. collisions with obstacles and other wavefronts. \cite{mitchell1993shortest}
+			His algorithm has a sub-quadratic runtime of $\bigo{n^{\nicefrac{5}{3} + \epsilon}}$ and produces a shortest path map, that is, a mapping of location to the shortest path from a single source to that location.
+			
+			A few years later, Suri and Hershberger presented a time-optimal algorithm only using $\bigo{n \log n}$ time and space, where $n$ is the number of vertices in the obstacles.\cite{hershberger1999optimal}
+			Their algorithm is based on a smart quad-tree like subdivision of space that fulfills some helpful properties for each vertex.
 		
 	\section{Considered scenario}
 	
