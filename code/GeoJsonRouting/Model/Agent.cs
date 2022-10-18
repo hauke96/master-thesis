@@ -41,9 +41,14 @@ namespace GeoJsonRouting.Model
         {
             Position = ObstacleLayer.GetRandomStart();
             _targetPosition = ObstacleLayer.GetRandomTarget();
-            
+
+            while (_targetPosition.Equals(Position))
+            {
+                _targetPosition = ObstacleLayer.GetRandomTarget();
+            }
+
             DetermineNewWaypoints();
-            
+
             SharedEnvironment.Environment.Insert(this, Position);
         }
 
