@@ -133,7 +133,12 @@ public class AngleTest
         Assert.True(Angle.AreEqual(10, 10.00001));
         Assert.True(Angle.AreEqual(9.99999, 10.00001));
         Assert.True(Angle.AreEqual(360, 0));
+        Assert.True(Angle.AreEqual(359.99999999994, 0));
         Assert.True(Angle.AreEqual(0, 360));
+        Assert.True(Angle.AreEqual(360, 360));
+        Assert.True(Angle.AreEqual(720, 0));
+        Assert.True(Angle.AreEqual(0, 720));
+        Assert.True(Angle.AreEqual(720, 720));
         Assert.True(Angle.AreEqual(640, 280));
 
         Assert.False(Angle.AreEqual(0, 0.010000001));
@@ -141,6 +146,8 @@ public class AngleTest
         Assert.False(Angle.AreEqual(1.01000001, 1));
         Assert.False(Angle.AreEqual(360, 1));
         Assert.False(Angle.AreEqual(359, 0));
+        Assert.False(Angle.AreEqual(720, 10));
+        Assert.False(Angle.AreEqual(10, 720));
     }
 
     [Test]

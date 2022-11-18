@@ -143,16 +143,7 @@ public class Angle
     {
         a = StrictNormalize(a);
         b = StrictNormalize(b);
-        return NormalizedAreEqual(a, b);
-    }
-
-    /// <summary>
-    /// Actual logic for the AreEqual method. Assumes that parameters are correctly normalized.
-    /// </summary>
-    private static bool NormalizedAreEqual(double a, double b)
-    {
-        var diff = a >= b ? a - b : b - a;
-        return diff < FLOAT_TOLERANCE;
+        return Difference(a, b) < FLOAT_TOLERANCE || Difference(b, a) < FLOAT_TOLERANCE;
     }
 
     /// <summary>
