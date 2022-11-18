@@ -6,8 +6,11 @@ namespace Wavefront.Geometry;
 
 public class Vertex
 {
+    private static int ID_COUNTER;
+
     private readonly List<Position> _neighbors;
     private readonly Position _position;
+    private readonly int _id;
 
     public Position Position
     {
@@ -42,6 +45,7 @@ public class Vertex
         Position = position;
         _neighbors = neighbors;
         _neighbors.Sort((p1, p2) => (int)(Angle.GetBearing(Position, p1) - Angle.GetBearing(Position, p2)));
+        _id = ID_COUNTER++;
     }
 
     /// <summary>
@@ -81,7 +85,7 @@ public class Vertex
         return 0 <= index && index < _neighbors.Count ? _neighbors[index] : null;
     }
 
-    
+
     /// <summary>
     /// Returns the neighbor that's left (=counter clockwise) or equal to the angle of the given position.
     /// </summary>
@@ -133,6 +137,6 @@ public class Vertex
 
     public override string ToString()
     {
-        return Position.ToString();
+        return "v#" + _id + " : " + Position.ToString();
     }
 }

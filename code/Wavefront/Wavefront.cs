@@ -137,6 +137,6 @@ public class Wavefront
 
     public override String ToString()
     {
-        return $"(root={RootVertex.Position}, from={FromAngle}, to={ToAngle}, vertices={RelevantVertices.Count})";
+        return $"(root={RootVertex}, from={FromAngle}, to={ToAngle}, vertices={RelevantVertices.Count})";
     }
 }
