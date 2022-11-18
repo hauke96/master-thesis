@@ -355,7 +355,7 @@ namespace Wavefront
                 : double.NaN;
 
             /*
-             * Rotate such that the current vertex of always north/up of the wavefront root.
+             * Rotate such that the current vertex is always north/up of the wavefront root.
              * 
              * The idea behind it:
              * When the angles to the right and left neighbor are rotated we can easily check if there's a potential
@@ -372,7 +372,7 @@ namespace Wavefront
             angleVertexToRightNeighbor = Angle.Normalize(angleVertexToRightNeighbor + rotationAngle);
             angleVertexToLeftNeighbor = Angle.Normalize(angleVertexToLeftNeighbor + rotationAngle);
 
-            // Only consider edged to visited vertices to cast a shadow.
+            // Only consider edges to visited vertices to cast a shadow.
             var rightNeighborHasBeenVisited = wavefront.HasBeenVisited(rightNeighbor);
             var leftNeighborHasBeenVisited = wavefront.HasBeenVisited(leftNeighbor);
 
@@ -386,16 +386,20 @@ namespace Wavefront
             double angleNewWavefrontTo = Double.NaN;
 
             /*
-             * Only set the new wavelet angles when
-             *   a) both neighbors are on the west side and
-             *   b) the to-angle of the current wavelet is not 360°.
-             * This happens when a) is fulfilled and the wavelets to-side ends at an edge. This means that one of the
-             * neighbors is at 180° since it's the root vertex or a vertex on the exact same line between root vertex
-             * and neighbor. In this case, the wavelet has reached an inner corner and no new wavelet is needed. Same
-             * goes in opposite direction for the second case when both neighbors are on the east side.
+             * Only determine the angles of the new wavelet when
+             *   a) both neighbors are on the west side
+             *   AND
+             *   b) the to-angle of the current wavelet is NOT 360°.
              * 
-             * Here's a sketch where V and R are both neighbors and both on the west side but since the wavelets to-
-             * angle is 360°, we know that this in an inner corner and no new wavelet is needed:
+             * Condition b) might be fulfilled when condition a) holds and the wavelets to-side ends at an edge to ont
+             * of the neighbors. This means that one of the neighbors is at 180° since this neighbor is either the root
+             * vertex or a vertex placed exactly on the line between root vertex and neighbor. In this case, the wavelet
+             * has reached an inner corner and no new wavelet is needed. Same holds when both neighbors are on the east
+             * side and the wavelets from-side ends at 0°.
+             * 
+             * Here's a sketch where V (simple vertex) and R (root of wavelet) are both neighbors and both on the west.
+             * Imagine the wavelet reached vertex X and has an angle-area of 270° to 360°. Now we know that the wavelet
+             * reached an inner corner and no new wavelet is needed:
              * 
              *      V         V = Vertex (one of the neighbors)
              *       \
@@ -427,7 +431,7 @@ namespace Wavefront
             // the line which means that there could be wavelets rooted at the second last vertex which will never reach
             // the last vertex of the line.
             // But when the angle to the right and left neighbor is the from/to angle of the wavelet, then both
-            // neighbors will be visited by our wavefront.
+            // neighbors will be visited by our wavefront. TODO rename to neighborsOnLineWillBeVisitedByWavefront
             var neighborsWillBeVisitedByWavefront = wavefrontRootIsSecondLastLineVertex &&
                                                     (
                                                         Angle.AreEqual(angleCurrentWavefrontFrom,
@@ -578,7 +582,7 @@ namespace Wavefront
         }
 
         /// <summary>
-        /// Removes the most relevant vertex from the vertex queue of the wavelet and also removed the whole wavelet
+        /// Removes the most relevant vertex from the vertex queue of the wavelet and also removes the whole wavelet
         /// from the list of wavelets.
         /// </summary>
         private void RemoveAndUpdateWavefront(FibonacciHeapNode<Wavefront, double> wavefrontNode)
