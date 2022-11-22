@@ -14,6 +14,7 @@ using NetTopologySuite.Geometries.Implementation;
 using NetTopologySuite.IO;
 using NetTopologySuite.IO.Converters;
 using Newtonsoft.Json;
+using Pipelines.Sockets.Unofficial;
 using ServiceStack;
 using Wavefront;
 using Wavefront.Geometry;
@@ -25,14 +26,14 @@ namespace GeoJsonRouting.Model
 {
     public class Agent : ICharacter, IAgent<VectorLayer>
     {
-        private static readonly double STEP_SIZE = 0.0001;
+        private static readonly double STEP_SIZE = 0.00001;
 
         [PropertyDescription] public UnregisterAgent UnregisterHandle { get; set; }
         [PropertyDescription] public ObstacleLayer ObstacleLayer { get; set; }
 
         public Position? Position { get; set; }
         public Guid ID { get; set; } = Guid.NewGuid();
-        public double Extent { get; set; } = 20; // -> Umrechnung in lat/lon-differenz für Euklidische Distanz
+        public double Extent { get; set; } = 0.0002; // -> Umrechnung in lat/lon-differenz für Euklidische Distanz
 
         private Position? _targetPosition;
         private Queue<Waypoint> _waypoints = new();
@@ -83,13 +84,30 @@ namespace GeoJsonRouting.Model
             }
 
             var bearing = Angle.GetBearing(Position, currentWaypoint.Position);
-            SharedEnvironment.Environment.Move(this, bearing, STEP_SIZE);
+            var oldPosition = (Position)Position.Clone();
+            for (int i = 0; i < 4; i++)
+            {
+                var newPosition =
+                    SharedEnvironment.Environment.Move(this, (bearing + i * 45) % 360, STEP_SIZE);
+                var distanceInMTo = Distance.Euclidean(oldPosition.PositionArray, Position.PositionArray);
+                Console.WriteLine($"{distanceInMTo}");
+                if (!newPosition.Equals(oldPosition) && distanceInMTo >= 0.5 * STEP_SIZE)
+                {
+                    break;
+                }
+                else
+                {
+                    Console.WriteLine("Try another direction");
+                }
+            }
             // TODO Wenn nicht bewegt ggf. andere Position anlaufen
         }
 
         public CollisionKind? HandleCollision(ICharacter other)
         {
-            return other.Position.DistanceInMTo(Position) <= 0.5 ? CollisionKind.Block : CollisionKind.Pass;
+            var distanceInMTo = other.Position.DistanceInMTo(Position);
+            return distanceInMTo <= 5 ? CollisionKind.Block : CollisionKind.Pass;
+            // return CollisionKind.Pass;
         }
 
         private void Kill()
@@ -107,6 +125,11 @@ namespace GeoJsonRouting.Model
                 var routingResult = ObstacleLayer.WavefrontAlgorithm.Route(Position, _targetPosition);
                 watch.Stop();
                 Console.WriteLine($"Routing duration: {watch.ElapsedMilliseconds}ms");
+
+                if (routingResult.OptimalRoute.IsEmpty())
+                {
+                    throw new Exception($"No route found from {Position} to {_targetPosition}");
+                }
 
                 _waypoints = new Queue<Waypoint>(routingResult.OptimalRoute);
 

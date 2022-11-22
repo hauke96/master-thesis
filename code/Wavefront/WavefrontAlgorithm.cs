@@ -30,7 +30,7 @@ namespace Wavefront
         public Dictionary<Waypoint, Waypoint?> WavefrontRootPredecessor;
         public Dictionary<Position, Waypoint> WavefrontRootToWaypoint;
 
-        public FibonacciHeap<Wavefront, double> Wavefronts;
+        public FibonacciHeap<Wavelet, double> Wavefronts;
         public readonly List<Vertex> Vertices;
 
         public WavefrontAlgorithm(List<Obstacle> obstacles)
@@ -59,7 +59,7 @@ namespace Wavefront
             PositionToWaypoint = new Dictionary<Position, Waypoint>();
             WavefrontRootPredecessor = new Dictionary<Waypoint, Waypoint?>();
             WavefrontRootToWaypoint = new Dictionary<Position, Waypoint>();
-            Wavefronts = new FibonacciHeap<Wavefront, double>(0);
+            Wavefronts = new FibonacciHeap<Wavelet, double>(0);
         }
 
         /// <summary>
@@ -92,7 +92,7 @@ namespace Wavefront
             // TODO Find a better way to add the target to the existing neighbors lists?
             neighborsOfTarget.Each(neighbor => _vertexNeighbors[neighbor].Add(targetVertex));
 
-            var initialWavefront = Wavefront.New(0, 360, sourceVertex, _vertexNeighbors[sourceVertex], 0, false);
+            var initialWavefront = Wavelet.New(0, 360, sourceVertex, _vertexNeighbors[sourceVertex], 0, false);
             if (initialWavefront == null)
             {
                 return new RoutingResult();
@@ -102,7 +102,7 @@ namespace Wavefront
 
             Log.Init(0);
             Log.I($"Routing from {source} to {target}");
-            Log.D($"Initial wavefront at {initialWavefront.RootVertex.Position}");
+            Log.D($"Initial wavelet at {initialWavefront.RootVertex.Position}");
 
             stopwatch.Start();
             while (!PositionToWaypoint.ContainsKey(target) && !Wavefronts.IsEmpty())
@@ -168,13 +168,13 @@ namespace Wavefront
         /// </summary>
         public void ProcessNextEvent(Position targetPosition, Stopwatch stopwatch)
         {
-            var wavefrontNode = Wavefronts.Min();
-            var wavefront = wavefrontNode.Data;
-            var currentVertex = wavefront.GetNextVertex();
+            var waveletNode = Wavefronts.Min();
+            var wavelet = waveletNode.Data;
+            var currentVertex = wavelet.GetNextVertex();
 
             if (currentVertex == null)
             {
-                // This wavefront doesn't have any events ahead, to we can remove it. 
+                // This wavelet doesn't have any events ahead, to we can remove it. 
                 Wavefronts.RemoveMin();
                 return;
             }
@@ -184,19 +184,19 @@ namespace Wavefront
             {
                 // The current vertes was already used as a root vertex of a wavelet. This means there are shorter paths
                 // to this vertex and we can ignore it since the path using the current wavelet is not optimal.
-                RemoveAndUpdateWavefront(wavefrontNode);
-                AddWavefront(wavefront);
+                RemoveAndUpdateWavefront(waveletNode);
+                AddWavefront(wavelet);
                 return;
             }
 
             if (Equals(currentVertex.Position, targetPosition))
             {
                 Log.I($"Target reached ({currentVertex.Position})", "", 1);
-                SetPredecessor(currentVertex.Position, wavefront.RootVertex.Position, stopwatch, WaypointToPredecessor,
+                SetPredecessor(currentVertex.Position, wavelet.RootVertex.Position, stopwatch, WaypointToPredecessor,
                     PositionToWaypoint);
-                SetPredecessor(currentVertex.Position, wavefront.RootVertex.Position, stopwatch,
+                SetPredecessor(currentVertex.Position, wavelet.RootVertex.Position, stopwatch,
                     WavefrontRootPredecessor, WavefrontRootToWaypoint);
-                RemoveAndUpdateWavefront(wavefrontNode);
+                RemoveAndUpdateWavefront(waveletNode);
                 return;
             }
 
@@ -205,7 +205,7 @@ namespace Wavefront
             // The wavelet is then removed from the list because of the following strategy: If the current wavelet
             // should be split or adjusted, it's easier to just create new wavelet(s) and add them. If nothing needs to
             // be done to the current wavelet, it'll just be re-added to the list.
-            RemoveAndUpdateWavefront(wavefrontNode);
+            RemoveAndUpdateWavefront(waveletNode);
 
             // The wavelet hit the current vertex which is (probably) connected to other vertices and these
             // lines/polygons might cast shadows. These shadow areas are areas that the current wavelet doesn't need to
@@ -213,7 +213,7 @@ namespace Wavefront
             // new wavelets if needed (e.g. wavelets behind a corner).
             double angleShadowFrom;
             double angleShadowTo;
-            HandleNeighbors(currentVertex, wavefront, out angleShadowFrom, out angleShadowTo,
+            HandleNeighbors(currentVertex, wavelet, out angleShadowFrom, out angleShadowTo,
                 out var newWavefrontCreatedAtEventRoot);
 
             if (newWavefrontCreatedAtEventRoot)
@@ -222,13 +222,13 @@ namespace Wavefront
                 // the current vertex is now the root of a wavelet for the first time. This is the case because
                 // otherwise the current vertex would not have been considered in the first place (s. exit conditions
                 // above).
-                SetPredecessor(currentVertex.Position, wavefront.RootVertex.Position, stopwatch,
+                SetPredecessor(currentVertex.Position, wavelet.RootVertex.Position, stopwatch,
                     WavefrontRootPredecessor, WavefrontRootToWaypoint);
             }
 
             // Save the normal vertex predecessor relation for the current vertex since it's the first visit of this
             // vertex (s. exit conditions above). 
-            SetPredecessor(currentVertex.Position, wavefront.RootVertex.Position, stopwatch, WaypointToPredecessor,
+            SetPredecessor(currentVertex.Position, wavelet.RootVertex.Position, stopwatch, WaypointToPredecessor,
                 PositionToWaypoint);
 
             // If the current wavelet actually casts a shadow, it can be adjusted. This is done by simply adding new 
@@ -239,8 +239,8 @@ namespace Wavefront
             {
                 // Determine which and of the current wavelet is within the shadow so that we can create new wavelets
                 // accordingly.
-                var fromAngleInShadowArea = Angle.IsBetween(angleShadowFrom, wavefront.FromAngle, angleShadowTo);
-                var toAngleInShadowArea = Angle.IsBetween(angleShadowFrom, wavefront.ToAngle, angleShadowTo);
+                var fromAngleInShadowArea = Angle.IsBetween(angleShadowFrom, wavelet.FromAngle, angleShadowTo);
+                var toAngleInShadowArea = Angle.IsBetween(angleShadowFrom, wavelet.ToAngle, angleShadowTo);
 
                 if (fromAngleInShadowArea && toAngleInShadowArea)
                 {
@@ -248,42 +248,42 @@ namespace Wavefront
                     // wavelet angle area. It cannot happen that the wavelets area is completely within the shadow area
                     // because that would mean this wavelet visited vertices outside its angle area and that's not
                     // possible. Therefore it's safe to use the inverted shadow area here.
-                    AddNewWavefront(wavefront.RelevantVertices, wavefront.RootVertex,
-                        wavefront.DistanceToRootFromSource,
+                    AddNewWavefront(wavelet.RelevantVertices, wavelet.RootVertex,
+                        wavelet.DistanceToRootFromSource,
                         angleShadowTo, angleShadowFrom, true);
                 }
                 else if (fromAngleInShadowArea)
                 {
                     // Only the from-angle of the current wavelet is within the shadow area, so we just create one new
                     // wavelet with adjusted from-angle.
-                    AddNewWavefront(wavefront.RelevantVertices, wavefront.RootVertex,
-                        wavefront.DistanceToRootFromSource,
-                        angleShadowTo, wavefront.ToAngle, true);
+                    AddNewWavefront(wavelet.RelevantVertices, wavelet.RootVertex,
+                        wavelet.DistanceToRootFromSource,
+                        angleShadowTo, wavelet.ToAngle, true);
                 }
                 else if (toAngleInShadowArea)
                 {
                     // Only the to-angle of the current wavelet is within the shadow area, so we just create one new
                     // wavelet with adjusted to-angle.
-                    AddNewWavefront(wavefront.RelevantVertices, wavefront.RootVertex,
-                        wavefront.DistanceToRootFromSource,
-                        wavefront.FromAngle, angleShadowFrom, true);
+                    AddNewWavefront(wavelet.RelevantVertices, wavelet.RootVertex,
+                        wavelet.DistanceToRootFromSource,
+                        wavelet.FromAngle, angleShadowFrom, true);
                 }
                 else
                 {
                     // Shadow area is completely within the wavelets angle area -> Split out wavelet into two so that
                     // the area of the shadow is not covered anymore.
-                    AddNewWavefront(wavefront.RelevantVertices, wavefront.RootVertex,
-                        wavefront.DistanceToRootFromSource,
-                        wavefront.FromAngle, angleShadowFrom, true);
-                    AddNewWavefront(wavefront.RelevantVertices, wavefront.RootVertex,
-                        wavefront.DistanceToRootFromSource,
-                        angleShadowTo, wavefront.ToAngle, true);
+                    AddNewWavefront(wavelet.RelevantVertices, wavelet.RootVertex,
+                        wavelet.DistanceToRootFromSource,
+                        wavelet.FromAngle, angleShadowFrom, true);
+                    AddNewWavefront(wavelet.RelevantVertices, wavelet.RootVertex,
+                        wavelet.DistanceToRootFromSource,
+                        angleShadowTo, wavelet.ToAngle, true);
                 }
             }
             else
             {
                 // Wavelet is not casting a shadow -> Re-add it because it's still valid.
-                AddWavefront(wavefront);
+                AddWavefront(wavelet);
             }
         }
 
@@ -314,26 +314,26 @@ namespace Wavefront
         /// by the neighbors of this vertex based on their visited status.
         /// </summary>
         /// <param name="currentVertex">The vertex visited by the given wavelet</param>
-        /// <param name="wavefront">The wavelet visiting the given vertex</param>
+        /// <param name="wavelet">The wavelet visiting the given vertex</param>
         /// <param name="angleShadowFrom">The resulting from-angle of a potential shadow area, NaN if no shadow is cast.</param>
         /// <param name="angleShadowTo">The resulting to-angle of a potential shadow area, NaN if no shadow is cast.</param>
         /// <param name="createdWavefrontAtCurrentVertex">True if a new wavelet has been spawned with the root vertex equal to the given currentVertex.</param>
-        public void HandleNeighbors(Vertex currentVertex, Wavefront wavefront, out double angleShadowFrom,
+        public void HandleNeighbors(Vertex currentVertex, Wavelet wavelet, out double angleShadowFrom,
             out double angleShadowTo, out bool createdWavefrontAtCurrentVertex)
         {
             angleShadowFrom = Double.NaN;
             angleShadowTo = Double.NaN;
             createdWavefrontAtCurrentVertex = false;
 
-            var angleRootToCurrentVertex = Angle.GetBearing(wavefront.RootVertex.Position, currentVertex.Position);
-            var waveletAngleStartsAtVertex = Angle.AreEqual(wavefront.FromAngle, angleRootToCurrentVertex);
-            var waveletAngleEndsAtVertex = Angle.AreEqual(wavefront.ToAngle, angleRootToCurrentVertex);
+            var angleRootToCurrentVertex = Angle.GetBearing(wavelet.RootVertex.Position, currentVertex.Position);
+            var waveletAngleStartsAtVertex = Angle.AreEqual(wavelet.FromAngle, angleRootToCurrentVertex);
+            var waveletAngleEndsAtVertex = Angle.AreEqual(wavelet.ToAngle, angleRootToCurrentVertex);
 
             var rightNeighbor =
-                currentVertex.RightNeighbor(wavefront.RootVertex.Position, waveletAngleStartsAtVertex) ??
-                currentVertex.LeftNeighbor(wavefront.RootVertex.Position, waveletAngleEndsAtVertex);
-            var leftNeighbor = currentVertex.LeftNeighbor(wavefront.RootVertex.Position, waveletAngleEndsAtVertex) ??
-                               currentVertex.RightNeighbor(wavefront.RootVertex.Position, waveletAngleStartsAtVertex);
+                currentVertex.RightNeighbor(wavelet.RootVertex.Position, waveletAngleStartsAtVertex) ??
+                currentVertex.LeftNeighbor(wavelet.RootVertex.Position, waveletAngleEndsAtVertex);
+            var leftNeighbor = currentVertex.LeftNeighbor(wavelet.RootVertex.Position, waveletAngleEndsAtVertex) ??
+                               currentVertex.RightNeighbor(wavelet.RootVertex.Position, waveletAngleStartsAtVertex);
 
             if (rightNeighbor == null && leftNeighbor == null)
             {
@@ -341,10 +341,10 @@ namespace Wavefront
             }
 
             var angleRootToRightNeighbor = rightNeighbor != null
-                ? Angle.GetBearing(wavefront.RootVertex.Position, rightNeighbor)
+                ? Angle.GetBearing(wavelet.RootVertex.Position, rightNeighbor)
                 : double.NaN;
             var angleRootToLeftNeighbor = leftNeighbor != null
-                ? Angle.GetBearing(wavefront.RootVertex.Position, leftNeighbor)
+                ? Angle.GetBearing(wavelet.RootVertex.Position, leftNeighbor)
                 : double.NaN;
 
             var angleVertexToRightNeighbor = rightNeighbor != null
@@ -355,7 +355,7 @@ namespace Wavefront
                 : double.NaN;
 
             /*
-             * Rotate such that the current vertex is always north/up of the wavefront root.
+             * Rotate such that the current vertex is always north/up of the wavelet root.
              * 
              * The idea behind it:
              * When the angles to the right and left neighbor are rotated we can easily check if there's a potential
@@ -365,18 +365,18 @@ namespace Wavefront
              * If one neighbor is on the west and one on the east side, there's no such shadow.
              */
             var rotationAngle = -angleRootToCurrentVertex;
-            var angleCurrentWavefrontFrom = Angle.Normalize(wavefront.FromAngle + rotationAngle);
-            var angleCurrentWavefrontTo = Angle.Normalize(wavefront.ToAngle + rotationAngle);
+            var angleCurrentWavefrontFrom = Angle.Normalize(wavelet.FromAngle + rotationAngle);
+            var angleCurrentWavefrontTo = Angle.Normalize(wavelet.ToAngle + rotationAngle);
             angleRootToRightNeighbor = Angle.Normalize(angleRootToRightNeighbor + rotationAngle);
             angleRootToLeftNeighbor = Angle.Normalize(angleRootToLeftNeighbor + rotationAngle);
             angleVertexToRightNeighbor = Angle.Normalize(angleVertexToRightNeighbor + rotationAngle);
             angleVertexToLeftNeighbor = Angle.Normalize(angleVertexToLeftNeighbor + rotationAngle);
 
             // Only consider edges to visited vertices to cast a shadow.
-            var rightNeighborHasBeenVisited = wavefront.HasBeenVisited(rightNeighbor);
-            var leftNeighborHasBeenVisited = wavefront.HasBeenVisited(leftNeighbor);
+            var rightNeighborHasBeenVisited = wavelet.HasBeenVisited(rightNeighbor);
+            var leftNeighborHasBeenVisited = wavelet.HasBeenVisited(leftNeighbor);
 
-            // Both neighbors on west/east side of root+current vertex -> New wavefront needed for the shadow
+            // Both neighbors on west/east side of root+current vertex -> New wavelet needed for the shadow
             var bothNeighborsOnWestSide = Angle.GreaterEqual(angleVertexToRightNeighbor, 180) &&
                                           Angle.GreaterEqual(angleVertexToLeftNeighbor, 180);
             var bothNeighborsOnEastSide = Angle.LowerEqual(angleVertexToRightNeighbor, 180) &&
@@ -422,17 +422,17 @@ namespace Wavefront
             // Determine if the wavelets root vertex is the only neighbor. In other words see if we reached the end of a
             // line, because the last vertex of a line has only one neighbor (which means right = left neighbor). If
             // this neighbor is our wavelet root means that the wavelets root is the second last vertex of that line.
-            var wavefrontRootIsSecondLastLineVertex = Equals(rightNeighbor, wavefront.RootVertex.Position) &&
-                                                      Equals(leftNeighbor, wavefront.RootVertex.Position);
+            var waveletRootIsSecondLastLineVertex = Equals(rightNeighbor, wavelet.RootVertex.Position) &&
+                                                    Equals(leftNeighbor, wavelet.RootVertex.Position);
 
             // When the wavelet is rooted at the second last vertex of a line, then the last vertex of that line will
-            // probably (!) be visited by this wavefront anyway, but only if the angle to that last vertex is exactly
+            // probably (!) be visited by this wavelet anyway, but only if the angle to that last vertex is exactly
             // the to- or from-angle of our wavelet. A wavelet could've been split before reaching the last vertex of
             // the line which means that there could be wavelets rooted at the second last vertex which will never reach
             // the last vertex of the line.
             // But when the angle to the right and left neighbor is the from/to angle of the wavelet, then both
-            // neighbors will be visited by our wavefront. TODO rename to neighborsOnLineWillBeVisitedByWavefront
-            var neighborsWillBeVisitedByWavefront = wavefrontRootIsSecondLastLineVertex &&
+            // neighbors will be visited by our wavelet. TODO rename to neighborsOnLineWillBeVisitedByWavefront
+            var neighborsWillBeVisitedByWavefront = waveletRootIsSecondLastLineVertex &&
                                                     (
                                                         Angle.AreEqual(angleCurrentWavefrontFrom,
                                                             angleRootToRightNeighbor) ||
@@ -464,7 +464,7 @@ namespace Wavefront
 
             if (newWavefrontNeeded)
             {
-                double distanceToRootFromSource = wavefront.DistanceTo(currentVertex.Position);
+                double distanceToRootFromSource = wavelet.DistanceTo(currentVertex.Position);
                 createdWavefrontAtCurrentVertex = AddNewWavefront(_vertexNeighbors[currentVertex], currentVertex,
                     distanceToRootFromSource, angleNewWavefrontFrom, angleNewWavefrontTo, false);
             }
@@ -534,7 +534,7 @@ namespace Wavefront
 
             /*
              * If the interesting area exceeds the 0° border (e.g. goes from 300° via 0° to 40°), then we remove the
-             * old wavefront and create two new ones. One from 300° to 360° and one from 0° to 40°. This simply
+             * old wavelet and create two new ones. One from 300° to 360° and one from 0° to 40°. This simply
              * makes range checks easier and has no further reason.
              */
             if (Angle.IsBetweenWithNormalize(fromAngle, 0, toAngle))
@@ -570,7 +570,7 @@ namespace Wavefront
             Vertex rootVertex, double distanceFromSourceToVertex,
             double fromAngle, double toAngle, bool verticesFromWavefrontWithSameRoot)
         {
-            var newWavefront = Wavefront.New(fromAngle, toAngle, rootVertex, relevantVertices,
+            var newWavefront = Wavelet.New(fromAngle, toAngle, rootVertex, relevantVertices,
                 distanceFromSourceToVertex, verticesFromWavefrontWithSameRoot);
             if (newWavefront != null)
             {
@@ -585,25 +585,25 @@ namespace Wavefront
         /// Removes the most relevant vertex from the vertex queue of the wavelet and also removes the whole wavelet
         /// from the list of wavelets.
         /// </summary>
-        private void RemoveAndUpdateWavefront(FibonacciHeapNode<Wavefront, double> wavefrontNode)
+        private void RemoveAndUpdateWavefront(FibonacciHeapNode<Wavelet, double> waveletNode)
         {
-            var wavefront = wavefrontNode.Data;
+            var wavelet = waveletNode.Data;
             Wavefronts.RemoveMin();
-            wavefront.RemoveNextVertex();
+            wavelet.RemoveNextVertex();
         }
 
         /// <summary>
-        /// Adds the given wavefront to the current heap if the distance to the next vertex is not zero.
+        /// Adds the given wavelet to the current heap if the distance to the next vertex is not zero.
         /// </summary>
-        public void AddWavefront(Wavefront wavefront)
+        public void AddWavefront(Wavelet wavelet)
         {
-            if (wavefront.DistanceToNextVertex == 0)
+            if (wavelet.DistanceToNextVertex == 0)
             {
                 return;
             }
 
             Wavefronts.Insert(
-                new FibonacciHeapNode<Wavefront, double>(wavefront, wavefront.DistanceToNextVertex));
+                new FibonacciHeapNode<Wavelet, double>(wavelet, wavelet.DistanceToNextVertex));
         }
     }
 }

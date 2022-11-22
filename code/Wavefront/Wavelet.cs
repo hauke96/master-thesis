@@ -4,7 +4,7 @@ using Wavefront.Geometry;
 
 namespace Wavefront;
 
-public class Wavefront
+public class Wavelet
 {
     public double FromAngle { get; }
     public double ToAngle { get; }
@@ -21,29 +21,29 @@ public class Wavefront
 
     // ReSharper disable InvalidXmlDocComment
     /// <summary>
-    /// Creates a new wavefront if it's valid. A wavefront is *not* valid when there are no events ahead.
+    /// Creates a new wavelet if it's valid. A wavelet is *not* valid when there are no events ahead.
     ///
     /// Precondition: 0 <= fromAngle < toAngle <= 360
     /// <returns>
-    /// The new wavefront or null if the new wavefront would not be valid.
+    /// The new wavelet or null if the new wavelet would not be valid.
     /// </returns>
     /// </summary>
-    public static Wavefront? New(double fromAngle, double toAngle, Vertex rootVertex, ICollection<Vertex> allVertices,
-        double distanceToRootFromSource, bool verticesFromWavefrontWithSameRoot)
+    public static Wavelet? New(double fromAngle, double toAngle, Vertex rootVertex, ICollection<Vertex> allVertices,
+        double distanceToRootFromSource, bool verticesFromWaveletWithSameRoot)
     {
         // TODO enforce precondition
-        var wavefront = new Wavefront(fromAngle, toAngle, rootVertex, distanceToRootFromSource);
-        wavefront.FilterAndEnqueueVertices(allVertices, verticesFromWavefrontWithSameRoot);
+        var wavelet = new Wavelet(fromAngle, toAngle, rootVertex, distanceToRootFromSource);
+        wavelet.FilterAndEnqueueVertices(allVertices, verticesFromWaveletWithSameRoot);
 
-        if (wavefront.RelevantVertices.Count == 0)
+        if (wavelet.RelevantVertices.Count == 0)
         {
             return null;
         }
 
-        return wavefront;
+        return wavelet;
     }
 
-    private Wavefront(double fromAngle, double toAngle, Vertex rootVertex,
+    private Wavelet(double fromAngle, double toAngle, Vertex rootVertex,
         double distanceToRootFromSource)
     {
         FromAngle = fromAngle;
@@ -52,12 +52,12 @@ public class Wavefront
         DistanceToRootFromSource = distanceToRootFromSource;
 
         // Get the vertices that are possibly visible. There's not collision detection here but all vertices are at
-        // least within the range of this wavefront.
+        // least within the range of this wavelet.
         RelevantVertices = new LinkedList<Vertex>();
         _visitedVertices = new LinkedList<Position>();
     }
 
-    private void FilterAndEnqueueVertices(ICollection<Vertex> vertices, bool verticesFromWavefrontWithSameRoot)
+    private void FilterAndEnqueueVertices(ICollection<Vertex> vertices, bool verticesFromWaveletWithSameRoot)
     {
         foreach (var vertex in vertices)
         {
@@ -68,9 +68,9 @@ public class Wavefront
             }
         }
 
-        if (!verticesFromWavefrontWithSameRoot)
+        if (!verticesFromWaveletWithSameRoot)
         {
-            // If the wavefront come from a wavefront with the same root vertex, we don't need to sort anything because
+            // If the wavelet come from a wavelet with the same root vertex, we don't need to sort anything because
             // the list is already sorted. But here we have vertices from a different source and therefore we must
             // sort them.
             RelevantVertices = new LinkedList<Vertex>(RelevantVertices.OrderBy(vertex =>

@@ -15,12 +15,12 @@ public class WavefrontTest
         vertices.Add(new Vertex(2, 1));
         vertices.Add(new Vertex(3, 1));
 
-        var wavefront = Wavefront.New(0, 90, root, vertices, 1, false);
-        Assert.AreEqual(vertices[0], wavefront.GetNextVertex());
-        Assert.AreEqual(2, wavefront.DistanceToNextVertex);
+        var wavelet = Wavelet.New(0, 90, root, vertices, 1, false);
+        Assert.AreEqual(vertices[0], wavelet.GetNextVertex());
+        Assert.AreEqual(2, wavelet.DistanceToNextVertex);
 
-        wavefront.RemoveNextVertex();
-        Assert.AreEqual(vertices[1], wavefront.GetNextVertex());
-        Assert.AreEqual(3, wavefront.DistanceToNextVertex);
+        wavelet.RemoveNextVertex();
+        Assert.AreEqual(vertices[1], wavelet.GetNextVertex());
+        Assert.AreEqual(3, wavelet.DistanceToNextVertex);
     }
 }
