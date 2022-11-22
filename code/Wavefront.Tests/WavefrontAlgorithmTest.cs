@@ -797,6 +797,31 @@ namespace Wavefront.Tests
                 Assert.AreEqual(4, waypoints.Count);
             }
         }
+        
+        public class RouteWithoutObstacles
+        {
+            static WavefrontAlgorithm wavefrontAlgorithm;
+
+            [SetUp]
+            public void Setup()
+            {
+                wavefrontAlgorithm = new WavefrontAlgorithm(new List<Obstacle>());
+            }
+
+            [Test]
+            public void RouteDirectlyToTarget()
+            {
+                var sourceVertex = Position.CreateGeoPosition(3.5, 1.5);
+                var targetVertex = Position.CreateGeoPosition(1.5, 1.5);
+
+                var routingResult = wavefrontAlgorithm.Route(sourceVertex, targetVertex);
+                var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
+
+                Assert.Contains(sourceVertex, waypoints);
+                Assert.Contains(targetVertex, waypoints);
+                Assert.AreEqual(2, waypoints.Count);
+            }
+        }
 
         public class ZickZackAroundBuildings
         {
