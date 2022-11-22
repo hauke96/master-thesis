@@ -153,6 +153,15 @@ public class WavefrontPreprocessor
             result[vertex] = GetVisibleNeighborsForVertex(obstacles, new List<Vertex>(vertices), vertex, neighborCount);
         }
 
+        var vertexPositionDict = new Dictionary<Position, HashSet<Position>>();
+        result.Keys.Each(vertex =>
+        {
+            var visibleNeighbors = result[vertex];
+            var visibleNeighborPositions = visibleNeighbors.Map(v => v.Position);
+            vertexPositionDict[vertex.Position] = new HashSet<Position>(visibleNeighborPositions);
+        });
+        WriteVertexNeighborsToFile(vertexPositionDict, "vertex-visibility.geojson");
+
         return result;
     }
 
@@ -236,7 +245,7 @@ public class WavefrontPreprocessor
         return false;
     }
 
-    private static async void WriteVertexNeighborsToFile(Dictionary<Position, HashSet<Position>> positionToNeighbors)
+    private static async void WriteVertexNeighborsToFile(Dictionary<Position, HashSet<Position>> positionToNeighbors, string filename = "vertex-neighbors.geojson")
     {
         var geometries = new List<NetTopologySuite.Geometries.Geometry>();
         foreach (var pair in positionToNeighbors)
@@ -266,6 +275,6 @@ public class WavefrontPreprocessor
         serializer.Serialize(jsonWriter, geometry);
         var geoJson = stringWriter.ToString();
 
-        await File.WriteAllTextAsync("vertex-neighbors.geojson", geoJson);
+        await File.WriteAllTextAsync(filename, geoJson);
     }
 }
