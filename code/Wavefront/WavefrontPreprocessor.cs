@@ -136,17 +136,18 @@ public class WavefrontPreprocessor
         int neighborCount)
     {
         var result = new Dictionary<Vertex, List<Vertex>>();
-        Log.I($"Calculate nearest {neighborCount} visible neighbors for each vertex");
+        Log.D($"Calculate nearest {neighborCount} visible neighbors for each vertex");
 
         var i = 1;
         var verticesPerPercent = vertices.Count / 100d;
         var nextProcessOutput = verticesPerPercent;
         var stopWatch = new Stopwatch();
+        stopWatch.Start();
         foreach (var vertex in vertices)
         {
             if (i > nextProcessOutput)
             {
-                Log.I($"  {(int)(i / verticesPerPercent)}% done ({stopWatch.ElapsedMilliseconds}ms)");
+                Log.D($"  {(int)(i / verticesPerPercent)}% done ({stopWatch.ElapsedMilliseconds}ms)");
                 stopWatch.Restart();
                 nextProcessOutput += verticesPerPercent;
             }
@@ -252,7 +253,8 @@ public class WavefrontPreprocessor
         return false;
     }
 
-    private static async void WriteVertexNeighborsToFile(Dictionary<Position, HashSet<Position>> positionToNeighbors, string filename = "vertex-neighbors.geojson")
+    private static async void WriteVertexNeighborsToFile(Dictionary<Position, HashSet<Position>> positionToNeighbors,
+        string filename = "vertex-neighbors.geojson")
     {
         var geometries = new List<NetTopologySuite.Geometries.Geometry>();
         foreach (var pair in positionToNeighbors)
