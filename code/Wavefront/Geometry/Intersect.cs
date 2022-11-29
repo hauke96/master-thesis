@@ -13,12 +13,14 @@ namespace Wavefront.Geometry
         /// <summary>
         /// Precondition: The segments p, q and r are collinear (-> Orientation(p, q, r) should return 0).
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsOnSegment(Coordinate start, Coordinate end, Coordinate p)
         {
             return Math.Min(start.X, end.X) <= p.X && p.X <= Math.Max(start.X, end.X) &&
                    Math.Min(start.Y, end.Y) <= p.Y && p.Y <= Math.Max(start.Y, end.Y);
         }
-        
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Orientation(Coordinate p0, Coordinate p1, Coordinate p2)
         {
             var val = (p1.X - p0.X) * (p2.Y - p0.Y) - (p2.X - p0.X) * (p1.Y - p0.Y);
@@ -33,8 +35,8 @@ namespace Wavefront.Geometry
 
         public static bool DoIntersect(Coordinate start1, Coordinate end1, Coordinate start2, Coordinate end2)
         {
-            if (start1.Equals(start2) || end1.Equals(end2) ||
-                start1.Equals(end2) || end1.Equals(start2))
+            if (AreEqual(start1, start2) || AreEqual(end1, end2) ||
+                AreEqual(start1, end2) || AreEqual(end1, start2))
             {
                 return false;
             }
@@ -57,6 +59,12 @@ namespace Wavefront.Geometry
                      orientation2 == 0 && IsOnSegment(start2, end2, end1) ||
                      orientation3 == 0 && IsOnSegment(start1, end1, start2) ||
                      orientation4 == 0 && IsOnSegment(start1, end1, end2));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool AreEqual(Coordinate c1, Coordinate c2)
+        {
+            return c1.X == c2.X && c1.Y == c2.X;
         }
     }
 }

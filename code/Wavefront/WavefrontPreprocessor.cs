@@ -187,12 +187,15 @@ public class WavefrontPreprocessor
         var obstaclesCastingShadow = new HashSet<Obstacle>();
 
         vertices.Remove(vertex);
-        var sortedVertices = vertices
-            .OrderBy(v => Distance.Euclidean(vertex.Position.PositionArray, v.Position.PositionArray)).ToList();
+        using var sortedVertices = vertices
+            .OrderBy(v => Distance.Euclidean(vertex.Position.PositionArray, v.Position.PositionArray))
+            .GetEnumerator();
+        sortedVertices.MoveNext();
 
-        for (var i = 0; i < sortedVertices.Count && neighborList.Count < neighborCount; i++)
+        for (var i = 0; i < vertices.Count && neighborList.Count < neighborCount; i++)
         {
-            var otherVertex = sortedVertices[i];
+            sortedVertices.MoveNext();
+            var otherVertex = sortedVertices.Current;
             if (Equals(otherVertex, vertex))
             {
                 continue;
