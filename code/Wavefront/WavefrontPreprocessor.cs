@@ -68,7 +68,10 @@ public class WavefrontPreprocessor
             AddNeighborsForObstacle(obstacle, positionToNeighbors, isCoordinateHidden);
         });
 
-        WriteVertexNeighborsToFile(positionToNeighbors);
+        if (!PerformanceMeasurement.IS_ACTIVE)
+        {
+            WriteVertexNeighborsToFile(positionToNeighbors);
+        }
 
         // Use a list for easier handling later on (Vertices will eventually receive these neighbors and must be able to
         // sort them).
@@ -123,7 +126,7 @@ public class WavefrontPreprocessor
                     neighbors.Add(previousCoordinate.ToPosition());
                 }
             }
-            
+
             positionToNeighbors[position].AddRange(neighbors);
         });
     }
@@ -160,7 +163,11 @@ public class WavefrontPreprocessor
             var visibleNeighborPositions = visibleNeighbors.Map(v => v.Position);
             vertexPositionDict[vertex.Position] = new HashSet<Position>(visibleNeighborPositions);
         });
-        WriteVertexNeighborsToFile(vertexPositionDict, "vertex-visibility.geojson");
+
+        if (!PerformanceMeasurement.IS_ACTIVE)
+        {
+            WriteVertexNeighborsToFile(vertexPositionDict, "vertex-visibility.geojson");
+        }
 
         return result;
     }

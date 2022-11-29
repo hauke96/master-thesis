@@ -1,24 +1,28 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
 using ServiceStack;
-using ServiceStack.Text;
 
 namespace Wavefront;
 
 public class PerformanceMeasurement
 {
+    public static bool IS_ACTIVE = false;
+
     public class Result
     {
-        private List<double> _iterations;
-        private string _name;
+        private static string NUMBER_FORMAT = "0.###";
 
-        public double IterationCount => _iterations.Count;
-        public double TotalTime => _iterations.Sum();
-        public double MinTime => !_iterations.IsEmpty() ? _iterations.Min() : 0;
-        public double MaxTime => !_iterations.IsEmpty() ? _iterations.Max() : double.PositiveInfinity;
-        public double AverageTime => TotalTime / IterationCount;
-        public double Spread => MaxTime - MinTime;
-        public double SpreadPercent => 100 - MinTime / MaxTime * 100;
+        private readonly List<double> _iterations;
+        private readonly string _name;
+
+        private double IterationCount => _iterations.Count;
+        private double TotalTime => _iterations.Sum();
+        private double MinTime => !_iterations.IsEmpty() ? _iterations.Min() : 0;
+        private double MaxTime => !_iterations.IsEmpty() ? _iterations.Max() : double.PositiveInfinity;
+        private double AverageTime => TotalTime / IterationCount;
+        private double Spread => MaxTime - MinTime;
+        private double SpreadPercent => 100 - MinTime / MaxTime * 100;
 
         public Result(string name)
         {
@@ -31,18 +35,57 @@ public class PerformanceMeasurement
             _iterations.Add(iterationDuration);
         }
 
+        public void Print()
+        {
+            if (_iterations.Count > 0)
+            {
+                Console.WriteLine(ToString());
+            }
+        }
+
         public string ToCsv()
         {
             var stringBuilder = new StringBuilder();
 
-            stringBuilder.Append("iteration,total_time,min_time,max_time,avg_time,spread,spread_percent");
-            foreach (var iteration in _iterations)
+            stringBuilder.Append("iteration_number," +
+                                 "iteration_time," +
+                                 "total_time," +
+                                 "min_time," +
+                                 "max_time," +
+                                 "avg_time," +
+                                 "spread," +
+                                 "spread_percent" +
+                                 "\n");
+            for (var i = 0; i < _iterations.Count; i++)
             {
+                var iteration = _iterations[i];
+
                 stringBuilder.Append(String.Join(",",
-                    new List<double> { iteration, TotalTime, MinTime, MaxTime, AverageTime, Spread, SpreadPercent }));
+                    new List<object>
+                    {
+                        i,
+                        ToString(iteration),
+                        ToString(TotalTime),
+                        ToString(MinTime),
+                        ToString(MaxTime),
+                        ToString(AverageTime),
+                        ToString(Spread),
+                        ToString(SpreadPercent)
+                    }));
+                stringBuilder.Append("\n");
             }
 
             return stringBuilder.ToString();
+        }
+
+        public async void WriteToFile()
+        {
+            await File.WriteAllTextAsync("performance_" + _name + ".csv", ToCsv());
+        }
+
+        private static String ToString(double number)
+        {
+            return number.ToString(NUMBER_FORMAT, System.Globalization.CultureInfo.InvariantCulture);
         }
 
         public override string ToString()
@@ -66,7 +109,7 @@ public class PerformanceMeasurement
     /// * https://www.codeproject.com/Articles/61964/Performance-Tests-Precise-Run-Time-Measurements-wi
     /// * https://stackoverflow.com/questions/1047218/benchmarking-small-code-samples-in-c-can-this-implementation-be-improved
     /// </summary>
-    public static void Init()
+    private static void Init()
     {
         // Uses the second Core or Processor for the Test
         Process.GetCurrentProcess().ProcessorAffinity = new IntPtr(2);
@@ -82,7 +125,8 @@ public class PerformanceMeasurement
     ///
     /// Call the function to measure once before this call to warm up the CPU pipeline and caches.
     /// </summary>
-    public static void Start()
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void Start()
     {
         GC.Collect();
         GC.WaitForPendingFinalizers();
@@ -96,34 +140,39 @@ public class PerformanceMeasurement
     /// Stops the current measurement and returns the elapsed time since the last Start() call.
     /// </summary>
     /// <returns>The number of milliseconds of this measurement.</returns>
-    public static double Stop()
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static double Stop()
     {
         stopwatch.Stop();
         return stopwatch.Elapsed.TotalMilliseconds;
     }
 
-    public static Result ForFunction(Action func, string name = "", int iterationCount = 10)
+    public static Result ForFunction(Action func, string name = "", int iterationCount = 10, int warmupCount = 5)
     {
         Result result = new Result(name);
-        Init();
 
-        // Warmup
-        for (var i = 0; i < 5; i++)
+        if (!IS_ACTIVE)
         {
-            Start();
             func();
-            Stop();
+            return result;
         }
 
+        Init();
 
         // Actual run
-        for (var i = 0; i < iterationCount; i++)
+        for (var i = 0; i < iterationCount + warmupCount; i++)
         {
             Start();
             func();
             var iterationDuration = Stop();
-            result.AddIteration(iterationDuration);
-            Console.WriteLine($"Iteration {i}: {iterationDuration}ms");
+            
+            // Add result if warmup completed
+            if (i >= warmupCount)
+            {
+                result.AddIteration(iterationDuration);
+            }
+
+            Log.D($"Iteration {i}{(i < warmupCount ? "(warmup)" : "")}: {iterationDuration}ms");
         }
 
         return result;

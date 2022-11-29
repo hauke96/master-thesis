@@ -17,7 +17,7 @@ namespace Wavefront
 
         // Map from vertex to neighboring vertices. The term "neighbor" here refers to all vertices with an edge to the
         // key vertex of a dict entry.
-        private readonly Dictionary<Vertex, List<Vertex>> _vertexNeighbors;
+        private Dictionary<Vertex, List<Vertex>> _vertexNeighbors;
 
         // Stores the predecessor of each visited vertex position. Recursively following the predecessors from a vertex
         // v to the source gives the shortest path from the source to v.
@@ -39,13 +39,25 @@ namespace Wavefront
             obstacles.Each(obstacle => _obstacles.Insert(obstacle.Envelope, obstacle));
 
             Log.I("Get direct neighbors on each obstacle geometry");
-            var positionToNeighbors = WavefrontPreprocessor.GetNeighborsFromObstacleVertices(obstacles);
+            Dictionary<Position, List<Position>> positionToNeighbors = new();
+            var result = PerformanceMeasurement.ForFunction(() =>
+            {
+                positionToNeighbors = WavefrontPreprocessor.GetNeighborsFromObstacleVertices(obstacles);
+            }, "GetNeighborsFromObstacleVertices");
+            result.Print();
+            result.WriteToFile();
 
             Log.I("Create map of direct neighbor vertices on the obstacle geometries");
             Vertices = positionToNeighbors.Keys.Map(position => new Vertex(position, positionToNeighbors[position]));
 
             Log.I("Calculate KNN to get visible vertices");
-            _vertexNeighbors = WavefrontPreprocessor.CalculateVisibleKnn(_obstacles, Vertices, knnSearchNeighbors);
+            result = PerformanceMeasurement.ForFunction(() =>
+            {
+                _vertexNeighbors =
+                    WavefrontPreprocessor.CalculateVisibleKnn(_obstacles, Vertices, knnSearchNeighbors);
+            }, "CalculateVisibleKnn");
+            result.Print();
+            result.WriteToFile();
 
             Reset();
         }
