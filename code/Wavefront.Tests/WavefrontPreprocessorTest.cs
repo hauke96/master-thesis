@@ -1,10 +1,12 @@
 using System.Collections.Generic;
+using System.Linq;
 using Mars.Common;
 using Mars.Common.Collections;
 using NetTopologySuite.Geometries;
 using NUnit.Framework;
 using ServiceStack;
 using Wavefront.Geometry;
+using Wavefront.Index;
 using Position = Mars.Interfaces.Environments.Position;
 
 namespace Wavefront.Tests;
@@ -13,7 +15,7 @@ public class WavefrontPreprocessorTest
 {
     public class WithObstacles
     {
-        private QuadTree<Obstacle> obstacleQuadTree;
+        private List<Obstacle> obstacles;
         private List<Vertex> vertices;
         private LineString multiVertexLineObstacle;
         private LineString rotatedLineObstacle;
@@ -38,13 +40,9 @@ public class WavefrontPreprocessorTest
             obstacleGeometries.Add(multiVertexLineObstacle);
             obstacleGeometries.Add(rotatedLineObstacle);
 
-            var obstacles = obstacleGeometries.Map(geometry => new Obstacle(geometry));
-
+            obstacles = obstacleGeometries.Map(geometry => new Obstacle(geometry));
             positionToNeighbors = WavefrontPreprocessor.GetNeighborsFromObstacleVertices(obstacles);
             vertices = positionToNeighbors.Keys.Map(position => new Vertex(position, positionToNeighbors[position]));
-
-            obstacleQuadTree = new QuadTree<Obstacle>();
-            obstacles.Each(obstacle => obstacleQuadTree.Insert(obstacle.Envelope, obstacle));
         }
 
         [Test]
@@ -77,8 +75,11 @@ public class WavefrontPreprocessorTest
         [Test]
         public void CalculateVisibleKnn()
         {
-            // TODO
-            // WavefrontPreprocessor.CalculateVisibleKnn(obstacleQuadTree, vertices, 100);
+            var minLon = obstacles.Min(o => o.Envelope.MinX);
+            var maxLon = obstacles.Max(o => o.Envelope.MaxX);
+            var obstacleIndex = new BinIndex<Obstacle>(minLon, maxLon, 200);
+            obstacles.Each(obstacle => obstacleIndex.Add(obstacle.Envelope.MinX, obstacle.Envelope.MaxX, obstacle));
+            WavefrontPreprocessor.CalculateVisibleKnn(obstacleIndex, vertices, 100);
         }
     }
 
