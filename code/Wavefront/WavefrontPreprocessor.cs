@@ -223,9 +223,11 @@ public class WavefrontPreprocessor
                 if (!obstaclesCastingShadow.Contains(obstacle))
                 {
                     var (angleFrom, angleTo, distance) = obstacle.GetAngleAreaOfObstacle(vertex);
-                    shadowAreas.Add(angleFrom, angleTo, new AngleArea(angleFrom, angleTo, distance));
-
-                    obstaclesCastingShadow.Add(obstacle);
+                    if (!double.IsNaN(angleFrom) && !double.IsNaN(angleTo))
+                    {
+                        shadowAreas.Add(angleFrom, angleTo, new AngleArea(angleFrom, angleTo, distance));
+                        obstaclesCastingShadow.Add(obstacle);
+                    }
                 }
 
                 intersectsWithObstacle |= obstacle.IntersectsWithLine(vertex.Coordinate, otherVertex.Coordinate);
