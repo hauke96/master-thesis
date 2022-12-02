@@ -215,7 +215,7 @@ public class WavefrontPreprocessor
             var intersectsWithObstacle = false;
             obstacles.Query(envelope, (Action<Obstacle>)(obstacle =>
             {
-                if (intersectsWithObstacle)
+                if (intersectsWithObstacle || !obstacle.CanIntersect(envelope))
                 {
                     return;
                 }
@@ -228,11 +228,7 @@ public class WavefrontPreprocessor
                     obstaclesCastingShadow.Add(obstacle);
                 }
 
-                if (!intersectsWithObstacle)
-                {
-                    intersectsWithObstacle |= obstacle.CanIntersect(envelope) &&
-                                              obstacle.IntersectsWithLine(vertex.Coordinate, otherVertex.Coordinate);
-                }
+                intersectsWithObstacle |= obstacle.IntersectsWithLine(vertex.Coordinate, otherVertex.Coordinate);
             }));
 
             if (!intersectsWithObstacle)
