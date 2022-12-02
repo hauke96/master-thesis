@@ -36,8 +36,7 @@ namespace Wavefront
 
         public WavefrontAlgorithm(List<Obstacle> obstacles)
         {
-
-            Log.I("Create BinIndex on latitude values...");
+            Log.I("Create BinIndex on longitude values...");
             var minLon = obstacles.Min(o => o.Envelope.MinX);
             var maxLon = obstacles.Max(o => o.Envelope.MaxX);
             _obstacleLonIndex = new BinIndex<Obstacle>(minLon, maxLon, 200);
