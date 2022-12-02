@@ -3,6 +3,7 @@ using System.Diagnostics;
 using Mars.Common.Collections;
 using ServiceStack;
 using Wavefront.Geometry;
+using Wavefront.Index;
 using Position = Mars.Interfaces.Environments.Position;
 
 namespace Wavefront
@@ -14,6 +15,7 @@ namespace Wavefront
         private readonly int knnSearchNeighbors = 100;
 
         private readonly QuadTree<Obstacle> _obstacles;
+        private readonly BinIndex<Obstacle> _obstacleLonIndex;
 
         // Map from vertex to neighboring vertices. The term "neighbor" here refers to all vertices with an edge to the
         // key vertex of a dict entry.
@@ -35,8 +37,19 @@ namespace Wavefront
 
         public WavefrontAlgorithm(List<Obstacle> obstacles)
         {
-            _obstacles = new QuadTree<Obstacle>();
-            obstacles.Each(obstacle => _obstacles.Insert(obstacle.Envelope, obstacle));
+            // _obstacles = new QuadTree<Obstacle>();
+            // obstacles.Each(obstacle => _obstacles.Insert(obstacle.Envelope, obstacle));
+
+            Log.I("Create BinIndex on latitude values...");
+            var minLon = obstacles.Min(o => o.Envelope.MinX);
+            var maxLon = obstacles.Max(o => o.Envelope.MaxX);
+            _obstacleLonIndex = new BinIndex<Obstacle>(minLon, maxLon, 10);
+            obstacles.Each(obstacle => _obstacleLonIndex.Add(obstacle.Envelope.MinX, obstacle.Envelope.MaxX, obstacle));
+            Log.I("Done creating BinIndex on latitude values");
+        
+            // var minLat = obstacles.Min(o => o.Envelope.MinY);
+            // var maxLat = obstacles.Max(o => o.Envelope.MaxY);
+            // var obstacleLatIndex = new BinIndex<Obstacle>(minLon, maxLon, 0.0005);
 
             Log.I("Get direct neighbors on each obstacle geometry");
             Dictionary<Position, List<Position>> positionToNeighbors = new();
@@ -54,7 +67,7 @@ namespace Wavefront
             result = PerformanceMeasurement.ForFunction(() =>
             {
                 _vertexNeighbors =
-                    WavefrontPreprocessor.CalculateVisibleKnn(_obstacles, Vertices, knnSearchNeighbors);
+                    WavefrontPreprocessor.CalculateVisibleKnn(_obstacleLonIndex, Vertices, knnSearchNeighbors);
             }, "CalculateVisibleKnn");
             result.Print();
             result.WriteToFile();
@@ -95,11 +108,11 @@ namespace Wavefront
             SetPredecessor(source, null, stopwatch, WavefrontRootPredecessor, WavefrontRootToWaypoint);
 
             _vertexNeighbors[sourceVertex] =
-                WavefrontPreprocessor.GetVisibleNeighborsForVertex(_obstacles, Vertices, sourceVertex,
+                WavefrontPreprocessor.GetVisibleNeighborsForVertex(_obstacleLonIndex, Vertices, sourceVertex,
                     knnSearchNeighbors);
 
             var neighborsOfTarget =
-                WavefrontPreprocessor.GetVisibleNeighborsForVertex(_obstacles, Vertices, targetVertex,
+                WavefrontPreprocessor.GetVisibleNeighborsForVertex(_obstacleLonIndex, Vertices, targetVertex,
                     knnSearchNeighbors);
             // TODO Find a better way to add the target to the existing neighbors lists?
             neighborsOfTarget.Each(neighbor => _vertexNeighbors[neighbor].Add(targetVertex));

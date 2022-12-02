@@ -131,7 +131,7 @@ public class WavefrontPreprocessor
         });
     }
 
-    public static Dictionary<Vertex, List<Vertex>> CalculateVisibleKnn(QuadTree<Obstacle> obstacles,
+    public static Dictionary<Vertex, List<Vertex>> CalculateVisibleKnn(BinIndex<Obstacle> obstacleLonIndex,
         List<Vertex> vertices,
         int neighborCount)
     {
@@ -155,7 +155,8 @@ public class WavefrontPreprocessor
 
             i++;
 
-            result[vertex] = GetVisibleNeighborsForVertex(obstacles, new List<Vertex>(vertices), vertex, neighborCount);
+            result[vertex] =
+                GetVisibleNeighborsForVertex(obstacleLonIndex, new List<Vertex>(vertices), vertex, neighborCount);
         }
 
         var vertexPositionDict = new Dictionary<Position, HashSet<Position>>();
@@ -174,7 +175,7 @@ public class WavefrontPreprocessor
         return result;
     }
 
-    public static List<Vertex> GetVisibleNeighborsForVertex(QuadTree<Obstacle> obstacles, List<Vertex> vertices,
+    public static List<Vertex> GetVisibleNeighborsForVertex(BinIndex<Obstacle> obstacles, List<Vertex> vertices,
         Vertex vertex,
         int neighborCount)
     {
@@ -213,7 +214,8 @@ public class WavefrontPreprocessor
 
             var envelope = new Envelope(vertex.Coordinate, otherVertex.Coordinate);
             var intersectsWithObstacle = false;
-            obstacles.Query(envelope, (Action<Obstacle>)(obstacle =>
+            var foundObstacles = obstacles.Query(envelope.MinX, envelope.MaxX);
+            foundObstacles.Each(obstacle =>
             {
                 if (intersectsWithObstacle)
                 {
@@ -233,7 +235,7 @@ public class WavefrontPreprocessor
                     intersectsWithObstacle |= obstacle.CanIntersect(envelope) &&
                                               obstacle.IntersectsWithLine(vertex.Coordinate, otherVertex.Coordinate);
                 }
-            }));
+            });
 
             if (!intersectsWithObstacle)
             {
