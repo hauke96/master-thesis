@@ -14,7 +14,6 @@ namespace Wavefront
         // across all obstacles.
         private readonly int knnSearchNeighbors = 100;
 
-        private readonly QuadTree<Obstacle> _obstacles;
         private readonly BinIndex<Obstacle> _obstacleLonIndex;
 
         // Map from vertex to neighboring vertices. The term "neighbor" here refers to all vertices with an edge to the
@@ -37,19 +36,13 @@ namespace Wavefront
 
         public WavefrontAlgorithm(List<Obstacle> obstacles)
         {
-            // _obstacles = new QuadTree<Obstacle>();
-            // obstacles.Each(obstacle => _obstacles.Insert(obstacle.Envelope, obstacle));
 
             Log.I("Create BinIndex on latitude values...");
             var minLon = obstacles.Min(o => o.Envelope.MinX);
             var maxLon = obstacles.Max(o => o.Envelope.MaxX);
-            _obstacleLonIndex = new BinIndex<Obstacle>(minLon, maxLon, 10);
+            _obstacleLonIndex = new BinIndex<Obstacle>(minLon, maxLon, 200);
             obstacles.Each(obstacle => _obstacleLonIndex.Add(obstacle.Envelope.MinX, obstacle.Envelope.MaxX, obstacle));
-            Log.I("Done creating BinIndex on latitude values");
-        
-            // var minLat = obstacles.Min(o => o.Envelope.MinY);
-            // var maxLat = obstacles.Max(o => o.Envelope.MaxY);
-            // var obstacleLatIndex = new BinIndex<Obstacle>(minLon, maxLon, 0.0005);
+            Log.I("Done creating BinIndex");
 
             Log.I("Get direct neighbors on each obstacle geometry");
             Dictionary<Position, List<Position>> positionToNeighbors = new();

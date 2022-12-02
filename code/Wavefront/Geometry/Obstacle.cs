@@ -73,7 +73,7 @@ namespace Wavefront.Geometry
             var coordinateArray = new double[2];
 
             // We have to manually go through all coordinates to build the shadow area. This is because the shadow might
-            // exceed the 0° border and therefore simple min and max values cannot be used.
+            // exceed the 0° border and therefore simple min and max angles relative to the given vertex cannot be used.
             for (var j = 0; j < Coordinates.Count - 1; j++)
             {
                 var coordinate = Coordinates[j];

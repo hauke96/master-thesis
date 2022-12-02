@@ -1,5 +1,3 @@
-using Mars.Common.Core.Collections;
-
 namespace Wavefront.Index;
 
 public class BinIndex<T>

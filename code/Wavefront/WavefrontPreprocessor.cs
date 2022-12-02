@@ -132,14 +132,13 @@ public class WavefrontPreprocessor
     }
 
     public static Dictionary<Vertex, List<Vertex>> CalculateVisibleKnn(BinIndex<Obstacle> obstacleLonIndex,
-        List<Vertex> vertices,
-        int neighborCount)
+        List<Vertex> vertices, int neighborCount)
     {
         var result = new Dictionary<Vertex, List<Vertex>>();
         Log.D($"Calculate nearest {neighborCount} visible neighbors for each vertex");
 
         var i = 1;
-        var verticesPerPercent = vertices.Count / 1000d;
+        var verticesPerPercent = vertices.Count / 100d;
         var nextProcessOutput = verticesPerPercent;
         var stopWatch = new Stopwatch();
         stopWatch.Start();
