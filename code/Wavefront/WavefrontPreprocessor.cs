@@ -139,7 +139,7 @@ public class WavefrontPreprocessor
         Log.D($"Calculate nearest {neighborCount} visible neighbors for each vertex");
 
         var i = 1;
-        var verticesPerPercent = vertices.Count / 100d;
+        var verticesPerPercent = vertices.Count / 1000d;
         var nextProcessOutput = verticesPerPercent;
         var stopWatch = new Stopwatch();
         stopWatch.Start();
@@ -147,7 +147,8 @@ public class WavefrontPreprocessor
         {
             if (i > nextProcessOutput)
             {
-                Log.D($"  {(int)(i / verticesPerPercent)}% done ({stopWatch.ElapsedMilliseconds}ms)");
+                Log.D(
+                    $"  {Math.Round((1000 * i * verticesPerPercent / vertices.Count) / verticesPerPercent) / 10.0}% done ({stopWatch.ElapsedMilliseconds}ms)");
                 stopWatch.Restart();
                 nextProcessOutput += verticesPerPercent;
             }
