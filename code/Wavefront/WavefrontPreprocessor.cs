@@ -175,8 +175,7 @@ public class WavefrontPreprocessor
     }
 
     public static List<Vertex> GetVisibleNeighborsForVertex(BinIndex<Obstacle> obstacles, List<Vertex> vertices,
-        Vertex vertex,
-        int neighborCount)
+        Vertex vertex, int neighborCount)
     {
         var neighborList = new List<Vertex>();
 
@@ -216,7 +215,7 @@ public class WavefrontPreprocessor
             var foundObstacles = obstacles.Query(envelope.MinX, envelope.MaxX);
             foundObstacles.Each(obstacle =>
             {
-                if (intersectsWithObstacle)
+                if (intersectsWithObstacle || !obstacle.CanIntersect(envelope))
                 {
                     return;
                 }
@@ -229,11 +228,7 @@ public class WavefrontPreprocessor
                     obstaclesCastingShadow.Add(obstacle);
                 }
 
-                if (!intersectsWithObstacle)
-                {
-                    intersectsWithObstacle |= obstacle.CanIntersect(envelope) &&
-                                              obstacle.IntersectsWithLine(vertex.Coordinate, otherVertex.Coordinate);
-                }
+                intersectsWithObstacle |= obstacle.IntersectsWithLine(vertex.Coordinate, otherVertex.Coordinate);
             });
 
             if (!intersectsWithObstacle)
