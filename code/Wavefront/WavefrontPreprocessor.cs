@@ -180,7 +180,7 @@ public class WavefrontPreprocessor
     {
         var neighborList = new List<Vertex>();
 
-        var shadowAreas = new BinIndex<AngleArea>(0, 360);
+        var shadowAreas = new BinIndex<AngleArea>(0, 360, 1, true);
 
         // [0] = Angle from
         // [1] = Angle to
