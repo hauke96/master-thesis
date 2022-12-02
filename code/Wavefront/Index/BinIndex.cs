@@ -1,14 +1,22 @@
+using Mars.Common.Core.Collections;
+
 namespace Wavefront.Index;
 
 public class BinIndex<T>
 {
-    private readonly int _maxKey;
+    private readonly double _minKey;
+    private readonly double _maxKey;
+    private readonly double _binsPerKey;
+    private readonly bool _isRing;
     private readonly LinkedList<T>[] _index;
 
-    public BinIndex(int maxKey, int binSize = 1)
+    public BinIndex(double minKey, double maxKey, double binsPerKey = 1, bool isRing = false)
     {
+        _minKey = minKey;
         _maxKey = maxKey;
-        var binCount = (int)Math.Ceiling((double)_maxKey / binSize);
+        _binsPerKey = binsPerKey;
+        _isRing = isRing;
+        var binCount = (int)Math.Ceiling((_maxKey - _minKey) * binsPerKey) + 1;
         _index = new LinkedList<T>[binCount];
         for (var i = 0; i < _index.Length; i++)
         {
@@ -16,35 +24,60 @@ public class BinIndex<T>
         }
     }
 
+    public int BinCount => _index.Length;
+
     public void Add(double from, double to, T value)
     {
-        if (from < 0 || _maxKey < from)
+        if (from < _minKey || _maxKey < from)
         {
-            throw new ArgumentException($"From-Key must be >=0 and <={_maxKey} but was {from}");
+            throw new ArgumentException($"From-Key must be >={_minKey} and <={_maxKey} but was {from}");
         }
 
-        if (to < 0 || _maxKey < to)
+        if (to < _minKey || _maxKey < to)
         {
-            throw new ArgumentException($"To-Key must be >=0 and <={_maxKey} but was {to}");
+            throw new ArgumentException($"To-Key must be >={_minKey} and <={_maxKey} but was {to}");
         }
 
         var fromIndex = GetIndexFromKey(from);
         var toIndex = GetIndexFromKey(to);
 
-        for (var i = fromIndex; i != toIndex; i = (i + 1) % _index.Length)
+        if (_isRing)
         {
-            _index[i].AddLast(value);
+            for (var i = fromIndex; i != (toIndex + 1) % _index.Length; i = (i + 1) % _index.Length)
+            {
+                _index[i].AddLast(value);
+            }
+        }
+        else
+        {
+            for (var i = fromIndex; i != toIndex + 1 && i < _index.Length; i++)
+            {
+                _index[i].AddLast(value);
+            }
         }
     }
 
-    public LinkedList<T> Query(double key)
+    public ICollection<T> Query(double key)
     {
         var index = GetIndexFromKey(key);
         return _index[index];
     }
 
-    private int GetIndexFromKey(double key)
+    public ICollection<T> Query(double from, double to)
     {
-        return (int)(key / ((double)_maxKey / _index.Length));
+        var indexFrom = GetIndexFromKey(from);
+        var indexTo = GetIndexFromKey(to);
+        var result = new HashSet<T>();
+        for (var i = indexFrom; i <= indexTo; i++)
+        {
+            result.AddRange(_index[i]);
+        }
+
+        return result;
+    }
+
+    public int GetIndexFromKey(double key)
+    {
+        return (int)((key - _minKey) * _binsPerKey);
     }
 }
