@@ -1,0 +1,36 @@
+{
+	"globals": {
+		"startTime": "2010-01-01T00:00",
+		"endTime": "2010-01-02T00:00",
+		"deltaT": 1,
+		"deltaTUnit": "seconds",
+		"output": "csv",
+		"pythonVisualization": false,
+		"console": false
+	},
+	"layers": [
+		{
+			"name": "HikerLayer"
+		},
+		{
+			"name": "WaypointLayer",
+			"file": "Resources/waypoints.csv"
+		},
+		{
+			"name": "ObstacleLayer",
+			"file": "Resources/obstacles.geojson"
+		}
+	],
+	"agents": [
+		{
+			"name": "Hiker",
+			"count": 1,
+			"file": "Resources/hiker.csv",
+			"outputs": [
+				{
+					"kind":"trips"
+				}
+			]
+		}
+	]
+}
