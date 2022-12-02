@@ -9,6 +9,11 @@ public class BinIndex<T>
     private readonly double _binsPerKey;
     private readonly bool _isRing;
     private readonly LinkedList<T>[] _index;
+    
+    /// <summary>
+    /// Stores the items from the previous bin. So it's in a way  _index[i] - _index[i-1].
+    /// </summary>
+    private readonly LinkedList<T>[] _indexDiff;
 
     public BinIndex(double minKey, double maxKey, double binsPerKey = 1, bool isRing = false)
     {
@@ -18,9 +23,11 @@ public class BinIndex<T>
         _isRing = isRing;
         var binCount = (int)Math.Ceiling((_maxKey - _minKey) * binsPerKey) + 1;
         _index = new LinkedList<T>[binCount];
+        _indexDiff = new LinkedList<T>[binCount];
         for (var i = 0; i < _index.Length; i++)
         {
             _index[i] = new LinkedList<T>();
+            _indexDiff[i] = new LinkedList<T>();
         }
     }
 
@@ -40,6 +47,8 @@ public class BinIndex<T>
 
         var fromIndex = GetIndexFromKey(from);
         var toIndex = GetIndexFromKey(to);
+        
+        _indexDiff[fromIndex].AddLast(value);
 
         if (_isRing)
         {
@@ -63,14 +72,24 @@ public class BinIndex<T>
         return _index[index];
     }
 
-    public ICollection<T> Query(double from, double to)
+    public IEnumerable<T> Query(double from, double to)
     {
         var indexFrom = GetIndexFromKey(from);
         var indexTo = GetIndexFromKey(to);
-        var result = new HashSet<T>();
-        for (var i = indexFrom; i <= indexTo; i++)
+        var result = new List<T>();
+        
+        result.AddRange(_index[indexFrom]);
+        
+        for (var i = indexFrom+1; i <= indexTo; i++)
         {
-            result.AddRange(_index[i]);
+            result.AddRange(_indexDiff[i]);
+        }
+
+        if (_isRing)
+        {
+            // In a ring, the from-bin may contain item that re-appear in later bins. Without a Distinct() call, they
+            // would appear twice.
+            return result.Distinct();
         }
 
         return result;
