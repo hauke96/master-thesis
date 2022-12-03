@@ -191,6 +191,18 @@ Either there were too many difficulties in the implementation to work on that ap
 2. Create a 1D R-Tree to store the shadow area intervals. Whenever an area exceeds the 360°/0° border, split it into two. Whenever a new shadow area was created, query for existing ones and merge all of them.
 3. A relaxation approach: Whenever a merge happened, check for further merge opportunities. Repeat this until no further merges are possible.
 
+#### BinIndex instead of QuadTree
+
+Because the `VisitNode` method is called very very often and uses a lot of time, I tries using the `BinIndex` instead.
+So I generalized the class, added a range query method and a separate diff-index for better range query performance.
+Even though this enhanced the performance, splitting obstacles (s. below) in combination with the quad tree was better.
+
+See branch `visible-knn-using-BinIndex` for the code.
+
+#### Splitting obstacles
+
+Because some very large obstacles are checked very very often for collisions (due to their huge bounding box), splitting obstacles into smaller linestrings of a certain max. length was quite successful.
+
 ### Ideas for further optimizations
 
 #### Routing strategies
