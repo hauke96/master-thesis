@@ -35,8 +35,8 @@ namespace Wavefront.Geometry
 
         public static bool DoIntersect(Coordinate start1, Coordinate end1, Coordinate start2, Coordinate end2)
         {
-            if (AreEqual(start1, start2) || AreEqual(end1, end2) ||
-                AreEqual(start1, end2) || AreEqual(end1, start2))
+            if (start1.Equals(start2) || end1.Equals(end2) ||
+                start1.Equals(end2) || end1.Equals(start2))
             {
                 return false;
             }
@@ -59,12 +59,6 @@ namespace Wavefront.Geometry
                      orientation2 == 0 && IsOnSegment(start2, end2, end1) ||
                      orientation3 == 0 && IsOnSegment(start1, end1, start2) ||
                      orientation4 == 0 && IsOnSegment(start1, end1, end2));
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool AreEqual(Coordinate c1, Coordinate c2)
-        {
-            return c1.X == c2.X && c1.Y == c2.X;
         }
     }
 }
