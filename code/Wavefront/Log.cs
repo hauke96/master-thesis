@@ -25,17 +25,17 @@ public class Log
         Console.WriteLine(indentation + prefix + message);
     }
 
-    public static void D(string message, string prefix = "", int manualIndentOffset = 0)
+    public static void D(string message, string prefix = "")
     {
         if (LogLevel <= DEBUG)
         {
-            I(message, prefix, GetCallDepth() - _normalCallDepth + (manualIndentOffset - 1));
+            I(message, prefix, GetCallDepth() - _normalCallDepth);
         }
     }
 
     public static void Note(string message)
     {
-        D(message, "- ", -1);
+        D(message, "- ");
     }
 
     private static int GetCallDepth()
