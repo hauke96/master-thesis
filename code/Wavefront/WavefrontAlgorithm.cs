@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Mars.Common.Collections;
+using NetTopologySuite.Geometries;
 using ServiceStack;
 using Wavefront.Geometry;
 using Position = Mars.Interfaces.Environments.Position;
@@ -35,15 +36,44 @@ namespace Wavefront
 
         public WavefrontAlgorithm(List<Obstacle> obstacles)
         {
+            // Cut obstacles into line strings with a maximum length. This enhances the performance, because collision
+            // checks are now performed on smaller objects.
+            var maxObstacleLength = 50;
+            obstacles = obstacles.Map(o =>
+            {
+                var result = new List<Obstacle>();
+
+                if (o.Coordinates.Count <= maxObstacleLength)
+                {
+                    result.Add(o);
+                    return result;
+                }
+
+                for (int i = 0; i < o.Coordinates.Count - 1; i += maxObstacleLength)
+                {
+                    if (i + maxObstacleLength < o.Coordinates.Count)
+                    {
+                        result.Add(new Obstacle(new LineString(o.Coordinates.Skip(i).Take(maxObstacleLength + 1)
+                            .ToArray())));
+                    }
+                    else
+                    {
+                        result.Add(new Obstacle(new LineString(o.Coordinates.Skip(i).ToArray())));
+                    }
+                }
+
+                return result;
+            }).SelectMany(x => x).ToList();
+            Log.D($"Amount of obstacles: {obstacles.Count}");
+
             _obstacles = new QuadTree<Obstacle>();
             obstacles.Each(obstacle => _obstacles.Insert(obstacle.Envelope, obstacle));
 
             Log.I("Get direct neighbors on each obstacle geometry");
             Dictionary<Position, List<Position>> positionToNeighbors = new();
-            var result = PerformanceMeasurement.ForFunction(() =>
-            {
-                positionToNeighbors = WavefrontPreprocessor.GetNeighborsFromObstacleVertices(obstacles);
-            }, "GetNeighborsFromObstacleVertices");
+            var result = PerformanceMeasurement.ForFunction(
+                () => { positionToNeighbors = WavefrontPreprocessor.GetNeighborsFromObstacleVertices(obstacles); },
+                "GetNeighborsFromObstacleVertices");
             result.Print();
             result.WriteToFile();
 
