@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Mars.Common.Collections;
+using NetTopologySuite.Geometries;
 using ServiceStack;
 using Wavefront.Geometry;
 using Wavefront.Index;
@@ -36,6 +37,36 @@ namespace Wavefront
 
         public WavefrontAlgorithm(List<Obstacle> obstacles)
         {
+            // Cut obstacles into line strings with a maximum length. This enhances the performance, because collision
+            // checks are now performed on smaller objects.
+            var maxObstacleLength = 50;
+            obstacles = obstacles.Map(o =>
+            {
+                var result = new List<Obstacle>();
+
+                if (o.Coordinates.Count <= maxObstacleLength)
+                {
+                    result.Add(o);
+                    return result;
+                }
+
+                for (int i = 0; i < o.Coordinates.Count - 1; i += maxObstacleLength)
+                {
+                    if (i + maxObstacleLength < o.Coordinates.Count)
+                    {
+                        result.Add(new Obstacle(new LineString(o.Coordinates.Skip(i).Take(maxObstacleLength + 1)
+                            .ToArray())));
+                    }
+                    else
+                    {
+                        result.Add(new Obstacle(new LineString(o.Coordinates.Skip(i).ToArray())));
+                    }
+                }
+
+                return result;
+            }).SelectMany(x => x).ToList();
+            Log.D($"Amount of obstacles: {obstacles.Count}");
+
             Log.I("Create BinIndex on longitude values...");
             var minLon = obstacles.Min(o => o.Envelope.MinX);
             var maxLon = obstacles.Max(o => o.Envelope.MaxX);
