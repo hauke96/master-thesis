@@ -40,6 +40,49 @@ public class WavefrontPreprocessor
     }
 
     /// <summary>
+    /// Splits each obstacle into smaller obstacles with the given amount of edges. This enhances the performance of
+    /// further preprocessing, because collision checks are now performed on smaller objects.
+    /// </summary>
+    public static QuadTree<Obstacle> SplitObstacles(List<Obstacle> obstacles, int maxObstacleLength = 20)
+    {
+        Log.D($"Amount of obstacles before splitting: {obstacles.Count}");
+        Log.D($"Amount of vertices before splitting: {obstacles.Sum(o => o.Coordinates.Count)}");
+        
+        obstacles = obstacles.Map(o =>
+        {
+            var result = new List<Obstacle>();
+
+            if (o.Coordinates.Count <= maxObstacleLength)
+            {
+                result.Add(o);
+                return result;
+            }
+
+            for (int i = 0; i < o.Coordinates.Count - 1; i += maxObstacleLength)
+            {
+                if (i + maxObstacleLength < o.Coordinates.Count)
+                {
+                    result.Add(new Obstacle(new LineString(o.Coordinates.Skip(i).Take(maxObstacleLength + 1)
+                        .ToArray())));
+                }
+                else
+                {
+                    result.Add(new Obstacle(new LineString(o.Coordinates.Skip(i).ToArray())));
+                }
+            }
+
+            return result;
+        }).SelectMany(x => x).ToList();
+        
+        Log.D($"Amount of obstacles after splitting: {obstacles.Count}");
+        Log.D($"Amount of vertices after splitting: {obstacles.Sum(o => o.Coordinates.Count)}");
+
+        var obstacleIndex = new QuadTree<Obstacle>();
+        obstacles.Each(obstacle => obstacleIndex.Insert(obstacle.Envelope, obstacle));
+        return obstacleIndex;
+    }
+
+    /// <summary>
     /// Calculates the neighbor relationship for each vertex in the given obstacles.
     ///
     /// Neighbor here means across obstacles.
@@ -139,7 +182,7 @@ public class WavefrontPreprocessor
         Log.D($"Calculate nearest {neighborCount} visible neighbors for each vertex");
 
         var i = 1;
-        var verticesPerPercent = vertices.Count / 1000d;
+        var verticesPerPercent = vertices.Count / 100d;
         var nextProcessOutput = verticesPerPercent;
         var stopWatch = new Stopwatch();
         stopWatch.Start();

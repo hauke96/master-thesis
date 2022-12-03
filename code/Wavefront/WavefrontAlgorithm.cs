@@ -14,7 +14,7 @@ namespace Wavefront
         // across all obstacles.
         private readonly int knnSearchNeighbors = 100;
 
-        private readonly QuadTree<Obstacle> _obstacles;
+        private QuadTree<Obstacle> _obstacles;
 
         // Map from vertex to neighboring vertices. The term "neighbor" here refers to all vertices with an edge to the
         // key vertex of a dict entry.
@@ -36,40 +36,11 @@ namespace Wavefront
 
         public WavefrontAlgorithm(List<Obstacle> obstacles)
         {
-            // Cut obstacles into line strings with a maximum length. This enhances the performance, because collision
-            // checks are now performed on smaller objects.
-            var maxObstacleLength = 50;
-            obstacles = obstacles.Map(o =>
-            {
-                var result = new List<Obstacle>();
+            Log.Init();
+            
+            _obstacles = WavefrontPreprocessor.SplitObstacles(obstacles);
 
-                if (o.Coordinates.Count <= maxObstacleLength)
-                {
-                    result.Add(o);
-                    return result;
-                }
-
-                for (int i = 0; i < o.Coordinates.Count - 1; i += maxObstacleLength)
-                {
-                    if (i + maxObstacleLength < o.Coordinates.Count)
-                    {
-                        result.Add(new Obstacle(new LineString(o.Coordinates.Skip(i).Take(maxObstacleLength + 1)
-                            .ToArray())));
-                    }
-                    else
-                    {
-                        result.Add(new Obstacle(new LineString(o.Coordinates.Skip(i).ToArray())));
-                    }
-                }
-
-                return result;
-            }).SelectMany(x => x).ToList();
-            Log.D($"Amount of obstacles: {obstacles.Count}");
-
-            _obstacles = new QuadTree<Obstacle>();
-            obstacles.Each(obstacle => _obstacles.Insert(obstacle.Envelope, obstacle));
-
-            Log.I("Get direct neighbors on each obstacle geometry");
+            Log.D("Get direct neighbors on each obstacle geometry");
             Dictionary<Position, List<Position>> positionToNeighbors = new();
             var result = PerformanceMeasurement.ForFunction(
                 () => { positionToNeighbors = WavefrontPreprocessor.GetNeighborsFromObstacleVertices(obstacles); },
