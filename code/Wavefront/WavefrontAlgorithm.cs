@@ -45,10 +45,9 @@ namespace Wavefront
 
             Log.I("Get direct neighbors on each obstacle geometry");
             Dictionary<Position, List<Position>> positionToNeighbors = new();
-            var result = PerformanceMeasurement.ForFunction(() =>
-            {
-                positionToNeighbors = WavefrontPreprocessor.GetNeighborsFromObstacleVertices(obstacles);
-            }, "GetNeighborsFromObstacleVertices");
+            var result = PerformanceMeasurement.ForFunction(
+                () => { positionToNeighbors = WavefrontPreprocessor.GetNeighborsFromObstacleVertices(obstacles); },
+                "GetNeighborsFromObstacleVertices");
             result.Print();
             result.WriteToFile();
 
