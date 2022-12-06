@@ -11,10 +11,9 @@ namespace Wavefront.Tests;
 
 public class WavefrontPreprocessorTest
 {
-    public class WithObstacles
+    public class WithMultipleObstacles
     {
         private QuadTree<Obstacle> obstacleQuadTree;
-        private List<Vertex> vertices;
         private LineString multiVertexLineObstacle;
         private LineString rotatedLineObstacle;
         private Dictionary<Position, List<Position>> positionToNeighbors;
@@ -41,7 +40,6 @@ public class WavefrontPreprocessorTest
             var obstacles = obstacleGeometries.Map(geometry => new Obstacle(geometry));
 
             positionToNeighbors = WavefrontPreprocessor.GetNeighborsFromObstacleVertices(obstacles);
-            vertices = positionToNeighbors.Keys.Map(position => new Vertex(position, positionToNeighbors[position]));
 
             obstacleQuadTree = new QuadTree<Obstacle>();
             obstacles.Each(obstacle => obstacleQuadTree.Insert(obstacle.Envelope, obstacle));
@@ -73,11 +71,45 @@ public class WavefrontPreprocessorTest
             actual = positionToNeighbors[obstacle[2].ToPosition()];
             Assert.AreEqual(expected, actual);
         }
+    }
+
+    public class WithSimpleObstacle
+    {
+        private QuadTree<Obstacle> obstacleQuadTree;
+        private List<Vertex> vertices;
+        private Obstacle obstacle;
+
+        [SetUp]
+        public void Setup()
+        {
+            obstacle = new Obstacle(new LineString(new[]
+            {
+                new Coordinate(1, 1),
+                new Coordinate(1, 2),
+                new Coordinate(2, 3)
+            }));
+            vertices = obstacle.Coordinates.Map(c => new Vertex(c.ToPosition()));
+
+            obstacleQuadTree = new QuadTree<Obstacle>();
+            obstacleQuadTree.Insert(obstacle.Envelope, obstacle);
+        }
 
         [Test]
         public void CalculateVisibleKnn()
         {
-            WavefrontPreprocessor.CalculateVisibleKnn(obstacleQuadTree, vertices, 100);
+            var visibleKnn = WavefrontPreprocessor.CalculateVisibleKnn(obstacleQuadTree, vertices, 100);
+            
+            Assert.AreEqual(2, visibleKnn[vertices[0]].Count);
+            Assert.Contains(vertices[1], visibleKnn[vertices[0]]);
+            Assert.Contains(vertices[2], visibleKnn[vertices[0]]);
+            
+            Assert.AreEqual(2, visibleKnn[vertices[1]].Count);
+            Assert.Contains(vertices[0], visibleKnn[vertices[1]]);
+            Assert.Contains(vertices[2], visibleKnn[vertices[1]]);
+
+            Assert.AreEqual(2, visibleKnn[vertices[2]].Count);
+            Assert.Contains(vertices[0], visibleKnn[vertices[2]]);
+            Assert.Contains(vertices[1], visibleKnn[vertices[2]]);
         }
     }
 
@@ -256,7 +288,7 @@ public class WavefrontPreprocessorTest
         Assert.Contains(obstacle1[1].ToPosition(), positionToNeighbors[obstacle1[2].ToPosition()]);
         Assert.Contains(obstacle1[3].ToPosition(), positionToNeighbors[obstacle1[2].ToPosition()]);
         Assert.Contains(obstacle2[2].ToPosition(), positionToNeighbors[obstacle1[2].ToPosition()]);
-        
+
         Assert.AreEqual(1, positionToNeighbors[obstacle1[3].ToPosition()].Count);
         Assert.Contains(obstacle1[2].ToPosition(), positionToNeighbors[obstacle1[3].ToPosition()]);
 

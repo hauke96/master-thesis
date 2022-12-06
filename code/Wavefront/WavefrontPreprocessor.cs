@@ -47,7 +47,7 @@ public class WavefrontPreprocessor
     {
         Log.D($"Amount of obstacles before splitting: {obstacles.Count}");
         Log.D($"Amount of vertices before splitting: {obstacles.Sum(o => o.Coordinates.Count)}");
-        
+
         obstacles = obstacles.Map(o =>
         {
             var result = new List<Obstacle>();
@@ -73,7 +73,7 @@ public class WavefrontPreprocessor
 
             return result;
         }).SelectMany(x => x).ToList();
-        
+
         Log.D($"Amount of obstacles after splitting: {obstacles.Count}");
         Log.D($"Amount of vertices after splitting: {obstacles.Sum(o => o.Coordinates.Count)}");
 
@@ -234,7 +234,6 @@ public class WavefrontPreprocessor
         using var sortedVertices = vertices
             .OrderBy(v => Distance.Euclidean(vertex.Position.PositionArray, v.Position.PositionArray))
             .GetEnumerator();
-        sortedVertices.MoveNext();
 
         for (var i = 0; i < vertices.Count && neighborList.Count < neighborCount; i++)
         {
@@ -266,9 +265,12 @@ public class WavefrontPreprocessor
                 if (!obstaclesCastingShadow.Contains(obstacle))
                 {
                     var (angleFrom, angleTo, distance) = obstacle.GetAngleAreaOfObstacle(vertex);
-                    shadowAreas.Add(angleFrom, angleTo, new AngleArea(angleFrom, angleTo, distance));
 
-                    obstaclesCastingShadow.Add(obstacle);
+                    if (!Double.IsNaN(angleFrom) && !Double.IsNaN(angleTo) && !Double.IsNaN(distance))
+                    {
+                        shadowAreas.Add(angleFrom, angleTo, new AngleArea(angleFrom, angleTo, distance));
+                        obstaclesCastingShadow.Add(obstacle);
+                    }
                 }
 
                 intersectsWithObstacle |= obstacle.IntersectsWithLine(vertex.Coordinate, otherVertex.Coordinate);
