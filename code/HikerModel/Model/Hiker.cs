@@ -42,11 +42,11 @@ namespace HikerModel.Model
         {
             _targetWaypoints = WaypointLayer.TrackPoints.GetEnumerator();
             _routeWaypoints = new List<Waypoint>().GetEnumerator();
-            
+
             _targetWaypoints.MoveNext();
             Position = _nextTargetWaypoint.ToPosition();
             _targetWaypoints.MoveNext();
-            
+
             HikerLayer = layer;
             layer.Environment.Insert(this);
         }
@@ -83,18 +83,18 @@ namespace HikerModel.Model
                 if (_nextRouteWaypoint == null)
                 {
                     Console.WriteLine("Hiker reached end of route, choose next target and calculate new route.");
-                    // _targetWaypoints.MoveNext();
+                    _targetWaypoints.MoveNext();
 
-                    // if (_nextTargetWaypoint == null)
-                    // {
-                        // Console.WriteLine(
-                            // "Hiker reached last waypoint. He will now die of exhaustion. Farewell dear hiker.");
+                    if (_nextTargetWaypoint == null)
+                    {
+                        Console.WriteLine(
+                            "Hiker reached last waypoint. He will now die of exhaustion. Farewell dear hiker.");
                         HikerLayer.Environment.Remove(this);
                         UnregisterHandle.Invoke(HikerLayer, this);
                         return;
-                    // }
+                    }
 
-                    // CalculateRoute(Position, _nextTargetWaypoint.ToPosition());
+                    CalculateRoute(Position, _nextTargetWaypoint.ToPosition());
                 }
             }
 
@@ -111,7 +111,7 @@ namespace HikerModel.Model
                 {
                     throw new Exception($"No route found from {from} to {to}");
                 }
-                
+
                 WriteRoutesToFile(routingResult.AllRoutes);
 
                 _routeWaypoints = routingResult.OptimalRoute.GetEnumerator();
