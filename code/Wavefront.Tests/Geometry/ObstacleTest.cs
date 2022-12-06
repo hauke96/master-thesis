@@ -27,6 +27,12 @@ public class ObstacleTest
         Assert.AreEqual(135, angleFrom, 0.001);
         Assert.AreEqual(161.566, angleTo, 0.001);
         Assert.AreEqual(3.1622, distance, 0.001);
+
+        // From lower coordinate of the obstacle
+        (angleFrom, angleTo, distance) = obstacle.GetAngleAreaOfObstacle(new Vertex(obstacle.Coordinates[0].ToPosition()));
+        Assert.AreEqual(0, angleFrom, 0.001);
+        Assert.AreEqual(0, angleTo, 0.001);
+        Assert.AreEqual(2, distance, 0.001);
     }
     
     [Test]
@@ -60,18 +66,21 @@ public class ObstacleTest
     [Test]
     public void GetAngleAreaOfObstacle_VertexOfObstacle()
     {
+        // V-shape obstacle
         var obstacle = new Obstacle(new LineString(new[]
         {
-            new Coordinate(1, 1),
-            new Coordinate(1, 3)
+            new Coordinate(1, 2),
+            new Coordinate(2,1),
+            new Coordinate(3,2)
         }));
 
+        // Get angle area of the tip of the "V".
         var (angleFrom, angleTo, distance) =
-            obstacle.GetAngleAreaOfObstacle(new Vertex(obstacle.Coordinates[0].ToPosition()));
+            obstacle.GetAngleAreaOfObstacle(new Vertex(obstacle.Coordinates[1].ToPosition()));
 
-        Assert.IsNaN(angleFrom);
-        Assert.IsNaN(angleTo);
-        Assert.IsNaN(distance);
+        Assert.AreEqual(315, angleFrom, 0.001);
+        Assert.AreEqual(45, angleTo, 0.001);
+        Assert.AreEqual(1.414, distance, 0.001);
     }
     
     [Test]

@@ -74,43 +74,46 @@ namespace Wavefront.Geometry
 
             // We have to manually go through all coordinates to build the shadow area. This is because the shadow might
             // exceed the 0° border and therefore simple min and max values cannot be used.
-            for (var j = 0; j < Coordinates.Count - 1; j++)
+            foreach (var coordinate in Coordinates)
             {
-                var coordinate = Coordinates[j];
-
                 if (Equals(coordinate, vertex.Coordinate))
                 {
                     continue;
                 }
 
-                var a1 = Angle.GetBearing(vertex.Position.X, vertex.Position.Y, coordinate.X, coordinate.Y);
+                var angleToNewCoordinate =
+                    Angle.GetBearing(vertex.Position.X, vertex.Position.Y, coordinate.X, coordinate.Y);
 
-                if (!Angle.IsBetweenEqual(angleFrom, a1, angleTo))
+                if (Double.IsNaN(previousAngle))
                 {
-                    var a2 = double.IsNaN(previousAngle) ? a1 : previousAngle;
-                    previousAngle = a1;
+                    // At the first coordinate, there's no previous angle, so we set it here.
+                    previousAngle = angleToNewCoordinate;
+                }
 
-                    // Make sure a1=from and a2=to
-                    Angle.GetEnclosingAngles(a1, a2, out a1, out a2);
+                if (!Angle.IsBetweenEqual(angleFrom, angleToNewCoordinate, angleTo))
+                {
+                    // Make sure the two angles are in the right order
+                    Angle.GetEnclosingAngles(angleToNewCoordinate, previousAngle, out var newSegmentAngleFrom,
+                        out var newSegmentAngleTo);
 
                     if (double.IsNaN(angleFrom) && double.IsNaN(angleTo))
                     {
-                        angleFrom = a1;
-                        angleTo = a2;
+                        angleFrom = newSegmentAngleFrom;
+                        angleTo = newSegmentAngleTo;
                     }
                     else
                     {
                         // We definitely don't have complete overlaps, that (angleFrom, angleTo) is completely in
                         // (a1, a2) and vice versa. Always exactly one side (from or to) is touching the current region.
-                        if (angleFrom == a2)
+                        if (angleFrom == newSegmentAngleTo)
                         {
                             // angle area goes  a1 -> a2 == angleFrom -> angleTo
-                            angleFrom = a1;
+                            angleFrom = newSegmentAngleFrom;
                         }
-                        else if (angleTo == a1)
+                        else if (angleTo == newSegmentAngleFrom)
                         {
                             // angle area goes  angleFrom -> a1 == angleTo -> a2
-                            angleTo = a2;
+                            angleTo = newSegmentAngleTo;
                         }
                     }
 
@@ -120,6 +123,7 @@ namespace Wavefront.Geometry
 
                 var distance = Distance.Euclidean(vertex.Position.PositionArray, coordinateArray);
                 maxDistance = distance > maxDistance ? distance : maxDistance;
+                previousAngle = angleToNewCoordinate;
             }
 
             return (angleFrom, angleTo, maxDistance);
