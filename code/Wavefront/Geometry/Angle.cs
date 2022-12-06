@@ -67,7 +67,7 @@ public class Angle
         b += FLOAT_TOLERANCE;
         if (a > b)
         {
-            // a to b exceeds to 0° border
+            // a to b exceeds the 0° border
             angle = LowerEqual(angle, b) ? angle + 360.0 : angle;
             b += 360.0;
         }

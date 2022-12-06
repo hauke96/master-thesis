@@ -37,7 +37,7 @@ namespace Wavefront
         public WavefrontAlgorithm(List<Obstacle> obstacles)
         {
             Log.Init();
-            
+
             _obstacles = WavefrontPreprocessor.SplitObstacles(obstacles);
 
             Log.D("Get direct neighbors on each obstacle geometry");
@@ -195,7 +195,7 @@ namespace Wavefront
             var currentVertexWasRootOfWaveletBefore = WavefrontRootToWaypoint.ContainsKey(currentVertex.Position);
             if (currentVertexWasRootOfWaveletBefore)
             {
-                // The current vertes was already used as a root vertex of a wavelet. This means there are shorter paths
+                // The current vertex was already used as a root vertex of a wavelet. This means there are shorter paths
                 // to this vertex and we can ignore it since the path using the current wavelet is not optimal.
                 RemoveAndUpdateWavefront(waveletNode);
                 AddWavefront(wavelet);

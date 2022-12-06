@@ -17,7 +17,10 @@ public class Wavelet
     public double DistanceToRootFromSource { get; }
 
     public LinkedList<Vertex> RelevantVertices;
+
     private readonly LinkedList<Position> _visitedVertices;
+    private readonly double _fromAngleNormalized;
+    private readonly double _toAngleNormalized;
 
     // ReSharper disable InvalidXmlDocComment
     /// <summary>
@@ -47,7 +50,9 @@ public class Wavelet
         double distanceToRootFromSource)
     {
         FromAngle = fromAngle;
+        _fromAngleNormalized = Angle.StrictNormalize(FromAngle);
         ToAngle = toAngle;
+        _toAngleNormalized = Angle.StrictNormalize(ToAngle);
         RootVertex = rootVertex;
         DistanceToRootFromSource = distanceToRootFromSource;
 
@@ -88,7 +93,10 @@ public class Wavelet
             return false;
         }
 
-        return Angle.IsBetweenEqual(FromAngle, bearing, ToAngle);
+        // The Angle.IsBetweenEqual assumes normalized angles. If the from-angle is 0° and/or the to-angle is 360°, this
+        // might cause problems with vertices at these angles.
+        return Angle.IsBetweenEqual(FromAngle, bearing, ToAngle) ||
+               Angle.IsBetweenEqual(_fromAngleNormalized, bearing, _toAngleNormalized);
     }
 
     /// <summary>
