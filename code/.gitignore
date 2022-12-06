@@ -36,3 +36,7 @@ msbuild.wrn
 # Visual Studio 2015
 .vs/
 
+# Resource files
+**/Resources/*.csv
+**/Resources/*.gpx
+**/Resources/*.geojson
