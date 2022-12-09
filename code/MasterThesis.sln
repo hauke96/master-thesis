@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wavefront.Tests", "Wavefron
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HikerModel", "HikerModel\HikerModel.csproj", "{800A9A25-522C-4FC2-8A0E-20EA72F5F502}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatasetCreator", "DatasetCreator\DatasetCreator.csproj", "{8D8935B3-22E1-490C-A219-5AD60BA62F10}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{800A9A25-522C-4FC2-8A0E-20EA72F5F502}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{800A9A25-522C-4FC2-8A0E-20EA72F5F502}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{800A9A25-522C-4FC2-8A0E-20EA72F5F502}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8D8935B3-22E1-490C-A219-5AD60BA62F10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D8935B3-22E1-490C-A219-5AD60BA62F10}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D8935B3-22E1-490C-A219-5AD60BA62F10}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D8935B3-22E1-490C-A219-5AD60BA62F10}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
