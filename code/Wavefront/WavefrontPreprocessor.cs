@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using Mars.Common;
 using Mars.Common.Collections;
-using Mars.Common.Core;
 using Mars.Common.Core.Collections;
 using Mars.Numerics;
 using NetTopologySuite.Geometries;

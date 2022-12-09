@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Mars.Common.Collections;
-using NetTopologySuite.Geometries;
 using ServiceStack;
 using Wavefront.Geometry;
 using Position = Mars.Interfaces.Environments.Position;

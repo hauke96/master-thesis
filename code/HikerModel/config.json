@@ -14,7 +14,7 @@
 		},
 		{
 			"name": "WaypointLayer",
-			"file": "Resources/waypoints.csv"
+			"file": "Resources/waypoints.geojson"
 		},
 		{
 			"name": "ObstacleLayer",

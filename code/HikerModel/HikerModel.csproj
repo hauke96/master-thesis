@@ -17,13 +17,16 @@
     <Content Include="Resources\obstacles.geojson">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Resources\waypoints.csv">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Wavefront\Wavefront.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Resources\waypoints.geojson">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -23,7 +23,6 @@ namespace HikerModel.Model
 
             TrackPoints = layerInitData.LayerInitConfig.Inputs.Import()
                 .OfType<IStructuredDataGeometry>()
-                .OrderBy(geometry => geometry.Data["track_seg_point_id"].Value<int>())
                 .SelectMany(geometry => geometry.Geometry.Coordinates);
 
             return initLayer;
