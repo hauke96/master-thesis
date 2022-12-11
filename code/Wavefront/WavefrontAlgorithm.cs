@@ -38,26 +38,8 @@ namespace Wavefront
             Log.Init();
 
             _obstacles = WavefrontPreprocessor.SplitObstacles(obstacles);
-
-            Log.D("Get direct neighbors on each obstacle geometry");
-            Dictionary<Position, List<Position>> positionToNeighbors = new();
-            var result = PerformanceMeasurement.ForFunction(
-                () => { positionToNeighbors = WavefrontPreprocessor.GetNeighborsFromObstacleVertices(obstacles); },
-                "GetNeighborsFromObstacleVertices");
-            result.Print();
-            result.WriteToFile();
-
-            Log.I("Create map of direct neighbor vertices on the obstacle geometries");
-            Vertices = positionToNeighbors.Keys.Map(position => new Vertex(position, positionToNeighbors[position]));
-
-            Log.I("Calculate KNN to get visible vertices");
-            result = PerformanceMeasurement.ForFunction(() =>
-            {
-                _vertexNeighbors =
-                    WavefrontPreprocessor.CalculateVisibleKnn(_obstacles, Vertices, knnSearchNeighbors);
-            }, "CalculateVisibleKnn");
-            result.Print();
-            result.WriteToFile();
+            _vertexNeighbors = WavefrontPreprocessor.CalculateVisibleKnn(_obstacles, knnSearchNeighbors);
+            Vertices = _vertexNeighbors.Keys.ToList();
 
             Reset();
         }

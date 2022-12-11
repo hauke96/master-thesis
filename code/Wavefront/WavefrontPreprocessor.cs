@@ -87,7 +87,7 @@ public class WavefrontPreprocessor
     /// Neighbor here means across obstacles.
     /// </summary>
     /// <returns>A dict from position to a duplicate free list of all neighbors found.</returns>
-    public static Dictionary<Position, List<Position>> GetNeighborsFromObstacleVertices(List<Obstacle> obstacles)
+    public static Dictionary<Position, List<Position>> GetNeighborsFromObstacleVertices(IList<Obstacle> obstacles)
     {
         // A function that determines if any obstacles is between the two given coordinates.
         var isCoordinateHidden = (Coordinate coordinate, Coordinate otherCoordinate, Obstacle obstacleOfCoordinate) =>
@@ -173,9 +173,42 @@ public class WavefrontPreprocessor
         });
     }
 
-    public static Dictionary<Vertex, List<Vertex>> CalculateVisibleKnn(QuadTree<Obstacle> obstacles,
-        List<Vertex> vertices,
-        int neighborCount)
+    public static Dictionary<Vertex, List<Vertex>> CalculateVisibleKnn(QuadTree<Obstacle> obstacles, int neighborCount)
+    {
+        Log.D("Get direct neighbors on each obstacle geometry");
+        Dictionary<Position, List<Position>> positionToNeighbors = new();
+        var allObstacles = obstacles.QueryAll();
+        var result = PerformanceMeasurement.ForFunction(
+            () => { positionToNeighbors = GetNeighborsFromObstacleVertices(allObstacles); },
+            "GetNeighborsFromObstacleVertices");
+        result.Print();
+        result.WriteToFile();
+
+        Log.I("Create map of direct neighbor vertices on the obstacle geometries");
+        var vertices = positionToNeighbors.Keys.Map(position => new Vertex(position, positionToNeighbors[position]));
+
+        Log.I("Add vertices with neighbor information to obstacles");
+        allObstacles.Each(o =>
+        {
+            var verticesInObstacle = vertices.Intersect(o.Vertices);
+            o.Vertices = verticesInObstacle.ToList();
+        });
+
+        Log.I("Calculate KNN to get visible vertices");
+        var vertexNeighbors = new Dictionary<Vertex, List<Vertex>>();
+        result = PerformanceMeasurement.ForFunction(() =>
+        {
+            vertexNeighbors =
+                CalculateVisibleKnnInternal(obstacles, vertices, neighborCount);
+        }, "CalculateVisibleKnn");
+        result.Print();
+        result.WriteToFile();
+
+        return vertexNeighbors;
+    }
+
+    private static Dictionary<Vertex, List<Vertex>> CalculateVisibleKnnInternal(QuadTree<Obstacle> obstacles,
+        List<Vertex> vertices, int neighborCount)
     {
         var result = new Dictionary<Vertex, List<Vertex>>();
         Log.D($"Calculate nearest {neighborCount} visible neighbors for each vertex");
