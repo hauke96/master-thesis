@@ -89,7 +89,7 @@ public class WavefrontPreprocessor
     /// <returns>A dict from position to a duplicate free list of all neighbors found.</returns>
     public static Dictionary<Position, List<Position>> GetNeighborsFromObstacleVertices(List<Obstacle> obstacles)
     {
-        // A function that determines if any obstacles if between the two given coordinates.
+        // A function that determines if any obstacles is between the two given coordinates.
         var isCoordinateHidden = (Coordinate coordinate, Coordinate otherCoordinate, Obstacle obstacleOfCoordinate) =>
             obstacles.Any(o =>
                 o.IsClosed &&
@@ -221,12 +221,7 @@ public class WavefrontPreprocessor
         int neighborCount)
     {
         var neighborList = new List<Vertex>();
-
         var shadowAreas = new BinIndex<AngleArea>(360);
-
-        // [0] = Angle from
-        // [1] = Angle to
-        // [2] = Distance
         var obstaclesCastingShadow = new HashSet<Obstacle>();
 
         vertices.Remove(vertex);
@@ -288,7 +283,7 @@ public class WavefrontPreprocessor
     {
         foreach (var area in shadowAreas.Query(angle))
         {
-            if (distance > area.Distance && Angle.IsBetweenEqual(area.From, angle, area.To))
+            if (distance > area.Distance && Angle.IsBetween(area.From, angle, area.To))
             {
                 return true;
             }
