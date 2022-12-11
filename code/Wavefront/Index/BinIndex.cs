@@ -31,7 +31,7 @@ public class BinIndex<T>
         var fromIndex = GetIndexFromKey(from);
         var toIndex = GetIndexFromKey(to);
 
-        for (var i = fromIndex; i != toIndex; i = (i + 1) % _index.Length)
+        for (var i = fromIndex; i != (toIndex + 1) % _index.Length; i = (i + 1) % _index.Length)
         {
             _index[i].AddLast(value);
         }
