@@ -26,6 +26,8 @@ namespace HikerModel.Model
         [PropertyDescription] public ObstacleLayer ObstacleLayer { get; set; }
         [PropertyDescription] public UnregisterAgent UnregisterHandle { get; set; }
 
+        public static double StepSize = 1;
+
         public HikerLayer HikerLayer { get; private set; }
         public Position Position { get; set; }
         public Guid ID { get; set; }
@@ -76,7 +78,7 @@ namespace HikerModel.Model
                 Console.WriteLine("Hiker has target but no route. Calculate route to next target.");
                 CalculateRoute(Position, _nextTargetWaypoint.ToPosition());
             }
-            else if (_nextRouteWaypoint.Position.DistanceInMTo(Position) < 2)
+            else if (_nextRouteWaypoint.Position.DistanceInMTo(Position) < StepSize * 2)
             {
                 _routeWaypoints.MoveNext();
 
@@ -99,7 +101,7 @@ namespace HikerModel.Model
             }
 
             var bearing = Position.GetBearing(_nextRouteWaypoint.Position);
-            HikerLayer.Environment.MoveTowards(this, bearing, 1);
+            HikerLayer.Environment.MoveTowards(this, bearing, StepSize);
         }
 
         private void CalculateRoute(Position from, Position to)
