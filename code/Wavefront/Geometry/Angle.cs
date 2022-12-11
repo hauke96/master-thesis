@@ -1,5 +1,6 @@
-using Mars.Interfaces.Environments;
 using Mars.Numerics;
+using NetTopologySuite.Geometries;
+using Position = Mars.Interfaces.Environments.Position;
 
 namespace Wavefront.Geometry;
 
@@ -9,11 +10,12 @@ public class Angle
 
     public static double GetBearing(Position a, Position b)
     {
-        var aX = a.X;
-        var aY = a.Y;
-        var bX = b.X;
-        var bY = b.Y;
-        return GetBearing(aX, aY, bX, bY);
+        return GetBearing(a.X, a.Y, b.X, b.Y);
+    }
+
+    public static double GetBearing(Coordinate a, Coordinate b)
+    {
+        return GetBearing(a.X, a.Y, b.X, b.Y);
     }
 
     public static double GetBearing(double aX, double aY, double bX, double bY)

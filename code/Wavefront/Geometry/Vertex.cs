@@ -8,7 +8,7 @@ public class Vertex
 {
     private static int ID_COUNTER;
 
-    private readonly List<Position> _neighbors;
+    public List<Position> Neighbors { get; }
     private readonly Position _position;
     private readonly int _id;
 
@@ -43,8 +43,8 @@ public class Vertex
     public Vertex(Position position, List<Position> neighbors)
     {
         Position = position;
-        _neighbors = neighbors;
-        _neighbors.Sort((p1, p2) => (int)(Angle.GetBearing(Position, p1) - Angle.GetBearing(Position, p2)));
+        Neighbors = neighbors;
+        Neighbors.Sort((p1, p2) => (int)(Angle.GetBearing(Position, p1) - Angle.GetBearing(Position, p2)));
         _id = ID_COUNTER++;
     }
 
@@ -57,14 +57,14 @@ public class Vertex
     /// The right neighbor depends on the fact if the angle area of that wavelet starts at this vertex or not.</param>
     public Position? RightNeighbor(Position basePosition, bool basePositionIsRightMostNeighbor = false)
     {
-        var basePositionIsANeighbor = _neighbors.Contains(basePosition);
+        var basePositionIsANeighbor = Neighbors.Contains(basePosition);
         if (basePositionIsANeighbor && basePositionIsRightMostNeighbor)
         {
             return basePosition;
         }
 
         var vertexToBasePositionAngle = Angle.GetBearing(Position, basePosition);
-        var rotatedNeighborAngles = _neighbors
+        var rotatedNeighborAngles = Neighbors
             .Map(n => Angle.Normalize(Angle.GetBearing(Position, n) - vertexToBasePositionAngle));
 
         var minAngle = double.PositiveInfinity;
@@ -82,7 +82,7 @@ public class Vertex
             }
         });
 
-        return 0 <= index && index < _neighbors.Count ? _neighbors[index] : null;
+        return 0 <= index && index < Neighbors.Count ? Neighbors[index] : null;
     }
 
 
@@ -96,14 +96,14 @@ public class Vertex
     /// The left neighbor depends on the fact if the angle area of that wavelet ends at this vertex or not.</param>
     public Position? LeftNeighbor(Position basePosition, bool basePositionIsLeftMostNeighbor = false)
     {
-        var basePositionIsANeighbor = _neighbors.Contains(basePosition);
+        var basePositionIsANeighbor = Neighbors.Contains(basePosition);
         if (basePositionIsANeighbor && basePositionIsLeftMostNeighbor)
         {
             return basePosition;
         }
 
         var vertexToBasePositionAngle = Angle.GetBearing(Position, basePosition);
-        var rotatedNeighborAngles = _neighbors
+        var rotatedNeighborAngles = Neighbors
             .Map(n => Angle.Normalize(Angle.GetBearing(Position, n) - vertexToBasePositionAngle));
 
         var maxAngle = double.NegativeInfinity;
@@ -117,7 +117,7 @@ public class Vertex
             }
         });
 
-        return 0 <= index && index < _neighbors.Count ? _neighbors[index] : null;
+        return 0 <= index && index < Neighbors.Count ? Neighbors[index] : null;
     }
 
     public override bool Equals(object? obj)
