@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Mars.Common;
 using Mars.Common.Collections;
 using NetTopologySuite.Geometries;
@@ -97,12 +98,12 @@ public class WavefrontPreprocessorTest
         [Test]
         public void CalculateVisibleKnn()
         {
-            var visibleKnn = WavefrontPreprocessor.CalculateVisibleKnn(obstacleQuadTree, vertices, 100);
-            
+            var visibleKnn = WavefrontPreprocessor.CalculateVisibleKnn(obstacleQuadTree, 100);
+
             Assert.AreEqual(2, visibleKnn[vertices[0]].Count);
             Assert.Contains(vertices[1], visibleKnn[vertices[0]]);
             Assert.Contains(vertices[2], visibleKnn[vertices[0]]);
-            
+
             Assert.AreEqual(2, visibleKnn[vertices[1]].Count);
             Assert.Contains(vertices[0], visibleKnn[vertices[1]]);
             Assert.Contains(vertices[2], visibleKnn[vertices[1]]);
@@ -110,6 +111,81 @@ public class WavefrontPreprocessorTest
             Assert.AreEqual(2, visibleKnn[vertices[2]].Count);
             Assert.Contains(vertices[0], visibleKnn[vertices[2]]);
             Assert.Contains(vertices[1], visibleKnn[vertices[2]]);
+        }
+    }
+
+    public class WithAlignedObstacle
+    {
+        private QuadTree<Obstacle> obstacleQuadTree;
+        private List<Vertex> vertices;
+        private List<Obstacle> obstacles;
+
+        [SetUp]
+        public void Setup()
+        {
+            var obstacleGeometries = new List<NetTopologySuite.Geometries.Geometry>();
+            obstacleGeometries.Add(new LineString(new[]
+            {
+                new Coordinate(1, 1),
+                new Coordinate(2, 1),
+                new Coordinate(2, 2),
+                new Coordinate(1, 2),
+                new Coordinate(1, 1)
+            }));
+            obstacleGeometries.Add(new LineString(new[]
+            {
+                new Coordinate(3, 1),
+                new Coordinate(3, 2),
+                new Coordinate(4, 2)
+            }));
+            obstacleGeometries.Add(new LineString(new[]
+            {
+                new Coordinate(5, 2),
+                new Coordinate(5, 1),
+                new Coordinate(6, 1),
+                new Coordinate(6, 2),
+            }));
+
+            obstacles = obstacleGeometries.Map(geometry => new Obstacle(geometry));
+            vertices = obstacles.SelectMany(o => o.Coordinates)
+                .Map(c => new Vertex(c.ToPosition()))
+                .Distinct()
+                .ToList();
+            ;
+
+            obstacleQuadTree = new QuadTree<Obstacle>();
+            obstacles.Each(o => obstacleQuadTree.Insert(o.Envelope, o));
+        }
+
+        [Test]
+        public void CalculateVisibleKnn()
+        {
+            var visibleKnn = WavefrontPreprocessor.CalculateVisibleKnn(obstacleQuadTree, 100);
+
+            var actualCoordinates = visibleKnn[vertices[0]].Map(v => v.Coordinate);
+            var expectedCoordinates = new List<Coordinate>
+            {
+                obstacles[0].Coordinates[1],
+                obstacles[0].Coordinates[2],
+                obstacles[0].Coordinates[3],
+                obstacles[1].Coordinates[0],
+                obstacles[2].Coordinates[1],
+                obstacles[2].Coordinates[2]
+            };
+            CollectionAssert.AreEquivalent(expectedCoordinates, actualCoordinates);
+
+            actualCoordinates = visibleKnn[vertices[3]].Map(v => v.Coordinate);
+            expectedCoordinates = new List<Coordinate>
+            {
+                obstacles[0].Coordinates[0],
+                obstacles[0].Coordinates[1],
+                obstacles[0].Coordinates[2],
+                obstacles[1].Coordinates[1],
+                obstacles[1].Coordinates[2],
+                obstacles[2].Coordinates[0],
+                obstacles[2].Coordinates[3]
+            };
+            CollectionAssert.AreEquivalent(expectedCoordinates, actualCoordinates);
         }
     }
 

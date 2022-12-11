@@ -1,6 +1,5 @@
 using NetTopologySuite.Geometries;
 using NUnit.Framework;
-using ServiceStack;
 using Wavefront.Geometry;
 
 namespace Wavefront.Tests.Geometry;

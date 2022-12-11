@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime;
 using Mars.Common;
 using Mars.Common.Collections;
 using NetTopologySuite.Geometries;
@@ -156,11 +155,11 @@ namespace Wavefront.Tests
                 wavefrontAlgorithm.Vertices.Add(new Vertex(10, 3));
                 var wavelet = Wavelet.New(0.0001, 90, new Vertex(6, 2), wavefrontAlgorithm.Vertices.ToList(), 1,
                     false)!;
-                
+
                 wavelet.RemoveNextVertex();
                 Assert.IsTrue(wavelet.HasBeenVisited(multiVertexLineObstacle[0].ToPosition()));
                 Assert.AreEqual(multiVertexLineVertices[1], wavelet.GetNextVertex());
-                
+
                 wavefrontAlgorithm.AddWavefront(wavelet);
                 wavefrontAlgorithm.ProcessNextEvent(targetPosition, new Stopwatch());
 
@@ -180,11 +179,11 @@ namespace Wavefront.Tests
                 wavefrontAlgorithm.Vertices.Add(new Vertex(7, 2.8));
                 var wavelet = Wavelet.New(180, 269.9999, new Vertex(8, 4), wavefrontAlgorithm.Vertices.ToList(), 1,
                     false)!;
-                
+
                 wavelet.RemoveNextVertex();
                 Assert.IsTrue(wavelet.HasBeenVisited(multiVertexLineObstacle[2].ToPosition()));
                 Assert.AreEqual(multiVertexLineVertices[1], wavelet.GetNextVertex());
-                
+
                 wavefrontAlgorithm.AddWavefront(wavelet);
                 wavefrontAlgorithm.ProcessNextEvent(targetPosition, new Stopwatch());
 
@@ -797,7 +796,123 @@ namespace Wavefront.Tests
                 Assert.AreEqual(4, waypoints.Count);
             }
         }
-        
+
+        public class RouteWithAlignedObstacles
+        {
+            static WavefrontAlgorithm wavefrontAlgorithm;
+
+            [SetUp]
+            public void Setup()
+            {
+                var obstacleGeometries = new List<NetTopologySuite.Geometries.Geometry>();
+                obstacleGeometries.Add(new LineString(new[]
+                {
+                    new Coordinate(2, 1),
+                    new Coordinate(2, 2),
+                    new Coordinate(1, 2),
+                    new Coordinate(1, 1),
+                    new Coordinate(2, 1)
+                }));
+                obstacleGeometries.Add(new LineString(new[]
+                {
+                    new Coordinate(3, 1),
+                    new Coordinate(3, 2),
+                    new Coordinate(4, 2)
+                }));
+                obstacleGeometries.Add(new LineString(new[]
+                {
+                    new Coordinate(5, 2),
+                    new Coordinate(5, 1),
+                    new Coordinate(5.5, 1),
+                    new Coordinate(6, 1),
+                    new Coordinate(6, 2)
+                }));
+                obstacleGeometries.Add(new LineString(new[]
+                {
+                    new Coordinate(2, 0.5),
+                    new Coordinate(2, 1)
+                }));
+                obstacleGeometries.Add(new LineString(new[]
+                {
+                    new Coordinate(5.5, 0.5),
+                    new Coordinate(5.5, 1)
+                }));
+                obstacleGeometries.Add(new LineString(new[]
+                {
+                    new Coordinate(3, 0.5),
+                    new Coordinate(3, 1)
+                }));
+
+                var obstacles = obstacleGeometries.Map(geometry => new Obstacle(geometry));
+
+                wavefrontAlgorithm = new WavefrontAlgorithm(obstacles);
+            }
+
+            [Test]
+            public void RouteAlongTopAlignedObstacles()
+            {
+                var sourceVertex = Position.CreateGeoPosition(0, 1.9);
+                var targetVertex = Position.CreateGeoPosition(7, 1.9);
+
+                var routingResult = wavefrontAlgorithm.Route(sourceVertex, targetVertex);
+                var routeCoordinates = routingResult.OptimalRoute.Map(w => w.Position.ToCoordinate());
+
+                var expectedRoute = new List<Coordinate>()
+                {
+                    sourceVertex.ToCoordinate(),
+                    new Coordinate(1, 2),
+                    new Coordinate(6, 2),
+                    targetVertex.ToCoordinate()
+                };
+
+                CollectionAssert.AreEqual(expectedRoute, routeCoordinates);
+            }
+
+            [Test]
+            public void RouteAlongBottomAlignedObstacles()
+            {
+                var sourceVertex = Position.CreateGeoPosition(0.9, 1.1);
+                var targetVertex = Position.CreateGeoPosition(6.1, 1.1);
+
+                var routingResult = wavefrontAlgorithm.Route(sourceVertex, targetVertex);
+                var routeCoordinates = routingResult.OptimalRoute.Map(w => w.Position.ToCoordinate());
+
+                var expectedRoute = new List<Coordinate>()
+                {
+                    sourceVertex.ToCoordinate(),
+                    new Coordinate(1, 1),
+                    new Coordinate(2, 0.5),
+                    new Coordinate(5.5, 0.5),
+                    new Coordinate(6, 1),
+                    targetVertex.ToCoordinate()
+                };
+
+                CollectionAssert.AreEqual(expectedRoute, routeCoordinates);
+            }
+
+            [Test]
+            public void RouteAroundTouchingLines()
+            {
+                // Make sure the target (at height 1) is not visible from the source (at height 1) through the touching
+                // lines (both touching at height 1).
+
+                var sourceVertex = Position.CreateGeoPosition(2.5, 1);
+                var targetVertex = Position.CreateGeoPosition(3.5, 1);
+
+                var routingResult = wavefrontAlgorithm.Route(sourceVertex, targetVertex);
+                var routeCoordinates = routingResult.OptimalRoute.Map(w => w.Position.ToCoordinate());
+
+                var expectedRoute = new List<Coordinate>()
+                {
+                    sourceVertex.ToCoordinate(),
+                    new Coordinate(3, 0.5),
+                    targetVertex.ToCoordinate()
+                };
+
+                CollectionAssert.AreEqual(expectedRoute, routeCoordinates);
+            }
+        }
+
         public class RouteWithoutObstacles
         {
             static WavefrontAlgorithm wavefrontAlgorithm;
