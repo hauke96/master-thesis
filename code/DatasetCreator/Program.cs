@@ -3,7 +3,6 @@ using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.Geometries.Utilities;
 using NetTopologySuite.IO;
-using NetTopologySuite.Operation.Linemerge;
 using NetTopologySuite.Operation.Overlay.Snap;
 using Newtonsoft.Json;
 using ServiceStack;
@@ -81,7 +80,7 @@ Parameters:
             snappedGeometries.Add(snappedGeometry);
         }
 
-        var outputGeojsonFile = "./obstacles.geojson";
+        var outputGeojsonFile = $"./obstacles_{patternRepetitionsX}x{patternRepetitionsY}.geojson";
         await writeAsFeaturesToFile(snappedGeometries, outputGeojsonFile);
     }
 
