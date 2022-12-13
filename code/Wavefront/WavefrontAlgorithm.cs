@@ -33,10 +33,14 @@ namespace Wavefront
         public FibonacciHeap<Wavelet, double> Wavefronts;
         public readonly List<Vertex> Vertices;
 
-        public WavefrontAlgorithm(List<Obstacle> obstacles)
+        private readonly bool _debugModeActive;
+
+        public WavefrontAlgorithm(List<Obstacle> obstacles, bool debugModeActive = false)
         {
+            _debugModeActive = debugModeActive;
             _obstacles = WavefrontPreprocessor.SplitObstacles(obstacles);
-            _vertexNeighbors = WavefrontPreprocessor.CalculateVisibleKnn(_obstacles, knnSearchNeighbors);
+            _vertexNeighbors =
+                WavefrontPreprocessor.CalculateVisibleKnn(_obstacles, knnSearchNeighbors, _debugModeActive);
             Vertices = _vertexNeighbors.Keys.ToList();
 
             Reset();

@@ -87,7 +87,7 @@ public class WavefrontPreprocessor
     /// Neighbor here means across obstacles.
     /// </summary>
     /// <returns>A dict from position to a duplicate free list of all neighbors found.</returns>
-    public static Dictionary<Position, List<Position>> GetNeighborsFromObstacleVertices(IList<Obstacle> obstacles)
+    public static Dictionary<Position, List<Position>> GetNeighborsFromObstacleVertices(IList<Obstacle> obstacles, bool debugModeActive = false)
     {
         // A function that determines if any obstacles is between the two given coordinates.
         var isCoordinateHidden = (Coordinate coordinate, Coordinate otherCoordinate, Obstacle obstacleOfCoordinate) =>
@@ -110,7 +110,7 @@ public class WavefrontPreprocessor
             AddNeighborsForObstacle(obstacle, positionToNeighbors, isCoordinateHidden);
         });
 
-        if (!PerformanceMeasurement.IS_ACTIVE)
+        if (!PerformanceMeasurement.IS_ACTIVE && debugModeActive)
         {
             WriteVertexNeighborsToFile(positionToNeighbors);
         }
@@ -173,13 +173,13 @@ public class WavefrontPreprocessor
         });
     }
 
-    public static Dictionary<Vertex, List<Vertex>> CalculateVisibleKnn(QuadTree<Obstacle> obstacles, int neighborCount)
+    public static Dictionary<Vertex, List<Vertex>> CalculateVisibleKnn(QuadTree<Obstacle> obstacles, int neighborCount, bool debugModeActive = false)
     {
         Log.D("Get direct neighbors on each obstacle geometry");
         Dictionary<Position, List<Position>> positionToNeighbors = new();
         var allObstacles = obstacles.QueryAll();
         var result = PerformanceMeasurement.ForFunction(
-            () => { positionToNeighbors = GetNeighborsFromObstacleVertices(allObstacles); },
+            () => { positionToNeighbors = GetNeighborsFromObstacleVertices(allObstacles, debugModeActive); },
             "GetNeighborsFromObstacleVertices");
         result.Print();
         result.WriteToFile();
@@ -199,7 +199,7 @@ public class WavefrontPreprocessor
         result = PerformanceMeasurement.ForFunction(() =>
         {
             vertexNeighbors =
-                CalculateVisibleKnnInternal(obstacles, vertices, neighborCount);
+                CalculateVisibleKnnInternal(obstacles, vertices, neighborCount, debugModeActive);
         }, "CalculateVisibleKnn");
         result.Print();
         result.WriteToFile();
@@ -208,7 +208,7 @@ public class WavefrontPreprocessor
     }
 
     private static Dictionary<Vertex, List<Vertex>> CalculateVisibleKnnInternal(QuadTree<Obstacle> obstacles,
-        List<Vertex> vertices, int neighborCount)
+        List<Vertex> vertices, int neighborCount, bool debugModeActive = false)
     {
         var result = new Dictionary<Vertex, List<Vertex>>();
         Log.D($"Calculate nearest {neighborCount} visible neighbors for each vertex");
@@ -241,7 +241,7 @@ public class WavefrontPreprocessor
             vertexPositionDict[vertex.Position] = new HashSet<Position>(visibleNeighborPositions);
         });
 
-        if (!PerformanceMeasurement.IS_ACTIVE)
+        if (!PerformanceMeasurement.IS_ACTIVE && debugModeActive)
         {
             WriteVertexNeighborsToFile(vertexPositionDict, "vertex-visibility.geojson");
         }
