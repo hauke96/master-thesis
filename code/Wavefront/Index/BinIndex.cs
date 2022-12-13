@@ -8,7 +8,7 @@ public class BinIndex<T>
     public BinIndex(int maxKey, int binSize = 1)
     {
         _maxKey = maxKey;
-        var binCount = (int)Math.Ceiling((double)_maxKey / binSize);
+        var binCount = (int)Math.Floor((double)_maxKey / binSize) + 1;
         _index = new LinkedList<T>[binCount];
         for (var i = 0; i < _index.Length; i++)
         {
@@ -39,12 +39,22 @@ public class BinIndex<T>
 
     public LinkedList<T> Query(double key)
     {
+        if (key < 0 || _maxKey < key)
+        {
+            throw new ArgumentException($"Key must be >=0 and <={_maxKey} but was {key}");
+        }
+        
         var index = GetIndexFromKey(key);
+        if (index >= _index.Length)
+        {
+            Console.WriteLine($"OK {key} -> {index}");
+        }
+
         return _index[index];
     }
 
     private int GetIndexFromKey(double key)
     {
-        return (int)(key / ((double)_maxKey / _index.Length));
+        return (int)(key / ((double)_maxKey / (_index.Length - 1)));
     }
 }
