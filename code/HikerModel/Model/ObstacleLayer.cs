@@ -1,12 +1,6 @@
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using Mars.Common.Core;
-using Mars.Common.Data;
 using Mars.Components.Layers;
 using Mars.Interfaces.Data;
 using Mars.Interfaces.Layers;
-using NetTopologySuite.Geometries;
 using ServiceStack;
 using Wavefront;
 using Wavefront.Geometry;
@@ -25,8 +19,28 @@ namespace HikerModel.Model
             {
                 return false;
             }
-            
+
             var obstacleGeometries = Features.Map(f => new Obstacle(f.VectorStructured.Geometry));
+
+            var isPerformanceMeasurementActive = PerformanceMeasurement.IS_ACTIVE;
+
+            // Measure overall constructor performance. Detailed performance measurements within the constructor will
+            // be deactivated here but (possibly) re-activated below.
+            var result = PerformanceMeasurement.ForFunction(
+                () =>
+                {
+                    // Do not measure the performance within the constructor call, because then pre-processing functions
+                    // are probably executed several times to measure their performance. This will distort the
+                    // measurement of the overall constructor performance.
+                    PerformanceMeasurement.IS_ACTIVE = false;
+                    new WavefrontAlgorithm(obstacleGeometries);
+                },
+                "WavefrontAlgorithmCreation");
+            result.Print();
+            result.WriteToFile();
+            PerformanceMeasurement.IS_ACTIVE = isPerformanceMeasurementActive;
+
+            // Measure performance within constructor, pre-processor, etc. and actually get the algorithms instance 
             WavefrontAlgorithm = new WavefrontAlgorithm(obstacleGeometries);
 
             return true;

@@ -108,7 +108,14 @@ namespace HikerModel.Model
         {
             try
             {
-                var routingResult = ObstacleLayer.WavefrontAlgorithm.Route(from, to);
+                RoutingResult routingResult = null;
+
+                var result = PerformanceMeasurement.ForFunction(
+                    () => { routingResult = ObstacleLayer.WavefrontAlgorithm.Route(from, to); },
+                    "CalculateRoute");
+                result.Print();
+                result.WriteToFile();
+
                 if (routingResult.OptimalRoute.Count == 0)
                 {
                     throw new Exception($"No route found from {from} to {to}");
