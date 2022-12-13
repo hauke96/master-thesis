@@ -8,6 +8,8 @@ namespace Wavefront;
 public class PerformanceMeasurement
 {
     public static bool IS_ACTIVE = false;
+    public static int DEFAULT_ITERATION_COUNT = 10;
+    public static int DEFAULT_WARMUP_COUNT = 5;
 
     public class Result
     {
@@ -147,8 +149,19 @@ public class PerformanceMeasurement
         return stopwatch.Elapsed.TotalMilliseconds;
     }
 
-    public static Result ForFunction(Action func, string name = "", int iterationCount = 10, int warmupCount = 5)
+    public static Result ForFunction(Action func, string name = "", int iterationCount = -1, int warmupCount = -1)
     {
+        if (iterationCount == -1)
+        {
+            iterationCount = DEFAULT_ITERATION_COUNT;
+        }
+
+        if (warmupCount == -1)
+        {
+            warmupCount = DEFAULT_WARMUP_COUNT;
+        }
+
+
         Result result = new Result(name);
 
         if (!IS_ACTIVE)
@@ -165,7 +178,7 @@ public class PerformanceMeasurement
             Start();
             func();
             var iterationDuration = Stop();
-            
+
             // Add result if warmup completed
             if (i >= warmupCount)
             {
