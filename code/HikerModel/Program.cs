@@ -45,16 +45,5 @@ namespace HikerModel
                 throw;
             }
         }
-
-        private static void work()
-        {
-            double d = 1.0;
-            for (int i = 0; i < 1000000; i++)
-            {
-                d *= 3945762736.28335867983454;
-                d = Math.Tan(d * 23) + Math.Sqrt(d);
-                d /= 476.34579;
-            }
-        }
     }
 }
