@@ -15,7 +15,7 @@ public static class Program
     public static async Task Main(string[] args)
     {
         CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
-        
+
         if (args.Length != 6)
         {
             Console.WriteLine(@$"ERROR: 6 arguments required but {args.Length} found.
@@ -42,8 +42,12 @@ Parameters:
         var widthPerPattern = (maxX - minX) / patternRepetitionsX;
         var heightPerPattern = (maxY - minY) / patternRepetitionsY;
 
-        var geometryCollection =
-            new WKTFileReader("Resources/pattern.wkt", new WKTReader()).Read()[0] as GeometryCollection;
+        GeometryCollection? geometryCollection;
+        // geometryCollection = new WKTFileReader("Resources/pattern.wkt", new WKTReader()).Read()[0] as GeometryCollection;
+
+        var jsonData = File.ReadAllText("Resources/pattern.geojson");
+        var featureCollection = new GeoJsonReader().Read<FeatureCollection>(jsonData);
+        geometryCollection = new GeometryCollection(featureCollection.Map(f => f.Geometry).ToArray());
 
         // Scale to geometry with envelope of [0, 0, 1, 1] to be easily rescalable and translatable.
         var e = geometryCollection.EnvelopeInternal;
