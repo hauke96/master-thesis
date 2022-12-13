@@ -35,8 +35,6 @@ namespace Wavefront
 
         public WavefrontAlgorithm(List<Obstacle> obstacles)
         {
-            Log.Init();
-
             _obstacles = WavefrontPreprocessor.SplitObstacles(obstacles);
             _vertexNeighbors = WavefrontPreprocessor.CalculateVisibleKnn(_obstacles, knnSearchNeighbors);
             Vertices = _vertexNeighbors.Keys.ToList();
@@ -94,7 +92,6 @@ namespace Wavefront
 
             AddWavefront(initialWavefront);
 
-            Log.Init(0);
             Log.I($"Routing from {source} to {target}");
             Log.D($"Initial wavelet at {initialWavefront.RootVertex.Position}");
 
@@ -185,7 +182,7 @@ namespace Wavefront
 
             if (Equals(currentVertex.Position, targetPosition))
             {
-                Log.I($"Target reached ({currentVertex.Position})", "", 1);
+                Log.I($"Target reached ({currentVertex.Position})");
                 SetPredecessor(currentVertex.Position, wavelet.RootVertex.Position, stopwatch, WaypointToPredecessor,
                     PositionToWaypoint);
                 SetPredecessor(currentVertex.Position, wavelet.RootVertex.Position, stopwatch,
