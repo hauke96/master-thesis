@@ -24,8 +24,6 @@ public class WavefrontTestHelper
         [SetUp]
         public void Setup()
         {
-            Log.Init();
-
             multiVertexLineObstacle = new LineString(new[]
             {
                 new Coordinate(6, 3),
