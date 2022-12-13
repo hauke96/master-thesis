@@ -117,9 +117,17 @@ public class PerformanceMeasurement
         Process.GetCurrentProcess().ProcessorAffinity = new IntPtr(2);
         Thread.CurrentThread.Priority = ThreadPriority.Highest;
 
-        // On linux machines, root permissions are needed for this:
-        // Prevents "Normal" processes from interrupting Threads
-        // Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.High;
+        try
+        {
+            // On linux machines, root permissions are needed for this. To prevent unwanted exit, this catch just prints
+            // a warning. Successfully setting high priority on this thread prevents "normal" processes from easily
+            // interrupting this thread.
+            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.High;
+        }
+        catch (Exception)
+        {
+            Log.I("WARN: Setting high priority on thread failed. Use normal priority.");
+        }
     }
 
     /// <summary>
