@@ -1,3 +1,4 @@
+using System.Globalization;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.Geometries.Utilities;
@@ -14,14 +15,33 @@ public static class Program
 {
     public static async Task Main(string[] args)
     {
-        double minX = 9.93108;
-        double maxX = 9.94119;
-        double minY = 53.57944;
-        double maxY = 53.58272;
-        int patternRepetitionsX = 4;
-        int patternRepetitionsY = 2;
-        double widthPerPattern = (maxX - minX) / patternRepetitionsX;
-        double heightPerPattern = (maxY - minY) / patternRepetitionsY;
+        CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+        
+        if (args.Length != 6)
+        {
+            Console.WriteLine(@$"ERROR: 6 arguments required but {args.Length} found.
+
+Usage: {{minX}} {{minY}} {{maxX}} {{maxY}} {{horiz-nu}} {{vert-nu}}
+
+Parameters:
+  minX      Minimum x-coordinate of the output area (double value).
+  minY      Minimum y-coordinate of the output area (double value).
+  maxX      Maximum x-coordinate of the output area (double value).
+  maxY      Maximum y-coordinate of the output area (double value).
+  horiz-nu  Number of pattern repetitions in horizontal direction (integer value). 
+  vert-nu   Number of pattern repetitions in vertical direction (integer value).");
+
+            Environment.Exit(1);
+        }
+
+        var minX = double.Parse(args[0]);
+        var minY = double.Parse(args[1]);
+        var maxX = double.Parse(args[2]);
+        var maxY = double.Parse(args[3]);
+        var patternRepetitionsX = int.Parse(args[4]);
+        var patternRepetitionsY = int.Parse(args[5]);
+        var widthPerPattern = (maxX - minX) / patternRepetitionsX;
+        var heightPerPattern = (maxY - minY) / patternRepetitionsY;
 
         var geometryCollection =
             new WKTFileReader("Resources/pattern.wkt", new WKTReader()).Read()[0] as GeometryCollection;
@@ -39,9 +59,9 @@ public static class Program
 
         // Scale and translate the pattern and do that for each requested pattern.
         var resultGeometries = new List<Geometry>();
-        for (int x = 0; x < patternRepetitionsX; x++)
+        for (var x = 0; x < patternRepetitionsX; x++)
         {
-            for (int y = 0; y < patternRepetitionsY; y++)
+            for (var y = 0; y < patternRepetitionsY; y++)
             {
                 var translatedGeometries = AffineTransformation.ScaleInstance(widthPerPattern, heightPerPattern)
                     .Translate(minX + x * widthPerPattern, minY + y * heightPerPattern)
@@ -61,7 +81,7 @@ public static class Program
             snappedGeometries.Add(snappedGeometry);
         }
 
-        var outputGeojsonFile = "./output.geojson";
+        var outputGeojsonFile = "./obstacles.geojson";
         await writeAsFeaturesToFile(snappedGeometries, outputGeojsonFile);
     }
 
