@@ -26,13 +26,13 @@ END
 	exit 1
 fi
 
-DATASET_DIR="$(realpath $1)"
+MODEL="$(basename $1)"
+MODEL_DIR="$(dirname $1)"
 
-MODEL="$(basename $2)"
-MODEL_DIR="$(dirname $2)"
-cd "$MODEL_DIR"
-
+DATASET_DIR="$(realpath $2)"
 DATASETS="$3"
+
+cd "$MODEL_DIR"
 
 for d in $DATASETS
 do
