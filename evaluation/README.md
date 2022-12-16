@@ -1,6 +1,10 @@
-# Performance evaluation
+# Idea and Strategy
 
 ## Pure geometric routing performance
+
+One part of the performance evaluation is the measurement of the pure routing performance (including the preprocessing).
+
+Not all of the ideas and strategies might be implemented.
 
 As of: 2022-11-22 (commit 4ed6cbc3b1c2dbefc50735cca83ba24a53b0b26f).
 
@@ -9,7 +13,9 @@ As of: 2022-11-22 (commit 4ed6cbc3b1c2dbefc50735cca83ba24a53b0b26f).
 The optimum would be a Big-O notation of the algorithm.
 A separate view on preprocessing and routing would be good.
 
-Use these considerations kind of as hypotheses for the experiments below.
+Use these considerations as a kind of hypothesis for the experiments below (check if the experiment data behaves like the theoretic considerations predict it to behave).
+
+TODO: These considerations are still to be done.
 
 ### Practical experiment
 
@@ -49,7 +55,7 @@ TODO Plan to analyse simulation performance, routing overhead, etc.
 
 # Datasets
 
-## OSM datasets
+## Create an OSM based dataset
 
 Requirements:
 
@@ -102,13 +108,18 @@ Another problem is that highways with different level attributes interfere with 
 
 Are not covered but would just affect tag evaluation in Overpass making it more complex and slow.
 
-## Artificial pattern datasets
+## Create an artificial pattern based datasets
 
-There's the `DatasetCreator` project. It takes an area (CLI arguments), the amount of pattern in x and y direction (two last CLI parameters) and the file `pattern.wkt` as input. The pattern is then scaled and repeated to fit exactly within the given area.
+There's the `DatasetCreator` project.
+It takes an area and the amount of pattern in x and y direction and the file `pattern.wkt` as input (see CLI argument description by just executing the tool without arguments).
+The pattern is then scaled and repeated to fit exactly within the given area.
+
+Coordinates will be snapped to each other (which connects near line strings) and coordinates near a line will be snapped to the closest point on that line (again connecting line strings).
 
 # Run the evaluation
 
-To run the evaluation, I used the CLI to be able to run the whole process using `sudo`. This allows the model to set the thread priority to "high" so that the evaluation process runs more or less on its own thread.
+To run the evaluation, I used the CLI to be able to run the whole process using `sudo`.
+This allows the model to set the thread priority to "high" so that the evaluation process runs more or less on its own thread.
 
 **Preparations:**
 
