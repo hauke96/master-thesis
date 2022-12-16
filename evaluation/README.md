@@ -104,8 +104,29 @@ Are not covered but would just affect tag evaluation in Overpass making it more 
 
 ## Artificial pattern datasets
 
-TODO
+There's the `DatasetCreator` project. It takes an area (CLI arguments), the amount of pattern in x and y direction (two last CLI parameters) and the file `pattern.wkt` as input. The pattern is then scaled and repeated to fit exactly within the given area.
 
-# Waypoints
+# Run the evaluation
 
-For the `HikerModel`, a GPX file with waypoints must be converted into a CSV file (e.g. by using https://mygeodata.cloud/converter/gpx-to-csv).
+To run the evaluation, I used the CLI to be able to run the whole process using `sudo`. This allows the model to set the thread priority to "high" so that the evaluation process runs more or less on its own thread.
+
+**Preparations:**
+
+1. Go into the `HikerModel` folder (or whatever model you want to use)
+2. `dotnet build --configuration Release `
+
+**Using script:**
+
+The Script `./evaluation/execute.sh` accepts the model path and parameter for the models themselves (see `-h` parameter for more information).
+Running it like this uses the three smallest datasets from the pattern-datasets:
+
+`evaluation/execute.sh code/HikerModel/bin/Release/net7.0/HikerModel.dll evaluation/datasets/pattern-based/ "1x1 2x2 3x3"`
+
+Note: You must use `sudo` on Linux to change the thread priority to "high".
+
+**Manual execution:**
+
+4. Go into `bin/Release/net7.0/` of your model (or instead of `Release` and `net7.0` whatever configuration and .NET version you used)
+5. Make sure the correct dataset is in the correct location (e.g. the correct GeoJSON file at `Resources/obstacles.geojson` for the HikingModel)
+6. `sudo dotnet HikerModel.dll`
+
