@@ -1,3 +1,5 @@
+This document is as of: 2022-12-16 (commit 370041e514750494e6b41f14d6ceaefe9c6fe39a).
+
 # Idea and Strategy
 
 ## Pure geometric routing performance
@@ -5,8 +7,6 @@
 One part of the performance evaluation is the measurement of the pure routing performance (including the preprocessing).
 
 Not all of the ideas and strategies might be implemented.
-
-As of: 2022-11-22 (commit 4ed6cbc3b1c2dbefc50735cca83ba24a53b0b26f).
 
 ### Theoretic considerations
 
