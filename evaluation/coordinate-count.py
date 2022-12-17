@@ -8,8 +8,9 @@ from geojson_length import calculate_distance, Unit
 Prints out the number of coordinates (with and without duplicates).
 '''
 
-if len(sys.argv) != 2:
-	print("Wrong number of arguments: Expected 2, found %s" % len(sys.argv))
+if len(sys.argv) - 1 != 1:
+	print("Wrong number of arguments: Expected 1, found %s" % (len(sys.argv) - 1))
+	print("Expected parameter: GeoJSON file")
 	sys.exit(1)
 
 # Normal coordinates
