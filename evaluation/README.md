@@ -72,12 +72,21 @@ Coordinates will be snapped to each other (which connects near line strings) and
 To run the evaluation, I used the CLI to be able to run the whole process using `sudo`.
 This allows the model to set the thread priority to "high" so that the evaluation process runs more or less on its own thread.
 
-**Preparations:**
+## Preparations
 
 1. Go into the `HikerModel` folder (or whatever model you want to use)
-2. `dotnet build --configuration Release `
+2. Make sure the hiker has a good step size for the dataset you're using (see `StepSize` in the `Model/Hiker.cs` class)
+3. `dotnet build --configuration Release` (can also be executed from within the IDE)
 
-**Using script:**
+## Run the model
+
+Here you have two options:
+
+A: Use a script executing a hole bunch of datasets and collecting their results
+
+B: Manually execute the model with one dataset
+
+### A: Using script
 
 The Script `./evaluation/execute.sh` accepts the model path and parameter for the models themselves (see `-h` parameter for more information).
 Running it like this uses the three smallest datasets from the pattern-datasets:
@@ -86,7 +95,7 @@ Running it like this uses the three smallest datasets from the pattern-datasets:
 
 Note: You must use `sudo` on Linux to change the thread priority to "high".
 
-**Manual execution:**
+### B: Manual execution
 
 4. Go into `bin/Release/net7.0/` of your model (or instead of `Release` and `net7.0` whatever configuration and .NET version you used)
 5. Make sure the correct dataset is in the correct location (e.g. the correct GeoJSON file at `Resources/obstacles.geojson` for the HikingModel)
