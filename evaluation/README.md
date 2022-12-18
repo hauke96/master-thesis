@@ -62,7 +62,9 @@ See [./datasets/osm-based/README.md](README) for osm-based datasets.
 ## Create an artificial pattern based datasets
 
 There's the `DatasetCreator` project.
-It takes an area and the amount of pattern in x and y direction and the file `pattern.wkt` as input (see CLI argument description by just executing the tool without arguments).
+Execute the `DatasetCreator.dll` without parameters to get usage information.
+
+This tool takes an area and the amount of pattern in x and y direction and the file `pattern.wkt` as input (see CLI argument description by just executing the tool without arguments).
 The pattern is then scaled and repeated to fit exactly within the given area.
 
 Coordinates will be snapped to each other (which connects near line strings) and coordinates near a line will be snapped to the closest point on that line (again connecting line strings).
