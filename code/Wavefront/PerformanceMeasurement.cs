@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Mars.Common.Core;
 using ServiceStack;
 
 namespace Wavefront;
@@ -11,6 +12,9 @@ public class PerformanceMeasurement
     public static int DEFAULT_ITERATION_COUNT = 10;
     public static int DEFAULT_WARMUP_COUNT = 5;
 
+    public static int TOTAL_VERTICES = -1;
+    public static int TOTAL_VERTICES_AFTER_PREPROCESSING = -1;
+
     public class Result
     {
         private static string NUMBER_FORMAT = "0.###";
@@ -18,13 +22,13 @@ public class PerformanceMeasurement
         private readonly List<double> _iterations;
         private readonly string _name;
 
-        private double IterationCount => _iterations.Count;
-        private double TotalTime => _iterations.Sum();
-        private double MinTime => !_iterations.IsEmpty() ? _iterations.Min() : 0;
-        private double MaxTime => !_iterations.IsEmpty() ? _iterations.Max() : double.PositiveInfinity;
-        private double AverageTime => TotalTime / IterationCount;
-        private double Spread => MaxTime - MinTime;
-        private double SpreadPercent => 100 - MinTime / MaxTime * 100;
+        public double IterationCount => _iterations.Count;
+        public double TotalTime => _iterations.Sum();
+        public double MinTime => !_iterations.IsEmpty() ? _iterations.Min() : 0;
+        public double MaxTime => !_iterations.IsEmpty() ? _iterations.Max() : double.PositiveInfinity;
+        public double AverageTime => TotalTime / IterationCount;
+        public double Spread => MaxTime - MinTime;
+        public double SpreadPercent => 100 - MinTime / MaxTime * 100;
 
         public Result(string name)
         {
@@ -49,31 +53,42 @@ public class PerformanceMeasurement
         {
             var stringBuilder = new StringBuilder();
 
-            stringBuilder.Append("iteration_number," +
-                                 "iteration_time," +
-                                 "total_time," +
-                                 "min_time," +
-                                 "max_time," +
-                                 "avg_time," +
-                                 "spread," +
-                                 "spread_percent" +
-                                 "\n");
+            var propertyNames = new List<string>
+            {
+                "iteration_number",
+                "iteration_time",
+                "total_time",
+                "min_time",
+                "max_time",
+                "avg_time",
+                "spread",
+                "spread_percent",
+                "total_vertices",
+                "total_vertices_after_preprocessing"
+            };
+
+            stringBuilder.Append(String.Join(",", propertyNames));
+            stringBuilder.Append("\n");
+
             for (var i = 0; i < _iterations.Count; i++)
             {
                 var iteration = _iterations[i];
 
-                stringBuilder.Append(String.Join(",",
-                    new List<object>
-                    {
-                        i,
-                        ToString(iteration),
-                        ToString(TotalTime),
-                        ToString(MinTime),
-                        ToString(MaxTime),
-                        ToString(AverageTime),
-                        ToString(Spread),
-                        ToString(SpreadPercent)
-                    }));
+                var propertyValues = new List<object>
+                {
+                    i,
+                    ToString(iteration),
+                    ToString(TotalTime),
+                    ToString(MinTime),
+                    ToString(MaxTime),
+                    ToString(AverageTime),
+                    ToString(Spread),
+                    ToString(SpreadPercent),
+                    ToString(TOTAL_VERTICES),
+                    ToString(TOTAL_VERTICES_AFTER_PREPROCESSING)
+                };
+
+                stringBuilder.Append(String.Join(",", propertyValues));
                 stringBuilder.Append("\n");
             }
 
@@ -100,6 +115,65 @@ public class PerformanceMeasurement
   Max time  : {MaxTime}ms
   Avg time  : {AverageTime}ms
   Max - Min : {Spread}ms -> {SpreadPercent}%";
+        }
+    }
+
+    public class RawResult
+    {
+        private readonly string _name;
+        private readonly Dictionary<string, List<object>> _values;
+        
+        private int _rowCount;
+
+        public RawResult(string name)
+        {
+            _name = name;
+            _values = new Dictionary<string, List<object>>();
+            _rowCount = 0;
+        }
+
+        public void AddRow(Dictionary<string, string> row)
+        {
+            foreach (var key in row.Keys)
+            {
+                if (!_values.ContainsKey(key))
+                {
+                    _values[key] = new List<object>();
+                }
+
+                _values[key].Add(row[key]);
+            }
+
+            _rowCount++;
+        }
+
+        public void Print()
+        {
+            Console.WriteLine(ToString());
+        }
+
+        public string ToCsv()
+        {
+            var stringBuilder = new StringBuilder();
+
+            stringBuilder.Append(String.Join(",", _values.Keys));
+            stringBuilder.Append("\n");
+
+            for (var i = 0; i < _rowCount; i++)
+            {
+                var rowNu = i;
+                var valuesForRow = _values.Keys.Map(k => _values[k][rowNu].ToString());
+
+                stringBuilder.Append(String.Join(",", valuesForRow));
+                stringBuilder.Append("\n");
+            }
+
+            return stringBuilder.ToString();
+        }
+
+        public async void WriteToFile()
+        {
+            await File.WriteAllTextAsync("performance_" + _name + ".csv", ToCsv());
         }
     }
 

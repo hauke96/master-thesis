@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Mars.Common;
+using Mars.Common.Core;
+using Mars.Common.Data;
 using ServiceStack;
 using Mars.Interfaces.Agents;
 using Mars.Interfaces.Annotations;
 using Mars.Interfaces.Environments;
 using Mars.Interfaces.Layers;
+using Mars.Numerics;
+using Mars.Numerics.Distances;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.Geometries.Implementation;
@@ -15,6 +19,7 @@ using NetTopologySuite.IO;
 using NetTopologySuite.IO.Converters;
 using Newtonsoft.Json;
 using Wavefront;
+using CollectionExtensions = ServiceStack.CollectionExtensions;
 using Feature = NetTopologySuite.Features.Feature;
 using Position = Mars.Interfaces.Environments.Position;
 
@@ -26,7 +31,7 @@ namespace HikerModel.Model
         [PropertyDescription] public ObstacleLayer ObstacleLayer { get; set; }
         [PropertyDescription] public UnregisterAgent UnregisterHandle { get; set; }
 
-        public static double StepSize = 1;
+        public static double StepSize = 250;
 
         public HikerLayer HikerLayer { get; private set; }
         public Position Position { get; set; }
@@ -40,6 +45,8 @@ namespace HikerModel.Model
         private IEnumerator<Waypoint> _routeWaypoints;
         private Waypoint _nextRouteWaypoint => _routeWaypoints.Current;
 
+        public PerformanceMeasurement.RawResult _routingPerformanceResult;
+
         public void Init(HikerLayer layer)
         {
             _targetWaypoints = WaypointLayer.TrackPoints.GetEnumerator();
@@ -51,6 +58,8 @@ namespace HikerModel.Model
 
             HikerLayer = layer;
             layer.Environment.Insert(this);
+
+            _routingPerformanceResult = new PerformanceMeasurement.RawResult("Routing");
         }
 
         public void Tick()
@@ -91,6 +100,7 @@ namespace HikerModel.Model
                     {
                         Console.WriteLine(
                             "Hiker reached last waypoint. He will now die of exhaustion. Farewell dear hiker.");
+                        _routingPerformanceResult.WriteToFile();
                         HikerLayer.Environment.Remove(this);
                         UnregisterHandle.Invoke(HikerLayer, this);
                         return;
@@ -110,11 +120,38 @@ namespace HikerModel.Model
             {
                 RoutingResult routingResult = null;
 
-                var result = PerformanceMeasurement.ForFunction(
+                PerformanceMeasurement.IS_ACTIVE = true;
+
+                var performanceMeasurementResult = PerformanceMeasurement.ForFunction(
                     () => { routingResult = ObstacleLayer.WavefrontAlgorithm.Route(from, to); },
                     "CalculateRoute");
-                result.Print();
-                result.WriteToFile();
+                performanceMeasurementResult.Print();
+
+                // Collect data for routing requests for each such request. Requests can be differently long and complex
+                // so it's interesting to put the result into a perspective (e.g. relative to distance between "from"
+                // and "to").
+                const string numberFormat = "0.###";
+                var invariantCulture = System.Globalization.CultureInfo.InvariantCulture;
+                var distanceFromTo = Distance.Haversine(from.PositionArray, to.PositionArray);
+                _routingPerformanceResult.AddRow(new Dictionary<string, string>
+                {
+                    { "distance", distanceFromTo.ToString(numberFormat, invariantCulture) },
+                    { "route_length", routingResult.OptimalRouteLength.ToString(numberFormat, invariantCulture) },
+                    { "avg_time", performanceMeasurementResult.AverageTime.ToString(numberFormat, invariantCulture) },
+                    { "min_time", performanceMeasurementResult.MinTime.ToString(numberFormat, invariantCulture) },
+                    { "max_time", performanceMeasurementResult.MaxTime.ToString(numberFormat, invariantCulture) },
+                    { "total_time", performanceMeasurementResult.TotalTime.ToString(numberFormat, invariantCulture) },
+                    {
+                        "from",
+                        from.X.ToString(numberFormat, invariantCulture) + " " +
+                        from.Y.ToString(numberFormat, invariantCulture)
+                    },
+                    {
+                        "to",
+                        to.X.ToString(numberFormat, invariantCulture) + " " +
+                        to.Y.ToString(numberFormat, invariantCulture)
+                    }
+                });
 
                 if (routingResult.OptimalRoute.Count == 0)
                 {
@@ -125,6 +162,8 @@ namespace HikerModel.Model
 
                 _routeWaypoints = routingResult.OptimalRoute.GetEnumerator();
                 _routeWaypoints.MoveNext();
+                
+                PerformanceMeasurement.IS_ACTIVE = false;
             }
             catch (Exception e)
             {

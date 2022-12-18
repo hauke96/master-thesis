@@ -1,7 +1,7 @@
 {
 	"globals": {
 		"startTime": "2010-01-01T00:00",
-		"endTime": "2010-01-02T00:00",
+		"endTime": "2010-01-10T00:00",
 		"deltaT": 1,
 		"deltaTUnit": "seconds",
 		"output": "csv",
