@@ -44,8 +44,10 @@ public class WavefrontPreprocessor
     /// </summary>
     public static QuadTree<Obstacle> SplitObstacles(List<Obstacle> obstacles, int maxObstacleLength = 20)
     {
+        var vertexCount = obstacles.Sum(o => o.Coordinates.Count);
+        PerformanceMeasurement.TOTAL_VERTICES = vertexCount;
         Log.D($"Amount of obstacles before splitting: {obstacles.Count}");
-        Log.D($"Amount of vertices before splitting: {obstacles.Sum(o => o.Coordinates.Count)}");
+        Log.D($"Amount of vertices before splitting: {vertexCount}");
 
         obstacles = obstacles.Map(o =>
         {
@@ -73,8 +75,10 @@ public class WavefrontPreprocessor
             return result;
         }).SelectMany(x => x).ToList();
 
+        vertexCount = obstacles.Sum(o => o.Coordinates.Count);
+        PerformanceMeasurement.TOTAL_VERTICES_AFTER_PREPROCESSING = vertexCount;
         Log.D($"Amount of obstacles after splitting: {obstacles.Count}");
-        Log.D($"Amount of vertices after splitting: {obstacles.Sum(o => o.Coordinates.Count)}");
+        Log.D($"Amount of vertices after splitting: {vertexCount}");
 
         var obstacleIndex = new QuadTree<Obstacle>();
         obstacles.Each(obstacle => obstacleIndex.Insert(obstacle.Envelope, obstacle));
