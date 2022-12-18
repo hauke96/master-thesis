@@ -414,33 +414,6 @@ namespace Wavefront
                 angleNewWavefrontTo = Math.Min(angleVertexToRightNeighbor, angleVertexToLeftNeighbor);
             }
 
-            // Determine if the wavelets root vertex is the only neighbor. In other words see if we reached the end of a
-            // line, because the last vertex of a line has only one neighbor (which means right = left neighbor). If
-            // this neighbor is our wavelet root means that the wavelets root is the second last vertex of that line.
-            var waveletRootIsSecondLastLineVertex = Equals(rightNeighbor, wavelet.RootVertex.Position) &&
-                                                    Equals(leftNeighbor, wavelet.RootVertex.Position);
-
-            // When the wavelet is rooted at the second last vertex of a line, then the last vertex of that line will
-            // probably (!) be visited by this wavelet anyway, but only if the angle to that last vertex is exactly
-            // the to- or from-angle of our wavelet. A wavelet could've been split before reaching the last vertex of
-            // the line which means that there could be wavelets rooted at the second last vertex which will never reach
-            // the last vertex of the line.
-            // But when the angle to the right and left neighbor is the from/to angle of the wavelet, then both
-            // neighbors will be visited by our wavelet. TODO rename to neighborsOnLineWillBeVisitedByWavefront
-            var neighborsWillBeVisitedByWavefront = waveletRootIsSecondLastLineVertex &&
-                                                    (
-                                                        Angle.AreEqual(angleCurrentWavefrontFrom,
-                                                            angleRootToRightNeighbor) ||
-                                                        Angle.AreEqual(angleCurrentWavefrontTo,
-                                                            angleRootToRightNeighbor)
-                                                    ) &&
-                                                    (
-                                                        Angle.AreEqual(angleCurrentWavefrontFrom,
-                                                            angleRootToLeftNeighbor) ||
-                                                        Angle.AreEqual(angleCurrentWavefrontTo,
-                                                            angleRootToLeftNeighbor)
-                                                    );
-
             /*
              * When do we need a new wavelet? Two conditions must hold:
              *   1) We must've determined some potential from- and to-angles above, which means that there's a reason
@@ -448,8 +421,7 @@ namespace Wavefront
              *   2) One of the neighbors will not be visited by the current wavelet. For example when the wavelet
              *      reached a corner, one neighbor is "behind" that corner and not visible -> new wavelet needed.
              */
-            var newWavefrontNeeded = !double.IsNaN(angleNewWavefrontFrom) && !double.IsNaN(angleNewWavefrontTo) &&
-                                     !neighborsWillBeVisitedByWavefront;
+            var newWavefrontNeeded = !double.IsNaN(angleNewWavefrontFrom) && !double.IsNaN(angleNewWavefrontTo);
 
             // Rotate angles back to the actual values because now they are used to determine the return values.
             angleNewWavefrontFrom = Angle.Normalize(angleNewWavefrontFrom - rotationAngle);

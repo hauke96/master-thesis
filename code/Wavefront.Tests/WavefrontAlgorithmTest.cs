@@ -913,6 +913,49 @@ namespace Wavefront.Tests
             }
         }
 
+        public class RouteIntoOpenObstacle
+        {
+            static WavefrontAlgorithm wavefrontAlgorithm;
+
+            [SetUp]
+            public void Setup()
+            {
+                var obstacleGeometries = new List<NetTopologySuite.Geometries.Geometry>();
+                obstacleGeometries.Add(new LineString(new[]
+                {
+                    new Coordinate(1, 1),
+                    new Coordinate(1, 0),
+                    new Coordinate(0, 0),
+                    new Coordinate(1, 3),
+                    new Coordinate(1, 2)
+                }));
+
+                var obstacles = obstacleGeometries.Map(geometry => new Obstacle(geometry));
+
+                wavefrontAlgorithm = new WavefrontAlgorithm(obstacles);
+            }
+
+            [Test]
+            public void RouteIntoObstacle()
+            {
+                var sourceVertex = Position.CreateGeoPosition(0.8, -0.8);
+                var targetVertex = Position.CreateGeoPosition(0.8, 0.5);
+
+                var routingResult = wavefrontAlgorithm.Route(sourceVertex, targetVertex);
+                var routeCoordinates = routingResult.OptimalRoute.Map(w => w.Position.ToCoordinate());
+
+                var expectedRoute = new List<Coordinate>()
+                {
+                    sourceVertex.ToCoordinate(),
+                    new Coordinate(1, 0),
+                    new Coordinate(1, 1),
+                    targetVertex.ToCoordinate()
+                };
+
+                CollectionAssert.AreEqual(expectedRoute, routeCoordinates);
+            }
+        }
+
         public class RouteWithoutObstacles
         {
             static WavefrontAlgorithm wavefrontAlgorithm;
