@@ -82,50 +82,7 @@
 	
 	\chapter{Introduction}
 	
-		% finding good routes is difficult, solved using A*/Dijkstra on networks
-		Traveling through a network of roads and paths often requires the use of a computer systems determining the optimal route from a source to a target location.
-		The software used to find such routes is called a routing engine and is based on algorithms optimized to find such routes.
-		In computer science these algorithms usually work on graphs and the problem to solve is called the \textit{shortest path problem}.
-		A graph is used as the central data structure abstracting the real world into vertices, which are connected by edges representing roads and paths.
-		Such graphs, however, can also represent other non-physical networks, for example trading relations between countries\citationNeeded.
-		
-		If the network represents roads and paths, the edged are always just an abstraction of the real world situation.
-		Detailed geometric information, such as the width or number or lanes, are added as additional properties.
-		The geometry of the resulting shortest path, however, will just follow the given geometry of the network.
-		% networks have to be (manually) created and routing is fixed to network
-		Unfortunately the real world also contains polygonal shapes like market places, parking areas or parks, where classical routing algorithms can only find paths along the outer edges of these polygons.
-		Often auxiliary edges are added to connect opposite sides to allow routing algorithms to cross these areas\todo{cite OSM?}.
-		A hand full of lines can be added manually but filling large areas or even a whole city with these auxiliary paths is not feasible to be done manually.
-		
-		% problem: Most real world destinations are not on the network
-		A similar problem arises with the exact source and target locations of real world routing.
-		Often these location are not part of the network, which is the case for most addresses, points of interest (POIs) and locations manually chosen by the user.
-		They either have to be connected manually or a location on the network is chosen to to be the optimal source or target (e.g. by choosing the nearest  vertex or point on an edge).
-		
-		% alternative: geometric routing avoiding obstacles
-		Next to a network based shortest path algorithm, pure geometric approaches exist to also determine shortest paths.
-		Geometric approaches only know obstacles, which are geometries that cannot be passed.
-		There are two main strategies\citationNeeded:
-		Build a network around these obstacles and then use a classical shortest path algorithm to find the actual path or directly determine paths without building a network around obstacles.
-		
-		The first approach creates a so called \textit{visibility graph}, a graph with edged between all visible vertices\citationNeeded.
-		A network based shortest path algorithm is then able to find paths on that network.
-		It therefore can be seen as a kind of pre-processing.
-		
-		The second approach does not create such graph and directly tries to find paths around the obstacles.
-		It uses the so called \textit{continuous dijkstra paradigm}, which will be described later in detail.
-		A well fitting analogy for this approach are sound or water waves propagating through space, folding around obstacles and finally reaching the target.
-		Recursively following each wave back to its origin yields the shortest path from the source to the target\citationNeeded.
-		In fact, one can determine a tree of all shortest paths from the source with a given length, which means it behaves like Dijkstras algorithm, giving this paradigm its name\todo{are there sources on that?}.
-		
-		% problem: performance(?) and insufficient data for useable routes
-		Current approaches for network based routing are well optimized and have time complexities of only $\bigo{|E|}$ (under the condition of integer edge weights and constant time multiplications) or $\bigo{|E| + |V| \cdot \log{|V|}}$ (for arbitrary but positive weights)\citationNeeded.
-		
-		% this thesis: combine both worlds: Good data of networks and flexibility of geom. routing
-		This thesis proposes, implements and evaluates a hybrid routing algorithm that combines geometric with network based routing.
-		Such an hybrid approach will benefit from the performance of network based algorithms with the flexibility of geometric routing.
-		Calculating shortest paths is still fast but reaches arbitrary locations.
-		Normal real world user but also simulations, such as multi-agent simulations of pedestrians, can benefit from this algorithm.
+		\input{chapters/1-introduction.tex}
 	
 	\chapter{Preliminaries}
 	
@@ -199,9 +156,14 @@
 	
 		\section{Future work}
 		
+	\chapter*{Bibliography}
+	
 	\printbibliography
 	
-	\newpage
+	\chapter*{Appendix}
 	
-	\todo[inline]{Eidesstattliche Versicherung}
+		\clearpage
+		\section*{Eidesstattliche Versicherung}
+		
+			\todo[inline]{Eidesstattliche Versicherung}
 \end{document}
