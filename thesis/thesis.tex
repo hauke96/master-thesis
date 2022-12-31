@@ -38,6 +38,7 @@
 \usepackage{tabularx}
 \usepackage{enumerate}
 \usepackage{multicol}
+\usepackage{xifthen}
 
 % TODO remove this when done
 \usepackage[textwidth=2cm,colorinlistoftodos]{todonotes}
@@ -45,13 +46,26 @@
 
 \usepackage[toc, page]{appendix}
 \usepackage[backend=bibtex8,style=numeric]{biblatex}
+\usepackage{imakeidx}
 \usepackage{hyperref}
 \usepackage[noabbrev]{cleveref}
+
+\makeindex[intoc]
 
 %
 % Commands
 %
 \newcommand{\bigo}[1]{\mathcal{O}(#1)}
+\newcommand{\term}[2][]
+{%
+	\ifthenelse{\isempty{#1}}
+	{%
+		\textit{#2}\index{#2}
+	}
+	{%
+		\textit{#2}\index{#1}
+	}
+}
 
 %
 % BibTeX
@@ -148,7 +162,11 @@
 		
 	\chapter*{Bibliography}
 	
-	\printbibliography
+		\printbibliography
+	
+	\chapter*{Index}
+	
+		\printindex
 	
 	\chapter*{Appendix}
 	
