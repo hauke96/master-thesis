@@ -60,7 +60,13 @@
 \newcommand{\bigo}[1]{\mathcal{O}(#1)}
 \newcommand{\term}[2][]
 {%
-	\term*[#1]{\textit{#2}}%
+	\ifthenelse{\isempty{#1}}%
+	{%
+		\term*[#2]{\textit{#2}}%
+	}%
+	{%
+		\term*[#1]{\textit{#2}}%
+	}%
 }
 \WithSuffix\newcommand\term*[2][]
 {%

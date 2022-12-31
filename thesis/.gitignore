@@ -15,4 +15,6 @@
 *.ilg
 *.ind
 
+*.bib.sav
+
 *.pdf

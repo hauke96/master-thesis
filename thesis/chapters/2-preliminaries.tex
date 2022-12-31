@@ -14,6 +14,25 @@
 	The exact coordinate of a data point (in this case a pixel in the TIFF image), must then be calculated using this matadata.
 
 	\subsection{Coordinate reference systems and projections}
+	
+		Usually coordinates are used to specify exact locations in a specific domain (usually on the surface of the Earth).
+		Unfortunately the Earth is not a perfect sphere but rather an ellipsoid.
+		But even this ellipsoid is not smooth and has slightly different radii in different regions.
+		Furthermore, parts of the surface move relative to each other (continental drift) and therefore change the coordinates of whole regions.
+		Even though, the continental plates move slowly, this effect adds up to a significant distance rendering accurate measurements potentially useless\cite[7]{ordenance-survey-booklet}.
+		These properties of the surface of Earth make it necessary to have a variety of different reference systems and projections for spatial data.
+		
+		A \todo{check this whole CRS thing for correctness}\term{coordinate reference system} (CRS) defines the combination of a coordinate system and an approximation of the surface of the Earth.
+		The \term{coordinate system} defines, like a mathematical coordinate system, the extend and unit of coordinates.
+		Types of coordinate systems are for example cartesian (with meters or foot as unit) and ellipsoidal (with latitude and longitude in degrees)\cite[11-13]{ordenance-survey-booklet}.
+		The \term{horizontal datum} (also \term{Terrestrial Reference System} or \term{geodetic datum}) defines the origin and orientation of the coordinate system and is therefore a mapping from coordinate to location on Earth based on a specific ellipsoid.
+		Depending on this ellipsoid, the datum either defines a global or local reference system.
+		Latter is more accurate in certain places while a global system tries to find a good approximation for every location on Earth.
+		For two dimensional Cartesian coordinate systems, a \term*[map projection]{projection} is needed to turn each  spherical location to a two dimensional planar coordinate\cite[17]{ordenance-survey-booklet}.
+		
+		For visualization purposes, a \term{map projection} turns coordinates of a specific CRS into flat and two dimensional coordinate for a map.
+		This may be a different projection as used in a two dimensional Cartesian CRS and transformations between different CRS are needed.
+		This visualizing map projection is independent of the data but has a strong effect on the visualization.\todo[inline]{Visualization part is a bit clumsy ...}
 
 	\subsection{Data structures}
 	
