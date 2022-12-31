@@ -36,6 +36,28 @@
 
 	\subsection{Data structures}
 	
+		Spatial data can have a variety of data structures.
+		Some of these are used in many or all frameworks and formats, but some are vendor specific.
+		This section gives an overview of common data structures in spatial data.
+		Because of a variety of vendors and standards, the GeoJSON standard is used as reference here\citationNeeded.
+		
+		The first concepts to consider are geometries and features.
+		
+		A \term{geometry} just represents geometric coordinates and their relation to each other.
+		The simplest geometry is a \texttt{Point} with one coordinate.
+		Ordering multiple points turns them into a \texttt{LineString} with a certain direction.
+		A closed \texttt{LineString} is called \texttt{Polygon} and describes an area.
+		Multiple geometries of the same kind can be collected forming a \texttt{MultiPoint}, \texttt{MultiLineString} or \texttt{MultiPolygon}.
+		Polygons have an additional property:
+		Putting polygons inside polygons forms \enquote{holes} and \enquote{islands}.
+		
+		A \term{feature} represents a real world object (for example a tree, road or lake) and therefore consists of a geometry.
+		Additionally, features have properties describing the kind of object they represent.
+		Such properties are -- in the case of GeoJSON -- not further defined and can contain arbitrary values.
+		Some file formats, however, restrict the length or set of allowed characters (\todo[inline]{see shapefile below}) while others try to standardize the allowed keys and values (\citationNeeded for example the OpenStreetMap wiki or the INSPIRE standard of the EU).
+		% INSPIRE:
+		% key SiteProtectionClassification describes protection areas, possible values are the ones defined as ProtectionClassificationValue for example natureConservation. https://inspire.ec.europa.eu/documents/Data_Specifications/INSPIRE_DataSpecification_PS_v3.0.pdf (p. 31)
+	
 	\subsection{File formats}
 	
 	\subsection{GIS}
