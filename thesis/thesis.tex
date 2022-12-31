@@ -25,6 +25,7 @@
 \usepackage{courier}
 \usepackage{microtype}
 \usepackage[onehalfspacing]{setspace}
+\usepackage{csquotes}
 
 \usepackage[left=2.5cm, top=2.5cm, right=2.5cm, bottom=2.5cm, bindingoffset=5mm]{geometry}
 \usepackage{fancyhdr}
@@ -39,6 +40,7 @@
 \usepackage{enumerate}
 \usepackage{multicol}
 \usepackage{xifthen}
+\usepackage{suffix}
 
 % TODO remove this when done
 \usepackage[textwidth=2cm,colorinlistoftodos]{todonotes}
@@ -50,7 +52,7 @@
 \usepackage{hyperref}
 \usepackage[noabbrev]{cleveref}
 
-\makeindex[intoc]
+\makeindex[intoc,columns=2,options= -s index-style.ist]
 
 %
 % Commands
@@ -58,13 +60,17 @@
 \newcommand{\bigo}[1]{\mathcal{O}(#1)}
 \newcommand{\term}[2][]
 {%
-	\ifthenelse{\isempty{#1}}
+	\term*[#1]{\textit{#2}}%
+}
+\WithSuffix\newcommand\term*[2][]
+{%
+	\ifthenelse{\isempty{#1}}%
 	{%
-		\textit{#2}\index{#2}
-	}
+		#2\index{#2}%
+	}%
 	{%
-		\textit{#2}\index{#1}
-	}
+		#2\index{#1}%
+	}%
 }
 
 %

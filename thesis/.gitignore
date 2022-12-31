@@ -11,4 +11,8 @@
 *.bcf
 *.tdo
 
+*.idx
+*.ilg
+*.ind
+
 *.pdf
