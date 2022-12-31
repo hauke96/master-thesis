@@ -44,7 +44,7 @@
 \newcommand{\citationNeeded}{\todo[backgroundcolor=red,textcolor=white,linecolor=red]{citation needed}}
 
 \usepackage[toc, page]{appendix}
-\usepackage[backend=bibtex8,style=alphabetic]{biblatex}
+\usepackage[backend=bibtex8,style=numeric]{biblatex}
 \usepackage{hyperref}
 \usepackage[noabbrev]{cleveref}
 
@@ -56,7 +56,7 @@
 %
 % BibTeX
 %
-%TODO \addbibresource{sources.bib}
+\addbibresource{sources.bib}
 
 %
 % General page styling
@@ -86,17 +86,7 @@
 	
 	\chapter{Preliminaries}
 	
-		\section{Geospatial data \& GIS}
-		
-		\section{Routing}
-		
-			% fastest, shortest path, all shortest...
-		
-			\subsection{Graph based}
-		
-			\subsection{Geometric}
-		
-		\section{Agent based systems and simulations}
+		\input{chapters/2-preliminaries.tex}
 		
 	\chapter{Related work}
 	
