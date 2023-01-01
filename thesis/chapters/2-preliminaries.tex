@@ -43,6 +43,7 @@
 		
 		The first concepts to consider are geometries and features.
 		
+		% TODO Reference https://www.ogc.org/standards/sfa for geometry types
 		A \term{geometry} just represents geometric coordinates and their relation to each other.
 		The simplest geometry is a \texttt{Point} with one coordinate.
 		Ordering multiple points turns them into a \texttt{LineString} with a certain direction.
@@ -55,11 +56,48 @@
 		Additionally, features have properties describing the kind of object they represent.
 		Such properties are -- in the case of GeoJSON -- not further defined and can contain arbitrary values.
 		Some file formats, however, restrict the length or set of allowed characters (\todo[inline]{see shapefile below}) while others try to standardize the allowed keys and values.
-		The OpenStreetMap Wiki tries to define a community driven standard\todo{cite proposal page} while the INSPIRE standard of the EU defines fixed key and values for attributes (for example \texttt{natureConservation} is one value for the \texttt{SiteProtectionClassification} property)\citationNeeded.
-		% INSPIRE:
-		% key SiteProtectionClassification describes protection areas, possible values are the ones defined as ProtectionClassificationValue for example natureConservation. https://inspire.ec.europa.eu/documents/Data_Specifications/INSPIRE_DataSpecification_PS_v3.0.pdf (p. 31)
+		The OpenStreetMap Wiki tries to define a community driven standard\todo{cite proposal page} while the INSPIRE standard of the EU defines fixed key and values for attributes (for example \texttt{natureConservation} is one value for the \texttt{SiteProtectionClassification} property)\cite[31]{inspire-protected-sites}.
 	
 	\subsection{File formats}
+	
+		Spatial data can be stored in a variety of different file formats with different properties and use cases.
+		Next to proprietary formats, there are many open standards.
+		The \term[ogc]{Open Geospatial Consortium} (OGC) published open standard definitions and schemas for some of these open file formats.		
+		This section gives an overview of some popular formats:
+		
+		\subsubsection{Esri shapefile}
+		
+			The \term[shapefile]{Esri Shapefile} format was developed in the 1990s and is a popular file format and used for example in Esri products like the ArcGIS platform.
+			Each shapefile actually consists of multiple files on disk\cite{esri-shapefile-file-ext-spec}.
+			Three of them are mandatory containing the geometries (\texttt{.shp}), an index (\texttt{.idx}) and a dBASE table with attributes (\texttt{.dbf}).
+			Additional files are optional and can contain additional indices or details about the CRS.
+			Even though shapefiles are very popular\cite[356]{spatial-file-formats-trends}, there are several limitations regarding the containing geometries and attributes.
+			Only one type of geometry is supported per shapefile, which means a shapefile cannot contain points and polygons at the same time.\citationNeeded
+			Attributes also have limitations in their size and structure, for example are the attribute keys limited to 10 and values to 254 characters\cite{esri-shapefile-limitations}.
+			The default CRS is based on latitudes and longitudes using the NAD 27 datum\cite{esri-shapefile-coordinate-system}.
+			
+		\subsubsection{KML}
+		
+			Another popular spatial format is the \term[kml]{Keyhole Markup Language} (KML), which was standardized by the OGC in 2008\cite{ogc-kml-2.2}.
+			A KML file consist of a single XML structured file.
+			Since it follows the XML standard, which is plain text, geometry and attribute count and lengths are irrelevant.
+			KML files may contain more information than just features:
+			Features can be grouped and hirarchically organized, temporal data can be added to define a lifetime of a feature and camera views for visualization applications can be defined\cite{ogc-kml-2.3}.
+			The CRS can be specified but WGS 84 with latitudes and longitudes is used by default.
+		
+		\subsubsection{GeoJSON}
+		
+			Another open but not OGC standardized format is \term{GeoJSON}.
+			As the name suggests, a GeoJSON file is valid JSON following the structure defined in \href{https://datatracker.ietf.org/doc/html/rfc7946}{RFC7946}\cite{ietf-geojson}.
+			The file may contain a collection of geometries or features but can also just contain a single geometry or feature.
+			As in KML files, the length, character choice and amount of attributes or geometries are not restricted.
+			The CRS has been set to WGS 84.
+			
+		\subsubsection{GeoTIFF}
+			
+		\subsubsection{Other formats}
+		
+			% Spatialite, Geopackage, WKT, CSV, PBF, others?
 	
 	\subsection{GIS}
 	
