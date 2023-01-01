@@ -53,7 +53,7 @@
 \PassOptionsToPackage{spaces}{url}     % Enable line breaks in URLs
 
 \usepackage[toc, page]{appendix}
-\usepackage[backend=biber,style=numeric,sorting=none,urldate=iso]{biblatex}
+\usepackage[backend=bibtex8,style=numeric,sorting=none,urldate=iso]{biblatex}
 \usepackage{imakeidx}
 \usepackage{hyperref}
 \usepackage[noabbrev]{cleveref}
@@ -92,6 +92,8 @@
 % BibTeX
 %
 \addbibresource{sources.bib}
+\let\oldCite\cite
+\renewcommand{\cite}[2][]{ \oldCite[#1]{#2}} % Add space before citation
 
 %
 % General page styling
