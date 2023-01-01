@@ -18,6 +18,7 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[ngerman,english]{babel}
+\usepackage{datetime2}
 
 \usepackage{libertine}
 %\usepackage[sc]{mathpazo}
@@ -47,8 +48,12 @@
 \usepackage[textwidth=2cm,colorinlistoftodos]{todonotes}
 \newcommand{\citationNeeded}{\todo[backgroundcolor=red,textcolor=white,linecolor=red]{citation needed}}
 
+% Must be placed ehre before BibTeX and URL/ref related packages:
+\PassOptionsToPackage{obeyspaces}{url} % Allow spaces in URLs
+\PassOptionsToPackage{spaces}{url}     % Enable line breaks in URLs
+
 \usepackage[toc, page]{appendix}
-\usepackage[backend=bibtex8,style=numeric,sorting=none]{biblatex}
+\usepackage[backend=biber,style=numeric,sorting=none,urldate=iso]{biblatex}
 \usepackage{imakeidx}
 \usepackage{hyperref}
 \usepackage[noabbrev]{cleveref}
@@ -56,8 +61,7 @@
 %
 % Index
 %
-\indexsetup{level=,noclearpage}
-\makeindex[intoc,columns=2,options= -s index-style.ist,title=]
+\makeindex[intoc,columns=2,options= -s index-style.ist]
 
 %
 % Commands
@@ -177,13 +181,9 @@
 	
 		\section{Future work}
 		
-	\chapter*{Bibliography}
-	
-		\printbibliography
-	
-	\chapter*{Index}
-	
-		\printindex
+	\printbibliography
+
+	\printindex
 	
 	\chapter*{Appendix}
 	
