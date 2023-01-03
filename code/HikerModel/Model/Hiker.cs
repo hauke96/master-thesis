@@ -1,25 +1,22 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using Mars.Common;
-using Mars.Common.Core;
-using Mars.Common.Data;
-using ServiceStack;
 using Mars.Interfaces.Agents;
 using Mars.Interfaces.Annotations;
 using Mars.Interfaces.Environments;
 using Mars.Interfaces.Layers;
 using Mars.Numerics;
-using Mars.Numerics.Distances;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.Geometries.Implementation;
 using NetTopologySuite.IO;
 using NetTopologySuite.IO.Converters;
 using Newtonsoft.Json;
+using ServiceStack;
 using Wavefront;
-using CollectionExtensions = ServiceStack.CollectionExtensions;
 using Feature = NetTopologySuite.Features.Feature;
 using Position = Mars.Interfaces.Environments.Position;
 
@@ -31,21 +28,22 @@ namespace HikerModel.Model
         [PropertyDescription] public ObstacleLayer ObstacleLayer { get; set; }
         [PropertyDescription] public UnregisterAgent UnregisterHandle { get; set; }
 
-        public static double StepSize = 250;
+        private static readonly double StepSize = 250;
 
-        public HikerLayer HikerLayer { get; private set; }
         public Position Position { get; set; }
         public Guid ID { get; set; }
+        
+        private HikerLayer _hikerLayer;
 
         // Locations the hiker wants to visit
         private IEnumerator<Coordinate> _targetWaypoints;
-        private Coordinate _nextTargetWaypoint => _targetWaypoints.Current;
+        private Coordinate NextTargetWaypoint => _targetWaypoints.Current;
 
         // Locations the routing engine determined
         private IEnumerator<Waypoint> _routeWaypoints;
-        private Waypoint _nextRouteWaypoint => _routeWaypoints.Current;
+        private Waypoint NextRouteWaypoint => _routeWaypoints.Current;
 
-        public PerformanceMeasurement.RawResult _routingPerformanceResult;
+        private PerformanceMeasurement.RawResult _routingPerformanceResult;
 
         public void Init(HikerLayer layer)
         {
@@ -53,11 +51,11 @@ namespace HikerModel.Model
             _routeWaypoints = new List<Waypoint>().GetEnumerator();
 
             _targetWaypoints.MoveNext();
-            Position = _nextTargetWaypoint.ToPosition();
+            Position = NextTargetWaypoint.ToPosition();
             _targetWaypoints.MoveNext();
 
-            HikerLayer = layer;
-            layer.Environment.Insert(this);
+            _hikerLayer = layer;
+            _hikerLayer.InitEnvironment(ObstacleLayer.Features, this);
 
             _routingPerformanceResult = new PerformanceMeasurement.RawResult("Routing");
         }
@@ -76,42 +74,42 @@ namespace HikerModel.Model
 
         private void TickInternal()
         {
-            if (_nextTargetWaypoint == null)
+            if (NextTargetWaypoint == null)
             {
                 Console.WriteLine("No next waypoint");
                 return;
             }
 
-            if (_nextRouteWaypoint == null)
+            if (NextRouteWaypoint == null)
             {
                 Console.WriteLine("Hiker has target but no route. Calculate route to next target.");
-                CalculateRoute(Position, _nextTargetWaypoint.ToPosition());
+                CalculateRoute(Position, NextTargetWaypoint.ToPosition());
             }
-            else if (_nextRouteWaypoint.Position.DistanceInMTo(Position) < StepSize * 2)
+            else if (NextRouteWaypoint.Position.DistanceInMTo(Position) < StepSize * 2)
             {
                 _routeWaypoints.MoveNext();
 
-                if (_nextRouteWaypoint == null)
+                if (NextRouteWaypoint == null)
                 {
                     Console.WriteLine("Hiker reached end of route, choose next target and calculate new route.");
                     _targetWaypoints.MoveNext();
 
-                    if (_nextTargetWaypoint == null)
+                    if (NextTargetWaypoint == null)
                     {
                         Console.WriteLine(
                             "Hiker reached last waypoint. He will now die of exhaustion. Farewell dear hiker.");
                         _routingPerformanceResult.WriteToFile();
-                        HikerLayer.Environment.Remove(this);
-                        UnregisterHandle.Invoke(HikerLayer, this);
+                        _hikerLayer.Environment.Remove(this);
+                        UnregisterHandle.Invoke(_hikerLayer, this);
                         return;
                     }
 
-                    CalculateRoute(Position, _nextTargetWaypoint.ToPosition());
+                    CalculateRoute(Position, NextTargetWaypoint.ToPosition());
                 }
             }
 
-            var bearing = Position.GetBearing(_nextRouteWaypoint.Position);
-            HikerLayer.Environment.MoveTowards(this, bearing, StepSize);
+            var bearing = Position.GetBearing(NextRouteWaypoint.Position);
+            _hikerLayer.Environment.MoveTowards(this, bearing, StepSize);
         }
 
         private void CalculateRoute(Position from, Position to)
@@ -131,7 +129,7 @@ namespace HikerModel.Model
                 // so it's interesting to put the result into a perspective (e.g. relative to distance between "from"
                 // and "to").
                 const string numberFormat = "0.###";
-                var invariantCulture = System.Globalization.CultureInfo.InvariantCulture;
+                var invariantCulture = CultureInfo.InvariantCulture;
                 var distanceFromTo = Distance.Haversine(from.PositionArray, to.PositionArray);
                 _routingPerformanceResult.AddRow(new Dictionary<string, string>
                 {
