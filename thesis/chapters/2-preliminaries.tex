@@ -94,10 +94,31 @@
 			The CRS has been set to WGS 84.
 			
 		\subsubsection{GeoTIFF}
+		
+			All formats mentioned so far are store vector data, however, raster data can be georeferenced as well.
+			One format to store such raster data in form of an image, is the OGC standardized \term{GeoTIFF} format.
+			As the name suggests, it is an TIFF formatted image with spatial metadata such as the CRS and a mapping of pixel to coordinates\cite{ogc-geotiff}.
+			Typical use cases for such images are aerial or satellite imagery and digital elevation models (DEM).
 			
 		\subsubsection{Other formats}
 		
-			% Spatialite, Geopackage, WKT, CSV, PBF, others?
+			\todo[inline]{Citations needed}
+		
+			There are many more formats for numerous use cases ranging from simple unstandardized to complex, feature rich and fully standardized formats.
+			
+			A \term{CSV} file can also serve as a spatial file format where certain columns contain geographical information.
+			However, there is no popular standard using CSV files for geodata.
+			
+			The \term{well known text} (\term*{WKT}) format is a simple text based format used to store spatial data for example in databases.
+			It also exists in a binary version (called \term*{WKB}), which consumes less space.
+			
+			More complex formats are \term{SpatiaLite} and \term{GeoPackage}.
+			SpatiaLite specifies an extension to file based SQLite database and offers additional geodata specific functionality\cite{spatialite-website}.
+			The GeoPackage is based on an SQLite database as well but diverged from the SpatiaLite format, for example by using a different WKB encoding\cite{geopackage-faq}.
+			
+			Next to these local and file based formats, there are web based standards as well.
+			The OGC also standardized some APIs for web based services.
+			Popular standards are the \term{Web Map Service} (\term*{WMS}), \term{Web Map Tile Service} (\term*{WMTS}) and \term{Web Feature Service} (\term*{WFS}).
 	
 	\subsection{GIS}
 	
