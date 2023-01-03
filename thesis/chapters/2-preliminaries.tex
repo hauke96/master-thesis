@@ -59,6 +59,7 @@
 		The OpenStreetMap Wiki tries to define a community driven standard\todo{cite proposal page} while the INSPIRE standard of the EU defines fixed key and values for attributes (for example \texttt{natureConservation} is one value for the \texttt{SiteProtectionClassification} property)\cite[31]{inspire-protected-sites}.
 	
 	\subsection{File formats}
+	\label{subsec:file-formats}
 	
 		Spatial data can be stored in a variety of different file formats with different properties and use cases.
 		Next to proprietary formats, there are many open standards.
@@ -122,7 +123,66 @@
 	
 	\subsection{GIS}
 	
+		A file format alone, as described in the \hyperref[subsec:file-formats]{previous section}, is only useful when it comes to storing or transferring data or ensuring interoperability.
+		Processing the data is part of applications referred to as \term[geographic information system]{geographic information systems} (\term*{GIS}).
+		
+		The term GIS is very broad and describes nearly all systems working with spatial data.
+		This includes databases like Postgres with the PostGIS extension, processing tools like GDAL, libraries like the Net Topology Suite, servers like GeoServer and desktop applications like ArcMap or QGIS.
+		Latter often combine multiple functionalities for visualization, processing and analysis purposes.
+	
 	\subsection{OpenStreetMap}
+	
+		\term{OpenStreetMap} (\term*{OSM}) is a geospatial database that is maintained by a global community and licensed under the \term{Open Data Commons Open Database License} (\term*{ODbL})\cite{osm-wiki-about}.
+		It can therefore be used, changed and redistributed as long as a proper attribution is given and results stay under the ODbL\cite{odbl-summary}.
+		In 2006, two years after the OSM project started, the OpenStreetMap Foundation was established to perform fund-raising, maintain the servers and also act as a legal entity.
+		People contributing to OSM are called \textit{mappers} or simply \textit{contributors}.
+		Most of them are volunteers, often mapping their local vicinity or concentrating on specific topics, but a significant amount of changes are contributed by companies with payed mappers\cite{osm-corporate-mappers}.
+		
+		\subsubsection{Data model}
+		
+			The model of OSM is much simpler compared to many of the \hyperref[subsec:file-formats]{above mentioned} data formats.
+			There are two basic geometry types called \term{node} and \term{way} which are the same as for example \texttt{Point} and \texttt{LineString} in the GeoJSON format \todo{or OGC context?}\cite{osm-wiki-data-model}.
+			Closed ways, where the first and last coordinate are equal, form an \term{area} or -- in GeoJSON terminology -- a \texttt{Polygon}.
+			A third type, called \term{relation}, can be used to combine multiple other geometries into a new feature.
+			This can be used to form multi-polygons or other entities built up from several features, like turn restrictions or bus routes.
+			
+			Attributes are called \term[tag]{tags} and are simple unrestricted key-value pairs.
+			Most tags describe the properties of the feature.
+			For example a node can have tags making it a restaurant with additional tags for the name, address, the food to get there, the opening hours and if the toilets are barrier free or not.
+			
+			\todo[inline]{proposal process}
+			
+			Some tags, however, like \texttt{area=[yes|no]} or the \texttt{type} key for relations, influence the type of geometry.
+			A closed way with \texttt{area=no} does in fast \textit{not} form an area or polygon, but is just a closed line.
+			This of course affects visualizations but may also need to be considered in other processing and analysis tasks.
+			
+			Other tags add metadata to objects, for example the last time the feature was checked, the source or internal notes to other mappers.
+			
+		\subsubsection{Contributions to OSM}
+		
+			Uploads to OSM always happen in so called \term[changeset]{changesets} combining multiple changed on the map\cite{osm-wiki-changeset}.
+			Each changeset can have tags, just like features can.
+			However, tags on a changeset specify certain metadata to the change.
+			The \texttt{created\_by}, \texttt{comment} and \texttt{source} tags are the most common ones but more details can be added and depends on the editor.
+			
+			Because some mappers also perform manual quality assurance, each changeset should fulfill certain quality criteria.
+			The simplest one is a good changeset comment answering questions like \textit{what changed?} and \textit{why was the change necessary?}.
+			For legal reasons, specifying the source is very important since the ODbL is not necessarily compatible with licenses of other data sources.
+			Ideally a changeset should be coherent, which means that it should focus on one thematic aspect in one local area.
+			Too large and crowded changesets are difficult to maintain.
+			
+		\subsubsection{Data contained in OSM}
+		
+			Since OSM has no focus on specific topics, nearly anything can be added to OSM.
+			However, there are some types of features that are very common\cite{taginfo-keys}.
+			
+			The most common objects are buildings with over 542 million occurrences\footnote{All occurrence statistics as of \DTMDate{2023-01-03}.}.
+			In fact 6\% of all objects and nearly 60\% of all ways in OSM are buildings.
+			Highways (mainly roads and streets but also paths, bridleways, railways and more) are the second common type of features with over 233 million occurrences.
+			Addresses are also very common, about 32\% of all nodes and 7\% of all ways have a house number.
+			Other area features like forests or lakes exist a lot as well as line features like barriers and waterways.
+			
+			\todo[inline]{Describe data relevant for this thesis?}
 
 \section{Routing}
 
