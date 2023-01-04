@@ -146,17 +146,24 @@
 			A third type, called \term{relation}, can be used to combine multiple other geometries into a new feature.
 			This can be used to form multi-polygons or other entities built up from several features, like turn restrictions or bus routes.
 			
+		\subsubsection{Attributes}
+			
 			Attributes are called \term[tag]{tags} and are simple unrestricted key-value pairs.
 			Most tags describe the properties of the feature.
 			For example a node can have tags making it a restaurant with additional tags for the name, address, the food to get there, the opening hours and if the toilets are barrier free or not.
-			
-			\todo[inline]{proposal process}
 			
 			Some tags, however, like \texttt{area=[yes|no]} or the \texttt{type} key for relations, influence the type of geometry.
 			A closed way with \texttt{area=no} does in fast \textit{not} form an area or polygon, but is just a closed line.
 			This of course affects visualizations but may also need to be considered in other processing and analysis tasks.
 			
 			Other tags add metadata to objects, for example the last time the feature was checked, the source or internal notes to other mappers.
+			
+			There are two ways a combination of key and value becomes an \enquote{official} tag:
+			By using it so often that it is de-facto accepted or by a proposal and vote.
+			The proposal process tries to organize and professionalize the development of new tasks.
+			Not only is a new tagging scheme accepted or rejected by a democratic vote, a mandatory discussion needs to take place earlier.
+			Due to the vast amount of contributors, different opinions, different editors and different knowledge about the tagging schemes, sometimes two or more competing schemes evolve (for example \texttt{phone=*} and \texttt{contact:phone=*}).
+			Tagging schemes change over time and some may become deprecated, leading to outdated tags on objects.
 			
 		\subsubsection{Contributions to OSM}
 		
@@ -183,6 +190,28 @@
 			Other area features like forests or lakes exist a lot as well as line features like barriers and waterways.
 			
 			\todo[inline]{Describe data relevant for this thesis?}
+			
+		\subsubsection{Data \textit{not} contained in OSM}
+		
+			Even though, the tagging scheme can be extended arbitrarily, some data will probably not be added to OSM.
+			This can have multiple reasons.
+			
+			First, some data is too detailed and therefore people will not invest the time necessary to create that data.
+			Second, OSM follows some strategies on what to add and what not.
+			One important strategy is the verifiability of objects on the ground.
+			Anyone visiting a certain place should be able to find the data from OSM and therefore verify its existence and correctness.
+			Third, temporary data should not be added since OSM is not a real-time database.
+			However, there's not a strict definition when a feature is temporary and when it is (potentially) permanent.
+			And fourth, data under a uncompatible license will not be added.
+			This also includes data from many public authorities and nearly all companies.
+			
+			Unfortunately, data relevant to routing is often added to roads and paths only but not to areas.
+			This includes primarily accessibility and surface information.
+			However, latter can potentially be inferred or approximated from other tags on a polygon, for example \texttt{surface=grass} can be interred from \texttt{natural=grassland} and \texttt{access=yes} from \texttt{place=square}.
+			
+			Private areas, however, do often not exist at all or have very little details.
+			This is mainly due to reason two from above and rooted in a common sense of privacy towards companies and residents.
+			But also the areas in question are often not accessible to everyone, rendering them unverifiable for unauthorized people.
 
 \section{Routing}
 
