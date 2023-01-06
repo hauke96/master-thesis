@@ -217,8 +217,45 @@
 
 	% fastest, shortest path, all shortest...
 	
-	\subsection{Graph based}
+	\subsection{Theoretic considerations}
 	
-	\subsection{Geometric}
+		Formally, routing describes the process of finding an optimal path within a graph $G=(V, E)$ from a start location $s$ to a target location $t$ with $s, t \in V$.
+		A path is an ordered list of connected vertices $p=\left\langle v_0, v_1, \dots v_n \right\rangle$, so for an edge $(v_i, v_j)$ of consecutive vertices, $(v_i, v_j) \in E$ must hold.
+		
+		Often, \enquote{optimal} means shortest, whereby the length of an edge is considered as arbitrary weight and is therefore not bound to geographic lengths of edges.
+		In theoretic computer science, the fundamental problem behind routing algorithms is the \term{shortest-path problem}.
+		However, the shortest path problem exists in several variants\cite[644]{cormen-introduction-to-alg}:
+		
+		\subsubsection{Single-source shortest-paths}
+		
+			One source vertex is given and the shortest paths to all other vertices should be determined.
+			This is the most common problem for real world applications as it solves or strongly relates other problems described below.
+			
+			\todo[inline]{Algorithms}
+		
+		\subsubsection{Single-destination shortest-paths}
+		
+			This is the opposite to the above problem.
+			All shortest paths to a specific vertex from any other vertex should be found.
+			
+			However, no new algorithms are needed to solve this problem.
+			Instead, the direction of each edge can be reversed turning this problem into the single-source problem.
+		
+		\subsubsection{Single-pair shortest-paths}
+		
+			Like the single-source but shortest paths from one source to one target vertex are requested.
+			This problem is solved once the single-source problem has been solved.
+		
+		\subsubsection{All-pair shortest-paths}
+		
+			This problem is similar to the single-pair problem but is not restricted to a single source vertex.
+			A naive approach would be to use an algorithm solving the single-pair problem on each vertex, but there are faster ways to solve this.
+			However, since this problem has no relevance for this section and thesis, this problem is not discussed in further details.
+	
+	\subsection{Routing strategies}
+	
+		\subsubsection{Graph based}
+		
+		\subsubsection{Geometric}
 
 \section{Agent based systems and simulations}
