@@ -53,9 +53,25 @@ They explicitly do not use Mitchells algorithm (because it's too expensive) but 
 
 Quoted by 3. Conf C.
 
+They do *not* use a visibility graph.
+
 * http://147.213.75.17/ojs/index.php/cai/article/view/2814/675
 
+## Constructing the visibility graph for n-line segments in O(n²) time (Emo Welzl, 1985)
+
+* https://www.sciencedirect.com/science/article/abs/pii/0020019085900444
+
+## A Modular Routing Graph Generation Method for Pedestrian Simulation (Aumann, Kielar 2016)
+
+* https://www.researchgate.net/publication/309463160_A_Modular_Routing_Graph_Generation_Method_for_Pedestrian_Simulation?enrichId=rgreq-6c994e0a16e34aa89f20f5b9960353ea-XXX&enrichSource=Y292ZXJQYWdlOzMwOTQ2MzE2MDtBUzo0MjE2OTA5ODAyMTI3MzZAMTQ3NzU1MDM3MjQ3MQ%3D%3D&el=1_x_3&_esc=publicationCoverPdf
+
 # Agent-based simulations
+
+## Adaptive pedestrian dynamics based on geodesics (Hartmann, 2009)
+
+Quoted by 107.
+
+* https://iopscience.iop.org/article/10.1088/1367-2630/12/4/043032/pdf
 
 ## Introductory tutorial: Agent-based modeling and simulation (Macal, North, 2014)
 
