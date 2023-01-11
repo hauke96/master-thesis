@@ -226,14 +226,14 @@
 		In theoretic computer science, the fundamental problem behind routing algorithms is the \term{shortest-path problem}.
 		However, the shortest path problem exists in several variants\cite[644]{cormen-introduction-to-alg}:
 		
-		\subsubsection{Single-source shortest-paths}
+		\subsubsection{\term*[single-source shortest-paths]{Single-source shortest-paths}}
 		
 			One source vertex is given and the shortest paths to all other vertices should be determined.
 			This is the most common problem for real world applications as it solves or strongly relates other problems described below.
 			
 			\todo[inline]{Algorithms}
 		
-		\subsubsection{Single-destination shortest-paths}
+		\subsubsection{\term*[single-destination shortest-paths]{Single-destination shortest-paths}}
 		
 			This is the opposite to the above problem.
 			All shortest paths to a specific vertex from any other vertex should be found.
@@ -241,12 +241,12 @@
 			However, no new algorithms are needed to solve this problem.
 			Instead, the direction of each edge can be reversed turning this problem into the single-source problem.
 		
-		\subsubsection{Single-pair shortest-paths}
+		\subsubsection{\term*[single-pair shortest-paths]{Single-pair shortest-paths}}
 		
 			Like the single-source but shortest paths from one source to one target vertex are requested.
 			This problem is solved once the single-source problem has been solved.
 		
-		\subsubsection{All-pair shortest-paths}
+		\subsubsection{\term*[all-pair shortest-paths]{All-pair shortest-paths}}
 		
 			This problem is similar to the single-pair problem but is not restricted to a single source vertex.
 			A naive approach would be to use an algorithm solving the single-pair problem on each vertex, but there are faster ways to solve this.
