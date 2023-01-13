@@ -33,7 +33,6 @@ This section gives an overview about closely related work from these areas.
 
 \section{Pedestrian path finding}
 	
-	% Pedestrian path finding
 	A special case of the general \term[single-source shortest-path]{shortest-path} problem is pedestrian routing, also called pedestrian shortest-path finding.
 	This problem is especially interesting since pedestrians have the maximum degree of flexibility/freedom compared to other traffic participants like bikes or cars.
 	Therefore, geometric routing is a good way to find shortest-paths for pedestrians.
@@ -74,3 +73,7 @@ This section gives an overview about closely related work from these areas.
 		
 		A very similar approach, at least with visibility graphs as a base, was chosen by Kneidl, Borrmann and Hartmann to produce a sparse navigation graph\cite[5]{kneidl-borrmann-hartmann-navigation}.
 		They chose the construction of a visibility graph over generalized Voronoi diagrams for more realistic edges.
+		
+		Another interesting paper on enhancing existing navigation graphs, like Gloor, Stucki and Nagel did, was presented in 2016 by Anita Graser by integrating visibility graph edges into the existing OSM data model\cite{graser-osm-open-spaces}.
+		Again, the visibility graph was the preferred method of producing edges.
+		Considered and discussed alternatives here were two skeletonization methods and a simple grid places over open spaces.
