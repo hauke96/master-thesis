@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>NetworkRoutingPlayground</RootNamespace>
+        <TargetFramework>net7.0</TargetFramework>
+        <GenerateProgramFile>false</GenerateProgramFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Mars.Life.Simulations" Version="4.5.1" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.2" />
+        <PackageReference Include="NUnit" Version="3.13.3" />
+        <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
+        <PackageReference Include="NUnit.Analyzers" Version="3.3.0" />
+        <PackageReference Include="coverlet.collector" Version="3.1.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Wavefront\Wavefront.csproj" />
+    </ItemGroup>
+
+</Project>
