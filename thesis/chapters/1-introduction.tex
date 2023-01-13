@@ -24,21 +24,25 @@ They either have to be connected manually or a location on the network is chosen
 % alternative: geometric routing avoiding obstacles
 Next to a network based shortest path algorithm, pure geometric approaches exist to also determine shortest paths\index{geometric routing}.
 Geometric approaches only know obstacles, which are geometries that cannot be passed.
-There are two main strategies\citationNeeded:
-Build a network around these obstacles and then use a classical shortest path algorithm to find the actual path or directly determine paths without building a network around obstacles.
+There are two main strategies to solve this problem\cite[2]{hershberger-suri}:
+Build a network around these obstacles and then use a classical shortest path algorithm to find the actual path or create a shortest path map for a common starting point $s$.
 
-The first approach creates a so called \term{visibility graph}, a graph with edged between all visible vertices\citationNeeded.
-A network based shortest path algorithm is then able to find paths on that network.
+The first approach creates a so called \term{visibility graph}, a graph with edged between all visible vertices.
+A network based shortest path algorithm is then able to find paths on that network\cite[2]{hershberger-suri}.
 It therefore can be seen as a kind of pre-processing.
 
-The second approach does not create such graph and directly tries to find paths around the obstacles.
-It uses the so called \term{continuous dijkstra paradigm}, which will be described later in detail\todo{describe in detail}.
+The second approach does not create such graph but stores its shortest-path information in a map.
+It therefore subdivides the plain into regions with common predecessor vertices.
+This approach is also called the \term{continuous dijkstra paradigm}, which will be described in detail in \cref{subsubsec:geometric-routing}.
 A well fitting analogy for this approach are sound or water waves propagating through space, folding around obstacles and finally reaching the target.
-Recursively following each wave back to its origin yields the shortest path from the source to the target\citationNeeded.
-In fact, one can determine a tree of all shortest paths from the source with a given length, which means it behaves like Dijkstras algorithm, giving this paradigm its name\todo{are there sources on that?}.
+Recursively following each wave back to its origin yields the shortest path from the source to the target.
+In fact, one can determine a tree of all shortest paths from the source with a given length, which means it behaves like Dijkstras algorithm, giving this paradigm its name\cite[648]{mitchell-discrete-geodesic}.
 
-% problem: performance(?) and insufficient data for useable routes
-Current approaches for network based routing are well optimized and have time complexities of only $\bigo{|E|}$ (under the condition of integer edge weights and constant time multiplications) or $\bigo{|E| + |V| \cdot \log{|V|}}$ (for arbitrary but positive weights)\citationNeeded.
+Current approaches for network based routing, like Dijkstra's and the A* algorithm, are well understood and used in science and real world applications.
+Optimizations and the usage of better data structures lead to further performance enhancements making the use of such routing algorithm on large scale networks possible.
+Even though, the performance is good enough for larger networks, like the road network of the USA\cite[5]{aviram-optimizing-dijkstra}, further speed up methods exist, to further decrease query times.
+One popular speed up method are \term{contraction hierarchies}, which basically add additional edges as shortcuts between important nodes\cite{geisberger-contraction-hierarchies}.
+Using such techniques enables global routing request being processed within milliseconds\footnote{Tested for a routing request from Hamburg, Germany to Beijing, China on \href{https://www.openstreetmap.org/directions?engine=fossgis\_osrm\_car&route=53.55\%2C10.00\%3B39.91\%2C116.39}{openstreetmap.org} using the OSRM car profile. The HTTP request returned the result -- including network latency of several milliseconds -- in under 215ms.}
 
 % this thesis: combine both worlds: Good data of networks and flexibility of geom. routing
 This thesis proposes, implements and evaluates a hybrid routing algorithm that combines geometric with network based routing.
