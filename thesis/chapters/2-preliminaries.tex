@@ -39,7 +39,9 @@
 		Spatial data can have a variety of data structures.
 		Some of these are used in many or all frameworks and formats, but some are vendor specific.
 		This section gives an overview of common data structures in spatial data.
-		Because of a variety of vendors and standards, the GeoJSON standard is used as reference here\citationNeeded.
+		Because of a variety of vendors and standards, the GeoJSON standard is used as reference here.
+		
+		\todo[inline]{rather use the simple feature standard on which GeoJSON is based (???)}
 		
 		The first concepts to consider are geometries and features.
 		
@@ -55,9 +57,12 @@
 		A \term{feature} represents a real world object (for example a tree, road or lake) and therefore consists of a geometry.
 		Additionally, features have properties describing the kind of object they represent.
 		Such properties are -- in the case of GeoJSON -- not further defined and can contain arbitrary values.
-		Some file formats, however, restrict the length or set of allowed characters (\todo[inline]{see shapefile below}) while others try to standardize the allowed keys and values.
-		The OpenStreetMap Wiki tries to define a community driven standard\todo{cite proposal page} while the INSPIRE standard of the EU defines fixed key and values for attributes (for example \texttt{natureConservation} is one value for the \texttt{SiteProtectionClassification} property)\cite[31]{inspire-protected-sites}.
-	
+		Some file formats, however, restrict the length or set of allowed characters (for example Esri shapefiles as described \hyperref[subsubsec:shapefile]{below}) while others try to standardize the allowed keys and values.
+		A community driven standardization strategy is used by the OpenStreetMap project, where the OSM-Wiki defines certain keys and value but still allows arbitrary tags to exist\cite{osm-wiki-proposal-process}.
+		This ensures adaptations to arbitrary real world objects, while having a standard for common and globally used tags.
+		Other systems define a fixed set of keys and values for attributes.
+		For example, the INSPIRE standard of the EU defines the \texttt{natureConservation} as one value for the \texttt{SiteProtectionClassification} property to mark areas under protection \enquote{for the maintenance of biological diversity}\cite[31]{inspire-protected-sites}.
+			
 	\subsection{File formats}
 	\label{subsec:file-formats}
 	
@@ -67,13 +72,14 @@
 		This section gives an overview of some popular formats:
 		
 		\subsubsection{Esri shapefile}
+		\label{subsubsec:shapefile}
 		
 			The \term[shapefile]{Esri Shapefile} format was developed in the 1990s and is a popular file format and used for example in Esri products like the ArcGIS platform.
 			Each shapefile actually consists of multiple files on disk\cite{esri-shapefile-file-ext-spec}.
 			Three of them are mandatory containing the geometries (\texttt{.shp}), an index (\texttt{.idx}) and a dBASE table with attributes (\texttt{.dbf}).
 			Additional files are optional and can contain additional indices or details about the CRS.
 			Even though shapefiles are very popular\cite[356]{spatial-file-formats-trends}, there are several limitations regarding the containing geometries and attributes.
-			Only one type of geometry is supported per shapefile, which means a shapefile cannot contain points and polygons at the same time.\citationNeeded
+			Only one type of geometry is supported per shapefile, which means a shapefile cannot contain points and polygons at the same time\cite[4]{esri-shapefile-spec}.
 			Attributes also have limitations in their size and structure, for example are the attribute keys limited to 10 and values to 254 characters\cite{esri-shapefile-limitations}.
 			The default CRS is based on latitudes and longitudes using the NAD 27 datum\cite{esri-shapefile-coordinate-system}.
 			
@@ -147,8 +153,11 @@
 			This can be used to form multi-polygons or other entities built up from several features, like turn restrictions or bus routes.
 			
 		\subsubsection{Attributes}
+		\label{subsubsec:osm-attributes}
 			
 			Attributes are called \term[tag]{tags} and are simple unrestricted key-value pairs.
+			The Wiki of OpenStreetMap defines many tags with designated values via a special proposal process, but new reasonable values can always be added\cite{osm-wiki-proposal-process}.
+			
 			Most tags describe the properties of the feature.
 			For example a node can have tags making it a restaurant with additional tags for the name, address, the food to get there, the opening hours and if the toilets are barrier free or not.
 			
@@ -180,10 +189,10 @@
 			
 		\subsubsection{Data contained in OSM}
 		
-			Since OSM has no focus on specific topics, nearly anything can be added to OSM.
-			However, there are some types of features that are very common\cite{taginfo-keys}.
+			Since OSM has no focus on specific topics and due to the flexible tagging scheme (see \cref{subsubsec:osm-attributes}) nearly anything can be added to OSM.
+			However, there are some types of features that are very common according to the \href{https://taginfo.openstreetmap.org/keys}{taginfo.openstreetmap.org}, a service providing basic statistics about the currently used keys and values\cite{taginfo-keys}.
 			
-			The most common objects are buildings with over 542 million occurrences\footnote{All occurrence statistics as of \DTMDate{2023-01-03}.}.
+			According to them, the most common objects are buildings with over 542 million occurrences.
 			In fact 6\% of all objects and nearly 60\% of all ways in OSM are buildings.
 			Highways (mainly roads and streets but also paths, bridleways, railways and more) are the second common type of features with over 233 million occurrences.
 			Addresses are also very common, about 32\% of all nodes and 7\% of all ways have a house number.
