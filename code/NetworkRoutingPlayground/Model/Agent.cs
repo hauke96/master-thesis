@@ -41,6 +41,11 @@ namespace NetworkRoutingPlayground.Model
 
         public void Init(VectorLayer layer)
         {
+            // Works for the "data.geojson" since it directly connects the given positions creating a shortcut for the agent.
+            var a = NetworkLayer.Environment.NearestNode(Position.CreatePosition(10.0013933, 53.5491645));
+            var b = NetworkLayer.Environment.NearestNode(Position.CreatePosition(10.0021255, 53.5492393));
+            NetworkLayer.Environment.AddEdge(a, b);
+            
             var start = new Position(9.9980671, 53.5497337);
             var destination = new Position(10.0048312, 53.5492613);
 
