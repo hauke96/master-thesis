@@ -1,4 +1,6 @@
 using Mars.Common;
+using Mars.Components.Environments;
+using Mars.Components.Layers;
 using Mars.Interfaces.Agents;
 using Mars.Interfaces.Annotations;
 using Mars.Interfaces.Environments;
@@ -17,9 +19,9 @@ using Position = Mars.Interfaces.Environments.Position;
 
 namespace NetworkRoutingPlayground.Model
 {
-    public class Agent : IAgent<NetworkLayer>, ISpatialGraphEntity
+    public class Agent : IAgent<VectorLayer>, ISpatialGraphEntity
     {
-        private static readonly double STEP_SIZE = 0.00001;
+        private static readonly double STEP_SIZE = 1;
 
         [PropertyDescription] public UnregisterAgent UnregisterHandle { get; set; }
         [PropertyDescription] public NetworkLayer NetworkLayer { get; set; }
@@ -28,7 +30,7 @@ namespace NetworkRoutingPlayground.Model
         public Guid ID { get; set; } = Guid.NewGuid();
 
         private Route _route;
-        
+
         // Spatial entity stuff:
         public double Length => 0.0;
         public ISpatialEdge CurrentEdge { get; set; }
@@ -37,17 +39,21 @@ namespace NetworkRoutingPlayground.Model
         public SpatialModalityType ModalityType => SpatialModalityType.Walking;
         public bool IsCollidingEntity => false;
 
-        public void Init(NetworkLayer layer)
+        public void Init(VectorLayer layer)
         {
-            var start = new Position();
-            var destination = new Position();
+            var start = new Position(9.9980671, 53.5497337);
+            var destination = new Position(10.0048312, 53.5492613);
 
-            var startNode = layer.Environment.NearestNode(start, SpatialModalityType.Walking);
-            var destinationNode = layer.Environment.NearestNode(destination, SpatialModalityType.Walking);
+            var startNode = NetworkLayer.Environment.NearestNode(start, null, SpatialModalityType.Walking);
+            var destinationNode = NetworkLayer.Environment.NearestNode(destination, SpatialModalityType.Walking);
 
-            _route = layer.Environment.FindShortestRoute(startNode, destinationNode);
-
+            _route = NetworkLayer.Environment.FindShortestRoute(startNode, destinationNode);
             NetworkLayer.Environment.Insert(this, startNode);
+            
+            WriteRouteToFile(_route.SelectMany(edgeStop =>
+            {
+                return edgeStop.Edge.Geometry;
+            }).ToList());
         }
 
         public void Tick()
@@ -69,8 +75,9 @@ namespace NetworkRoutingPlayground.Model
                 Kill();
                 return;
             }
-            
+
             NetworkLayer.Environment.Move(this, _route, STEP_SIZE);
+            Position = this.CalculateNewPositionFor(_route, out _);
         }
 
         private void Kill()
@@ -80,9 +87,9 @@ namespace NetworkRoutingPlayground.Model
             UnregisterHandle.Invoke(NetworkLayer, this);
         }
 
-        private async void WriteRoutesToFile(List<List<Waypoint>> routes)
+        private async void WriteRouteToFile(List<Position> route)
         {
-            var features = RoutesToGeometryCollection(routes);
+            var features = RoutesToGeometryCollection(route);
 
             var serializer = GeoJsonSerializer.Create();
             foreach (var converter in serializer.Converters
@@ -101,7 +108,7 @@ namespace NetworkRoutingPlayground.Model
             serializer.Serialize(jsonWriter, features);
             var geoJson = stringWriter.ToString();
 
-            await File.WriteAllTextAsync("agent-routes.geojson", geoJson);
+            await File.WriteAllTextAsync("agent-route.geojson", geoJson);
         }
 
         private async void WriteVisitedPositionsToFile(List<List<Waypoint>> routes)
@@ -132,32 +139,32 @@ namespace NetworkRoutingPlayground.Model
             await File.WriteAllTextAsync("agent-points.geojson", geoJson);
         }
 
-        private FeatureCollection RoutesToGeometryCollection(List<List<Waypoint>> routes)
+        private FeatureCollection RoutesToGeometryCollection(List<Position> route)
         {
-            var featureCollection = new FeatureCollection();
-            routes.Each((i, r) => featureCollection.Add(
-                new Feature(RouteToLineString(r),
+            var featureCollection = new FeatureCollection
+            {
+                new Feature(RouteToLineString(route),
                     new AttributesTable(
                         new Dictionary<string, object>
                         {
-                            { "id", i }
+                            { "id", 0 }
                         }
                     )
                 )
-            ));
+            };
             return featureCollection;
         }
 
-        private LineString RouteToLineString(List<Waypoint> route)
+        private LineString RouteToLineString(List<Position> route)
         {
             var baseDate = new DateTime(2010, 1, 1);
             var unixZero = new DateTime(1970, 1, 1);
             var coordinateSequence = CoordinateArraySequenceFactory.Instance.Create(route.Count, 3, 1);
             route.Each((i, w) =>
             {
-                coordinateSequence.SetX(i, w.Position.X);
-                coordinateSequence.SetY(i, w.Position.Y);
-                coordinateSequence.SetM(i, baseDate.AddSeconds(w.Time).Subtract(unixZero).TotalSeconds);
+                coordinateSequence.SetX(i, w.X);
+                coordinateSequence.SetY(i, w.Y);
+                coordinateSequence.SetM(i, baseDate.AddSeconds(i).Subtract(unixZero).TotalSeconds);
             });
             var geometryFactory = new GeometryFactory(CoordinateArraySequenceFactory.Instance);
             return new LineString(coordinateSequence, geometryFactory);

@@ -14,7 +14,7 @@ namespace NetworkRoutingPlayground.Layer
             var layerInitialized = base.InitLayer(layerInitData, registerAgentHandle, unregisterAgent);
 
             var agentManager = layerInitData.Container.Resolve<IAgentManager>();
-            // var agents = agentManager.Spawn<Agent, AgentLayer>().ToList();
+            var agents = agentManager.Spawn<Agent, AgentLayer>().ToList();
             
             return layerInitialized;
         }

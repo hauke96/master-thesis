@@ -1,0 +1,42 @@
+{
+  "globals": {
+    "startTime": "2010-01-01T00:00",
+    "endTime": "2010-01-02T00:00",
+    "deltaT": 1,
+    "deltaTUnit": "seconds",
+    "output": "csv",
+    "options": {
+      "delimiter": ";",
+      "format": "en-EN"
+    },
+    "pythonVisualization": false,
+    "console": false
+  },
+  "layers": [
+    {
+      "name": "NetworkLayer",
+      "inputs": [
+        {
+          "file": "Resources/data.geojson",
+          "inputConfiguration": {
+            "modalities": [
+              "Walking"
+            ],
+            "isBidirectedGraph": true
+          }
+        }
+      ]
+    }
+  ],
+  "agents": [
+    {
+      "name": "Agent",
+      "count": 1,
+      "outputs": [
+        {
+          "kind":"trips"
+        }
+      ]
+    }
+  ]
+}
