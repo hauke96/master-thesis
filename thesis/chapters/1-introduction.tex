@@ -27,16 +27,14 @@ Geometric approaches only know obstacles, which are geometries that cannot be pa
 There are two main strategies to solve this problem\cite[2]{hershberger-suri}:
 Build a network around these obstacles and then use a classical shortest path algorithm to find the actual path or create a shortest path map for a common starting point $s$.
 
-The first approach creates a so called \term{visibility graph}, a graph with edged between all visible vertices.
+The first approach creates a so called \term{visibility graph}\todo{generalize this, also other graph generation methods are possible}, a graph with edged between all visible vertices.
 A network based shortest path algorithm is then able to find paths on that network\cite[2]{hershberger-suri}.
 It therefore can be seen as a kind of pre-processing.
 
-The second approach does not create such graph but stores its shortest-path information in a map.
+The second approach does not create such graph but stores its shortest-path information for each source vertex $s$ in a map.
 It therefore subdivides the plain into regions with common predecessor vertices.
-This approach is also called the \term{continuous dijkstra paradigm}, which will be described in detail in \cref{subsubsec:geometric-routing}.
-A well fitting analogy for this approach are sound or water waves propagating through space, folding around obstacles and finally reaching the target.
-Recursively following each wave back to its origin yields the shortest path from the source to the target.
-In fact, one can determine a tree of all shortest paths from the source with a given length, which means it behaves like Dijkstras algorithm, giving this paradigm its name\cite[648]{mitchell-discrete-geodesic}.
+Following these predecessors back to $s$, gives the shortest path to a given location.
+This approach is also called the \term{continuous dijkstra} paradigm, which will be described in detail in \cref{subsubsec:geometric-routing}.
 
 Current approaches for network based routing, like Dijkstra's and the A* algorithm, are well understood and used in science and real world applications.
 Optimizations and the usage of better data structures lead to further performance enhancements making the use of such routing algorithm on large scale networks possible.
