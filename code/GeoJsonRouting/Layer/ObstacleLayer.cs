@@ -43,7 +43,7 @@ namespace GeoJsonRouting.Layer
             var obstacleGeometries = Features.Map(f => new Obstacle(f.VectorStructured.Geometry));
             var watch = Stopwatch.StartNew();
 
-            WavefrontAlgorithm = new WavefrontAlgorithm(obstacleGeometries);
+            WavefrontAlgorithm = new WavefrontAlgorithm(obstacleGeometries, true);
             Console.WriteLine($"Algorithm creation: {watch.ElapsedMilliseconds}ms");
 
             return true;

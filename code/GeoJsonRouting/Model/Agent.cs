@@ -90,7 +90,7 @@ namespace GeoJsonRouting.Model
                 var newPosition =
                     SharedEnvironment.Environment.Move(this, (bearing + i * 45) % 360, STEP_SIZE);
                 var distanceInMTo = Distance.Euclidean(oldPosition.PositionArray, Position.PositionArray);
-                Console.WriteLine($"{distanceInMTo}");
+                // Console.WriteLine($"{distanceInMTo}");
                 if (!newPosition.Equals(oldPosition) && distanceInMTo >= 0.5 * STEP_SIZE)
                 {
                     break;

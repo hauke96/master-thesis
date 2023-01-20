@@ -21,7 +21,7 @@
   "agents": [
     {
       "name": "Agent",
-      "count": 100,
+      "count": 1,
       "outputs": [
         {
           "kind":"trips"

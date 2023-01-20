@@ -89,6 +89,7 @@ public class Wavelet
     {
         if (bearing == 0 && Equals(RootVertex, vertex))
         {
+            // TODO Can the  bearing == 0  be removed?
             // 0° is an indicator that the vertex might be the current root -> therefore not relevant
             return false;
         }
