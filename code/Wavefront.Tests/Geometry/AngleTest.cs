@@ -136,6 +136,7 @@ public class AngleTest
         Assert.True(Angle.AreEqual(360, 0));
         Assert.True(Angle.AreEqual(359.99999999994, 0));
         Assert.True(Angle.AreEqual(0, 360));
+        Assert.True(Angle.AreEqual(0.000001, 360));
         Assert.True(Angle.AreEqual(360, 360));
         Assert.True(Angle.AreEqual(720, 0));
         Assert.True(Angle.AreEqual(0, 720));

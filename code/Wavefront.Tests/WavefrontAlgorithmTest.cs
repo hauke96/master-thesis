@@ -425,7 +425,7 @@ namespace Wavefront.Tests
                 Assert.IsNaN(angleShadowTo);
 
                 var wavelets = ToList(wavefrontAlgorithm.Wavefronts);
-                Assert.AreEqual(3, wavelets);
+                Assert.AreEqual(3, wavelets.Count);
                 var w = wavelets[0];
                 Assert.AreEqual(wavelet, w);
 
