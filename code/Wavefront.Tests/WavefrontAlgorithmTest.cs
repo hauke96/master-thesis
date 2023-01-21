@@ -66,9 +66,9 @@ namespace Wavefront.Tests
                 vertices.Add(multiVertexLineVertices[1]);
                 var wavelet = Wavelet.New(0, 90, new Vertex(5, 2), vertices, 1, false)!;
                 wavefrontAlgorithm.AddWavefront(wavelet);
-                wavefrontAlgorithm.WaypointToPredecessor[new Waypoint(nextVertex.Position, 0, 0)] =
-                    new Waypoint(Position.CreateGeoPosition(1, 1), 0, 0);
-                wavefrontAlgorithm.WavefrontRootPredecessor.Add(new Waypoint(nextVertex.Position, 0, 0), null);
+                wavefrontAlgorithm.WaypointToPredecessor[new Waypoint(nextVertex.Position, 0, 0, 0)] =
+                    new Waypoint(Position.CreateGeoPosition(1, 1), 0, 0, 0);
+                wavefrontAlgorithm.WavefrontRootPredecessor.Add(new Waypoint(nextVertex.Position, 0, 0, 0), null);
                 wavefrontAlgorithm.WavefrontRootToWaypoint.Add(nextVertex.Position,
                     wavefrontAlgorithm.WavefrontRootPredecessor.First().Key);
 
@@ -113,7 +113,7 @@ namespace Wavefront.Tests
                 var wavelet = Wavelet.New(0, 90, sourceVertex, vertices, 1, false)!;
                 wavefrontAlgorithm.AddWavefront(wavelet);
 
-                var rootWaypoint = new Waypoint(wavelet.RootVertex.Position, 0, 0);
+                var rootWaypoint = new Waypoint(wavelet.RootVertex.Position, 0, 0, 0);
                 wavefrontAlgorithm.WaypointToPredecessor[rootWaypoint] = null;
                 wavefrontAlgorithm.PositionToWaypoint[rootWaypoint.Position] = rootWaypoint;
 
@@ -213,7 +213,7 @@ namespace Wavefront.Tests
                 wavefrontAlgorithm.AddWavefront(_wavelet);
                 targetPosition = Position.CreateGeoPosition(10, 10);
 
-                var rootWaypoint = new Waypoint(_wavelet.RootVertex.Position, 0, 0);
+                var rootWaypoint = new Waypoint(_wavelet.RootVertex.Position, 0, 0, 0);
                 wavefrontAlgorithm.WaypointToPredecessor[rootWaypoint] = null;
                 wavefrontAlgorithm.PositionToWaypoint[rootWaypoint.Position] = rootWaypoint;
 
@@ -294,7 +294,7 @@ namespace Wavefront.Tests
                 wavefrontAlgorithm.AddWavefront(_wavelet);
                 targetPosition = Position.CreateGeoPosition(10, 10);
 
-                var rootWaypoint = new Waypoint(_wavelet.RootVertex.Position, 0, 0);
+                var rootWaypoint = new Waypoint(_wavelet.RootVertex.Position, 0, 0, 0);
                 wavefrontAlgorithm.WaypointToPredecessor[rootWaypoint] = null;
                 wavefrontAlgorithm.PositionToWaypoint[rootWaypoint.Position] = rootWaypoint;
 

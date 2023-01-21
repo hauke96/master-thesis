@@ -75,8 +75,8 @@ namespace Wavefront
             var targetVertex = new Vertex(target);
             Vertices.Add(targetVertex);
 
-            SetPredecessor(source, null, stopwatch, WaypointToPredecessor, PositionToWaypoint);
-            SetPredecessor(source, null, stopwatch, WavefrontRootPredecessor, WavefrontRootToWaypoint);
+            SetPredecessor(source, null, stopwatch, WaypointToPredecessor, PositionToWaypoint, 0);
+            SetPredecessor(source, null, stopwatch, WavefrontRootPredecessor, WavefrontRootToWaypoint, 0);
 
             _vertexNeighbors[sourceVertex] =
                 WavefrontPreprocessor.GetVisibleNeighborsForVertex(_obstacles, Vertices, sourceVertex,
@@ -166,6 +166,7 @@ namespace Wavefront
             var waveletNode = Wavefronts.Min();
             var wavelet = waveletNode.Data;
             var currentVertex = wavelet.GetNextVertex();
+            var distanceToCurrentVertexFromSource = wavelet.DistanceToNextVertex;
 
             if (currentVertex == null)
             {
@@ -188,9 +189,9 @@ namespace Wavefront
             {
                 Log.I($"Target reached ({currentVertex.Position})");
                 SetPredecessor(currentVertex.Position, wavelet.RootVertex.Position, stopwatch, WaypointToPredecessor,
-                    PositionToWaypoint);
+                    PositionToWaypoint, distanceToCurrentVertexFromSource);
                 SetPredecessor(currentVertex.Position, wavelet.RootVertex.Position, stopwatch,
-                    WavefrontRootPredecessor, WavefrontRootToWaypoint);
+                    WavefrontRootPredecessor, WavefrontRootToWaypoint, distanceToCurrentVertexFromSource);
                 RemoveAndUpdateWavefront(waveletNode);
                 return;
             }
@@ -211,20 +212,20 @@ namespace Wavefront
             HandleNeighbors(currentVertex, wavelet, out angleShadowFrom, out angleShadowTo,
                 out var newWavefrontCreatedAtEventRoot);
 
-            if (newWavefrontCreatedAtEventRoot)
+            if (!newWavefrontCreatedAtEventRoot.IsEmpty())
             {
                 // A new wavelet has been spawned with its root equal to the currently visited vertex. This means that
                 // the current vertex is now the root of a wavelet for the first time. This is the case because
                 // otherwise the current vertex would not have been considered in the first place (s. exit conditions
                 // above).
                 SetPredecessor(currentVertex.Position, wavelet.RootVertex.Position, stopwatch,
-                    WavefrontRootPredecessor, WavefrontRootToWaypoint);
+                    WavefrontRootPredecessor, WavefrontRootToWaypoint, distanceToCurrentVertexFromSource);
             }
 
             // Save the normal vertex predecessor relation for the current vertex since it's the first visit of this
             // vertex (s. exit conditions above). 
             SetPredecessor(currentVertex.Position, wavelet.RootVertex.Position, stopwatch, WaypointToPredecessor,
-                PositionToWaypoint);
+                PositionToWaypoint, distanceToCurrentVertexFromSource);
 
             // If the current wavelet actually casts a shadow, it can be adjusted. This is done by simply adding new 
             // wavelets with correct angle areas. The current wavelet (which is now more like an "old" wavelet), has
@@ -287,7 +288,8 @@ namespace Wavefront
         /// vertex has been visited and how many vertices had been visited before this one. 
         /// </summary>
         private void SetPredecessor(Position vertexPosition, Position? predecessorPosition, Stopwatch stopwatch,
-            Dictionary<Waypoint, Waypoint?> waypointToPredecessor, Dictionary<Position, Waypoint> positionToWaypoint)
+            Dictionary<Waypoint, Waypoint?> waypointToPredecessor, Dictionary<Position, Waypoint> positionToWaypoint,
+            double distanceFromSource)
         {
             Waypoint? predecessor = null;
             if (predecessorPosition != null)
@@ -298,7 +300,7 @@ namespace Wavefront
             Waypoint waypoint;
             if (!positionToWaypoint.ContainsKey(vertexPosition))
             {
-                waypoint = new Waypoint(vertexPosition, positionToWaypoint.Count, stopwatch.Elapsed.TotalMilliseconds);
+                waypoint = new Waypoint(vertexPosition, positionToWaypoint.Count, stopwatch.Elapsed.TotalMilliseconds, distanceFromSource);
                 waypointToPredecessor[waypoint] = predecessor;
                 positionToWaypoint[vertexPosition] = waypoint;
             }
