@@ -179,4 +179,49 @@ public class Angle
         b = Normalize(b);
         return a < b;
     }
+
+    /**
+     * Merges the given angle intervals. The returned interval might exceed the 0° border. If no merge was possible
+     * (because the intervals do not overlap or touch), a (-1, -1) interval is returned.
+     */
+    public static (double, double) Merge(double from1, double to1, double from2, double to2)
+    {
+        if (AreEqual(to1, from2))
+        {
+            // Areas touch on the to1 point.
+            return (from1, to2);
+        }
+        
+        if (AreEqual(from1, to2))
+        {
+            // Areas touch on the from1 point.
+            return (from2, to1);
+        }
+
+        if (IsBetweenEqual(from1, from2, to1) && IsBetweenEqual(from1, to2, to1))
+        {
+            // Area 2 is within area 1.
+            return (from1, to1);
+        }
+
+        if (IsBetweenEqual(from2, from1, to2) && IsBetweenEqual(from2, to1, to2))
+        {
+            // Area 1 is within area 2.
+            return (from2, to2);
+        }
+
+        if (IsBetweenEqual(from1, from2, to1))
+        {
+            // Area 2 starts within area 1 but is not completely within (s. above).
+            return (from1, to2);
+        }
+
+        if (IsBetweenEqual(from1, to2, to1))
+        {
+            // Area 2 ends within area 1 but is not completely within (s. above).
+            return (from2, to1);
+        }
+
+        return (-1, -1);
+    }
 }

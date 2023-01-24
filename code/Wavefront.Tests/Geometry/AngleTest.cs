@@ -182,4 +182,38 @@ public class AngleTest
         Assert.False(Angle.LowerEqual(360, 1));
         Assert.False(Angle.LowerEqual(1.01000001, 1));
     }
+
+    [Test]
+    public void Merge()
+    {
+        Assert.AreEqual((0, 100), Angle.Merge(0, 50, 50, 100));
+        Assert.AreEqual((0, 100), Angle.Merge(0, 50, 49, 100));
+        Assert.AreEqual((0, 100), Angle.Merge(0, 50, 0, 100));
+
+        Assert.AreEqual((0, 100), Angle.Merge(0, 51, 50, 100));
+        Assert.AreEqual((0, 100), Angle.Merge(0, 100, 50, 100));
+
+        Assert.AreEqual((0, 100), Angle.Merge(0, 100, 0, 100));
+        Assert.AreEqual((0, 100), Angle.Merge(0, 100, 0, 50));
+        Assert.AreEqual((0, 100), Angle.Merge(0, 100, 50, 100));
+        Assert.AreEqual((0, 100), Angle.Merge(0, 100, 50, 80));
+
+        Assert.AreEqual((0, 100), Angle.Merge(0, 100, 0, 100));
+        Assert.AreEqual((0, 100), Angle.Merge(0, 50, 0, 100));
+        Assert.AreEqual((0, 100), Angle.Merge(50, 100, 0, 100));
+        Assert.AreEqual((0, 100), Angle.Merge(50, 80, 0, 100));
+
+        Assert.AreEqual((0, 100), Angle.Merge(0, 100, 10, 90));
+
+        Assert.AreEqual((0, 100), Angle.Merge(0, 100, 0, 0));
+        Assert.AreEqual((0, 100), Angle.Merge(0, 100, 100, 100));
+        Assert.AreEqual((0, 100), Angle.Merge(0, 0, 0, 100));
+        Assert.AreEqual((0, 100), Angle.Merge(0, 100, 0, 100));
+
+        Assert.AreEqual((270, 90), Angle.Merge(270, 0, 0, 90));
+        Assert.AreEqual((270, 90), Angle.Merge(0, 90, 270, 0));
+
+        Assert.AreEqual((270, 90), Angle.Merge(270, 10, 10, 90));
+        Assert.AreEqual((270, 90), Angle.Merge(10, 90, 270, 10));
+    }
 }
