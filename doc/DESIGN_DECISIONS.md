@@ -88,6 +88,21 @@ Are passed to the preprocessor → s. below under "Visibility check for vertices
 * Just rely on normal geometric collision checks. This is already done, when no shadow area was found but such collision checks are always rather slow compared to simple boolean expressions for a shadow area check.
 * Previous implementations checked the whole area of an obstacle for within-relation (so full intersection) with a shadow area. But since the `BinIndex` class is used (s. below), only point-checks are used to see whether a single point is within a shadow area.
 
+#### Bins for visible vertices
+
+**What this strategy does:** Only one vertex per n° (where n is e.g. 1 or 10 or so) is collected. So if the 100 nearest neighbors are wanted, one neighbor per 3.6° is collected. If multiple visible vertices are within a range (e.g. from 3.6° to 7.2°), then the closest will be chosen.
+
+**Why:** The idea is to collect visible neighbors in every direction. If 100 visible(!) neighbors are in the area of 2°-3°, then it really doesn't matter so much which one to choose. This ensures that routing works in every direction, even across long distances, e.g. across a park.
+
+**Implementation:** For each vertex v, all other vertices are checked. For each other vertex the bearing/angle is calculated, so that it's known what bin this vertex belongs to. Then its distance is checkes - only nearer vertices than currently known for this bin are interesting. Finally the visibility is checked and eventually the bin for this vertex is updated.
+
+**Performance:** This technique also increases performance: For the "stellingen-small" dataset, a 1° bin size required ~1200ms and a 90° bin size ~750ms, so only 62.5% of the 1° time. However, routing quality decreases as well. For 100 nearest visible neighbors, the performance benefit is (for the "stellingen-small" dataset) still around 10-15%.
+
+**Questions:**
+
+* What is the best bin size, how many degrees should be covered?
+* Maybe searching for the most distant visible vertex per bin is more useful? Geometric routing might benefit from long distant edges.
+
 ## Algorithms
 
 For full details on the routing, see the [ALGORITHMS.md](./ALGORITHMS.md) file.
@@ -148,6 +163,8 @@ The angle area of the existing wavelet may have to be adjusted. This only happen
 ##### Index
 
 ###### CITree - A 1D quadtree for intervals
+
+> This data structure is not used anymore (s. below for details)
 
 Storing and querying shadow areas is a challenge, because the 360° == 0° equality and the fast of different distances makes it harder than standard interval problems. Also the data structure should only return full overlaps, not only intersections. Nevertheless, the NetTopologySuite has a `Bintree` implementation, which is a 1D quadtree and can be used for intervals.
 
