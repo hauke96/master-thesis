@@ -237,16 +237,16 @@ public class WavefrontPreprocessor
             result[vertex] = GetVisibleNeighborsForVertex(obstacles, new List<Vertex>(vertices), vertex, neighborCount);
         }
 
-        var vertexPositionDict = new Dictionary<Position, HashSet<Position>>();
-        result.Keys.Each(vertex =>
-        {
-            var visibleNeighbors = result[vertex];
-            var visibleNeighborPositions = visibleNeighbors.Map(v => v.Position);
-            vertexPositionDict[vertex.Position] = new HashSet<Position>(visibleNeighborPositions);
-        });
-
         if (!PerformanceMeasurement.IS_ACTIVE && debugModeActive)
         {
+            var vertexPositionDict = new Dictionary<Position, HashSet<Position>>();
+            result.Keys.Each(vertex =>
+            {
+                var visibleNeighbors = result[vertex];
+                var visibleNeighborPositions = visibleNeighbors.Map(v => v.Position);
+                vertexPositionDict[vertex.Position] = new HashSet<Position>(visibleNeighborPositions);
+            });
+        
             WriteVertexNeighborsToFile(vertexPositionDict, "vertex-visibility.geojson");
         }
 
@@ -254,30 +254,30 @@ public class WavefrontPreprocessor
     }
 
     public static List<Vertex> GetVisibleNeighborsForVertex(QuadTree<Obstacle> obstacles, List<Vertex> vertices,
-        Vertex vertex,
-        int neighborCount)
+        Vertex vertex, int neighborCount)
     {
         var neighborList = new List<Vertex>();
         var shadowAreas = new BinIndex<AngleArea>(360);
         var obstaclesCastingShadow = new HashSet<Obstacle>();
 
         vertices.Remove(vertex);
-        using var sortedVertices = vertices
-            .OrderBy(v => Distance.Euclidean(vertex.Position.PositionArray, v.Position.PositionArray))
-            .GetEnumerator();
 
-        for (var i = 0; i < vertices.Count && neighborList.Count < neighborCount; i++)
+        var degreePerBin = 360 / neighborCount;
+        var neighbors = new Vertex?[360 / degreePerBin];
+        var distances = new double?[360 / degreePerBin];
+        
+        foreach (var otherVertex in vertices)
         {
-            sortedVertices.MoveNext();
-            var otherVertex = sortedVertices.Current;
-            if (Equals(otherVertex, vertex))
+            var angle = (int)Angle.GetBearing(vertex.Coordinate, otherVertex.Coordinate);
+            var binKey = angle / degreePerBin;
+
+            var distanceToOtherVertex =
+                Distance.Euclidean(vertex.Position.PositionArray, otherVertex.Position.PositionArray);
+            if (distanceToOtherVertex >= distances[binKey])
             {
                 continue;
             }
-
-            var angle = Angle.GetBearing(vertex.Position, otherVertex.Position);
-            var distanceToOtherVertex =
-                Distance.Euclidean(vertex.Position.PositionArray, otherVertex.Position.PositionArray);
+                
             var isInShadowArea = IsInShadowArea(shadowAreas, angle, distanceToOtherVertex);
             if (isInShadowArea)
             {
@@ -292,24 +292,33 @@ public class WavefrontPreprocessor
                 {
                     return;
                 }
-
+                
                 if (!obstaclesCastingShadow.Contains(obstacle))
                 {
                     var (angleFrom, angleTo, distance) = obstacle.GetAngleAreaOfObstacle(vertex);
-
+                
                     if (!Double.IsNaN(angleFrom) && !Double.IsNaN(angleTo) && !Double.IsNaN(distance))
                     {
                         shadowAreas.Add(angleFrom, angleTo, new AngleArea(angleFrom, angleTo, distance));
                         obstaclesCastingShadow.Add(obstacle);
                     }
                 }
-
+                
                 intersectsWithObstacle |= obstacle.IntersectsWithLine(vertex.Coordinate, otherVertex.Coordinate);
             }));
 
             if (!intersectsWithObstacle)
             {
-                neighborList.Add(otherVertex);
+                neighbors[binKey] = otherVertex;
+                distances[binKey] = distanceToOtherVertex;
+            }
+        }
+
+        foreach (var neighbor in neighbors)
+        {
+            if (neighbor != null)
+            {
+                neighborList.Add(neighbor);
             }
         }
 
