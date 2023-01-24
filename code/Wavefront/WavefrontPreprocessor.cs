@@ -301,6 +301,13 @@ public class WavefrontPreprocessor
                     {
                         shadowAreas.Add(angleFrom, angleTo, new AngleArea(angleFrom, angleTo, distance));
                         obstaclesCastingShadow.Add(obstacle);
+                        
+                        if (IsInShadowArea(shadowAreas, angle, distanceToOtherVertex))
+                        {
+                            // otherVertex is within newly added shadow areas -> definitely not visible
+                            intersectsWithObstacle = true;
+                            return;
+                        }
                     }
                 }
                 
