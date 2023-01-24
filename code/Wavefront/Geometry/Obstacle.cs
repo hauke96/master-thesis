@@ -119,8 +119,11 @@ namespace Wavefront.Geometry
             var angleFrom = double.NaN;
             var angleTo = double.NaN;
             var previousAngle = double.NaN;
-            var maxDistance = 0d;
-            var coordinateArray = new double[2];
+
+            // Remember the coordinate defining the angleFrom and angleTo area to determine the distance of the shadow
+            // area once it has been established. 
+            Coordinate coordinateFrom = null;
+            Coordinate coordinateTo = null;
 
             // We have to manually go through all coordinates to build the shadow area. This is because the shadow might
             // exceed the 0° border and therefore simple min and max values cannot be used.
@@ -148,33 +151,57 @@ namespace Wavefront.Geometry
 
                     if (double.IsNaN(angleFrom) && double.IsNaN(angleTo))
                     {
+                        // At the first coordinate, there's no angle area yet, so we set it here.
                         angleFrom = newSegmentAngleFrom;
                         angleTo = newSegmentAngleTo;
+                        coordinateFrom = coordinate;
+                        coordinateTo = coordinate;
                     }
                     else
                     {
+                        // TODO fix this, this is too simple. Compare newSegmentAngleFrom/-To and the angleFrom/angleTo range. Merge them correctly here.
+                        var (mergedAngleFrom, mergedAngleTo) =
+                            Angle.Merge(angleFrom, angleTo, newSegmentAngleFrom, newSegmentAngleTo);
+
+                        // If the "from" or "to" angle changed to the angle of the new coordinate, then store the coordinate. 
+                        if (mergedAngleFrom == newSegmentAngleFrom && mergedAngleFrom != angleFrom)
+                        {
+                            coordinateFrom = coordinate;
+                        }
+
+                        if (mergedAngleTo == newSegmentAngleTo && mergedAngleTo != angleTo)
+                        {
+                            coordinateTo = coordinate;
+                        }
+
+                        angleFrom = mergedAngleFrom;
+                        angleTo = mergedAngleTo;
+
                         // We definitely don't have complete overlaps, that (angleFrom, angleTo) is completely in
                         // (a1, a2) and vice versa. Always exactly one side (from or to) is touching the current region.
-                        if (angleFrom == newSegmentAngleTo)
-                        {
-                            // angle area goes  a1 -> a2 == angleFrom -> angleTo
-                            angleFrom = newSegmentAngleFrom;
-                        }
-                        else if (angleTo == newSegmentAngleFrom)
-                        {
-                            // angle area goes  angleFrom -> a1 == angleTo -> a2
-                            angleTo = newSegmentAngleTo;
-                        }
+                        // if (angleFrom == newSegmentAngleTo)
+                        // {
+                        //     // angle area goes  a1 -> a2 == angleFrom -> angleTo
+                        //     angleFrom = newSegmentAngleFrom;
+                        //     coordinateFrom = coordinate;
+                        // }
+                        // else if (angleTo == newSegmentAngleFrom)
+                        // {
+                        //     // angle area goes  angleFrom -> a1 == angleTo -> a2
+                        //     angleTo = newSegmentAngleTo;
+                        //     coordinateTo = coordinate;
+                        // }
                     }
-
-                    coordinateArray[0] = coordinate.X;
-                    coordinateArray[1] = coordinate.Y;
                 }
 
-                var distance = Distance.Euclidean(vertex.Position.PositionArray, coordinateArray);
-                maxDistance = distance > maxDistance ? distance : maxDistance;
                 previousAngle = angleToNewCoordinate;
             }
+
+            var distanceToFromCoordinate = Distance.Euclidean(vertex.Position.PositionArray,
+                new[] { coordinateFrom[0], coordinateFrom[1] });
+            var distanceToToCoordinate = Distance.Euclidean(vertex.Position.PositionArray,
+                new[] { coordinateTo[0], coordinateTo[1] });
+            var maxDistance = Math.Max(distanceToFromCoordinate, distanceToToCoordinate);
 
             return (angleFrom, angleTo, maxDistance);
         }
