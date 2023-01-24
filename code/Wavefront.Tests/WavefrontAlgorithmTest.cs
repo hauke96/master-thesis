@@ -198,6 +198,77 @@ namespace Wavefront.Tests
             }
         }
 
+        public class WithCollinearObstacle
+        {
+            List<Vertex> simpleLineVertices;
+            WavefrontAlgorithm wavefrontAlgorithm;
+
+            [SetUp]
+            public void setup()
+            {
+                var c0 = new Coordinate(1, 1);
+                var c1 = new Coordinate(2, 1);
+                var c2 = new Coordinate(3, 1);
+                var c3 = new Coordinate(4, 1);
+
+                var obstacleGeometries = new List<NetTopologySuite.Geometries.Geometry>();
+                obstacleGeometries.Add(new LineString(new[] { c0, c1 }));
+                obstacleGeometries.Add(new LineString(new[] { c1, c2 }));
+                obstacleGeometries.Add(new LineString(new[] { c2, c3 }));
+                var obstacles = obstacleGeometries.Map(geometry => new Obstacle(geometry));
+
+                simpleLineVertices = new List<Vertex>();
+                simpleLineVertices.Add(new Vertex(c0.ToPosition(), c1.ToPosition()));
+                simpleLineVertices.Add(new Vertex(c1.ToPosition(), c0.ToPosition(), c2.ToPosition()));
+                simpleLineVertices.Add(new Vertex(c2.ToPosition(), c1.ToPosition(), c3.ToPosition()));
+                simpleLineVertices.Add(new Vertex(c3.ToPosition(), c2.ToPosition()));
+
+                wavefrontAlgorithm = new WavefrontAlgorithm(obstacles);
+            }
+
+            [Test]
+            public void CollinearSegmentsCauseNewWavelet()
+            {
+                var relevantVertices = new List<Vertex>();
+                relevantVertices.Add(simpleLineVertices[1]);
+                var wavelet = Wavelet.New(0, 90, simpleLineVertices[0], relevantVertices, 1, false)!;
+                wavefrontAlgorithm.AddWavefront(wavelet);
+
+                wavefrontAlgorithm.ProcessNextEvent(new Position(5, 1), new Stopwatch());
+
+                Assert.AreEqual(0, wavelet.RelevantVertices.Count);
+                var wavelets = ToList(wavefrontAlgorithm.Wavefronts);
+                Assert.IsFalse(wavelets.Contains(wavelet));
+
+                Assert.AreEqual(1, wavelets.Count);
+                var newWavelet = wavelets[0];
+                Assert.AreEqual(new List<Vertex> { simpleLineVertices[2] }, newWavelet.RelevantVertices);
+                Assert.AreEqual(90, newWavelet.FromAngle);
+                Assert.AreEqual(90, newWavelet.ToAngle);
+            }
+
+            [Test]
+            public void CollinearSegments_EndProduces180DegreeWavelet()
+            {
+                var relevantVertices = new List<Vertex>();
+                relevantVertices.Add(simpleLineVertices[3]);
+                var wavelet = Wavelet.New(0, 90, simpleLineVertices[2], relevantVertices, 1, false)!;
+                wavefrontAlgorithm.AddWavefront(wavelet);
+
+                wavefrontAlgorithm.ProcessNextEvent(new Position(5, 1), new Stopwatch());
+
+                Assert.AreEqual(0, wavelet.RelevantVertices.Count);
+                var wavelets = ToList(wavefrontAlgorithm.Wavefronts);
+                Assert.IsFalse(wavelets.Contains(wavelet));
+
+                Assert.AreEqual(1, wavelets.Count);
+                var newWavelet = wavelets[0];
+                Assert.AreEqual(new List<Vertex> { simpleLineVertices[2] }, newWavelet.RelevantVertices);
+                Assert.AreEqual(90, newWavelet.FromAngle);
+                Assert.AreEqual(270, newWavelet.ToAngle);
+            }
+        }
+
         public class WithMultiVertexLineFullyInsideWavefront : WavefrontTestHelper.WithWavefrontAlgorithm
         {
             Wavelet _wavelet;
@@ -391,7 +462,7 @@ namespace Wavefront.Tests
                 wavefrontAlgorithm.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
                     out var angleShadowTo, out var createdWavefront);
 
-                Assert.IsTrue(createdWavefront);
+                Assert.IsNotEmpty(createdWavefront);
                 Assert.AreEqual(18.435, angleShadowFrom, FLOAT_TOLERANCE);
                 Assert.AreEqual(33.69, angleShadowTo, FLOAT_TOLERANCE);
 
@@ -420,7 +491,7 @@ namespace Wavefront.Tests
                 wavefrontAlgorithm.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
                     out var angleShadowTo, out var createdWavefront);
 
-                Assert.IsTrue(createdWavefront);
+                Assert.IsNotEmpty(createdWavefront);
                 Assert.IsNaN(angleShadowFrom);
                 Assert.IsNaN(angleShadowTo);
 
@@ -454,7 +525,7 @@ namespace Wavefront.Tests
                 wavefrontAlgorithm.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
                     out var angleShadowTo, out var createdWavefront);
 
-                Assert.IsTrue(createdWavefront);
+                Assert.IsNotEmpty(createdWavefront);
                 Assert.IsNaN(angleShadowFrom);
                 Assert.IsNaN(angleShadowTo);
 
@@ -484,7 +555,7 @@ namespace Wavefront.Tests
                 wavefrontAlgorithm.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
                     out var angleShadowTo, out var createdWavefront);
 
-                Assert.IsTrue(createdWavefront);
+                Assert.IsNotEmpty(createdWavefront);
                 Assert.AreEqual(243.43, angleShadowTo, FLOAT_TOLERANCE);
                 Assert.AreEqual(213.69, angleShadowFrom, FLOAT_TOLERANCE);
 
@@ -514,7 +585,7 @@ namespace Wavefront.Tests
                 wavefrontAlgorithm.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
                     out var angleShadowTo, out var createdWavefront);
 
-                Assert.IsFalse(createdWavefront);
+                Assert.IsEmpty(createdWavefront);
                 Assert.AreEqual(Double.NaN, angleShadowFrom);
                 Assert.AreEqual(Double.NaN, angleShadowTo);
 
@@ -537,7 +608,7 @@ namespace Wavefront.Tests
                 wavefrontAlgorithm.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
                     out var angleShadowTo, out var createdWavefront);
 
-                Assert.IsFalse(createdWavefront);
+                Assert.IsEmpty(createdWavefront);
                 Assert.AreEqual(Double.NaN, angleShadowFrom);
                 Assert.AreEqual(Double.NaN, angleShadowTo);
 
@@ -562,7 +633,7 @@ namespace Wavefront.Tests
                 wavefrontAlgorithm.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
                     out var angleShadowTo, out var createdWavefront);
 
-                Assert.IsFalse(createdWavefront);
+                Assert.IsEmpty(createdWavefront);
                 Assert.AreEqual(90, angleShadowFrom, FLOAT_TOLERANCE);
                 Assert.AreEqual(180, angleShadowTo, FLOAT_TOLERANCE);
 
@@ -584,7 +655,7 @@ namespace Wavefront.Tests
                 wavefrontAlgorithm.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
                     out var angleShadowTo, out var createdWavefront);
 
-                Assert.IsTrue(createdWavefront);
+                Assert.IsNotEmpty(createdWavefront);
                 Assert.IsNaN(angleShadowFrom);
                 Assert.IsNaN(angleShadowTo);
 
@@ -610,7 +681,7 @@ namespace Wavefront.Tests
                 wavefrontAlgorithm.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
                     out var angleShadowTo, out var createdWavefront);
 
-                Assert.False(createdWavefront);
+                Assert.IsEmpty(createdWavefront);
                 Assert.IsNaN(angleShadowFrom);
                 Assert.IsNaN(angleShadowTo);
 
@@ -630,7 +701,7 @@ namespace Wavefront.Tests
                 wavefrontAlgorithm.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
                     out var angleShadowTo, out var createdWavefront);
 
-                Assert.False(createdWavefront);
+                Assert.IsEmpty(createdWavefront);
                 Assert.IsNaN(angleShadowFrom);
                 Assert.IsNaN(angleShadowTo);
 
@@ -812,13 +883,13 @@ namespace Wavefront.Tests
                     new Coordinate(1, 2),
                     new Coordinate(1, 1),
                     new Coordinate(2, 1)
-                }));
+                })); // -> square
                 obstacleGeometries.Add(new LineString(new[]
                 {
                     new Coordinate(3, 1),
                     new Coordinate(3, 2),
                     new Coordinate(4, 2)
-                }));
+                })); // -> "r"
                 obstacleGeometries.Add(new LineString(new[]
                 {
                     new Coordinate(5, 2),
@@ -826,22 +897,22 @@ namespace Wavefront.Tests
                     new Coordinate(5.5, 1),
                     new Coordinate(6, 1),
                     new Coordinate(6, 2)
-                }));
+                })); // -> "u" with additional collinear vertex in the middle
                 obstacleGeometries.Add(new LineString(new[]
                 {
                     new Coordinate(2, 0.5),
                     new Coordinate(2, 1)
-                }));
+                })); // -> making the square int a "q"
                 obstacleGeometries.Add(new LineString(new[]
                 {
                     new Coordinate(5.5, 0.5),
                     new Coordinate(5.5, 1)
-                }));
+                })); // -> making the u into a kind of "y"
                 obstacleGeometries.Add(new LineString(new[]
                 {
                     new Coordinate(3, 0.5),
                     new Coordinate(3, 1)
-                }));
+                })); // -> make vertical part of "r" longer 
 
                 var obstacles = obstacleGeometries.Map(geometry => new Obstacle(geometry));
 
@@ -861,6 +932,10 @@ namespace Wavefront.Tests
                 {
                     sourceVertex.ToCoordinate(),
                     new Coordinate(1, 2),
+                    new Coordinate(2, 2),
+                    new Coordinate(3, 2),
+                    new Coordinate(4, 2),
+                    new Coordinate(5, 2),
                     new Coordinate(6, 2),
                     targetVertex.ToCoordinate()
                 };
@@ -882,6 +957,7 @@ namespace Wavefront.Tests
                     sourceVertex.ToCoordinate(),
                     new Coordinate(1, 1),
                     new Coordinate(2, 0.5),
+                    new Coordinate(3, 0.5),
                     new Coordinate(5.5, 0.5),
                     new Coordinate(6, 1),
                     targetVertex.ToCoordinate()
@@ -1121,12 +1197,39 @@ namespace Wavefront.Tests
                 var routingResult = wavefrontAlgorithm.Route(source, target);
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
-                Assert.AreEqual(4, waypoints.Count);
+                Assert.AreEqual(5, waypoints.Count);
 
                 Assert.AreEqual(source, waypoints[0]);
                 Assert.AreEqual(line1[2].ToPosition(), waypoints[1]);
-                Assert.AreEqual(line1[0].ToPosition(), waypoints[2]);
-                Assert.AreEqual(target, waypoints[3]);
+                Assert.AreEqual(line1[1].ToPosition(), waypoints[2]);
+                Assert.AreEqual(line1[0].ToPosition(), waypoints[3]);
+                Assert.AreEqual(target, waypoints[4]);
+            }
+
+            [Test]
+            public void HandlingCollinearVertex_CreatesNewWavelet()
+            {
+                var nextVertex = new Vertex(line1[1].ToPosition(), line1[0].ToPosition(), line1[2].ToPosition(),
+                    line2[1].ToPosition());
+                var relevantVertices = new List<Vertex>();
+                relevantVertices.Add(nextVertex);
+
+                var rootVertex = new Vertex(line1[2].ToPosition(), line1[1].ToPosition(), line1[3].ToPosition());
+                var wavelet = Wavelet.New(180, 270, rootVertex, relevantVertices, 1, false)!;
+                wavefrontAlgorithm.AddWavefront(wavelet);
+
+                wavefrontAlgorithm.ProcessNextEvent(new Position(-1, 0), new Stopwatch());
+
+                Assert.AreEqual(0, wavelet.RelevantVertices.Count);
+                var wavelets = ToList(wavefrontAlgorithm.Wavefronts);
+                Assert.IsFalse(wavelets.Contains(wavelet));
+
+                Assert.AreEqual(1, wavelets.Count);
+                var newWavelet = wavelets[0];
+                Assert.AreEqual(1, newWavelet.RelevantVertices.Count);
+                Assert.AreEqual(line1[0], newWavelet.RelevantVertices.ToList()[0].Coordinate);
+                Assert.AreEqual(180, newWavelet.FromAngle);
+                Assert.AreEqual(180, newWavelet.ToAngle);
             }
 
             [Test]
@@ -1186,10 +1289,11 @@ namespace Wavefront.Tests
 
                 Assert.AreEqual(start, waypoints[0]);
                 Assert.AreEqual(obstacle1[3].ToPosition(), waypoints[1]);
-                Assert.AreEqual(obstacle2[3].ToPosition(), waypoints[2]);
-                Assert.AreEqual(obstacle2[0].ToPosition(), waypoints[3]);
-                Assert.AreEqual(target, waypoints[4]);
-                Assert.AreEqual(5, waypoints.Count);
+                Assert.AreEqual(obstacle1[2].ToPosition(), waypoints[2]);
+                Assert.AreEqual(obstacle2[3].ToPosition(), waypoints[3]);
+                Assert.AreEqual(obstacle2[0].ToPosition(), waypoints[4]);
+                Assert.AreEqual(target, waypoints[5]);
+                Assert.AreEqual(6, waypoints.Count);
             }
         }
 

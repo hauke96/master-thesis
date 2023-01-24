@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Mars.Common.Collections;
+using Mars.Common.Core.Collections;
 using ServiceStack;
 using Wavefront.Geometry;
 using Position = Mars.Interfaces.Environments.Position;
@@ -11,7 +12,7 @@ namespace Wavefront
     {
         // Maximum number of visible vertices considered to be neighbors. The term "neighbor" here is the general one
         // across all obstacles.
-        private readonly int knnSearchNeighbors = 100;
+        private readonly int knnSearchNeighbors = 360;
 
         private QuadTree<Obstacle> _obstacles;
 
@@ -300,7 +301,8 @@ namespace Wavefront
             Waypoint waypoint;
             if (!positionToWaypoint.ContainsKey(vertexPosition))
             {
-                waypoint = new Waypoint(vertexPosition, positionToWaypoint.Count, stopwatch.Elapsed.TotalMilliseconds, distanceFromSource);
+                waypoint = new Waypoint(vertexPosition, positionToWaypoint.Count, stopwatch.Elapsed.TotalMilliseconds,
+                    distanceFromSource);
                 waypointToPredecessor[waypoint] = predecessor;
                 positionToWaypoint[vertexPosition] = waypoint;
             }
@@ -316,11 +318,11 @@ namespace Wavefront
         /// <param name="angleShadowTo">The resulting to-angle of a potential shadow area, NaN if no shadow is cast.</param>
         /// <param name="createdWavefrontAtCurrentVertex">True if a new wavelet has been spawned with the root vertex equal to the given currentVertex.</param>
         public void HandleNeighbors(Vertex currentVertex, Wavelet wavelet, out double angleShadowFrom,
-            out double angleShadowTo, out bool createdWavefrontAtCurrentVertex)
+            out double angleShadowTo, out List<Wavelet> createdWavefrontAtCurrentVertex)
         {
             angleShadowFrom = Double.NaN;
             angleShadowTo = Double.NaN;
-            createdWavefrontAtCurrentVertex = false;
+            createdWavefrontAtCurrentVertex = new List<Wavelet>();
 
             var angleRootToCurrentVertex = Angle.GetBearing(wavelet.RootVertex.Position, currentVertex.Position);
             var waveletAngleStartsAtVertex = Angle.AreEqual(wavelet.FromAngle, angleRootToCurrentVertex);
@@ -492,11 +494,11 @@ namespace Wavefront
         /// <param name="verticesFromWavefrontWithSameRoot">True when the given vertices come from a wavelet with the
         /// same root. This is a performance tweak to skip sorting the vertices.</param>
         /// <returns>True when wavelet was created and added, false otherwise.</returns>
-        public bool AddNewWavefront(ICollection<Vertex> relevantVertices, Vertex rootVertex,
+        public List<Wavelet> AddNewWavefront(ICollection<Vertex> relevantVertices, Vertex rootVertex,
             double distanceToRootFromSource,
             double fromAngle, double toAngle, bool verticesFromWavefrontWithSameRoot)
         {
-            bool newWavefrontCreated = false;
+            var newWavefronts = new List<Wavelet?>();
 
             toAngle = Angle.Normalize(toAngle);
             fromAngle = Angle.StrictNormalize(fromAngle);
@@ -508,19 +510,18 @@ namespace Wavefront
              */
             if (Angle.IsBetweenWithNormalize(fromAngle, 0, toAngle))
             {
-                newWavefrontCreated |= AddWavefrontIfValid(relevantVertices, rootVertex, distanceToRootFromSource,
-                    fromAngle,
-                    360, verticesFromWavefrontWithSameRoot);
-                newWavefrontCreated |= AddWavefrontIfValid(relevantVertices, rootVertex, distanceToRootFromSource, 0,
-                    toAngle, verticesFromWavefrontWithSameRoot);
+                newWavefronts.Add(AddWavefrontIfValid(relevantVertices, rootVertex, distanceToRootFromSource,
+                    fromAngle, 360, verticesFromWavefrontWithSameRoot));
+                newWavefronts.Add(AddWavefrontIfValid(relevantVertices, rootVertex, distanceToRootFromSource, 0,
+                    toAngle, verticesFromWavefrontWithSameRoot));
             }
             else
             {
-                newWavefrontCreated |= AddWavefrontIfValid(relevantVertices, rootVertex,
-                    distanceToRootFromSource, fromAngle, toAngle, verticesFromWavefrontWithSameRoot);
+                newWavefronts.Add(AddWavefrontIfValid(relevantVertices, rootVertex,
+                    distanceToRootFromSource, fromAngle, toAngle, verticesFromWavefrontWithSameRoot));
             }
 
-            return newWavefrontCreated;
+            return newWavefronts.WhereNotNull().ToList()!;
         }
 
         /// <summary>
@@ -535,7 +536,7 @@ namespace Wavefront
         /// <param name="verticesFromWavefrontWithSameRoot">True when the given vertices come from a wavelet with the
         /// same root. This is a performance tweak to skip sorting the vertices.</param>
         /// <returns>True when wavelet was created and added, false otherwise.</returns>
-        public bool AddWavefrontIfValid(ICollection<Vertex> relevantVertices,
+        public Wavelet? AddWavefrontIfValid(ICollection<Vertex> relevantVertices,
             Vertex rootVertex, double distanceFromSourceToVertex,
             double fromAngle, double toAngle, bool verticesFromWavefrontWithSameRoot)
         {
@@ -544,10 +545,10 @@ namespace Wavefront
             if (newWavefront != null)
             {
                 AddWavefront(newWavefront);
-                return true;
+                return newWavefront;
             }
 
-            return false;
+            return null;
         }
 
         /// <summary>

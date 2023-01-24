@@ -131,20 +131,20 @@ public class WavefrontPreprocessorTest
                 new Coordinate(2, 2),
                 new Coordinate(1, 2),
                 new Coordinate(1, 1)
-            }));
+            })); // -> square
             obstacleGeometries.Add(new LineString(new[]
             {
                 new Coordinate(3, 1),
                 new Coordinate(3, 2),
                 new Coordinate(4, 2)
-            }));
+            })); // -> "r"
             obstacleGeometries.Add(new LineString(new[]
             {
                 new Coordinate(5, 2),
                 new Coordinate(5, 1),
                 new Coordinate(6, 1),
                 new Coordinate(6, 2),
-            }));
+            })); // -> "u"
 
             obstacles = obstacleGeometries.Map(geometry => new Obstacle(geometry));
             vertices = obstacles.SelectMany(o => o.Coordinates)
@@ -162,28 +162,43 @@ public class WavefrontPreprocessorTest
         {
             var visibleKnn = WavefrontPreprocessor.CalculateVisibleKnn(obstacleQuadTree, 100);
 
+            // vertices[0] = lower left of square 
             var actualCoordinates = visibleKnn[vertices[0]].Map(v => v.Coordinate);
             var expectedCoordinates = new List<Coordinate>
             {
                 obstacles[0].Coordinates[1],
-                obstacles[0].Coordinates[2],
-                obstacles[0].Coordinates[3],
-                obstacles[1].Coordinates[0],
-                obstacles[2].Coordinates[1],
-                obstacles[2].Coordinates[2]
+                obstacles[0].Coordinates[3]
             };
             CollectionAssert.AreEquivalent(expectedCoordinates, actualCoordinates);
 
+            // vertices[1] = lower right of square
+            actualCoordinates = visibleKnn[vertices[1]].Map(v => v.Coordinate);
+            expectedCoordinates = new List<Coordinate>
+            {
+                obstacles[0].Coordinates[0],
+                obstacles[0].Coordinates[2],
+                obstacles[1].Coordinates[0],
+                obstacles[1].Coordinates[1],
+            };
+            CollectionAssert.AreEquivalent(expectedCoordinates, actualCoordinates);
+
+            // vertices[2] = upper right of square
+            actualCoordinates = visibleKnn[vertices[2]].Map(v => v.Coordinate);
+            expectedCoordinates = new List<Coordinate>
+            {
+                obstacles[0].Coordinates[1],
+                obstacles[0].Coordinates[3],
+                obstacles[1].Coordinates[0],
+                obstacles[1].Coordinates[1],
+            };
+            CollectionAssert.AreEquivalent(expectedCoordinates, actualCoordinates);
+
+            // vertices[3] = upper left of square
             actualCoordinates = visibleKnn[vertices[3]].Map(v => v.Coordinate);
             expectedCoordinates = new List<Coordinate>
             {
                 obstacles[0].Coordinates[0],
-                obstacles[0].Coordinates[1],
                 obstacles[0].Coordinates[2],
-                obstacles[1].Coordinates[1],
-                obstacles[1].Coordinates[2],
-                obstacles[2].Coordinates[0],
-                obstacles[2].Coordinates[3]
             };
             CollectionAssert.AreEquivalent(expectedCoordinates, actualCoordinates);
         }
