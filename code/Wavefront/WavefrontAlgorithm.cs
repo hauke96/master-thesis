@@ -380,11 +380,11 @@ namespace Wavefront
                                           Angle.IsBetweenEqual(180, angleVertexToLeftNeighbor, 0);
             var bothNeighborsOnEastSide = Angle.IsBetweenEqual(0, angleVertexToRightNeighbor, 180) &&
                                           Angle.IsBetweenEqual(0, angleVertexToLeftNeighbor, 180);
-            
+
             var rootVertexIsRightNeighbor = rightNeighbor.Equals(wavelet.RootVertex.Position);
             var rootVertexIsLeftNeighbor = leftNeighbor.Equals(wavelet.RootVertex.Position);
             var exactlyOneNeighborIsWaveletRoot = rootVertexIsRightNeighbor && !rootVertexIsLeftNeighbor ||
-                                        rootVertexIsLeftNeighbor && !rootVertexIsRightNeighbor;
+                                                  rootVertexIsLeftNeighbor && !rootVertexIsRightNeighbor;
 
             double angleNewWavefrontFrom = Double.NaN;
             double angleNewWavefrontTo = Double.NaN;
@@ -423,10 +423,9 @@ namespace Wavefront
                     {
                         // Wavefront has a 0° large area from 180° to 180°. This can happen when wavefront travels along
                         // collinear vertices. In such case, the new wavelet is a complete circle since we reached the 
-                        // end of a line.
-                        // TODO funktioniert das hier oder lieber 0-360?
-                        angleNewWavefrontFrom = 180;
-                        angleNewWavefrontTo = 180;
+                        // end of a line. We use the rotation angles here, since they will be subtracted below.
+                        angleNewWavefrontFrom = rotationAngle;
+                        angleNewWavefrontTo = 360 + rotationAngle;
                     }
                     else if (Angle.AreEqual(angleCurrentWavefrontFrom, 0))
                     {
@@ -454,7 +453,8 @@ namespace Wavefront
                     angleNewWavefrontTo = 0;
                 }
             }
-            else if (bothNeighborsOnWestSide && !(Angle.AreEqual(angleCurrentWavefrontTo, 360) && exactlyOneNeighborIsWaveletRoot))
+            else if (bothNeighborsOnWestSide &&
+                     !(Angle.AreEqual(angleCurrentWavefrontTo, 360) && exactlyOneNeighborIsWaveletRoot))
             {
                 // When both neighbors are on the west side, a to-Angle of 360° and one of the neighbors being the root
                 // vertex, would mean that we reached an inner corner. This is not the case here, so we haven't reached
@@ -462,7 +462,8 @@ namespace Wavefront
                 angleNewWavefrontFrom = Math.Max(angleVertexToRightNeighbor, angleVertexToLeftNeighbor);
                 angleNewWavefrontTo = 360;
             }
-            else if (bothNeighborsOnEastSide && !(Angle.AreEqual(angleCurrentWavefrontFrom, 0) && exactlyOneNeighborIsWaveletRoot))
+            else if (bothNeighborsOnEastSide &&
+                     !(Angle.AreEqual(angleCurrentWavefrontFrom, 0) && exactlyOneNeighborIsWaveletRoot))
             {
                 // When both neighbors are on the east side, a from-Angle of 0° and one of the neighbors being the root
                 // vertex, would mean that we reached an inner corner. This is not the case here, so we haven't reached
