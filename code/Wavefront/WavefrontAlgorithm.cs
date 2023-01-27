@@ -309,14 +309,18 @@ namespace Wavefront
         }
 
         /// <summary>
-        /// This method considers the given vertex to be visited by the given wavelet. This might cause a shadow casted
-        /// by the neighbors of this vertex based on their visited status.
+        /// This method considers the given "currentVertex" to be visited by the given wavelet. The main part of this
+        /// method is to determine whether or not a new wavelet is needed. Therefore, this method might create one or
+        /// two (in case the 0° border is exceeded) new wavelets.
+        ///
+        /// In addition to that, based on the angles of "currentVertex"es neighbors, a shadow area cast from the given
+        /// wavelet is determined.
         /// </summary>
-        /// <param name="currentVertex">The vertex visited by the given wavelet</param>
-        /// <param name="wavelet">The wavelet visiting the given vertex</param>
+        /// <param name="currentVertex">The vertex visited by the given wavelet.</param>
+        /// <param name="wavelet">The wavelet visiting the given vertex.</param>
         /// <param name="angleShadowFrom">The resulting from-angle of a potential shadow area, NaN if no shadow is cast.</param>
         /// <param name="angleShadowTo">The resulting to-angle of a potential shadow area, NaN if no shadow is cast.</param>
-        /// <param name="createdWavefrontAtCurrentVertex">True if a new wavelet has been spawned with the root vertex equal to the given currentVertex.</param>
+        /// <param name="createdWavefrontAtCurrentVertex">A list of created wavelets.</param>
         public void HandleNeighbors(Vertex currentVertex, Wavelet wavelet, out double angleShadowFrom,
             out double angleShadowTo, out List<Wavelet> createdWavefrontAtCurrentVertex)
         {
@@ -354,14 +358,14 @@ namespace Wavefront
                 : double.NaN;
 
             /*
-             * Rotate such that the current vertex is always north/up of the wavelet root.
+             * Rotate everything by -r° such that the current vertex is always north/up/at 0° of the wavelet root.
              * 
              * The idea behind it:
-             * When the angles to the right and left neighbor are rotated we can easily check if there's a potential
-             * shadow casted by the neighbors. When both neighbors are on the east side (0°-180°), we know that no other
-             * neighbor is on the west side (180°-360°) and vice versa. This, however, means that there's an edge where
-             * a potential shadow is cast.
-             * If one neighbor is on the west and one on the east side, there's no such shadow.
+             * When the angles to the right and left neighbor are rotated by -r°, we can easily check if there's a
+             * potential shadow casted by the neighbors. When both neighbors are on the east side (0°-180°), we know
+             * that no other relevant neighbor is on the west side (180°-360°) and vice versa.
+             * Knowing this is very helpful for detecting the need and angle of a new wavelet. It also helps to
+             * determine the shadow area.
              */
             var rotationAngle = -angleRootToCurrentVertex;
             var angleCurrentWavefrontFrom = Angle.Normalize(wavelet.FromAngle + rotationAngle);
@@ -371,16 +375,15 @@ namespace Wavefront
             angleVertexToRightNeighbor = Angle.Normalize(angleVertexToRightNeighbor + rotationAngle);
             angleVertexToLeftNeighbor = Angle.Normalize(angleVertexToLeftNeighbor + rotationAngle);
 
-            // Only consider edges to visited vertices to cast a shadow.
-            var rightNeighborHasBeenVisited = wavelet.HasBeenVisited(rightNeighbor);
-            var leftNeighborHasBeenVisited = wavelet.HasBeenVisited(leftNeighbor);
-
-            // Both neighbors on west/east side of root+current vertex -> New wavelet needed for the shadow
+            // Determine if both neighbors are on the west, east or on both sides. This is important to know to
+            // determine if a new wavelet is needed and with what angles. More details can be found further below.
             var bothNeighborsOnWestSide = Angle.IsBetweenEqual(180, angleVertexToRightNeighbor, 0) &&
                                           Angle.IsBetweenEqual(180, angleVertexToLeftNeighbor, 0);
             var bothNeighborsOnEastSide = Angle.IsBetweenEqual(0, angleVertexToRightNeighbor, 180) &&
                                           Angle.IsBetweenEqual(0, angleVertexToLeftNeighbor, 180);
 
+            // To detect inner corners the wavelet just ran into, we have to know if exactly one of the neighbors is the
+            // wavelet root vertex.
             var rootVertexIsRightNeighbor = rightNeighbor.Equals(wavelet.RootVertex.Position);
             var rootVertexIsLeftNeighbor = leftNeighbor.Equals(wavelet.RootVertex.Position);
             var exactlyOneNeighborIsWaveletRoot = rootVertexIsRightNeighbor && !rootVertexIsLeftNeighbor ||
@@ -390,20 +393,24 @@ namespace Wavefront
             double angleNewWavefrontTo = Double.NaN;
 
             /*
-             * Only determine the angles of the new wavelet when
-             *   a) both neighbors are on the west side
-             *   AND
-             *   b) the to-angle of the current wavelet is NOT 360°.
+             * Here two main cases are distinguished:
              * 
-             * Condition b) might be fulfilled when condition a) holds and the wavelets to-side ends at an edge to ont
-             * of the neighbors. This means that one of the neighbors is at 180° since this neighbor is either the root
-             * vertex or a vertex placed exactly on the line between root vertex and neighbor. In this case, the wavelet
-             * has reached an inner corner and no new wavelet is needed. Same holds when both neighbors are on the east
-             * side and the wavelets from-side ends at 0°.
+             *   1. Both neighbors are on the west AND east side. This means that one is at 0° and one at 180° or that
+             *      both are at 180°.
+             *      If one neighbor is at 0° and one at 180°, then we're dealing with collinear neighbors. In this case,
+             *      one neighbor must be the wavelets root vertex. This means, that a new wavelet is needed with an
+             *      angle area of 0° width towards the other neighbor, which is not the root vertex.
+             *      If the neighbors are both at 180°, then they are both equal to the wavelets root and therefore
+             *      the wavelet reached the end of a line segment. In this case, the new wavelet will have an angle
+             *      area of 360° width, because the propagation is not bounded by any edge between the neighbors.
              * 
-             * Here's a sketch where V (simple vertex) and R (root of wavelet) are both neighbors and both on the west.
-             * Imagine the wavelet reached vertex X and has an angle-area of 270° to 360°. Now we know that the wavelet
-             * reached an inner corner and no new wavelet is needed:
+             *   2. The neighbors are either on the west or east side. This means that a new wavelet might be needed but
+             *      it can also mean that the currentVertex is an inner corner and therefore no new wavelet is needed.
+             *      To determine, whether the currentVertex is an inner corner or not, depends on the angles of the
+             *      wavelet.
+             *      The "else if"-blocks below describe the mechanism used to determine inner corners in more detail.
+             *
+             * To make the idea of the east/west considerations more clear, here's an example:
              * 
              *      V         V = Vertex (one of the neighbors)
              *       \
@@ -411,6 +418,18 @@ namespace Wavefront
              *        |
              *        |
              *        R       R = Root of wavelet and also a neighbors
+             * 
+             * Let V (an arbitrary unvisited vertex) and R (root of wavelet) both be neighbors and both on the west
+             * side of an imaginary vertical line through R and X. Let's say the wavelet from R reached vertex X and has
+             * an angle-area of 0° to 90° and that V is at 270° relative to X. Because both neighbors are on the west
+             * side, we know, that the segment (X, V) does not cast a shadow. We also know, that this means, that
+             * there's a need for an wavelet rooted in X with an angle area of 270° to 360°.
+             *
+             * Let's consider a different scenario where the wavelet rooted in R goes from 270° to 360°. In this case,
+             * both neighbors and the wavelets angle area are all on the west side. This means the vertex X is an inner
+             * corner since the wavelets angle area includes the segment (X, V).
+             * In a case where V has been visited, this would be registered as a shadow cast by the segment (X, V). But
+             * more on shadow areas below.
              */
             if (bothNeighborsOnEastSide && bothNeighborsOnWestSide)
             {
@@ -456,7 +475,7 @@ namespace Wavefront
             else if (bothNeighborsOnWestSide &&
                      !(Angle.AreEqual(angleCurrentWavefrontTo, 360) && exactlyOneNeighborIsWaveletRoot))
             {
-                // When both neighbors are on the west side, a to-Angle of 360° and one of the neighbors being the root
+                // When both neighbors are on the west side. A to-Angle of 360° and one of the neighbors being the root
                 // vertex, would mean that we reached an inner corner. This is not the case here, so we haven't reached
                 // an inner corner and can create a wavelet.
                 angleNewWavefrontFrom = Math.Max(angleVertexToRightNeighbor, angleVertexToLeftNeighbor);
@@ -465,20 +484,15 @@ namespace Wavefront
             else if (bothNeighborsOnEastSide &&
                      !(Angle.AreEqual(angleCurrentWavefrontFrom, 0) && exactlyOneNeighborIsWaveletRoot))
             {
-                // When both neighbors are on the east side, a from-Angle of 0° and one of the neighbors being the root
+                // When both neighbors are on the east side. A from-Angle of 0° and one of the neighbors being the root
                 // vertex, would mean that we reached an inner corner. This is not the case here, so we haven't reached
                 // an inner corner and can create a wavelet.
                 angleNewWavefrontFrom = 0;
                 angleNewWavefrontTo = Math.Min(angleVertexToRightNeighbor, angleVertexToLeftNeighbor);
             }
 
-            /*
-             * When do we need a new wavelet? Two conditions must hold:
-             *   1) We must've determined some potential from- and to-angles above, which means that there's a reason
-             *      for a new wavelet in the first place.
-             *   2) One of the neighbors will not be visited by the current wavelet. For example when the wavelet
-             *      reached a corner, one neighbor is "behind" that corner and not visible -> new wavelet needed.
-             */
+            // When do we need a new wavelet? We must've determined some potential from- and to-angles above, which
+            // means that there's a reason for a new wavelet in the first place.
             var newWavefrontNeeded = !double.IsNaN(angleNewWavefrontFrom) && !double.IsNaN(angleNewWavefrontTo);
 
             // Rotate angles back to the actual values because now they are used to determine the return values.
@@ -494,10 +508,33 @@ namespace Wavefront
                     distanceToRootFromSource, angleNewWavefrontFrom, angleNewWavefrontTo, false);
             }
 
-            // Now the shadow areas to the right and left neighbors will be calculated. Only visited neighbors are
-            // considered here, because it can happen that geometries are within the shadow area but closer to the
-            // wavelets root than the respective neighbor. In such a scenario a shadow between the wavelet root and an
-            // UNvisited neighbor would exclude geometries from being visited at all.
+            /*
+             * Shadow areas:
+             * 
+             * Now the shadow areas to the right and left neighbors will be calculated. Only visited neighbors are
+             * considered here, because it can happen that geometries are within the shadow area but closer to the
+             * wavelets root than the respective neighbor. In such a scenario a shadow between the wavelet root and an
+             * UNvisited neighbor would exclude geometries from being visited at all.
+             *
+             * Example:
+             * Let R be the wavelets root, V the next visited vertex an X its neighbor. The vertices Y and Z would be
+             * within the shadow area cast by the segment (V, X). If a shadow area is only determines *after* visiting
+             * X, it would imply that Y and Z have been visited and handled before. In such case, it's safe to cast a
+             * shadow since Y and Z are not relevant vertices for the given wavelet anymore.
+             * 
+             *                  X
+             *               .`
+             *            .`
+             *         .`Y--Z
+             *      .`
+             *    V ..
+             *         `` ..
+             *               R
+             */
+
+            // Only consider edges to visited vertices to cast a shadow.
+            var rightNeighborHasBeenVisited = wavelet.HasBeenVisited(rightNeighbor);
+            var leftNeighborHasBeenVisited = wavelet.HasBeenVisited(leftNeighbor);
 
             double angleRightShadowFrom = Double.NaN;
             double angleRightShadowTo = Double.NaN;
