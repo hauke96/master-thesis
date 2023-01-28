@@ -254,18 +254,22 @@ public class WavefrontPreprocessor
     }
 
     public static List<Vertex> GetVisibleNeighborsForVertex(QuadTree<Obstacle> obstacles, List<Vertex> vertices,
-        Vertex vertex, int neighborCount)
+        Vertex vertex, int neighborCount, int neighborsPerBin = 10)
     {
-        var neighborList = new List<Vertex>();
         var shadowAreas = new BinIndex<AngleArea>(360);
         var obstaclesCastingShadow = new HashSet<Obstacle>();
 
         vertices.Remove(vertex);
 
         var degreePerBin = 360.0 / neighborCount;
-        var neighbors = new Vertex?[neighborCount];
-        var distances = new double?[neighborCount];
-        
+
+        /*
+         * These arrays store the neighbors sorted by their distance from close (at index 0) for furthest. In the end
+         * the "neighbors" array contains the closest "neighborsPerBin"-many neighbors.
+         */
+        var neighbors = new LinkedList<Vertex>?[neighborCount];
+        var maxDistances = new LinkedList<double>?[neighborCount];
+
         foreach (var otherVertex in vertices)
         {
             var angle = Angle.GetBearing(vertex.Coordinate, otherVertex.Coordinate);
@@ -273,8 +277,9 @@ public class WavefrontPreprocessor
 
             var distanceToOtherVertex =
                 Distance.Euclidean(vertex.Position.PositionArray, otherVertex.Position.PositionArray);
-            if (distanceToOtherVertex >= distances[binKey])
+            if (distanceToOtherVertex >= maxDistances[binKey]?.Last?.Value)
             {
+                // TODO does this work or do we need to use double.PositiveInfinity if "Last" is null?
                 continue;
             }
                 
@@ -316,20 +321,66 @@ public class WavefrontPreprocessor
 
             if (!intersectsWithObstacle)
             {
-                neighbors[binKey] = otherVertex;
-                distances[binKey] = distanceToOtherVertex;
+                // For simplicity, only the neighbor list is used for null checks. However, the maxDistance list is
+                // null if and only if the neighbor list is null.
+                
+                if (neighbors[binKey] == null)
+                {
+                    neighbors[binKey] = new LinkedList<Vertex>();
+                    maxDistances[binKey] = new LinkedList<double>();
+                }
+                
+                var neighborList = neighbors[binKey]!;
+                var maxDistanceList = maxDistances[binKey]!;
+
+                var neighborNode = neighborList.Last;
+                var distanceNode = maxDistanceList.Last;
+
+                // Find the first element in the list with a distance lower than the calculated  "distanceToOtherVertex"
+                while (neighborNode != null)
+                {
+                    var distance = distanceNode!.Value;
+
+                    if (distance > distanceToOtherVertex)
+                    {
+                        neighborNode = neighborNode.Previous;
+                        distanceNode = distanceNode.Previous;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                if (neighborNode == null)
+                {
+                    neighborList.AddLast(otherVertex);
+                    maxDistanceList.AddLast(distanceToOtherVertex);
+                }
+                else
+                {
+                    neighborList.AddAfter(neighborNode, otherVertex);
+                    maxDistanceList.AddAfter(distanceNode, distanceToOtherVertex);
+                }
+
+                if (neighborList.Count > neighborsPerBin)
+                {
+                    neighborList.RemoveLast();
+                    maxDistanceList.RemoveLast();
+                }
             }
         }
 
+        var result = new List<Vertex>();
         foreach (var neighbor in neighbors)
         {
             if (neighbor != null)
             {
-                neighborList.Add(neighbor);
+                result.AddRange(neighbor);
             }
         }
 
-        return neighborList;
+        return result;
     }
 
     private static bool IsInShadowArea(BinIndex<AngleArea> shadowAreas, double angle, double distance)
