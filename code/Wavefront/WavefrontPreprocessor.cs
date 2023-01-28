@@ -262,14 +262,14 @@ public class WavefrontPreprocessor
 
         vertices.Remove(vertex);
 
-        var degreePerBin = 360 / neighborCount;
-        var neighbors = new Vertex?[360 / degreePerBin];
-        var distances = new double?[360 / degreePerBin];
+        var degreePerBin = 360.0 / neighborCount;
+        var neighbors = new Vertex?[neighborCount];
+        var distances = new double?[neighborCount];
         
         foreach (var otherVertex in vertices)
         {
-            var angle = (int)Angle.GetBearing(vertex.Coordinate, otherVertex.Coordinate);
-            var binKey = angle / degreePerBin;
+            var angle = Angle.GetBearing(vertex.Coordinate, otherVertex.Coordinate);
+            var binKey = (int)(angle / degreePerBin);
 
             var distanceToOtherVertex =
                 Distance.Euclidean(vertex.Position.PositionArray, otherVertex.Position.PositionArray);
