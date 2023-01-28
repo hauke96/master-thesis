@@ -2,32 +2,16 @@ This document is as of: 2022-12-16 (commit 370041e514750494e6b41f14d6ceaefe9c6fe
 
 # Idea and Strategy
 
-## Pure geometric routing performance
+The evaluation should three times:
 
-One part of the performance evaluation is the measurement of the pure routing performance (including the preprocessing).
+1. Geometric routing only. This tests the preprocessing and routing performance of my code.
+2. Network based routing only. This gives the basis to which my hybrid approach will be compared to.
+3. The hybrid approach, which can be compared to the pure network and geometric approaches.
 
-Not all of the ideas and strategies might be implemented.
+There will be two categories of datasets: Artificial datasets produced by a pattern and real world OSM-based datasets.
+The OSM-based ones can be used in all three steps, the pattern one will only be used for the pure geometric and hybrid routing since no highways are in there, just obstacles.
 
-### Theoretic considerations
-
-The optimum would be a Big-O notation of the algorithm.
-A separate view on preprocessing and routing would be good.
-
-Use these considerations as a kind of hypothesis for the experiments below (check if the experiment data behaves like the theoretic considerations predict it to behave).
-
-TODO: These considerations are still to be done.
-
-### Practical experiment
-
-#### Strategy
-
-1. Different datasets of different sizes
-	1. Full dataset (OSM export, s. below), room dataset (pattern that can easily be scaled)
-	2. Reduced datasets (delete objects): One with half and one with a fourth the vertices
-	3. Reduce accuracy (simplify geometries). If possible: One with half and one with a fourth the vertices
-2. Agent routing: Use the `HikierModel` with differently long distances between the waypoints (like 10m, 100m, 500m, 1000m, 2000m)
-
-#### Data to collect
+## Data to collect
 
 * Import time & memory consumption relative to amount of vertices
 * Routing time & memory consumption relative to
@@ -36,7 +20,14 @@ TODO: These considerations are still to be done.
 	* Amount of vertices
 * Distance difference of euclidean and route distance (Kind of: Optimality of routing results)
 
-#### Visualizations
+## How each experiment is performed
+
+The `HikierModel` will be used and the agent travels through the world based on the given file with waypoints.
+The waypoints have different distances, e.g. 10m, 100m, 500m, 1000m, 2000m.
+
+## Visualization
+
+The following things should be visualized:
 
 1. Length of waypoint distances to show that they are evenly distributed
 2. Vertex count of datasets
@@ -46,12 +37,82 @@ TODO: These considerations are still to be done.
 	2. Separate graphs for the above metrics for `GetNeighborsFromObstacleVertices` and `CalculateVisibleKnn`
 4. Routing
 	1. Time & memory consumption relative to: Euclidean distance (time per m), route distance (time per m), amount of vertices (time per vertex)
-	2. Routing time devided by import time over vertex count (How much work was moved into the import?)
+	2. Routing time divided by import time over vertex count (How much work was moved into the import?)
 	3. Factor of which the route was longer than the euclidean distance relative to the euclidean distance
 
-## Simulation performance
+### Tool
 
-TODO Plan to analyse simulation performance, routing overhead, etc.
+TODO: Find and document visualization tool. Make the usage as automated as possible. Ideally one script should date all the input data and generate all necessary diagrams.
+
+## Evaluation checklist
+
+This is a list of evaluations that should be performed categorized by dataset.
+Details on each dataset can be found below.
+
+### 1. Pure geometric routing
+
+* [ ] Maze like pattern
+	* [ ] Collect data
+	* [ ] Visualize
+* [ ] Square pattern
+	* [ ] Collect data
+	* [ ] Visualize
+* [ ] Circle pattern
+	* [ ] Collect data
+	* [ ] Visualize
+* [ ] Full OSM dataset
+	* [ ] Collect data
+	* [ ] Visualize
+* [ ] OSM dataset with 1/2 the objects
+	* [ ] Collect data
+	* [ ] Visualize
+* [ ] OSM dataset with 1/4 the objects
+	* [ ] Collect data
+	* [ ] Visualize
+
+### 2. Pure network routing
+
+* [ ] Full OSM dataset
+	* [ ] Collect data
+	* [ ] Visualize
+* [ ] OSM dataset with 1/2 the objects
+	* [ ] Collect data
+	* [ ] Visualize
+* [ ] OSM dataset with 1/4 the objects
+	* [ ] Collect data
+	* [ ] Visualize
+
+TODO Clearify the reduces dataset: Just make highways less accurate?
+
+### 3. Hybrid routing
+
+* [ ] Maze like pattern
+	* [ ] Collect data
+	* [ ] Visualize
+* [ ] Square pattern
+	* [ ] Collect data
+	* [ ] Visualize
+* [ ] Circle pattern
+	* [ ] Collect data
+	* [ ] Visualize
+* [ ] Full OSM dataset
+	* [ ] Collect data
+	* [ ] Visualize
+* [ ] OSM dataset with 1/2 the objects
+	* [ ] Collect data
+	* [ ] Visualize
+* [ ] OSM dataset with 1/4 the objects
+	* [ ] Collect data
+	* [ ] Visualize
+
+## Theoretic considerations
+
+The optimum would be a Big-O notation of the algorithm.
+A separate view on preprocessing and routing would be good.
+
+Use these considerations as a kind of hypothesis for the experiments below (check if the experiment data behaves like the theoretic considerations predict it to behave).
+
+TODO: These considerations are still to be done.
 
 # Datasets
 
@@ -60,6 +121,8 @@ TODO Plan to analyse simulation performance, routing overhead, etc.
 See [./datasets/osm-based/README.md](README) for osm-based datasets.
 
 ## Create an artificial pattern based datasets
+
+TODO: Maybe move this documentation to the `datasets/pattern-based` folder?
 
 There's the `DatasetCreator` project.
 Execute the `DatasetCreator.dll` without parameters to get usage information.
@@ -70,6 +133,8 @@ The pattern is then scaled and repeated to fit exactly within the given area.
 Coordinates will be snapped to each other (which connects near line strings) and coordinates near a line will be snapped to the closest point on that line (again connecting line strings).
 
 # Run the evaluation
+
+TODO Rework this and see if it still applies, is complete and correct.
 
 To run the evaluation, I used the CLI to be able to run the whole process using `sudo`.
 This allows the model to set the thread priority to "high" so that the evaluation process runs more or less on its own thread.
