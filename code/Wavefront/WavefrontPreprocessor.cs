@@ -177,7 +177,7 @@ public class WavefrontPreprocessor
         });
     }
 
-    public static Dictionary<Vertex, List<Vertex>> CalculateVisibleKnn(QuadTree<Obstacle> obstacles, int neighborCount, bool debugModeActive = false)
+    public static Dictionary<Vertex, List<Vertex>> CalculateVisibleKnn(QuadTree<Obstacle> obstacles, int neighborBinCount, int neighborsPerBin = 10, bool debugModeActive = false)
     {
         Log.D("Get direct neighbors on each obstacle geometry");
         Dictionary<Position, List<Position>> positionToNeighbors = new();
@@ -203,7 +203,7 @@ public class WavefrontPreprocessor
         result = PerformanceMeasurement.ForFunction(() =>
         {
             vertexNeighbors =
-                CalculateVisibleKnnInternal(obstacles, vertices, neighborCount, debugModeActive);
+                CalculateVisibleKnnInternal(obstacles, vertices, neighborBinCount, neighborsPerBin, debugModeActive);
         }, "CalculateVisibleKnn");
         result.Print();
         result.WriteToFile();
@@ -212,10 +212,10 @@ public class WavefrontPreprocessor
     }
 
     private static Dictionary<Vertex, List<Vertex>> CalculateVisibleKnnInternal(QuadTree<Obstacle> obstacles,
-        List<Vertex> vertices, int neighborCount, bool debugModeActive = false)
+        List<Vertex> vertices, int neighborBinCount, int neighborsPerBin = 10, bool debugModeActive = false)
     {
         var result = new Dictionary<Vertex, List<Vertex>>();
-        Log.D($"Calculate nearest {neighborCount} visible neighbors for each vertex");
+        Log.D($"Calculate nearest visible neighbors for each vertex. Bin size is {neighborBinCount} with {neighborsPerBin} neighbors per bin.");
 
         var i = 1;
         var verticesPerPercent = vertices.Count / 100d;
@@ -234,7 +234,7 @@ public class WavefrontPreprocessor
 
             i++;
 
-            result[vertex] = GetVisibleNeighborsForVertex(obstacles, new List<Vertex>(vertices), vertex, neighborCount);
+            result[vertex] = GetVisibleNeighborsForVertex(obstacles, new List<Vertex>(vertices), vertex, neighborBinCount, neighborsPerBin);
         }
 
         if (!PerformanceMeasurement.IS_ACTIVE && debugModeActive)
@@ -253,7 +253,6 @@ public class WavefrontPreprocessor
         return result;
     }
 
-    // TODO make neighborsPerBin configurable
     public static List<Vertex> GetVisibleNeighborsForVertex(QuadTree<Obstacle> obstacles, List<Vertex> vertices,
         Vertex vertex, int neighborBinCount, int neighborsPerBin = 10)
     {

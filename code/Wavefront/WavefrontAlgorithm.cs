@@ -10,9 +10,8 @@ namespace Wavefront
 {
     public class WavefrontAlgorithm
     {
-        // Maximum number of visible vertices considered to be neighbors. The term "neighbor" here is the general one
-        // across all obstacles.
-        private readonly int knnSearchNeighbors = 36;
+        public int KnnSearchNeighborBins { get; set; } = 36;
+        public int KnnSearchNeighborsPerBin { get; set; } = 10;
 
         private QuadTree<Obstacle> _obstacles;
 
@@ -41,7 +40,7 @@ namespace Wavefront
             _debugModeActive = debugModeActive;
             _obstacles = WavefrontPreprocessor.SplitObstacles(obstacles);
             _vertexNeighbors =
-                WavefrontPreprocessor.CalculateVisibleKnn(_obstacles, knnSearchNeighbors, _debugModeActive);
+                WavefrontPreprocessor.CalculateVisibleKnn(_obstacles, KnnSearchNeighborBins, KnnSearchNeighborsPerBin, _debugModeActive);
             Vertices = _vertexNeighbors.Keys.ToList();
 
             Reset();
@@ -81,11 +80,11 @@ namespace Wavefront
 
             _vertexNeighbors[sourceVertex] =
                 WavefrontPreprocessor.GetVisibleNeighborsForVertex(_obstacles, Vertices, sourceVertex,
-                    knnSearchNeighbors);
+                    KnnSearchNeighborBins);
 
             var neighborsOfTarget =
                 WavefrontPreprocessor.GetVisibleNeighborsForVertex(_obstacles, Vertices, targetVertex,
-                    knnSearchNeighbors);
+                    KnnSearchNeighborBins);
             // TODO Find a better way to add the target to the existing neighbors lists?
             neighborsOfTarget.Each(neighbor => _vertexNeighbors[neighbor].Add(targetVertex));
 
