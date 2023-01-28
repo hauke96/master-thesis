@@ -253,22 +253,23 @@ public class WavefrontPreprocessor
         return result;
     }
 
+    // TODO make neighborsPerBin configurable
     public static List<Vertex> GetVisibleNeighborsForVertex(QuadTree<Obstacle> obstacles, List<Vertex> vertices,
-        Vertex vertex, int neighborCount, int neighborsPerBin = 10)
+        Vertex vertex, int neighborBinCount, int neighborsPerBin = 10)
     {
         var shadowAreas = new BinIndex<AngleArea>(360);
         var obstaclesCastingShadow = new HashSet<Obstacle>();
 
         vertices.Remove(vertex);
 
-        var degreePerBin = 360.0 / neighborCount;
+        var degreePerBin = 360.0 / neighborBinCount;
 
         /*
          * These arrays store the neighbors sorted by their distance from close (at index 0) for furthest. In the end
          * the "neighbors" array contains the closest "neighborsPerBin"-many neighbors.
          */
-        var neighbors = new LinkedList<Vertex>?[neighborCount];
-        var maxDistances = new LinkedList<double>?[neighborCount];
+        var neighbors = new LinkedList<Vertex>?[neighborBinCount];
+        var maxDistances = new LinkedList<double>?[neighborBinCount];
 
         foreach (var otherVertex in vertices)
         {
@@ -277,7 +278,7 @@ public class WavefrontPreprocessor
 
             var distanceToOtherVertex =
                 Distance.Euclidean(vertex.Position.PositionArray, otherVertex.Position.PositionArray);
-            if (distanceToOtherVertex >= maxDistances[binKey]?.Last?.Value)
+            if (maxDistances[binKey]?.Count == neighborsPerBin && distanceToOtherVertex >= maxDistances[binKey]?.Last?.Value)
             {
                 // TODO does this work or do we need to use double.PositiveInfinity if "Last" is null?
                 continue;
@@ -387,7 +388,7 @@ public class WavefrontPreprocessor
     {
         foreach (var area in shadowAreas.Query(angle))
         {
-            if (distance > area.Distance && Angle.IsBetween(area.From, angle, area.To))
+            if (distance > area.Distance && Angle.IsBetweenEqual(area.From, angle, area.To))
             {
                 return true;
             }

@@ -12,7 +12,7 @@ namespace Wavefront
     {
         // Maximum number of visible vertices considered to be neighbors. The term "neighbor" here is the general one
         // across all obstacles.
-        private readonly int knnSearchNeighbors = 360;
+        private readonly int knnSearchNeighbors = 36;
 
         private QuadTree<Obstacle> _obstacles;
 

@@ -114,6 +114,95 @@ public class WavefrontPreprocessorTest
         }
     }
 
+    public class CalculateVisibleKnn
+    {
+        private QuadTree<Obstacle> obstacleQuadTree;
+        private List<Vertex> vertices;
+        private List<Obstacle> obstacles;
+        
+        [SetUp]
+        public void Setup()
+        {
+            var obstacleGeometries = new List<NetTopologySuite.Geometries.Geometry>();
+            obstacleGeometries.Add(new LineString(new[]
+            {
+                new Coordinate(2, 2),
+                new Coordinate(2, 0.5)
+            }));
+            obstacleGeometries.Add(new LineString(new[]
+            {
+                new Coordinate(1, 1),
+                new Coordinate(1, 0.9),
+                new Coordinate(1, 0.8),
+                new Coordinate(1, 0.7),
+                new Coordinate(1, 0.6),
+                new Coordinate(1, 0.5),
+                new Coordinate(1, 0.4),
+                new Coordinate(1, 0.3),
+                new Coordinate(1, 0.2),
+                new Coordinate(1, 0.1),
+                new Coordinate(1, 0),
+                new Coordinate(1, -0.1),
+            }));
+
+            obstacles = obstacleGeometries.Map(geometry => new Obstacle(geometry));
+            vertices = obstacles.SelectMany(o => o.Coordinates)
+                .Map(c => new Vertex(c.ToPosition()))
+                .Distinct()
+                .ToList();
+            ;
+
+            obstacleQuadTree = new QuadTree<Obstacle>();
+            obstacles.Each(o => obstacleQuadTree.Insert(o.Envelope, o));
+        }
+
+        [Test]
+        public void CalculateVisibleKnn_onlyNearest()
+        {
+            var visibleKnn = WavefrontPreprocessor.CalculateVisibleKnn(obstacleQuadTree, 1);
+
+            // vertices[0] = vertex at (2, 2)
+            var actualCoordinates = visibleKnn[vertices[0]].Map(v => v.Coordinate);
+            var expectedCoordinates = new List<Coordinate>
+            {
+                obstacles[0].Coordinates[1],
+                obstacles[1].Coordinates[0],
+                obstacles[1].Coordinates[1],
+                obstacles[1].Coordinates[2],
+                obstacles[1].Coordinates[3],
+                obstacles[1].Coordinates[4],
+                obstacles[1].Coordinates[5],
+                obstacles[1].Coordinates[6],
+                obstacles[1].Coordinates[7],
+                obstacles[1].Coordinates[8]
+            };
+            CollectionAssert.AreEquivalent(expectedCoordinates, actualCoordinates);
+        }
+
+        [Test]
+        public void CalculateVisibleKnn_someWithSameDistance()
+        {
+            var visibleKnn = WavefrontPreprocessor.CalculateVisibleKnn(obstacleQuadTree, 1);
+
+            // vertices[0] = vertex at (2, 0.5)
+            var actualCoordinates = visibleKnn[vertices[1]].Map(v => v.Coordinate);
+            var expectedCoordinates = new List<Coordinate>
+            {
+                obstacles[1].Coordinates[0],
+                obstacles[1].Coordinates[1],
+                obstacles[1].Coordinates[2],
+                obstacles[1].Coordinates[3],
+                obstacles[1].Coordinates[4],
+                obstacles[1].Coordinates[5],
+                obstacles[1].Coordinates[6],
+                obstacles[1].Coordinates[7],
+                obstacles[1].Coordinates[8],
+                obstacles[1].Coordinates[9],
+            };
+            CollectionAssert.AreEquivalent(expectedCoordinates, actualCoordinates);
+        }
+    }
+
     public class WithAlignedObstacle
     {
         private QuadTree<Obstacle> obstacleQuadTree;
