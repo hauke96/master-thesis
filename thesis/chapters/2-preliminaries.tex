@@ -136,8 +136,9 @@
 		Popular standards are the \term{Web Map Service} (\term*{WMS}), \term{Web Map Tile Service} (\term*{WMTS}) and \term{Web Feature Service} (\term*{WFS}).
 		
 		Each API has a \texttt{REQUEST} parameter used to specify a operation to perform.
-		This can be an operation to get metadata about the service itself (for example with \texttt{GetCapabilities}), but can also be a specific operation to interact with the data.
+		This can be an operation to get metadata of the service itself (for example with \texttt{GetCapabilities}), but can also be a specific operation to interact with the data.
 		Each operation accepts additional parameters, for example the extent from with data is requested or the output format.
+		
 		
 		\subsubsection{WMS -- Web Map Service}
 		
@@ -154,7 +155,7 @@
 		
 			To access raw data, a \term*{Web Feature Service} can be used\cite{ogc-wfs}.
 			As the name suggests, it returns features instead of a rendered map.
-			Next to query operations like \texttt{GetFeature}, the API specifies operations lik \texttt{Transaction} to change the data.
+			Next to query operations like \texttt{GetFeature}, the API specification also describes an optional \texttt{Transaction} operation to change the data.
 	
 	\subsection{GIS}
 	
