@@ -57,16 +57,25 @@
 \PassOptionsToPackage{obeyspaces}{url} % Allow spaces in URLs
 \PassOptionsToPackage{spaces}{url}     % Enable line breaks in URLs
 
+%
+% BibTex, Index, etc.
+%
 \usepackage[toc, page]{appendix}
-\usepackage[backend=bibtex8,style=numeric,sorting=none,urldate=long]{biblatex}
+\usepackage[
+	backend=bibtex8,
+	style=numeric,
+	sorting=none,
+	urldate=long,
+	backref
+]{biblatex}
 \usepackage{imakeidx}
 \usepackage{hyperref}
 \usepackage[noabbrev]{cleveref}
 
-%
-% Index
-%
 \makeindex[intoc,columns=2,options= -s index-style.ist]
+\addbibresource{sources.bib}
+\let\oldCite\cite
+\renewcommand{\cite}[2][]{ \oldCite[#1]{#2}} % Add space before citation
 
 %
 % Commands
@@ -92,13 +101,6 @@
 		#2\index{#1}%
 	}%
 }
-
-%
-% BibTeX
-%
-\addbibresource{sources.bib}
-\let\oldCite\cite
-\renewcommand{\cite}[2][]{ \oldCite[#1]{#2}} % Add space before citation
 
 %
 % General page styling
