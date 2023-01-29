@@ -40,7 +40,7 @@ Current approaches for network based routing, like Dijkstra's and the A* algorit
 Optimizations and the usage of better data structures lead to further performance enhancements making the use of such routing algorithm on large scale networks possible.
 Even though, the performance is good enough for larger networks, like the road network of the USA\cite[5]{aviram-optimizing-dijkstra}, further speed up methods exist, to further decrease query times.
 One popular speed up method are \term{contraction hierarchies}, which basically add additional edges as shortcuts between important nodes\cite{geisberger-contraction-hierarchies}.
-Using such techniques enables global routing request being processed within milliseconds\footnote{Tested for a routing request from Hamburg, Germany to Beijing, China on \href{https://www.openstreetmap.org/directions?engine=fossgis\_osrm\_car&route=53.55\%2C10.00\%3B39.91\%2C116.39}{openstreetmap.org} using the OSRM car profile. The HTTP request returned the result -- including network latency of several milliseconds -- in under 215ms.}
+Using such techniques enables global routing request being processed within milliseconds\footnote{Tested for a routing request from Hamburg, Germany to Beijing, China on \href{https://www.openstreetmap.org/directions?engine=fossgis\_osrm\_car&route=53.55\%2C10.00\%3B39.91\%2C116.39}{openstreetmap.org} using the OSRM car profile. The HTTP request returned the result in under 215ms -- including network latency of several milliseconds.}
 
 % this thesis: combine both worlds: Good data of networks and flexibility of geom. routing
 This thesis proposes, implements and evaluates a hybrid routing algorithm that combines geometric with network based routing.

@@ -108,7 +108,7 @@
 			One format to store such raster data in form of an image, is the OGC standardized \term{GeoTIFF} format.
 			As the name suggests, it is an TIFF formatted image with spatial metadata such as the CRS and a mapping of pixel to coordinates\cite{ogc-geotiff}.
 			Typical use cases for such images are aerial or satellite imagery and digital elevation models (DEM).
-			
+		
 		\subsubsection{Other formats}
 		
 			\todo[inline]{Citations needed}
@@ -118,16 +118,43 @@
 			A \term{CSV} file can also serve as a spatial file format where certain columns contain geographical information.
 			However, there is no popular standard using CSV files for geodata.
 			
-			The \term{well known text} (\term*{WKT}) format is a simple text based format used to store spatial data for example in databases.
-			It also exists in a binary version (called \term*{WKB}), which consumes less space.
+			The \term{Well-known Text} (\term*{WKT}) format is a simple, text based format specified by the OGC\cite[51]{ogc-sfa}.
+			One popular use case is communication with databases.
+			One example is PostGIS, an extension to the Postgres database management system, which uses WKT as one exchange format to read and write spatial data\cite{postgis-doc-wkt}.
+			The WKT format also exists as a binary version called \term{Well-known Binary} (\term*{WKB}), which consumes less space.
 			
 			More complex formats are \term{SpatiaLite} and \term{GeoPackage}.
-			SpatiaLite specifies an extension to file based SQLite database and offers additional geodata specific functionality\cite{spatialite-website}.
-			The GeoPackage is based on an SQLite database as well but diverged from the SpatiaLite format, for example by using a different WKB encoding\cite{geopackage-faq}.
+			SpatiaLite specifies an extension to file based SQLite database engine and offers additional geodata specific functionality\cite{spatialite-website}.
+			The GeoPackage is based on an SQLite database as well, but it diverged from the SpatiaLite format, for example by using a different WKB encoding\cite{geopackage-faq}.
 			
-			Next to these local and file based formats, there are web based standards as well.
-			The OGC also standardized some APIs for web based services.
-			Popular standards are the \term{Web Map Service} (\term*{WMS}), \term{Web Map Tile Service} (\term*{WMTS}) and \term{Web Feature Service} (\term*{WFS}).
+	
+	
+	\subsection{OGC web services}
+	
+		Next to the above mentioned local and file based formats, there are web based standards as well.
+		The OGC standardized some APIs for web based services.
+		Popular standards are the \term{Web Map Service} (\term*{WMS}), \term{Web Map Tile Service} (\term*{WMTS}) and \term{Web Feature Service} (\term*{WFS}).
+		
+		Each API has a \texttt{REQUEST} parameter used to specify a operation to perform.
+		This can be an operation to get metadata about the service itself (for example with \texttt{GetCapabilities}), but can also be a specific operation to interact with the data.
+		Each operation accepts additional parameters, for example the extent from with data is requested or the output format.
+		
+		\subsubsection{WMS -- Web Map Service}
+		
+			A \term*{Web Map Service} provides access to rendered images from geodata but not the the underlying raw data used to create the image.
+			However, one optional operation a WMS API might support, is the \texttt{GetFeatureInfo} operation\cite[38]{ogc-wms}, which returns more information about features in the image, but does not necessarily return the raw data.
+		
+		\subsubsection{WMTS -- Web Map Tile Service}
+		
+			Similar to a WMS service, the \term*{Web Map Tile Service} specification was created to provide a more scalable service providing rendered maps\cite[12]{ogc-wmts}.
+			Each request returns a tile with a fixed bounding box, making server and client side caching possible.
+			While a WMS can be used for dynamic and changing data, WMTS focuses on more static data, which can be prerendered to increase performance\cite[13]{ogc-wmts}.
+		
+		\subsubsection{WFS -- Web Feature Service}
+		
+			To access raw data, a \term*{Web Feature Service} can be used\cite{ogc-wfs}.
+			As the name suggests, it returns features instead of a rendered map.
+			Next to query operations like \texttt{GetFeature}, the API specifies operations lik \texttt{Transaction} to change the data.
 	
 	\subsection{GIS}
 	
