@@ -35,6 +35,7 @@
 		The map projection used for the final map is independent from the data and only affects the visualization.
 
 	\subsection{Data structures}
+	\label{subsec:data-structures}
 	
 		Spatial data can have a variety of data structures.
 		Some of these are used in many or all frameworks and formats, but some are vendor specific.
@@ -178,10 +179,16 @@
 		\subsubsection{Data model}
 		
 			The model of OSM is much simpler compared to many of the \hyperref[subsec:file-formats]{above mentioned} data formats.
-			There are two basic geometry types called \term{node} and \term{way} which are the same as for example \texttt{Point} and \texttt{LineString} in the GeoJSON format \todo{or OGC context?}\cite{osm-wiki-data-model}.
-			Closed ways, where the first and last coordinate are equal, form an \term{area} or -- in GeoJSON terminology -- a \texttt{Polygon}.
-			A third type, called \term{relation}, can be used to combine multiple other geometries into a new feature.
-			This can be used to form multi-polygons or other entities built up from several features, like turn restrictions or bus routes.
+			There are three main data types in OSM: \term{node}, \term{way} and \term{relations}\cite{osm-wiki-data-model}.
+			
+			Nodes and ways are analogous to \texttt{Point} and \texttt{LineString} from the OGC Simple Feature Access (SFA) specification described in \cref{subsec:data-structures}.
+			Areas also exist but they are modeled as closed ways, therefore they do not form a new type of geometry.
+			A way is closed, when the first and last coordinates are identical, and thus are analogous to a \texttt{Polygon} in the SFA specification.
+			
+			Relations form multi-geometries, so they are analogous to \texttt{MultiPoint}, \texttt{MultiLineString} and \texttt{MultiPolygon} of the SFA specification.
+			Typical use cases are multipolygons (for example a lake in a forest), turn restrictions and bus routes.
+			Each element in a relation can have the optional attribute \texttt{role} specifying \enquote{the function of a member in the relation}\cite{osm-wiki-relation}.
+			Example values for this role are \texttt{outer} and \texttt{inner} for rings in a multipolygon or \texttt{stop} and \texttt{platform} in a bus route relation.
 			
 		\subsubsection{Attributes}
 		\label{subsubsec:osm-attributes}
@@ -222,14 +229,13 @@
 		
 			Since OSM has no focus on specific topics and due to the flexible tagging scheme (see \cref{subsubsec:osm-attributes}) nearly anything can be added to OSM.
 			However, there are some types of features that are very common according to the \href{https://taginfo.openstreetmap.org/keys}{taginfo.openstreetmap.org}, a service providing basic statistics about the currently used keys and values\cite{taginfo-keys}.
+			The statistics cover the whole OSM database and are updated once per day.
 			
-			According to them, the most common objects are buildings with over 542 million occurrences.
+			According to these statistics, the most common objects are buildings with over 542 million occurrences.
 			In fact 6\% of all objects and nearly 60\% of all ways in OSM are buildings.
 			Highways (mainly roads and streets but also paths, bridleways, railways and more) are the second common type of features with over 233 million occurrences.
 			Addresses are also very common, about 32\% of all nodes and 7\% of all ways have a house number.
 			Other area features like forests or lakes exist a lot as well as line features like barriers and waterways.
-			
-			\todo[inline]{Describe data relevant for this thesis?}
 			
 		\subsubsection{Data \textit{not} contained in OSM}
 		
@@ -252,6 +258,13 @@
 			Private areas, however, do often not exist at all or have very little details.
 			This is mainly due to reason two from above and rooted in a common sense of privacy towards companies and residents.
 			But also the areas in question are often not accessible to everyone, rendering them unverifiable for unauthorized people.
+			
+		\subsubsection{Data used in this thesis}
+		
+			This thesis uses OSM data for routing purposes.
+			Since geometric routing is the major topic, certain features in OSM are used as obstacles to navigate between them.
+			
+			\todo[inline]{Describe the exact features used during evaluation.}
 
 \section{Routing}
 
