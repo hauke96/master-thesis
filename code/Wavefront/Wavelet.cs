@@ -87,10 +87,8 @@ public class Wavelet
 
     private bool IsRelevant(Vertex vertex, double bearing)
     {
-        if (bearing == 0 && Equals(RootVertex, vertex))
+        if (Equals(RootVertex, vertex))
         {
-            // TODO Can the  bearing == 0  be removed?
-            // 0° is an indicator that the vertex might be the current root -> therefore not relevant
             return false;
         }
 
