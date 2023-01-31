@@ -159,7 +159,6 @@ namespace Wavefront.Geometry
                     }
                     else
                     {
-                        // TODO fix this, this is too simple. Compare newSegmentAngleFrom/-To and the angleFrom/angleTo range. Merge them correctly here.
                         var (mergedAngleFrom, mergedAngleTo) =
                             Angle.Merge(angleFrom, angleTo, newSegmentAngleFrom, newSegmentAngleTo);
 

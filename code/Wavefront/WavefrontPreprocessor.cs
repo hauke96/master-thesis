@@ -279,7 +279,6 @@ public class WavefrontPreprocessor
                 Distance.Euclidean(vertex.Position.PositionArray, otherVertex.Position.PositionArray);
             if (maxDistances[binKey]?.Count == neighborsPerBin && distanceToOtherVertex >= maxDistances[binKey]?.Last?.Value)
             {
-                // TODO does this work or do we need to use double.PositiveInfinity if "Last" is null?
                 continue;
             }
                 
