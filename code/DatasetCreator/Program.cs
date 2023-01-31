@@ -16,11 +16,11 @@ public static class Program
     {
         CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
 
-        if (args.Length != 6)
+        if (args.Length != 8)
         {
-            Console.WriteLine(@$"ERROR: 6 arguments required but {args.Length} found.
+            Console.WriteLine(@$"ERROR: 8 arguments required but {args.Length} found.
 
-Usage: {{minX}} {{minY}} {{maxX}} {{maxY}} {{horiz-nu}} {{vert-nu}}
+Usage: {{minX}} {{minY}} {{maxX}} {{maxY}} {{horiz-nu}} {{vert-nu}} {{snapping}} {{file}}
 
 Parameters:
   minX      Minimum x-coordinate of the output area (double value).
@@ -28,7 +28,9 @@ Parameters:
   maxX      Maximum x-coordinate of the output area (double value).
   maxY      Maximum y-coordinate of the output area (double value).
   horiz-nu  Number of pattern repetitions in horizontal direction (integer value). 
-  vert-nu   Number of pattern repetitions in vertical direction (integer value).");
+  vert-nu   Number of pattern repetitions in vertical direction (integer value).
+  snapping  Set to 'true', when the coordinates should be snapped to nearby geometries. This reduces performance.
+  file      The GeoJSON file that should be used.");
 
             Environment.Exit(1);
         }
@@ -39,13 +41,15 @@ Parameters:
         var maxY = double.Parse(args[3]);
         var patternRepetitionsX = int.Parse(args[4]);
         var patternRepetitionsY = int.Parse(args[5]);
+        var snappingEnabled = bool.Parse(args[6]);
+        var inputFile = args[7];
         var widthPerPattern = (maxX - minX) / patternRepetitionsX;
         var heightPerPattern = (maxY - minY) / patternRepetitionsY;
 
         GeometryCollection? geometryCollection;
         // geometryCollection = new WKTFileReader("Resources/pattern.wkt", new WKTReader()).Read()[0] as GeometryCollection;
 
-        var jsonData = File.ReadAllText("Resources/pattern.geojson");
+        var jsonData = File.ReadAllText(inputFile);
         var featureCollection = new GeoJsonReader().Read<FeatureCollection>(jsonData);
         geometryCollection = new GeometryCollection(featureCollection.Map(f => f.Geometry).ToArray());
 
@@ -58,34 +62,48 @@ Parameters:
             .Scale(1 / originalWidth, 1 / originalHeight)
             .Transform(geometryCollection) as GeometryCollection;
 
-        await writeAsFeaturesToFile(geometryCollection.Geometries.ToList(), "./translated-scaled-pattern.geojson");
+        // await writeAsFeaturesToFile(geometryCollection.Geometries.ToList(), "./translated-scaled-pattern.geojson");
 
         // Scale and translate the pattern and do that for each requested pattern.
-        var resultGeometries = new List<Geometry>();
+        var transformedGeometries = new List<Geometry>();
         for (var x = 0; x < patternRepetitionsX; x++)
         {
             for (var y = 0; y < patternRepetitionsY; y++)
             {
-                var translatedGeometries = AffineTransformation.ScaleInstance(widthPerPattern, heightPerPattern)
+                var translatedGeometry = AffineTransformation.ScaleInstance(widthPerPattern, heightPerPattern)
                     .Translate(minX + x * widthPerPattern, minY + y * heightPerPattern)
                     .Transform(geometryCollection);
-                resultGeometries.AddRange((translatedGeometries as GeometryCollection).Geometries);
+                transformedGeometries.AddRange((translatedGeometry as GeometryCollection).Geometries);
             }
         }
 
-        // Merge vertices and snap line ends to other lines.
-        var allGeometries = new GeometryCollection(resultGeometries.ToArray());
-        var unsnappedGeometries = new List<Geometry>(resultGeometries);
-        var snappedGeometries = new List<Geometry>();
-        foreach (var unsnappedGeometry in unsnappedGeometries)
+        var resultGeometries = new List<Geometry>();
+        var unsnappedGeometries = new List<Geometry>(transformedGeometries);
+
+        if (snappingEnabled)
         {
-            var snappedGeometry = new GeometrySnapper(unsnappedGeometry).SnapTo(allGeometries, 0.00001);
-            snappedGeometry = new GeometrySnapper(snappedGeometry).SnapToSelf(0.00001, true);
-            snappedGeometries.Add(snappedGeometry);
+            // Merge vertices and snap line ends to other lines.
+            var allGeometries = new GeometryCollection(resultGeometries.ToArray());
+            var allCoordinates = new HashSet<Coordinate>(allGeometries.Coordinates);
+            var allCoordinatesSorted = new Coordinate[allCoordinates.Count];
+            allCoordinates.CopyTo(allCoordinatesSorted, 0);
+            Array.Sort(allCoordinatesSorted);
+
+            foreach (var unsnappedGeometry in unsnappedGeometries)
+            {
+                var snapTrans = new SnapTransformer(0.00001, allCoordinatesSorted);
+                var snappedGeometry = snapTrans.Transform(unsnappedGeometry);
+                snappedGeometry = new GeometrySnapper(snappedGeometry).SnapToSelf(0.00001, true);
+                resultGeometries.Add(snappedGeometry);
+            }
+        }
+        else
+        {
+            resultGeometries = unsnappedGeometries;
         }
 
-        var outputGeojsonFile = $"./obstacles_{patternRepetitionsX}x{patternRepetitionsY}.geojson";
-        await writeAsFeaturesToFile(snappedGeometries, outputGeojsonFile);
+        var outputGeojsonFile = $"./pattern_{patternRepetitionsX}x{patternRepetitionsY}.geojson";
+        await writeAsFeaturesToFile(resultGeometries, outputGeojsonFile);
     }
 
     private static async Task writeAsFeaturesToFile(List<Geometry> snappedGeometries, string outputGeojsonFile)
