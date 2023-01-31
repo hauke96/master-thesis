@@ -274,6 +274,12 @@ public class WavefrontPreprocessor
         {
             var angle = Angle.GetBearing(vertex.Coordinate, otherVertex.Coordinate);
             var binKey = (int)(angle / degreePerBin);
+            
+            if (binKey == neighborBinCount)
+            {
+                // This can rarely happen and an "if" is faster than doing module.
+                binKey = 0;
+            }
 
             var distanceToOtherVertex =
                 Distance.Euclidean(vertex.Position.PositionArray, otherVertex.Position.PositionArray);
