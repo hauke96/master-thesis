@@ -91,7 +91,8 @@ public class WavefrontPreprocessor
     /// Neighbor here means across obstacles.
     /// </summary>
     /// <returns>A dict from position to a duplicate free list of all neighbors found.</returns>
-    public static Dictionary<Position, List<Position>> GetNeighborsFromObstacleVertices(IList<Obstacle> obstacles, bool debugModeActive = false)
+    public static Dictionary<Position, List<Position>> GetNeighborsFromObstacleVertices(IList<Obstacle> obstacles,
+        bool debugModeActive = false)
     {
         // A function that determines if any obstacles is between the two given coordinates.
         var isCoordinateHidden = (Coordinate coordinate, Coordinate otherCoordinate, Obstacle obstacleOfCoordinate) =>
@@ -177,7 +178,8 @@ public class WavefrontPreprocessor
         });
     }
 
-    public static Dictionary<Vertex, List<Vertex>> CalculateVisibleKnn(QuadTree<Obstacle> obstacles, int neighborBinCount, int neighborsPerBin = 10, bool debugModeActive = false)
+    public static Dictionary<Vertex, List<Vertex>> CalculateVisibleKnn(QuadTree<Obstacle> obstacles,
+        int neighborBinCount, int neighborsPerBin = 10, bool debugModeActive = false)
     {
         Log.D("Get direct neighbors on each obstacle geometry");
         Dictionary<Position, List<Position>> positionToNeighbors = new();
@@ -215,7 +217,8 @@ public class WavefrontPreprocessor
         List<Vertex> vertices, int neighborBinCount, int neighborsPerBin = 10, bool debugModeActive = false)
     {
         var result = new Dictionary<Vertex, List<Vertex>>();
-        Log.D($"Calculate nearest visible neighbors for each vertex. Bin size is {neighborBinCount} with {neighborsPerBin} neighbors per bin.");
+        Log.D(
+            $"Calculate nearest visible neighbors for each vertex. Bin size is {neighborBinCount} with {neighborsPerBin} neighbors per bin.");
 
         var i = 1;
         var verticesPerPercent = vertices.Count / 100d;
@@ -234,7 +237,8 @@ public class WavefrontPreprocessor
 
             i++;
 
-            result[vertex] = GetVisibleNeighborsForVertex(obstacles, new List<Vertex>(vertices), vertex, neighborBinCount, neighborsPerBin);
+            result[vertex] = GetVisibleNeighborsForVertex(obstacles, new List<Vertex>(vertices), vertex,
+                neighborBinCount, neighborsPerBin);
         }
 
         if (!PerformanceMeasurement.IS_ACTIVE && debugModeActive)
@@ -246,7 +250,7 @@ public class WavefrontPreprocessor
                 var visibleNeighborPositions = visibleNeighbors.Map(v => v.Position);
                 vertexPositionDict[vertex.Position] = new HashSet<Position>(visibleNeighborPositions);
             });
-        
+
             WriteVertexNeighborsToFile(vertexPositionDict, "vertex-visibility.geojson");
         }
 
@@ -274,7 +278,7 @@ public class WavefrontPreprocessor
         {
             var angle = Angle.GetBearing(vertex.Coordinate, otherVertex.Coordinate);
             var binKey = (int)(angle / degreePerBin);
-            
+
             if (binKey == neighborBinCount)
             {
                 // This can rarely happen and an "if" is faster than doing module.
@@ -283,11 +287,12 @@ public class WavefrontPreprocessor
 
             var distanceToOtherVertex =
                 Distance.Euclidean(vertex.Position.PositionArray, otherVertex.Position.PositionArray);
-            if (maxDistances[binKey]?.Count == neighborsPerBin && distanceToOtherVertex >= maxDistances[binKey]?.Last?.Value)
+            if (maxDistances[binKey]?.Count == neighborsPerBin &&
+                distanceToOtherVertex >= maxDistances[binKey]?.Last?.Value)
             {
                 continue;
             }
-                
+
             var isInShadowArea = IsInShadowArea(shadowAreas, angle, distanceToOtherVertex);
             if (isInShadowArea)
             {
@@ -302,16 +307,16 @@ public class WavefrontPreprocessor
                 {
                     return;
                 }
-                
+
                 if (!obstaclesCastingShadow.Contains(obstacle))
                 {
                     var (angleFrom, angleTo, distance) = obstacle.GetAngleAreaOfObstacle(vertex);
-                
+
                     if (!Double.IsNaN(angleFrom) && !Double.IsNaN(angleTo) && !Double.IsNaN(distance))
                     {
                         shadowAreas.Add(angleFrom, angleTo, new AngleArea(angleFrom, angleTo, distance));
                         obstaclesCastingShadow.Add(obstacle);
-                        
+
                         if (IsInShadowArea(shadowAreas, angle, distanceToOtherVertex))
                         {
                             // otherVertex is within newly added shadow areas -> definitely not visible
@@ -320,7 +325,7 @@ public class WavefrontPreprocessor
                         }
                     }
                 }
-                
+
                 intersectsWithObstacle |= obstacle.IntersectsWithLine(vertex.Coordinate, otherVertex.Coordinate);
             }));
 
@@ -328,13 +333,13 @@ public class WavefrontPreprocessor
             {
                 // For simplicity, only the neighbor list is used for null checks. However, the maxDistance list is
                 // null if and only if the neighbor list is null.
-                
+
                 if (neighbors[binKey] == null)
                 {
                     neighbors[binKey] = new LinkedList<Vertex>();
                     maxDistances[binKey] = new LinkedList<double>();
                 }
-                
+
                 var neighborList = neighbors[binKey]!;
                 var maxDistanceList = maxDistances[binKey]!;
 

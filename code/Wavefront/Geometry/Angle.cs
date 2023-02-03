@@ -191,7 +191,7 @@ public class Angle
             // Areas touch on the to1 point.
             return (from1, to2);
         }
-        
+
         if (AreEqual(from1, to2))
         {
             // Areas touch on the from1 point.

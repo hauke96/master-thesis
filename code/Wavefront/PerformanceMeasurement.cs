@@ -122,7 +122,7 @@ public class PerformanceMeasurement
     {
         private readonly string _name;
         private readonly Dictionary<string, List<object>> _values;
-        
+
         private int _rowCount;
 
         public RawResult(string name)

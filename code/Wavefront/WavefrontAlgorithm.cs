@@ -35,14 +35,16 @@ namespace Wavefront
         private readonly int _knnSearchNeighborBins;
         private readonly int _knnSearchNeighborsPerBin;
 
-        public WavefrontAlgorithm(List<Obstacle> obstacles, bool debugModeActive = false, int knnSearchNeighborBins = 36, int knnSearchNeighborsPerBin = 10)
+        public WavefrontAlgorithm(List<Obstacle> obstacles, bool debugModeActive = false,
+            int knnSearchNeighborBins = 36, int knnSearchNeighborsPerBin = 10)
         {
             _debugModeActive = debugModeActive;
             _knnSearchNeighborBins = knnSearchNeighborBins;
             _knnSearchNeighborsPerBin = knnSearchNeighborsPerBin;
             _obstacles = WavefrontPreprocessor.SplitObstacles(obstacles);
             _vertexNeighbors =
-                WavefrontPreprocessor.CalculateVisibleKnn(_obstacles, _knnSearchNeighborBins, _knnSearchNeighborsPerBin, _debugModeActive);
+                WavefrontPreprocessor.CalculateVisibleKnn(_obstacles, _knnSearchNeighborBins, _knnSearchNeighborsPerBin,
+                    _debugModeActive);
             Vertices = _vertexNeighbors.Keys.ToList();
 
             Reset();
@@ -87,11 +89,12 @@ namespace Wavefront
             var neighborsOfTarget =
                 WavefrontPreprocessor.GetVisibleNeighborsForVertex(_obstacles, Vertices, targetVertex,
                     _knnSearchNeighborBins);
-            
+
             neighborsOfTarget.Each(neighbor => _vertexNeighbors[neighbor].Add(targetVertex));
 
             // TODO Optimize this: When the target is visible from the source, we don't need any routing at all.
-            if (!_vertexNeighbors[sourceVertex].Contains(targetVertex) && isTargetVisibleFromSource(sourceVertex, targetVertex))
+            if (!_vertexNeighbors[sourceVertex].Contains(targetVertex) &&
+                isTargetVisibleFromSource(sourceVertex, targetVertex))
             {
                 _vertexNeighbors[sourceVertex].Add(targetVertex);
             }
