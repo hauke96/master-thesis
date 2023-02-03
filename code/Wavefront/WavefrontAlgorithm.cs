@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Mars.Common.Collections;
 using Mars.Common.Core.Collections;
+using NetTopologySuite.Geometries;
 using ServiceStack;
 using Wavefront.Geometry;
 using Position = Mars.Interfaces.Environments.Position;
@@ -86,8 +87,14 @@ namespace Wavefront
             var neighborsOfTarget =
                 WavefrontPreprocessor.GetVisibleNeighborsForVertex(_obstacles, Vertices, targetVertex,
                     _knnSearchNeighborBins);
-            // TODO Find a better way to add the target to the existing neighbors lists?
+            
             neighborsOfTarget.Each(neighbor => _vertexNeighbors[neighbor].Add(targetVertex));
+
+            // TODO Optimize this: When the target is visible from the source, we don't need any routing at all.
+            if (!_vertexNeighbors[sourceVertex].Contains(targetVertex) && isTargetVisibleFromSource(sourceVertex, targetVertex))
+            {
+                _vertexNeighbors[sourceVertex].Add(targetVertex);
+            }
 
             var initialWavelet = Wavelet.New(0, 360, sourceVertex, _vertexNeighbors[sourceVertex], 0, false);
             if (initialWavelet == null)
@@ -118,6 +125,23 @@ namespace Wavefront
             }
 
             return new RoutingResult(waypoints, GetAllRoutes());
+        }
+
+        private bool isTargetVisibleFromSource(Vertex source, Vertex target)
+        {
+            var envelope = new Envelope(source.Coordinate, target.Coordinate);
+            var intersectsWithObstacle = false;
+            _obstacles.Query(envelope, (Action<Obstacle>)(obstacle =>
+            {
+                if (intersectsWithObstacle || !obstacle.CanIntersect(envelope))
+                {
+                    return;
+                }
+
+                intersectsWithObstacle |= obstacle.IntersectsWithLine(source.Coordinate, target.Coordinate);
+            }));
+
+            return !intersectsWithObstacle;
         }
 
         private List<List<Waypoint>> GetAllRoutes()
