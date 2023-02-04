@@ -275,7 +275,7 @@
 	
 		Formally, routing describes the process of finding an optimal path within a graph $G=(V, E)$ from a start location $s$ to a target location $t$ with $s, t \in V$.
 		A path is an ordered list of connected vertices $p=\left\langle v_0, v_1, \dots v_n \right\rangle$, so for an edge $(v_i, v_j)$ of consecutive vertices, $(v_i, v_j) \in E$ must hold.
-		In geometric routing approaches (see \cref{subsubsec:geometric-routing}), the result may be a list of coordinates that do not need to be within $V$.
+		In geometric routing approaches (see \cref{subsec:geometric-routing}), the result may be a list of coordinates that do not need to be within $V$.
 		
 		Often, \enquote{optimal} means shortest, whereby the length of an edge is considered as arbitrary weight and is therefore not bound to geographic lengths of edges.
 		In theoretic computer science, the fundamental problem behind routing algorithms is the \term{shortest-path problem}.
@@ -320,16 +320,31 @@
 		Routing engines, such as Graphhopper, come with predefined profiles for different modalities and situations.
 		For example the \texttt{car\_delivery} profile is made for delivery services using cars and therefore allowing to drive on private roads\cite{graphhopper-routing-profiles}.
 		
+		To enhance performance, speed up methods were developed to be able to perform fast routing queries on datasets of continental sizes.
+		Popular methods are \term{contraction hierarchies}, the usage of \term{landmarks}, \term[transit node]{transit nodes} and \term[hub label]{hub labels}.
+		Even though there are several more approaches to increase performance, the mentioned techniques will be described in the following sections.
+		
 		\subsubsection{Contraction Hierarchies}
 		
+			Contraction hierarchies are based on the idea to add so called \emph{shortcut edges} between nodes\cite{geisberger-contraction-hierarchies}.
+			Consider a vertex $u$ with edges incoming edge $(v, u)$ and outgoing edge $(u, w)$.
+			Vertex $u$ is \emph{contracted} by adding a new edge $e = (v, w)$ with weight $w(e) = w(v, u) + w(u, w)$.
+			If $e$ already exists with a higher weight, the weight is decreased accordingly.
 			
+			A very important part of this technique is the selection of nodes to contract\cite[14]{geisberger-contraction-hierarchies}.
+			The nodes are selected by a total order $<$ defining a level of importance to each node.
+			Selecting the correct order is difficult and heuristics are used to approximate a perfect ordering.
+			Heuristics can be the difference in edge counts from before and after contraction, the uniformity of the distribution of contractions or the resulting size of the query search space.
+			The vertices are stored in a priority queue based on a linear combination of all used heuristics and the most attractive vertex is processed first.
 		
 		\subsubsection{Landmarks}
 		
-			\todo[inline]{Landmarks}
+		\subsubsection{Transit nodes}
+		
+		\subsubsection{Hub labels}
 	
-	\subsubsection{Geometric routing}
-	\label{subsubsec:geometric-routing}
+	\subsection{Geometric routing}
+	\label{subsec:geometric-routing}
 	
 		Geometric routing determines shortest paths via open spaces by avoiding obstacles.
 		Because this way of routing is based on geometric properties, attributes of edges (for example the surface conditions) are of no use.

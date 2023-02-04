@@ -34,12 +34,13 @@ It therefore can be seen as a kind of pre-processing.
 The second approach does not create such graph but stores its shortest-path information for each source vertex $s$ in a map.
 It therefore subdivides the plain into regions with common predecessor vertices.
 Following these predecessors back to $s$, gives the shortest path to a given location.
-This approach is also called the \term{continuous dijkstra} paradigm, which will be described in detail in \cref{subsubsec:geometric-routing}.
+This approach is also called the \term{continuous dijkstra} paradigm, which will be described in detail in \cref{subsec:geometric-routing}.
 
 Current approaches for network based routing, like Dijkstra's and the A* algorithm, are well understood and used in science and real world applications.
 Optimizations and the usage of better data structures lead to further performance enhancements making the use of such routing algorithm on large scale networks possible.
 Even though, the performance is good enough for larger networks, like the road network of the USA\cite[5]{aviram-optimizing-dijkstra}, further speed up methods exist, to further decrease query times.
 One popular speed up method are \term{contraction hierarchies}, which basically add additional edges as shortcuts between important nodes\cite{geisberger-contraction-hierarchies}.
+\todo[inline]{Mention landmarks and other?}
 Using such techniques enables global routing request being processed within milliseconds\footnote{Tested for a routing request from Hamburg, Germany to Beijing, China on \href{https://www.openstreetmap.org/directions?engine=fossgis\_osrm\_car&route=53.55\%2C10.00\%3B39.91\%2C116.39}{openstreetmap.org} using the OSRM car profile. The HTTP request returned the result in under 215ms -- including network latency of several milliseconds.}
 
 % this thesis: combine both worlds: Good data of networks and flexibility of geom. routing

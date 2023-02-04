@@ -77,6 +77,11 @@
 \let\oldCite\cite
 \renewcommand{\cite}[2][]{ \oldCite[#1]{#2}} % Add space before citation
 
+\NewBibliographyString{diplomathesis}
+\DefineBibliographyStrings{english}{
+	diplomathesis = {diploma thesis},
+}
+
 %
 % Commands
 %
