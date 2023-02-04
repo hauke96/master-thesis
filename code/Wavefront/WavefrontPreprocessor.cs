@@ -229,8 +229,7 @@ public class WavefrontPreprocessor
         {
             if (i > nextProcessOutput)
             {
-                Log.D(
-                    $"  {Math.Round((1000 * i * verticesPerPercent / vertices.Count) / verticesPerPercent) / 10.0}% done ({stopWatch.ElapsedMilliseconds}ms)");
+                Log.D($"  {(int)(i / verticesPerPercent)}% done ({stopWatch.ElapsedMilliseconds}ms)");
                 stopWatch.Restart();
                 nextProcessOutput += verticesPerPercent;
             }
@@ -380,6 +379,9 @@ public class WavefrontPreprocessor
                 }
             }
         }
+        
+        // The vertex was removed above, so we re-add it here.
+        vertices.Add(vertex);
 
         var result = new List<Vertex>();
         foreach (var neighbor in neighbors)

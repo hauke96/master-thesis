@@ -73,33 +73,38 @@ namespace Wavefront
 
             Reset();
 
+            // The data will be changed (e.g. vertices and neighbor-relations added), so a copy is used for each routing call. 
+            var vertices = Vertices.CreateCopy();
+            var obstacles = _obstacles.CreateCopy();
+            var vertexNeighbors = _vertexNeighbors.CreateCopy();
+
             var sourceVertex = new Vertex(source);
-            Vertices.Add(sourceVertex);
+            vertices.Add(sourceVertex);
 
             var targetVertex = new Vertex(target);
-            Vertices.Add(targetVertex);
+            vertices.Add(targetVertex);
 
             SetPredecessor(source, null, stopwatch, WaypointToPredecessor, PositionToWaypoint, 0);
             SetPredecessor(source, null, stopwatch, WaveletRootPredecessor, WaveletRootToWaypoint, 0);
 
-            _vertexNeighbors[sourceVertex] =
-                WavefrontPreprocessor.GetVisibleNeighborsForVertex(_obstacles, Vertices, sourceVertex,
+            vertexNeighbors[sourceVertex] =
+                WavefrontPreprocessor.GetVisibleNeighborsForVertex(obstacles, vertices, sourceVertex,
                     _knnSearchNeighborBins);
 
             var neighborsOfTarget =
-                WavefrontPreprocessor.GetVisibleNeighborsForVertex(_obstacles, Vertices, targetVertex,
+                WavefrontPreprocessor.GetVisibleNeighborsForVertex(obstacles, vertices, targetVertex,
                     _knnSearchNeighborBins);
 
-            neighborsOfTarget.Each(neighbor => _vertexNeighbors[neighbor].Add(targetVertex));
+            neighborsOfTarget.Each(neighbor => vertexNeighbors[neighbor].Add(targetVertex));
 
             // TODO Optimize this: When the target is visible from the source, we don't need any routing at all.
-            if (!_vertexNeighbors[sourceVertex].Contains(targetVertex) &&
+            if (!vertexNeighbors[sourceVertex].Contains(targetVertex) &&
                 isTargetVisibleFromSource(sourceVertex, targetVertex))
             {
-                _vertexNeighbors[sourceVertex].Add(targetVertex);
+                vertexNeighbors[sourceVertex].Add(targetVertex);
             }
 
-            var initialWavelet = Wavelet.New(0, 360, sourceVertex, _vertexNeighbors[sourceVertex], 0, false);
+            var initialWavelet = Wavelet.New(0, 360, sourceVertex, vertexNeighbors[sourceVertex], 0, false);
             if (initialWavelet == null)
             {
                 return new RoutingResult();
@@ -115,9 +120,6 @@ namespace Wavefront
             {
                 ProcessNextEvent(target, stopwatch);
             }
-
-            // Clean up the list for future uses of the Route() method
-            neighborsOfTarget.Each(neighbor => _vertexNeighbors[neighbor].Remove(targetVertex));
 
             List<Waypoint> waypoints = new List<Waypoint>();
 
