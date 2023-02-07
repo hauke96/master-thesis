@@ -329,6 +329,27 @@
 		\subsubsection{A*}
 		\label{subsubsec:astar}
 		
+			The A* shortest-path algorithm was introduced in 1968 and uses a heuristic $h : V \rightarrow \mathbb{R}$ to decide that vertex to visit next.
+			
+			It is rather simple and can be expressed as follows.
+			The path from $s$ to $t$ is requested and $h$ is the heuristic.
+			
+			\begin{algorithm}
+				\caption{Pseudocode of the originally proposed A* algorithm.}
+				\begin{algorithmic}
+					\State Mark $s$ as \emph{open}
+					\State Set $u = s$
+					\While{$u \neq t$}
+						\State Mark $u$ as \emph{closed}
+						\State Store $u$ to output graph $G_s$
+						\State Mark all non-closed successors of $u$ as \emph{open}
+						\State Mark each closed successor $u'$ of $u$ as \emph{open} when $h(u')$ became lower since it has been marked as \emph{closed}
+						\State Select open vertex $u$ with minimal $h(u)$
+					\EndWhile
+					\State Take $G_s$, follow $t$ back to the source $s$ and output the path
+				\end{algorithmic}
+			\end{algorithm}
+		
 		\subsubsection{Contraction Hierarchies}
 		
 			Contraction hierarchies are based on the idea to reduce the amount of hops made by a routing algorithm by adding so called \emph{shortcut edges} between nodes \cite{geisberger-contraction-hierarchies}.
