@@ -324,6 +324,11 @@
 		Popular methods are \term{contraction hierarchies}, the usage of \term{landmarks}, \term[transit node]{transit nodes} and \term[hub label]{hub labels}.
 		Even though there are several more approaches to increase performance, the mentioned techniques will be described in the following sections.
 		
+		\subsubsection{Dijkstra}
+		
+		\subsubsection{A*}
+		\label{subsubsec:astar}
+		
 		\subsubsection{Contraction Hierarchies}
 		
 			Contraction hierarchies are based on the idea to reduce the amount of hops made by a routing algorithm by adding so called \emph{shortcut edges} between nodes \cite{geisberger-contraction-hierarchies}.
@@ -345,6 +350,21 @@
 			All shortcut edges must now be recursively relaxed to create the actual shortest path.
 		
 		\subsubsection{Landmarks}
+		
+			A popular usage of so called \term[landmark]{landmarks} is the ALT algorithm, which stands for A*, landmarks and triangle inequality \cite{goldberg-landmarks}.
+			As described in \cref{subsubsec:astar}, the A* algorithm needs a heuristic leading the search for the shortest path towards the target vertex.
+			This heuristic is often the euclidean distance divided by a certain speed.
+			This is simple but rather inaccurate.
+			
+			A better, but also more complex, approach is the use of landmarks.
+			Landmarks are vertices to which all distances are calculated in a precomputation step.
+			
+			Consider a distance function $d : V \times V \rightarrow \mathbb{R}$, two vertices $u$ and $v$ as well as a landmark vertex $l$.
+			The triangle inequality says $d(u,v) \geq d(u,l) - d(v,l)$ for the distances \emph{to} $l$ but also $d(u,v) \geq d(l,u) - d(l,v)$ for distances \emph{from} $l$.
+			This can be used to build the heuristic $h(u) = \max{d(u,l)-d(v,l), d(l,u)-d(l,v)}$ for all landmarks $l$ \cite[6-7]{goldberg-landmarks}.
+			
+			Thanks to the triangle inequality, the A* algorithm can use this to determine good choices for next vertices.
+			Since the heuristic consist of the tightest bound by using the $\max$ function, the value estimated distance to $t$ using the heuristic is likely to increase or decrease when the actual distance does the same.
 		
 		\subsubsection{Transit nodes}
 		
