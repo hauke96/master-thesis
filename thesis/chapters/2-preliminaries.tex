@@ -282,6 +282,7 @@
 		However, the shortest path problem exists in several variants\cite[644]{cormen-introduction-to-alg}:
 		
 		\subsubsection{\term*[single-source shortest-paths]{Single-source shortest-paths}}
+		\label{subsubsec:single-source-shortest-path}
 		
 			One source vertex is given and the shortest paths to all other vertices should be determined.
 			This is the most common problem for real world applications as it also solves related problems described below.
@@ -302,6 +303,7 @@
 			This problem is solved once the single-source problem has been solved.
 		
 		\subsubsection{\term*[all-pair shortest-paths]{All-pair shortest-paths}}
+		\label{subsubsec:all-pair-shortest-path}
 		
 			This problem is similar to the single-pair problem but is not restricted to a single source vertex.
 			A naive approach would be to use an algorithm solving the single-pair problem on each vertex, but there are faster ways to solve this.
@@ -389,7 +391,35 @@
 		
 		\subsubsection{Transit nodes}
 		
+			This routing technique uses specially selected vertices, so called \term[transit node]{transit nodes}, and a the distances between them and all other vertices to find shortest paths very quickly \cite{bast-transit}.
+		
+			First, the graph is divided into smaller cells.
+			Local queries using Dijkstra are then used to determine the transit nodes.
+			A good transit node is a vertex through which many shortest paths lead to vertices in more distant cells \cite[6]{bast-transit}. 
+			Since Dijkstra solved the single-source shortest-paths problem (described in \cref{subsubsec:single-source-shortest-path}), the distances from any normal vertex to its nearest transit nodes are stored.
+			The final step of the preprocessing is the calculation of the distances between all transit nodes, which means solving the all-pair shortest-path problem as described in \cref{subsubsec:all-pair-shortest-path}.
+			
+			Having the distances between transit nodes and the distances from any other vertex to its closest transit nodes makes it easy to compute distances between arbitrary vertices.
+			This is done by the two following routines.
+			
+			The first routine calculates just the distance of the shortest path using the precomputed values from above \cite[7-8]{bast-transit}.
+			Given a start vertex $src \in V$ and target vertex $trg \in V$, the distance $d(src, trg)$ needs to be known.
+			All distances $d(src, t_{src})$ for each transit node $t_{src} \in T_{src}$, which are the closest transit nodes of $src$, are precomputed an known.
+			Same holds for all distances $d(t_{trg}, trg)$ from each closest transit node $t_{trg} \in T_{trg}$ to $trg$.
+			The minimal distance between $src$ and $trg$ can be found by going through all pairs of the closest transit nodes $t_{src} \in T_{src}$ and $t_{trg} \in T_{trg}$ and calculating $d(src, trg) = d(src, t_{src}) + d(t_{src}, t_{trg}) + d(t_{trg}, trg)$.
+			
+			The second routing is the actual query routine, which returns the edges of the shortest path, is quite simple \cite[8]{bast-transit}:
+			First, calculate $d(src, trg)$ and let $u$ be the currently visited vertex, initially $u = src$.
+			The distance from $u$ to the target can be calculated by $d(u, trg) = d(src, trg) - d(src, u)$ of which $d(src, u)$ is known since we started at $src$ and can simply remember the traveled distance so far.
+			Next, find the adjacent vertex $v$ of $u$ for which $d(u, trg) = d(u, v) + d(v, trg)$ holds.
+			The distance $d(v, trg)$ can easily be computed with the above mentioned routine.
+			Finally, store $u$ to a list, let $u$ the the vertex $v$ and repeat the described steps.
+			
+			After reaching the target, the list of stored vertices build the shortest path.
+		
 		\subsubsection{Hub labels}
+		
+		\subsubsection{Compressed path databases}
 	
 	\subsection{Geometric routing}
 	\label{subsec:geometric-routing}
