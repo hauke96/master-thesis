@@ -285,9 +285,7 @@
 		\label{subsubsec:single-source-shortest-path}
 		
 			One source vertex is given and the shortest paths to all other vertices should be determined.
-			This is the most common problem for real world applications as it also solves related problems described below.
-			
-			\todo[inline]{Algorithms}
+			This is solved using algorithm like Dijkstra, which will be described in detail in \cref{subsubsec:dijkstra}.
 		
 		\subsubsection{\term*[single-destination shortest-paths]{Single-destination shortest-paths}}
 		
@@ -300,7 +298,7 @@
 		\subsubsection{\term*[single-pair shortest-paths]{Single-pair shortest-paths}}
 		
 			Like the single-source but shortest paths from one source to one target vertex are requested.
-			This problem is solved once the single-source problem has been solved.
+			Even though algorithms like TRANSIT (described in \cref{subsubsec:transit}) solve this problem efficiently, other approaches like Dijkstra, which actually solves the single-source problem, are used more often.
 		
 		\subsubsection{\term*[all-pair shortest-paths]{All-pair shortest-paths}}
 		\label{subsubsec:all-pair-shortest-path}
@@ -327,18 +325,48 @@
 		Even though there are several more approaches to increase performance, the mentioned techniques will be described in the following sections.
 		
 		\subsubsection{Dijkstra}
+		\label{subsubsec:dijkstra}
+		
+			Dijkstra's algorithm, often just called \term{Dijkstra}, is an rather old algorithm from the 1950s solving the single-source shortest-paths problem.
+			It actually creates a spanning tree such that all paths in the tree are shortest paths from a start vertex $s$.
+			Despite its age, Dijkstra's algorithm and optimized versions of it are frequently used in science and real life applications and will be mentioned quite often in this thesis.
+			\Cref{alg:dijkstra} is an already enhanced version using a priority queue for the vertices\cite[658]{cormen-introduction-to-alg}.
+			
+			\begin{algorithm}[h]
+				\begin{algorithmic}[1]
+					\ForAll{vertices $v \in V$}
+						\State Set shortest path distance $v.d = \infty$ and predecessor $v.\pi = undefined$
+					\EndFor
+					\State Insert all vertices into distance based min-queue $Q$
+					\State
+					\While{$Q \neq \emptyset$}
+						\State Get the next closest vertex: $u = Q.min$ \label{alg:dijkstra:extract-queue}
+						\ForAll{adjacent vertices $v$ of $u$}
+							\If{the path to $v$ via $u$ is shorter, so if $v.d > u.d + d(u, v)$}
+								\State Set $v.d = u.d + d(u, v)$ and $v.\pi = u$
+							\EndIf
+						\EndFor
+					\EndWhile
+				\end{algorithmic}
+				\caption{Pseudocode of an slightly optimized version of Dijkstra's algorithm.}
+				\label{alg:dijkstra}
+			\end{algorithm}
+		
+			Once a vertex is taken from the queue, it is considered as \emph{visited}.
+			It can be proven that for each visited vertex $v$, the distance $v.d$ is optimal \cite[659-661]{cormen-introduction-to-alg}.
+			This also means following back the predecessor relation $v.\pi$ yields the shortest path.
+			Therefore, placing an exit condition after line \ref{alg:dijkstra:extract-queue} can increase performance when a target vertex is known.
 		
 		\subsubsection{A*}
 		\label{subsubsec:astar}
 		
 			The A* shortest-path algorithm was introduced in 1968 and uses a heuristic $h : V \rightarrow \mathbb{R}$ to decide that vertex to visit next.
 			
-			It is rather simple and can be expressed as follows.
+			It is rather simple and \cref{alg:astar} expresses it in pseudocode.
 			The path from $s$ to $t$ is requested and $h$ is the heuristic.
 			
-			\begin{algorithm}
-				\caption{Pseudocode of the originally proposed A* algorithm.}
-				\begin{algorithmic}
+			\begin{algorithm}[h]
+				\begin{algorithmic}[1]
 					\State Mark $s$ as \emph{open}
 					\State Set $u = s$
 					\While{$u \neq t$}
@@ -350,6 +378,8 @@
 					\EndWhile
 					\State Take $G_s$, follow $t$ back to the source $s$ and output the path
 				\end{algorithmic}
+				\caption{Pseudocode of the originally proposed A* algorithm.}
+				\label{alg:astar}
 			\end{algorithm}
 		
 		\subsubsection{Contraction Hierarchies}
@@ -390,8 +420,9 @@
 			Since the heuristic consist of the tightest bound by using the $\max$ function, the value estimated distance to $t$ using the heuristic is likely to increase or decrease when the actual distance does the same.
 		
 		\subsubsection{Transit nodes}
+		\label{subsubsec:transit}
 		
-			This routing technique uses specially selected vertices, so called \term[transit node]{transit nodes}, and a the distances between them and all other vertices to find shortest paths very quickly \cite{bast-transit}.
+			The routing algorithm called \term{TRANSIT} uses specially selected vertices, so called \term[transit node]{transit nodes}, and a the distances between them and all other vertices to find shortest paths very quickly \cite{bast-transit}.
 		
 			First, the graph is divided into smaller cells.
 			Local queries using Dijkstra are then used to determine the transit nodes.
