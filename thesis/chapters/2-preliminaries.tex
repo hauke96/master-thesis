@@ -4,13 +4,15 @@
 \section{Geospatial data}
 
 	According to the ISO standard 19109:2015\cite{geolexica-202}, the term \term{geospatial data} refers to \enquote{data with implicit or explicit reference to a location relative to the Earth}.
-	In other words, data with addresses, coordinates or other location references belong to the class of geospatial data.
+	In other words, data with addresses, coordinates or other location references belongs to the class of geospatial data, or geodata for short.
 	
-	Typical examples are customer databases, where each customer has an address, or weather measurement data, where each data point has a coordinate, altitude and timestamp.
+	Typical examples are customer databases, in which each customer has an address, or meteorological data with coordinates, altitude and timestamp.
 	Latter therefore belongs to \term{spatiotemporal data}, because is has an additional time dimension.
 	Since addresses are not globally standardized, describe only a vague location and usually belong to a hole area, they are of less importance for this thesis.
-	Next to the mentioned explicit references to locations, implicit references can be encoded within metadata of datasets.
-	This is for example the case for the GeoTIFF format, storing location data in the matadata of a normal TIFF file\cite{ogc-geotiff}.
+	Whenever this thesis mentions geodata, data structures as described below in \cref{subsec:data-structures} are meant.
+	
+	Next to the mentioned explicit references to locations (such as coordinates), implicit references can be encoded within metadata of datasets as well.
+	This is for example the case for the GeoTIFF format, storing location data in the matadata of a normal TIFF image file\cite{ogc-geotiff}.
 	The exact coordinate of a data point (in this case a pixel in the TIFF image), must then be calculated using this matadata.
 
 	\subsection{Coordinate reference systems and projections}
@@ -383,6 +385,7 @@
 			\end{algorithm}
 		
 		\subsubsection{Contraction Hierarchies}
+		\label{subsubsec:ch}
 		
 			Contraction hierarchies are based on the idea to reduce the amount of hops made by a routing algorithm by adding so called \emph{shortcut edges} between nodes \cite{geisberger-contraction-hierarchies}.
 			Consider a vertex $u$ with incoming edge $(v, u)$ and outgoing edge $(u, w)$.
@@ -449,6 +452,26 @@
 			After reaching the target, the list of stored vertices build the shortest path.
 		
 		\subsubsection{Hub labels}
+		
+			The \term{hub label} strategy is a labeling algorithm calculating labels $L(v)$ for each vertex $v$.
+			Each label contains a set of vertices (so called \emph{hubs}) and the length of the shortest path to each of the hubs.
+			A label must fulfill two main properties \cite[11]{bast-transportation-networks}.
+			
+			First, the distance $d(u, v)$ from vertex $u$ to $v$ must be determinable using only their labels $L(u)$ and $L(v)$.
+			Since $u$ and $v$ can be arbitrary vertices, the vertex $v$ is not necessarily within $L(u)$.
+			To not traverse through all labels to find $v$ from $u$, the second property (so called \emph{cover property}) is very important:
+			For two arbitrary vertices $u$ to $v$, the set $L(u) \cap L(v)$ must contain at least one common hub $h$ on the shortest path from $u$ to $v$.
+			This can be used to solve fulfill the first property.
+			
+			The labels can be determined with the mechanism from contraction hierarchies (see \hyperref[subsubsec:ch]{above}) forming the upward graph.
+			In fact, any order on vertices can be used to create a correct labeling.
+
+			Routing requests for a shortest path from $u$ to $v$ are simple and fast to answer:
+			Get the labels $L(u)$ and $L(v)$ and get the common hubs in them.
+			When storing the hubs in a sorted list, building the intersection can be done in linear time time.
+			Find the hub pair $h_u$ and $h_v$ in the intersection with the minimum distance sum and return their paths.
+			
+			Even though the requests can be answered incredibly fast, actually faster than probably any other method, it needs a lot of space and preprocessing time \cite[23]{bast-transportation-networks}.
 		
 		\subsubsection{Compressed path databases}
 	
