@@ -69,6 +69,7 @@ namespace HikerModel.Model
             catch (Exception e)
             {
                 Console.WriteLine(e);
+                throw;
             }
         }
 
@@ -76,13 +77,13 @@ namespace HikerModel.Model
         {
             if (NextTargetWaypoint == null)
             {
-                Console.WriteLine("No next waypoint");
+                Log.I("No next waypoint");
                 return;
             }
 
             if (NextRouteWaypoint == null)
             {
-                Console.WriteLine("Hiker has target but no route. Calculate route to next target.");
+                Log.I("Hiker has target but no route. Calculate route to next target.");
                 CalculateRoute(Position, NextTargetWaypoint.ToPosition());
             }
             else if (NextRouteWaypoint.Position.DistanceInMTo(Position) < StepSize * 2)
@@ -91,16 +92,17 @@ namespace HikerModel.Model
 
                 if (NextRouteWaypoint == null)
                 {
-                    Console.WriteLine("Hiker reached end of route, choose next target and calculate new route.");
+                    Log.I("Hiker reached end of route, choose next target and calculate new route.");
                     _targetWaypoints.MoveNext();
 
                     if (NextTargetWaypoint == null)
                     {
-                        Console.WriteLine(
-                            "Hiker reached last waypoint. He will now die of exhaustion. Farewell dear hiker.");
+                        Log.I("Hiker reached last waypoint. He will now die of exhaustion. Farewell dear hiker.");
                         _routingPerformanceResult.WriteToFile();
+                        Log.D("Performance data written to file");
                         _hikerLayer.Environment.Remove(this);
                         UnregisterHandle.Invoke(_hikerLayer, this);
+                        Log.D("Hiker unregistered");
                         return;
                     }
 
@@ -118,7 +120,7 @@ namespace HikerModel.Model
             {
                 RoutingResult routingResult = null;
 
-                PerformanceMeasurement.IS_ACTIVE = true;
+                // PerformanceMeasurement.IS_ACTIVE = true;
 
                 var performanceMeasurementResult = PerformanceMeasurement.ForFunction(
                     () => { routingResult = ObstacleLayer.WavefrontAlgorithm.Route(from, to); },
