@@ -251,6 +251,8 @@ public class PerformanceMeasurement
             func();
             return result;
         }
+        
+        Log.D($"Performance measurement {name}: Measure performance using {warmupCount} warmup iterations and {iterationCount} actual iterations");
 
         Init();
 
@@ -265,9 +267,12 @@ public class PerformanceMeasurement
             if (i >= warmupCount)
             {
                 result.AddIteration(iterationDuration);
+                Log.I($"Performance measurement {name}: Iteration {i - warmupCount} / {iterationCount} done: {iterationDuration}ms");
             }
-
-            Log.D($"Iteration {i}{(i < warmupCount ? "(warmup)" : "")}: {iterationDuration}ms");
+            else
+            {
+                Log.I($"Performance measurement {name}: Warmup iteration {i} / {warmupCount} done: {iterationDuration}ms");
+            }
         }
 
         return result;
