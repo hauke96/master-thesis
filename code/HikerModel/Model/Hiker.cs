@@ -131,11 +131,15 @@ namespace HikerModel.Model
                 const string numberFormat = "0.###";
                 var invariantCulture = CultureInfo.InvariantCulture;
                 var distanceFromTo = Distance.Haversine(from.PositionArray, to.PositionArray);
+                var averageTimeString = performanceMeasurementResult.AverageTime.ToString(numberFormat, invariantCulture);
                 _routingPerformanceResult.AddRow(new Dictionary<string, string>
                 {
+                    { "total_vertices", PerformanceMeasurement.TOTAL_VERTICES.ToString(numberFormat, invariantCulture) },
+                    { "total_vertices_after_preprocessing", PerformanceMeasurement.TOTAL_VERTICES_AFTER_PREPROCESSING.ToString(numberFormat, invariantCulture) },
                     { "distance", distanceFromTo.ToString(numberFormat, invariantCulture) },
                     { "route_length", routingResult.OptimalRouteLength.ToString(numberFormat, invariantCulture) },
-                    { "avg_time", performanceMeasurementResult.AverageTime.ToString(numberFormat, invariantCulture) },
+                    { "avg_time", averageTimeString },
+                    { "iteration_time", averageTimeString },
                     { "min_time", performanceMeasurementResult.MinTime.ToString(numberFormat, invariantCulture) },
                     { "max_time", performanceMeasurementResult.MaxTime.ToString(numberFormat, invariantCulture) },
                     { "total_time", performanceMeasurementResult.TotalTime.ToString(numberFormat, invariantCulture) },
