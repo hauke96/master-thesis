@@ -19,26 +19,31 @@ namespace HikerModel.Model
             {
                 return false;
             }
-
+            
             var obstacleGeometries = Features.Map(f => new Obstacle(f.VectorStructured.Geometry));
 
-            var actualIsActiveState = PerformanceMeasurement.IS_ACTIVE;
+            // When performance measurement active -> Turn off performance measurements within the constructor call.
+            // Below this if-block, the performance measurement is reactivated and the calls within the constructor will
+            // be measured as intended.
+            // When performance measurement inactive -> Skip this and just call the constructor below. It'll not measure
+            // any internal calls, since measurement is disabled.
+            if (PerformanceMeasurement.IS_ACTIVE)
+            {
+                var result = PerformanceMeasurement.ForFunction(
+                    () =>
+                    {
+                        // Deactivate measurement within constructor:
+                        PerformanceMeasurement.IS_ACTIVE = false;
+                        new WavefrontAlgorithm(obstacleGeometries);
+                    },
+                    "WavefrontAlgorithmCreation");
+                result.Print();
+                result.WriteToFile();
+                
+                PerformanceMeasurement.IS_ACTIVE = true;
+            }
 
-            // Measure overall constructor performance. Detailed performance measurements within the constructor will
-            // be deactivated here but (possibly) re-activated below.
-            var result = PerformanceMeasurement.ForFunction(
-                () =>
-                {
-                    // Do not measure the performance within the constructor call, because then pre-processing functions
-                    // are probably executed several times to measure their performance. This will distort the
-                    // measurement of the overall constructor performance.
-                    PerformanceMeasurement.IS_ACTIVE = false;
-                    WavefrontAlgorithm = new WavefrontAlgorithm(obstacleGeometries);
-                    PerformanceMeasurement.IS_ACTIVE = actualIsActiveState;
-                },
-                "WavefrontAlgorithmCreation");
-            result.Print();
-            result.WriteToFile();
+            WavefrontAlgorithm = new WavefrontAlgorithm(obstacleGeometries, true);
 
             return true;
         }
