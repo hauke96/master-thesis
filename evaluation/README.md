@@ -82,7 +82,7 @@ Details on each dataset can be found below.
 	* [ ] Collect data
 	* [ ] Visualize
 
-TODO Clearify the reduces dataset: Just make highways less accurate?
+TODO Clearify the reduced dataset: Just make highways less accurate?
 
 ### 3. Hybrid routing
 
@@ -139,7 +139,7 @@ TODO Rework this and see if it still applies, is complete and correct.
 To run the evaluation, I used the CLI to be able to run the whole process using `sudo`.
 This allows the model to set the thread priority to "high" so that the evaluation process runs more or less on its own thread.
 
-## Preparations
+## Build the model
 
 1. Go into the `HikerModel` folder (or whatever model you want to use)
 2. Make sure the hiker has a good step size for the dataset you're using (see `StepSize` in the `Model/Hiker.cs` class)
@@ -147,7 +147,7 @@ This allows the model to set the thread priority to "high" so that the evaluatio
 
 ## Run the model
 
-Here you have two options:
+Here you have two options which are described in detail below:
 
 A: Use a script executing a hole bunch of datasets and collecting their results
 

@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 
-
 set -e
 # set -x
 
+function hline {
+	echo
+    printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' =
+	echo " $1"
+    printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' =
+	echo
+}
 
 if [[ $# != 4 || $1 == "-h" || $1 == "--help" ]]
 then
@@ -41,6 +47,8 @@ cd "$MODEL_DIR"
 
 for d in $DATASETS
 do
+	hline "  $d"
+
 	# Copy the obstacle file to the right location
 	cp "$DATASET_DIR/${d}.geojson" ./Resources/obstacles.geojson
 
