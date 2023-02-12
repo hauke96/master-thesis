@@ -1,27 +1,27 @@
 #!/usr/bin/env bash
 
-# This Script executes a given model and renames each CSV file from the 
-# performance measurement according to the dataset used.
 
 set -e
 # set -x
 
-if [[ $# != 3 ]]
+
+if [[ $# != 4 || $1 == "-h" || $1 == "--help" ]]
 then
+	if [[ $1 != "-h" && $1 != "--help" ]]
+	then
+		echo "ERROR: Unexpected number of arguments. Wanted 4, found $#."
+		echo
+	fi
+
 	cat<<END
-ERROR: Unexpected number of arguments. Wanted 3, found $#.
+Execute multiple datasets on a given model.
 
-END
-fi
+Parameters: {model-dll}        {dataset-dir}   {result-dir}   {dataset-names}
+Example:    ./HikingModel.dll  ./datasets/foo  ./results/foo  "1 2 3 foo bar"
 
-if [[ $# != 3 || $1 == "-h" || $1 == "--help" ]]
-then
-	cat<<END
-Parameters: {model-dll}        {dataset-dir}  {dataset-names}
-Example:    ./HikingModel.dll  ../datasets    "1 2 3 foo bar"
+This Script executes a given model with the given datasets. Resulting CSV files from the model folder will get the pattern name as prefix and are moved to the given result folder.
 
-Output:
-Each CSV file produces by the model will be renamed and gets the dataset-name as prefix.
+The datasets must be GeoJSON files but the given names must *not* contain the ".geojson" ending.
 END
 	exit 1
 fi
@@ -30,7 +30,12 @@ MODEL="$(basename $1)"
 MODEL_DIR="$(dirname $1)"
 
 DATASET_DIR="$(realpath $2)"
-DATASETS="$3"
+RESULT_DIR="$(realpath $3)"
+DATASETS="$4"
+
+echo "Load model $MODEL from $MODEL_DIR"
+echo "Use datasets from $DATASET_DIR"
+echo "Save results into $RESULT_DIR when done"
 
 cd "$MODEL_DIR"
 
@@ -46,6 +51,8 @@ do
 	echo "Add prefix '$d' to CSV files"
 	for f in performance_*.csv
 	do
-		mv "$f" "${d}_$f"
+		OUT="$RESULT_DIR/${d}_$f"
+		echo "Move result $f to $OUT"
+		mv "$f" "$OUT"
 	done
 done
