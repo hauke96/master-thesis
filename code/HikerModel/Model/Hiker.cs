@@ -120,8 +120,6 @@ namespace HikerModel.Model
             {
                 RoutingResult routingResult = null;
 
-                // PerformanceMeasurement.IS_ACTIVE = true;
-
                 var performanceMeasurementResult = PerformanceMeasurement.ForFunction(
                     () => { routingResult = ObstacleLayer.WavefrontAlgorithm.Route(from, to); },
                     "CalculateRoute");
@@ -162,8 +160,6 @@ namespace HikerModel.Model
 
                 _routeWaypoints = routingResult.OptimalRoute.GetEnumerator();
                 _routeWaypoints.MoveNext();
-                
-                PerformanceMeasurement.IS_ACTIVE = false;
             }
             catch (Exception e)
             {
