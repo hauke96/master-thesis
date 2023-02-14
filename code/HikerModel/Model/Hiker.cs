@@ -122,7 +122,9 @@ namespace HikerModel.Model
 
                 var performanceMeasurementResult = PerformanceMeasurement.ForFunction(
                     () => { routingResult = ObstacleLayer.WavefrontAlgorithm.Route(from, to); },
-                    "CalculateRoute");
+                    "CalculateRoute",
+                    PerformanceMeasurement.DEFAULT_ITERATION_COUNT*10,
+                    PerformanceMeasurement.DEFAULT_WARMUP_COUNT*3);
                 performanceMeasurementResult.Print();
 
                 // Collect data for routing requests for each such request. Requests can be differently long and complex
