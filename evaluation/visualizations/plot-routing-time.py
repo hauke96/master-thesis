@@ -11,7 +11,12 @@ title=sys.argv[2]
 dataset=common.load_dataset(dataset_filter, title)
 dataset["distance"]=dataset["distance"] / 1000
 
-common.init_seaborn(width=6, height=4, dpi=120)
+common.init_seaborn(
+	width=6,
+	height=4,
+	dpi=120,
+	palette="custom_blue-red"
+)
 
 plot=common.create_lineplot(
 	dataset,
@@ -22,8 +27,6 @@ plot=common.create_lineplot(
 	ylabel="Average routing time in ms",
 	hue="total_vertices",
 	style="total_vertices",
-	#palette=common.color_palette_flare,
-	palette=common.color_palette_blue,
 )
 common.set_legend(plot, "Amount vertices", dataset["total_vertices"])
 

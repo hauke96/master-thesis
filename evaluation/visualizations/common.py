@@ -6,9 +6,17 @@ import glob
 import seaborn as sns
 import pandas as pd
 import matplotlib.lines as mlines
+from matplotlib.colors import ListedColormap
+import matplotlib.cm as cm
 
 color_palette_flare=sns.color_palette("flare", as_cmap=True)
-color_palette_blue=sns.color_palette("blend:#829cc8,#55784e", as_cmap=True)
+color_palette_blue_green=sns.color_palette("blend:#829cc8,#55784e", as_cmap=True)
+color_palette_blue_red=sns.color_palette("blend:#829cc8,#c86a6a", as_cmap=True)
+color_palette_selected_name=None
+
+cm.register_cmap("custom_flare", color_palette_flare)
+cm.register_cmap("custom_blue-green", color_palette_blue_green)
+cm.register_cmap("custom_blue-red", color_palette_blue_red)
 
 fontsize_small=9
 fontsize_large=14
@@ -33,7 +41,10 @@ def init_seaborn(
 		width=5,
 		height=4,
 		dpi=100,
+		palette=None,
 	):
+
+	global color_palette_selected_name
 
 	sns.set(rc={
 		"figure.figsize": (width, height),
@@ -43,6 +54,9 @@ def init_seaborn(
 	sns.set_style("whitegrid", {
 		"font.sans-serif": ["Droid Sans"]
 	})
+
+	sns.set_palette(palette)
+	color_palette_selected_name=palette
 
 #plot=sns.boxplot(
 #	data=dataset,
@@ -60,7 +74,6 @@ def create_lineplot(
 		ylabel="Time in ms",
 		hue=None,
 		style=None,
-		palette=None,
 	):
 
 	plot=sns.lineplot(
@@ -69,7 +82,7 @@ def create_lineplot(
 		y=ycol,
 		hue=hue,
 		style=style,
-		palette=palette,
+		palette=color_palette_selected_name,
 		marker='o',
 		markersize=5,
 		err_style="bars",
@@ -89,25 +102,40 @@ def create_lineplot(
 	return plot
 
 '''
-This function manually creates colored entries for each unique value in the given list.
+This function selects the legend labels matching the given values and colors
+them according to color_palette_selected_name.
 '''
 def set_legend(plot, title, col_values):
 	col_values=col_values.unique()
 	col_values.sort()
-	col_values = [str(v) for v in col_values]
+	col_values=[str(v) for v in col_values]
 
-	colors=sns.color_palette()[:len(col_values)]
+	handles, labels=plot.get_legend_handles_labels()
+	colors=sns.color_palette(palette=color_palette_selected_name, n_colors=len(col_values))
+	
+	new_handles=[None] * len(col_values)
+	new_labels=[None] * len(col_values)
 
-	# TODO Fix colors
-	handles=[mlines.Line2D([], [], color=color, linestyle='--') for color in colors]
-	labels=col_values
+	# Get the label and handle for each col_value, set its color and store in 
+	# these arrays
+	for i in range(len(col_values)):
+		value=col_values[i]
+		index=labels.index(value)
+
+		label=labels[index]
+		handle=handles[index]
+
+		handle.set_color(colors[i])
+
+		new_labels[i]=label
+		new_handles[i]=handle
 
 	plot.legend(
+		handles=new_handles,
+		labels=new_labels,
 		title=title,
 		title_fontsize=fontsize_small,
 		fontsize=fontsize_small,
-		handles=handles,
-		labels=labels
 	)
 
 def save_to_file(
