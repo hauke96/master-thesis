@@ -158,7 +158,7 @@ B: Manually execute the model with one dataset
 The Script `./evaluation/execute.sh` accepts the model path and parameter for the models themselves (see `-h` parameter for more information).
 Running it like this uses the three smallest datasets from the pattern-datasets:
 
-`evaluation/execute.sh code/HikerModel/bin/Release/net7.0/HikerModel.dll evaluation/datasets/pattern-based/ "1x1 2x2 3x3"`
+`execute.sh ../code/HikerModel datasets/pattern-based-rectangle results/pattern-based-rectangle "pattern_1x1 pattern_2x2 pattern_3x3"`
 
 Note: You must use `sudo` on Linux to change the thread priority to "high".
 

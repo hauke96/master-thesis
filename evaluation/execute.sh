@@ -22,10 +22,14 @@ then
 	cat<<END
 Execute multiple datasets on a given model.
 
-Parameters: {model-dll}        {dataset-dir}   {result-dir}   {dataset-names}
-Example:    ./HikingModel.dll  ./datasets/foo  ./results/foo  "1 2 3 foo bar"
+Parameters: {model-dll}         {dataset-dir}  {result-dir}  {dataset-names}
+Example:    models/HikingModel  datasets/foo   results/foo   "1 2 3 foo bar"
 
-This Script executes a given model with the given datasets. Resulting CSV files from the model folder will get the pattern name as prefix and are moved to the given result folder.
+This script does the following:
+ 1. Clean-build the model in "Release" configuration
+ 2. Copy each given dataset to the "Resources" folder in the built model (so into "bin/Release/.../Resources/obstacles.geojson")
+ 3. Execute the model
+ 4. Move all *.csv files to the given result folder and add the "performance_{dataset-name}" as prefix
 
 The datasets must be GeoJSON files but the given names must *not* contain the ".geojson" ending.
 END
