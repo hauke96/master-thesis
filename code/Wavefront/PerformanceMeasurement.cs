@@ -233,6 +233,14 @@ public class PerformanceMeasurement
 
     public static Result ForFunction(Action func, string name = "", int iterationCount = -1, int warmupCount = -1)
     {
+        Result result = new Result(name);
+        
+        if (!IS_ACTIVE)
+        {
+            func();
+            return result;
+        }
+        
         if (iterationCount == -1)
         {
             iterationCount = DEFAULT_ITERATION_COUNT;
@@ -241,15 +249,6 @@ public class PerformanceMeasurement
         if (warmupCount == -1)
         {
             warmupCount = DEFAULT_WARMUP_COUNT;
-        }
-
-
-        Result result = new Result(name);
-
-        if (!IS_ACTIVE)
-        {
-            func();
-            return result;
         }
         
         Log.D($"Performance measurement {name}: Measure performance using {warmupCount} warmup iterations and {iterationCount} actual iterations");
