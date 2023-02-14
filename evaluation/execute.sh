@@ -33,7 +33,10 @@ END
 fi
 
 MODEL="$(basename $1)"
-MODEL_DIR="$(dirname $1)"
+MODEL_DIR="$1"
+
+BUILD_CONFIGURATION="Release"
+BUILD_DIR="bin/$BUILD_CONFIGURATION/net7.0"
 
 DATASET_DIR="$(realpath $2)"
 RESULT_DIR="$(realpath $3)"
@@ -43,8 +46,17 @@ echo "Load model $MODEL from $MODEL_DIR"
 echo "Use datasets from $DATASET_DIR"
 echo "Save results into $RESULT_DIR when done"
 
+echo "Go into model dir $MODEL_DIR"
 cd "$MODEL_DIR"
 
+echo "Build model in '$BUILD_CONFIGURATION' configuration"
+dotnet clean
+dotnet build --configuration Release
+
+echo "Go into build dir $BUILD_DIR"
+cd $BUILD_DIR
+
+echo "Start executing each dataset"
 for d in $DATASETS
 do
 	hline "  $d"
@@ -53,7 +65,7 @@ do
 	cp "$DATASET_DIR/${d}.geojson" ./Resources/obstacles.geojson
 
 	# Execute model which outputs CSV files with performance measurements
-	dotnet $MODEL
+	dotnet "${MODEL}.dll"
 
 	# Rename each CSV file to make clear what dataset was used
 	echo "Add prefix '$d' to CSV files"
