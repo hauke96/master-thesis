@@ -1,7 +1,7 @@
 using System.Diagnostics;
+using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Text;
-using Mars.Common.Core;
 using ServiceStack;
 
 namespace Wavefront;
@@ -20,25 +20,29 @@ public class PerformanceMeasurement
         private static string NUMBER_FORMAT = "0.###";
 
         private readonly List<double> _iterations;
+        private readonly List<long> _memUsage;
         private readonly string _name;
 
         public double IterationCount => _iterations.Count;
         public double TotalTime => _iterations.Sum();
         public double MinTime => !_iterations.IsEmpty() ? _iterations.Min() : 0;
-        public double MaxTime => !_iterations.IsEmpty() ? _iterations.Max() : double.PositiveInfinity;
+        public double MaxTime => !_iterations.IsEmpty() ? _iterations.Max() : 0;
         public double AverageTime => TotalTime / IterationCount;
-        public double Spread => MaxTime - MinTime;
-        public double SpreadPercent => 100 - MinTime / MaxTime * 100;
+        public long MinMemory => !_memUsage.IsEmpty() ? _memUsage.Min() : 0;
+        public long MaxMemory => !_memUsage.IsEmpty() ? _memUsage.Max() : 0;
+        public double AverageMemory => _memUsage.Sum() / IterationCount;
 
         public Result(string name)
         {
-            _iterations = new();
+            _iterations = new List<double>();
+            _memUsage = new List<long>();
             _name = name;
         }
 
-        public void AddIteration(double iterationDuration)
+        public void AddIteration(double iterationDuration, long memBeforeIteration, long memAfterIteration)
         {
             _iterations.Add(iterationDuration);
+            _memUsage.Add(memAfterIteration - memBeforeIteration);
         }
 
         public void Print()
@@ -61,8 +65,9 @@ public class PerformanceMeasurement
                 "min_time",
                 "max_time",
                 "avg_time",
-                "spread",
-                "spread_percent",
+                "min_mem",
+                "max_mem",
+                "avg_mem",
                 "total_vertices",
                 "total_vertices_after_preprocessing"
             };
@@ -82,8 +87,9 @@ public class PerformanceMeasurement
                     ToString(MinTime),
                     ToString(MaxTime),
                     ToString(AverageTime),
-                    ToString(Spread),
-                    ToString(SpreadPercent),
+                    ToString(MinMemory),
+                    ToString(MaxMemory),
+                    ToString(AverageMemory),
                     ToString(TOTAL_VERTICES),
                     ToString(TOTAL_VERTICES_AFTER_PREPROCESSING)
                 };
@@ -111,10 +117,11 @@ public class PerformanceMeasurement
                 @$"Measurement '{_name}':
   Iterations: {IterationCount}
   Tot time  : {TotalTime}ms
-  Min time  : {MinTime}ms
-  Max time  : {MaxTime}ms
+  Time range: {MinTime} - {MaxTime} ms
   Avg time  : {AverageTime}ms
-  Max - Min : {Spread}ms -> {SpreadPercent}%";
+  Mem range : {MinMemory} - {MaxMemory} bytes
+  Avg mem   : {AverageMemory} bytes"
+                ;
         }
     }
 
@@ -210,12 +217,19 @@ public class PerformanceMeasurement
     /// Call the function to measure once before this call to warm up the CPU pipeline and caches.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void Start()
+    private static void GarbageCollection()
     {
         GC.Collect();
         GC.WaitForPendingFinalizers();
         GC.Collect();
+    }
 
+    /// <summary>
+    /// Resets and starts the stopwatch timer.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void StartTimer()
+    {
         stopwatch.Reset();
         stopwatch.Start();
     }
@@ -225,10 +239,21 @@ public class PerformanceMeasurement
     /// </summary>
     /// <returns>The number of milliseconds of this measurement.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static double Stop()
+    private static double StopTimer()
     {
         stopwatch.Stop();
         return stopwatch.Elapsed.TotalMilliseconds;
+    }
+
+    /// <summary>
+    /// Gets the current memory usage of the working set.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static long GetRamUsage()
+    {
+        Process.GetCurrentProcess().Refresh();
+        var memBefore = Process.GetCurrentProcess().WorkingSet64;
+        return memBefore;
     }
 
     public static Result ForFunction(Action func, string name = "", int iterationCount = -1, int warmupCount = -1)
@@ -258,14 +283,23 @@ public class PerformanceMeasurement
         // Actual run
         for (var i = 0; i < iterationCount + warmupCount; i++)
         {
-            Start();
+            GarbageCollection();
+
+            GC.TryStartNoGCRegion(256 * 1024 * 1024);
+            var memBefore = GetRamUsage();
+            StartTimer();
             func();
-            var iterationDuration = Stop();
+            var iterationDuration = StopTimer();
+            var memAfter = GetRamUsage();
+            if (GCSettings.LatencyMode == GCLatencyMode.NoGCRegion)
+            {
+                GC.EndNoGCRegion();
+            }
 
             // Add result if warmup completed
             if (i >= warmupCount)
             {
-                result.AddIteration(iterationDuration);
+                result.AddIteration(iterationDuration, memBefore, memAfter);
                 Log.I($"Performance measurement {name}: Iteration {i - warmupCount} / {iterationCount} done: {iterationDuration}ms");
             }
             else

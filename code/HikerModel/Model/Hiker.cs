@@ -140,11 +140,17 @@ namespace HikerModel.Model
                     { "total_vertices_after_preprocessing", PerformanceMeasurement.TOTAL_VERTICES_AFTER_PREPROCESSING.ToString(numberFormat, invariantCulture) },
                     { "distance", distanceFromTo.ToString(numberFormat, invariantCulture) },
                     { "route_length", routingResult.OptimalRouteLength.ToString(numberFormat, invariantCulture) },
+                    
                     { "avg_time", averageTimeString },
                     { "iteration_time", averageTimeString },
                     { "min_time", performanceMeasurementResult.MinTime.ToString(numberFormat, invariantCulture) },
                     { "max_time", performanceMeasurementResult.MaxTime.ToString(numberFormat, invariantCulture) },
                     { "total_time", performanceMeasurementResult.TotalTime.ToString(numberFormat, invariantCulture) },
+                    
+                    { "min_mem", performanceMeasurementResult.MinMemory.ToString() },
+                    { "max_mem", performanceMeasurementResult.MaxMemory.ToString() },
+                    { "avg_mem", performanceMeasurementResult.AverageMemory.ToString(numberFormat, invariantCulture) },
+                    
                     {
                         "from",
                         from.X.ToString(numberFormat, invariantCulture) + " " +
