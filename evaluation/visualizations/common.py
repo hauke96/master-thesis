@@ -111,28 +111,25 @@ def set_legend(plot, title, col_values):
 	col_values=[str(v) for v in col_values]
 
 	handles, labels=plot.get_legend_handles_labels()
+
+	# Generate as many color values as we need according to currently selected
+	# colormap
 	colors=sns.color_palette(palette=color_palette_selected_name, n_colors=len(col_values))
-	
-	new_handles=[None] * len(col_values)
-	new_labels=[None] * len(col_values)
 
-	# Get the label and handle for each col_value, set its color and store in 
-	# these arrays
-	for i in range(len(col_values)):
-		value=col_values[i]
-		index=labels.index(value)
+	# Find out at which index the style items for each col_value start
+	col_value_start_index=len(labels) - 1 - labels[::-1].index(col_values[0])
 
-		label=labels[index]
-		handle=handles[index]
+	# Select only the style items for our col_values
+	labels=labels[col_value_start_index:]
+	handles=handles[col_value_start_index:]
 
-		handle.set_color(colors[i])
-
-		new_labels[i]=label
-		new_handles[i]=handle
+	# Set color to each handle
+	for i in range(len(handles)):
+		handles[i].set_color(colors[i])
 
 	plot.legend(
-		handles=new_handles,
-		labels=new_labels,
+		handles=handles,
+		labels=labels,
 		title=title,
 		title_fontsize=fontsize_small,
 		fontsize=fontsize_small,
