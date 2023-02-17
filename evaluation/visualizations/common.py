@@ -133,6 +133,9 @@ def set_legend(plot, title, col_values):
 		title=title,
 		title_fontsize=fontsize_small,
 		fontsize=fontsize_small,
+		loc="center left",
+		bbox_to_anchor=(1, 0.5),
+		#borderaxespad=0,
 	)
 
 def save_to_file(
