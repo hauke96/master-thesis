@@ -21,6 +21,8 @@ cm.register_cmap("custom_blue-red", color_palette_blue_red)
 fontsize_small=9
 fontsize_large=14
 
+errorbars_minmax=lambda x: (x.nanmin(), x.nanmax())
+
 def check_args(expected_number):
 	if len(sys.argv) - 1 != expected_number:
 		print("ERROR: Wrong number of arguments: Expected %s, found %s" % expected_number, len(sys.argv))
@@ -67,14 +69,20 @@ def init_seaborn(
 #figure=plot.get_figure()
 
 def create_lineplot(
-		dataset, title="",
+		dataset,
+		title="",
 		xcol="total_vertices",
 		ycol="iteration_time",
 		xlabel="Input vertices",
 		ylabel="Time in ms",
 		hue=None,
 		style=None,
+		errorbar=None,
+		yscale=None,
 	):
+
+	err_style="bars" if errorbar != None else None
+	err_kws={"elinewidth": 1} if errorbar != None else None
 
 	plot=sns.lineplot(
 		data=dataset,
@@ -85,20 +93,25 @@ def create_lineplot(
 		palette=color_palette_selected_name,
 		marker='o',
 		markersize=5,
-		err_style="bars",
-		errorbar=lambda x: (x.min(), x.max()),
+		err_style=err_style,
+		errorbar=errorbar,
+		err_kws=err_kws,
 		linewidth=1,
-		err_kws={"elinewidth": 1},
 		zorder=10,
 		clip_on=False,
 	)
-	plot.set_xlim(0, None)
-	plot.set_ylim(0, None)
+
+	if yscale == "log":
+		plot.set(yscale="log")
+	else:
+		plot.set_xlim(0, None)
+		plot.set_ylim(0, None)
+
 	plot.set_title(title, pad=12, fontsize=fontsize_large)
 	plot.set_xlabel(xlabel, labelpad=5, fontsize=fontsize_small)
 	plot.set_ylabel(ylabel, labelpad=5, fontsize=fontsize_small)
 	plot.tick_params(axis="both", which="major", labelsize=fontsize_small)
-	#plot.set(yscale="log")
+
 	return plot
 
 '''
