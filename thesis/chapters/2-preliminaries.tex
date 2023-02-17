@@ -280,16 +280,16 @@
 		In geometric routing approaches (see \cref{subsec:geometric-routing}), the result may be a list of coordinates that do not need to be within $V$.
 		
 		Often, \enquote{optimal} means shortest, whereby the length of an edge is considered as arbitrary weight and is therefore not bound to geographic lengths of edges.
-		In theoretic computer science, the fundamental problem behind routing algorithms is the \term{shortest-path problem}.
+		In theoretic computer science, the fundamental problem behind routing algorithms is the \term{shortest path problem}.
 		However, the shortest path problem exists in several variants\cite[644]{cormen-introduction-to-alg}:
 		
-		\subsubsection{\term*[single-source shortest-paths]{Single-source shortest-paths}}
+		\subsubsection{\term*[single-source shortest paths]{Single-source shortest paths}}
 		\label{subsubsec:single-source-shortest-path}
 		
 			One source vertex is given and the shortest paths to all other vertices should be determined.
 			This is solved using algorithm like Dijkstra, which will be described in detail in \cref{subsubsec:dijkstra}.
 		
-		\subsubsection{\term*[single-destination shortest-paths]{Single-destination shortest-paths}}
+		\subsubsection{\term*[single-destination shortest paths]{Single-destination shortest paths}}
 		
 			This is the opposite to the above problem.
 			All shortest paths to a specific vertex from any other vertex should be found.
@@ -297,17 +297,17 @@
 			However, no new algorithms are needed to solve this problem.
 			Instead, the direction of each edge can be reversed turning this problem into the single-source problem.
 		
-		\subsubsection{\term*[single-pair shortest-paths]{Single-pair shortest-paths}}
+		\subsubsection{\term*[single-pair shortest paths]{Single-pair shortest paths}}
 		
 			Like the single-source but shortest paths from one source to one target vertex are requested.
 			Even though algorithms like TRANSIT (described in \cref{subsubsec:transit}) solve this problem efficiently, other approaches like Dijkstra, which actually solves the single-source problem, are used more often.
 		
-		\subsubsection{\term*[all-pair shortest-paths]{All-pair shortest-paths}}
+		\subsubsection{\term*[all-pair shortest paths]{All-pair shortest paths}}
 		\label{subsubsec:all-pair-shortest-path}
 		
 			This problem is similar to the single-pair problem but is not restricted to a single source vertex.
 			A naive approach would be to use an algorithm solving the single-pair problem on each vertex, but there are faster ways to solve this.
-			However, since this problem has no relevance for this section and thesis, this problem is not discussed in further details.
+			\todo[inline]{Mention algorithms}
 
 	\subsection{Graph based routing}
 		
@@ -329,7 +329,7 @@
 		\subsubsection{Dijkstra}
 		\label{subsubsec:dijkstra}
 		
-			Dijkstra's algorithm, often just called \term{Dijkstra}, is an rather old algorithm from the 1950s solving the single-source shortest-paths problem.
+			Dijkstra's algorithm, often just called \term{Dijkstra}, is an rather old algorithm from the 1950s solving the single-source shortest paths problem.
 			It actually creates a spanning tree such that all paths in the tree are shortest paths from a start vertex $s$.
 			Despite its age, Dijkstra's algorithm and optimized versions of it are frequently used in science and real life applications and will be mentioned quite often in this thesis.
 			\Cref{alg:dijkstra} is an already enhanced version using a priority queue for the vertices\cite[658]{cormen-introduction-to-alg}.
@@ -362,7 +362,7 @@
 		\subsubsection{A*}
 		\label{subsubsec:astar}
 		
-			The A* shortest-path algorithm was introduced in 1968 and uses a heuristic $h : V \rightarrow \mathbb{R}$ to decide that vertex to visit next.
+			The A* shortest path algorithm was introduced in 1968 and uses a heuristic $h : V \rightarrow \mathbb{R}$ to decide that vertex to visit next.
 			
 			It is rather simple and \cref{alg:astar} expresses it in pseudocode.
 			The path from $s$ to $t$ is requested and $h$ is the heuristic.
@@ -430,8 +430,8 @@
 			First, the graph is divided into smaller cells.
 			Local queries using Dijkstra are then used to determine the transit nodes.
 			A good transit node is a vertex through which many shortest paths lead to vertices in more distant cells \cite[6]{bast-transit}. 
-			Since Dijkstra solved the single-source shortest-paths problem (described in \cref{subsubsec:single-source-shortest-path}), the distances from any normal vertex to its nearest transit nodes are stored.
-			The final step of the preprocessing is the calculation of the distances between all transit nodes, which means solving the all-pair shortest-path problem as described in \cref{subsubsec:all-pair-shortest-path}.
+			Since Dijkstra solved the single-source shortest paths problem (described in \cref{subsubsec:single-source-shortest-path}), the distances from any normal vertex to its nearest transit nodes are stored.
+			The final step of the preprocessing is the calculation of the distances between all transit nodes, which means solving the all-pair shortest path problem as described in \cref{subsubsec:all-pair-shortest-path}.
 			
 			Having the distances between transit nodes and the distances from any other vertex to its closest transit nodes makes it easy to compute distances between arbitrary vertices.
 			This is done by the two following routines.
@@ -474,6 +474,34 @@
 			Even though the requests can be answered incredibly fast, actually faster than probably any other method, it needs a lot of space and preprocessing time \cite[23]{bast-transportation-networks}.
 		
 		\subsubsection{Compressed path databases}
+		
+			A \term{compressed path database} (\term*{CPD}) itself is not directly a routing algorithm but rather a technique to efficiently store shortest paths between points \cite{botea-cpd-2013}.
+			In other words, the solution of the all-pair shortest paths problem from \cref{subsubsec:all-pair-shortest-path} can be stored in a CPD.
+			
+			The simplest form of a CPD works on a grid rather than a graph, where the number of neighbors is limited and visualization and compression is simpler.
+			Such grid based CPDs actually consist of $n$ many grids (for $n$ cells), each one storing movement information from a fixed cell $v$ to all other cell.
+			Movement information here means, that only a single step is stored.
+			
+			Let us consider the following example:
+			The path from cell $u$ to $v$ is requested, so the grid $u$ is used first.
+			On that grid, the cell for $u$ is empty (since it is the root cell) and the cell for $v$ stores the first step to take in order to get from $u$ to $v$.
+			This first step (on a grid for example the direction \enquote{north east}) leads to a new cell $u'$.
+			The grid for $u'$ is used and again the cell for $v$ tells the algorithm what direction to take.
+			This goes on until the cell $v$ is found.
+			
+			The construction of a CPD is similarly simple \cite[2]{botea-cpd-2013}.
+			For each vertex $v$, the shortest paths to all other vertices are calculated, which can be done using Dijkstra or any other single-source or all-pairs shortest path algorithm.
+			After converting the shortest paths into a compatible format (in the above case a grid), the data needs to be compressed.
+			Otherwise the data becomes too large as the space requirement is in $\bigo{n^2}$ or even $\bigo{n^2 \log n}$ \cite[1]{botea-cpd-2013}.
+			
+			There are multiple possible ways to compress a raw CPD.
+			The original paper uses a decomposition of rectangles with common movement directions to reduce the amount of redundant data \cite[1]{botea-cpd-2011}.
+			A new approach presented two years later uses general purpose compression techniques like run-length encoding (RLE) and sliding-window compression (SWC) as well as special list-trimming with default movements.
+			
+			The original approach already showed good results.
+			Using the originally proposed compression (rectangle decomposition only) on a road network yields a CPD with a compression factor of about 180 \cite[4]{botea-cpd-2013}.
+			Compressing the same network with all mentioned techniques together can decrease the size even further to a CPD, which is another 5.3 times smaller.
+			This is a factor of 950 compared to an uncompressed database.
 	
 	\subsection{Geometric routing}
 	\label{subsec:geometric-routing}
@@ -484,7 +512,7 @@
 		\todo[inline]{Geometric routing with respect to areas building a "fastest" profile or something?}
 		
 		There are to main strategies for finding shortest paths:
-		Create edges in open spaces or create a shortest-paths map.
+		Create edges in open spaces or create a shortest paths map, a structure similar to CPDs.
 		
 		The first mechanism creates edges and then utilizes a normal graph based routing algorithm to actually find the shortest path.
 		There are multiple ways on how to create such edges.
@@ -496,9 +524,9 @@
 		However, routing results might not be optimal anymore, since a straight edge between visible vertices is the shortest connection one might get and those alternatives might not create such short edges\cite[223]{graser-osm-open-spaces}.
 		Another aspect of graph generating methods is, that the start and target locations must be on the graph to be precisely reachable by routing algorithms.
 		
-		The second strategy creates a map of predecessor vertices, which can be used to determine shortest-paths from a source vertex $s$ by following the predecessor relations from any given location.
+		The second strategy creates a map of predecessor vertices, which can be used to determine shortest paths from a source vertex $s$ by following the predecessor relations from any given location.
 		This map can also be seen as a tree with $s$ as its root and each region as a leaf.
-		Such a tree might remind one of Dijkstras algorithm, which creates such a shortest-paths tree as well.
+		Such a tree might remind one of Dijkstras algorithm, which creates such a shortest path tree as well.
 		Due to this similarity, this strategy is also called the \term{continuous dijkstra} paradigm\cite[648]{mitchell-discrete-geodesic}.
 		The key difficulty of this approach is the propagation of wavefront through space and their interactions with obstacles and other wavefronts\cite[3]{hershberger-suri}.
 		A well fitting analogy for this approach is the propagation of sound or water waves traveling through space, folding around obstacles and finally reaching the target.
