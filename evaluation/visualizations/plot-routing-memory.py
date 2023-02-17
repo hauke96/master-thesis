@@ -12,7 +12,11 @@ dataset=common.load_dataset(dataset_filter, title)
 dataset["distance"]=dataset["distance"] / 1000
 
 # Convert bytes to MiB
-mem_col="max_mem"
+mem_col="avg_mem"
+mem_col_label="Average memory usage in MiB"
+#mem_col="max_mem"
+#mem_col_label="Maximum memory usage in MiB"
+
 dataset[mem_col]=dataset[mem_col] / 1024 / 1024
 
 common.init_seaborn(
@@ -28,7 +32,7 @@ plot=common.create_lineplot(
 	xcol="distance",
 	xlabel="Distance in km",
 	ycol=mem_col,
-	ylabel="Average memory usage in MiB",
+	ylabel=mem_col_label,
 	hue="total_vertices",
 	style="total_vertices",
 )
