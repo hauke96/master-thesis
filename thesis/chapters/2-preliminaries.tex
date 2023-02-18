@@ -114,12 +114,13 @@
 		
 		\subsubsection{Other formats}
 		
-			\todo[inline]{Citations needed}
-		
 			There are many more formats for numerous use cases ranging from simple unstandardized to complex, feature rich and fully standardized formats.
 			
-			A \term{CSV} file can also serve as a spatial file format where certain columns contain geographical information.
-			However, there is no popular standard using CSV files for geodata.
+			A \emph{comma-separated value} (\term*{CSV}) file can also serve as a spatial file format where certain columns contain geographical information.
+			The simplicity of this format is its biggest advantage and it is used as transportation format for many public datasets.
+			One example is the public available timetable data of the HVV (public transport network in Hamburg, Germany) \cite{hvv-fahrplandaten}.
+			This uses the GTFS format, which is based on CSV files and also contains some shapes to describe the route a vehicle takes \cite{google-gtfs}.
+			However, there are no popular standard using CSV files for pure spatial data.
 			
 			The \term{Well-known Text} (\term*{WKT}) format is a simple, text based format specified by the OGC\cite[51]{ogc-sfa}.
 			One popular use case is communication with databases.
@@ -287,13 +288,12 @@
 		\label{subsubsec:single-source-shortest-path}
 		
 			One source vertex is given and the shortest paths to all other vertices should be determined.
-			This is solved using algorithm like Dijkstra, which will be described in detail in \cref{subsubsec:dijkstra}.
+			Algorithms that solve this problem are for example Dijkstra, which will be described in detail in \cref{subsubsec:dijkstra}, or the Bellman-Ford algorithm, which can handle negative edge weights \cite[651]{cormen-introduction-to-alg}.
 		
 		\subsubsection{\term*[single-destination shortest paths]{Single-destination shortest paths}}
 		
 			This is the opposite to the above problem.
 			All shortest paths to a specific vertex from any other vertex should be found.
-			
 			However, no new algorithms are needed to solve this problem.
 			Instead, the direction of each edge can be reversed turning this problem into the single-source problem.
 		
@@ -307,7 +307,7 @@
 		
 			This problem is similar to the single-pair problem but is not restricted to a single source vertex.
 			A naive approach would be to use an algorithm solving the single-pair problem on each vertex, but there are faster ways to solve this.
-			\todo[inline]{Mention algorithms}
+			Two popular algorithms solving this problem are the Floyd-Warshall algorithm, allowing negative edge weights by assuming no negative cycles exist \cite[693]{cormen-introduction-to-alg}, and Johnson's algorithm, which also detects negative cycles and terminates in such case \cite[700]{cormen-introduction-to-alg}.
 
 	\subsection{Graph based routing}
 		
@@ -508,9 +508,6 @@
 	
 		Geometric routing determines shortest paths via open spaces by avoiding obstacles.
 		Because this way of routing is based on geometric properties, attributes of edges (for example the surface conditions) are of no use.
-		
-		\todo[inline]{Geometric routing with respect to areas building a "fastest" profile or something?}
-		
 		There are to main strategies for finding shortest paths:
 		Create edges in open spaces or create a shortest paths map, a structure similar to CPDs.
 		
