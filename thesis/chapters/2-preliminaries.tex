@@ -21,21 +21,32 @@
 		Unfortunately the Earth is not a perfect sphere but rather an ellipsoid.
 		But even this ellipsoid is not smooth and has slightly different radii in different regions.
 		Furthermore, parts of the surface move relative to each other (continental drift) and therefore change the coordinates of whole regions.
-		Even though, the continental plates move slowly, this effect adds up to a significant distance rendering accurate measurements potentially useless\cite[7]{ordenance-survey-booklet}.
+		Even though, the continental plates move slowly, this effect adds up to a significant distance rendering accurate measurements potentially useless \cite[7]{ordenance-survey-booklet}.
 		These properties of the surface of Earth make it necessary to have a variety of different reference systems and projections for spatial data.
 		
-		A \todo{check this whole CRS thing for correctness}\term{coordinate reference system} (CRS) defines the combination of a coordinate system and an approximation of the surface of the Earth.
-		The \term{coordinate system} defines, like a mathematical coordinate system, the extend and unit of coordinates.
-		Types of coordinate systems are for example cartesian (with meters or foot as unit) and ellipsoidal (with latitude and longitude in degrees)\cite[11-13]{ordenance-survey-booklet}.
-		The \term{horizontal datum} (also \term{Terrestrial Reference System} or \term{geodetic datum}) defines the origin and orientation of the coordinate system and is therefore a mapping from coordinate to location on Earth based on a specific ellipsoid.
-		Depending on this ellipsoid, the datum either defines a global or local reference system.
-		Latter is more accurate in certain places while a global system tries to find a good approximation for every location on Earth.
-		For two dimensional Cartesian coordinate systems, a \term*[map projection]{projection} is needed to turn each  spherical location to a two dimensional planar coordinate\cite[17]{ordenance-survey-booklet}.
+		A \term{coordinate reference system} (CRS) defines the combination of a coordinate system and an approximation of the surface of the Earth.
+		The \term{coordinate system} defines, just like a mathematical coordinate system does, the extend and unit of coordinates.
+		Types of coordinate systems are for example cartesian (with meters or foot as unit) and ellipsoidal (with latitude and longitude in degrees) \cite[11-13]{ordenance-survey-booklet}.
+		The \term{horizontal datum} (also \term{Terrestrial Reference System} or \term{geodetic datum}) defines the origin and orientation of the coordinate system and is therefore a mapping from a coordinate to a location on Earth based on a specific ellipsoid.
 		
-		For visualization purposes, a \term{map projection} turns coordinates of a specific CRS into flat and two dimensional coordinate for a map.
-		This may be a different projection as used in a two dimensional Cartesian CRS and therefore transformations between different projections are necessary.
+		An \term{ellipsoid} is a deformed sphere, which describes the Earth or a part of the Earth (for example one continent) as accurate as possible.
+		Depending on this ellipsoid, the horizontal datum either defines a global or local reference system.
+		Latter is more accurate in certain places while a global system tries to find a good approximation for every location on Earth.
+		For two dimensional Cartesian coordinate systems, a \term*[map projection]{projection} is needed to turn each  spherical location on the ellipsoid to a two dimensional planar coordinate \cite[17]{ordenance-survey-booklet}.
+		
+		Next to the horizontal datum, a \term{vertical datum} is used to define the height of data \cite[9-10]{ordenance-survey-booklet}.
+		This is done by defining a \term{geoid}, which can be another ellipsoid but that would result in very inaccurate data \cite[10]{ordenance-survey-booklet}.
+		Instead, local reference levels for height data are used, such as ODN (Ordnance Datum Newlyn) for Britain or NHN (Normalhöhennull) for Germany.
+		Since it is often based on the water level of oceans, the height on landmasses is extrapolated based on the gravitational field of the earth.
+		
+		For visualization purposes, a \term{map projection} might be needed to turn coordinates of a specific CRS into to coordinates of the map.
+		The map can be a two dimensional printed or digital map but digital maps can also be on a three dimensional ellipsoid.
+		Therefore, the map projection can be a different projection as used in a two dimensional Cartesian CRS and therefore transformations between different projections are necessary.
 		The map projection used for the final map is independent from the data and only affects the visualization.
-
+		
+		For better communication, the European Petroleum Survey Group (\term*{EPSG}) created a database with definitions for coordinate reference systems and transformations \cite{epsg}.
+		Each entry in this database can be identified by a code with the prefix \texttt{EPSG:} followed by a numeric code, for example \texttt{EPSG:4326} for the global and widely used WGS 84.
+		
 	\subsection{Data structures}
 	\label{subsec:data-structures}
 	
