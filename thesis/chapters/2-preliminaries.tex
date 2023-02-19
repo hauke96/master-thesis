@@ -4,48 +4,49 @@
 \section{Geospatial data}
 
 	According to the ISO standard 19109:2015\cite{geolexica-202}, the term \term{geospatial data} refers to \enquote{data with implicit or explicit reference to a location relative to the Earth}.
-	In other words, data with addresses, coordinates or other location references belongs to the class of geospatial data, or geodata for short.
+	In other words, data with any kind of address, coordinate or other location reference belongs to the class of \term{geospatial data}, or \term{geodata} for short.
 	
-	Typical examples are customer databases, in which each customer has an address, or meteorological data with coordinates, altitude and timestamp.
-	Latter therefore belongs to \term{spatiotemporal data}, because is has an additional time dimension.
+	Examples are customer databases (address information of each customer), meteorological data (measures data with coordinates, altitude and timestamp) and of course databases containing road networks like \hyperref[subsec:osm]{OpenStreetMap}.
+	Geodata with an additional time dimension is also categorized as \term{spatiotemporal data}.
 	Since addresses are not globally standardized, describe only a vague location and usually belong to a hole area, they are of less importance for this thesis.
-	Whenever this thesis mentions geodata, data structures as described below in \cref{subsec:data-structures} are meant.
+	Whenever this thesis mentions the term \emph{geodata}, data structures as described below in \cref{subsec:data-structures} are meant.
 	
 	Next to the mentioned explicit references to locations (such as coordinates), implicit references can be encoded within metadata of datasets as well.
-	This is for example the case for the GeoTIFF format, storing location data in the matadata of a normal TIFF image file\cite{ogc-geotiff}.
-	The exact coordinate of a data point (in this case a pixel in the TIFF image), must then be calculated using this matadata.
+	This is for example the case for the GeoTIFF format, storing the geographic extent in the metadata of a normal TIFF image file\cite{ogc-geotiff}.
+	The exact coordinate of a data point (in this case a pixel in the TIFF image), must then be calculated using this metadata.
 
 	\subsection{Coordinate reference systems and projections}
 	
-		Usually coordinates are used to specify exact locations in a specific domain (usually on the surface of the Earth).
-		Unfortunately the Earth is not a perfect sphere but rather an ellipsoid.
+		Coordinates are used to specify exact locations on Earth.
+		However, the Earth is not a perfect sphere but rather an ellipsoid.
 		But even this ellipsoid is not smooth and has slightly different radii in different regions.
-		Furthermore, parts of the surface move relative to each other (continental drift) and therefore change the coordinates of whole regions.
-		Even though, the continental plates move slowly, this effect adds up to a significant distance rendering accurate measurements potentially useless \cite[7]{ordenance-survey-booklet}.
-		These properties of the surface of Earth make it necessary to have a variety of different reference systems and projections for spatial data.
+		Furthermore, most regions on Earth move relative to each other (continental drift) and therefore constantly change their coordinates and distances to each other.
+		Even though, the continental plates move slowly, this effect adds up to a significant distance rendering very accurate measurements potentially useless over time \cite[7]{ordenance-survey-booklet}.
+		These properties of the surface of Earth make it necessary to have a variety of different reference systems and projections for spatial data covering different parts of the planet.
 		
 		A \term{coordinate reference system} (CRS) defines the combination of a coordinate system and an approximation of the surface of the Earth.
-		The \term{coordinate system} defines, just like a mathematical coordinate system does, the extend and unit of coordinates.
-		Types of coordinate systems are for example cartesian (with meters or foot as unit) and ellipsoidal (with latitude and longitude in degrees) \cite[11-13]{ordenance-survey-booklet}.
+		The \term{coordinate system} defines the extent and unit of coordinates.
+		Types of coordinate systems are for example Cartesian (with meters or foot as unit) and ellipsoidal (with latitude and longitude in degrees) \cite[11-13]{ordenance-survey-booklet}.
 		The \term{horizontal datum} (also \term{Terrestrial Reference System} or \term{geodetic datum}) defines the origin and orientation of the coordinate system and is therefore a mapping from a coordinate to a location on Earth based on a specific ellipsoid.
 		
-		An \term{ellipsoid} is a deformed sphere, which describes the Earth or a part of the Earth (for example one continent) as accurate as possible.
+		Since the earth is a sphere like body, the horizontal datum is always tied to an ellipsoid.
+		An \term{ellipsoid} is a deformed sphere, which describes either the whole Earth or a part of it (for example one continent) as accurate as possible.
 		Depending on this ellipsoid, the horizontal datum either defines a global or local reference system.
 		Latter is more accurate in certain places while a global system tries to find a good approximation for every location on Earth.
-		For two dimensional Cartesian coordinate systems, a \term*[map projection]{projection} is needed to turn each  spherical location on the ellipsoid to a two dimensional planar coordinate \cite[17]{ordenance-survey-booklet}.
+		Two dimensional Cartesian coordinate systems only work on flat surfaces, therefore a \term*[map projection]{projection} is required to turn each spherical location on the ellipsoid to a two dimensional planar location in the coordinate system \cite[17]{ordenance-survey-booklet}.
 		
-		Next to the horizontal datum, a \term{vertical datum} is used to define the height of data \cite[9-10]{ordenance-survey-booklet}.
-		This is done by defining a \term{geoid}, which can be another ellipsoid but that would result in very inaccurate data \cite[10]{ordenance-survey-booklet}.
+		Next to the horizontal datum, a \term{vertical datum} might be used to define the height of data \cite[9-10]{ordenance-survey-booklet}.
+		This is done by defining a so called \term{geoid}.
+		Such a goid can be modeled using another ellipsoid but that would result in very inaccurate data \cite[10]{ordenance-survey-booklet}.
 		Instead, local reference levels for height data are used, such as ODN (Ordnance Datum Newlyn) for Britain or NHN (Normalhöhennull) for Germany.
 		Since it is often based on the water level of oceans, the height on landmasses is extrapolated based on the gravitational field of the earth.
 		
-		For visualization purposes, a \term{map projection} might be needed to turn coordinates of a specific CRS into to coordinates of the map.
-		The map can be a two dimensional printed or digital map but digital maps can also be on a three dimensional ellipsoid.
-		Therefore, the map projection can be a different projection as used in a two dimensional Cartesian CRS and therefore transformations between different projections are necessary.
-		The map projection used for the final map is independent from the data and only affects the visualization.
+		For visualization purposes, a \term{map projection} might be needed to translate coordinates from the CRS of the data into the coordinate system used of the map.
+		The map can be two dimensional but digital maps can also be rendered on a three dimensional sphere.
+		Since the projections from the data CRS and the map can differ, transformations between the projections are needed.
 		
 		For better communication, the European Petroleum Survey Group (\term*{EPSG}) created a database with definitions for coordinate reference systems and transformations \cite{epsg}.
-		Each entry in this database can be identified by a code with the prefix \texttt{EPSG:} followed by a numeric code, for example \texttt{EPSG:4326} for the global and widely used WGS 84.
+		Each entry in this database has an ID with the prefix \texttt{EPSG:} followed by a numeric code, for example \texttt{EPSG:4326} for the global and widely used WGS 84.
 		
 	\subsection{Data structures}
 	\label{subsec:data-structures}
@@ -53,30 +54,36 @@
 		Spatial data can have a variety of data structures.
 		Some of these are used in many or all frameworks and formats, but some are vendor specific.
 		This section gives an overview of common data structures in spatial data.
-		The \term{simple feature access} (\term*{SFA}) standard by the OGC defines numerous geometry types\cite{ogc-sfa}, but not all of them are implemented in all format and most of them are not relevant for this thesis as well.
-		Because the GeoJSON format (described in more detail in \cref{subsubsec:geojson}) implements the most important geometries of the SFA standard\cite[2]{ietf-geojson}, this section gives an overview of the geometry types implemented by GeoJSON.
+		
+		The \term{simple feature access} (\term*{SFA}) standard by the Open Geospatial Consortium (\term*{OGC}) defines numerous geometry types\cite{ogc-sfa}, but not all of them are implemented in all formats and most of them are not relevant for this thesis.
+		Because the widely used GeoJSON format (described in more detail in \cref{subsubsec:geojson}) implements the most important geometries of the SFA standard\cite[2]{ietf-geojson}, this section gives an overview of the geometry types implemented by GeoJSON.
 		
 		The first concepts to consider are geometries and features.
 		
-		A \term{geometry} just represents geometric coordinates and their relation to each other.
-		The simplest geometry is a \texttt{Point} with one coordinate.
-		Ordering multiple points turns them into a \texttt{LineString} with a certain direction.
-		A closed \texttt{LineString} is called \texttt{Polygon} and describes an area.
-		Multiple geometries of the same kind can be collected forming a \texttt{MultiPoint}, \texttt{MultiLineString} or \texttt{MultiPolygon}.
-		Polygons have an additional property:
-		Putting polygons inside polygons forms \enquote{holes} and \enquote{islands}.
+		\subsubsection{Geometries}
 		
-		According to the OGC, a \term{feature} is an \enquote{abstraction of real world phenomena}\cite[9]{ogc-sfa}, for example a tree, road or lake.
-		It therefore consists of a geometry, describing \textit{where} the feature is, with certain attributes (sometimes also called properties), describing \textit{what} the feature represents.
-		Such attributes are -- in the case of GeoJSON -- not further defined and can contain arbitrary values.
-		Some file formats, however, specify technical restrictions on attributes (for example length restriction in Esri shapefiles as described in \cref{subsubsec:shapefile}) while others try to standardize the allowed keys and values.
+			A \term{geometry} just represents geometric coordinates and their relation to each other.
+			The simplest geometry is a \texttt{Point} with one coordinate.
+			Having an ordered list of coordinates yields a \texttt{LineString} with a certain direction based on the ordering.
+			A closed \texttt{LineString} is called \texttt{Polygon} and describes an area.
+			Multiple geometries of the same kind can be collected forming a \texttt{MultiPoint}, \texttt{MultiLineString} or \texttt{MultiPolygon}.
+			Polygons have an additional property:
+			Putting polygons inside polygons forms \enquote{holes} and \enquote{islands}.
 		
-		A community driven standardization strategy is used by the OpenStreetMap project, where the OSM-Wiki defines certain keys and value but still allows arbitrary tags to exist\cite{osm-wiki-proposal-process}.
-		This ensures adaptations to arbitrary real world objects, while having a standard for common and globally used attributes.
-		More details on OpenStreetMap are given in \cref{subsec:osm}.
+		\subsubsection{Features}
 		
-		Other systems define a fixed set of allowed and keys and values for attributes.
-		For example, the INSPIRE standard of the EU defines \texttt{natureConservation} as one allowed value for the \texttt{SiteProtectionClassification} attribute to mark nature protection areas \enquote{for the maintenance of biological diversity}\cite[31]{inspire-protected-sites}.
+			According to the OGC, a \term{feature} is an \enquote{abstraction of real world phenomena}\cite[9]{ogc-sfa}, for example a tree, road or lake.
+			It therefore consists of a geometry, describing \textit{where} the feature is, and certain attributes (sometimes also called properties or tags), describing \textit{what} the feature represents.
+			Such attributes are -- in the case of GeoJSON -- not further defined but consist of a list of key-value pairs which can contain arbitrary entries.
+			Some file formats, however, have technical restrictions regarding possible attributes (for example length restriction in Esri shapefiles as described in \cref{subsubsec:shapefile}) while others try to standardize the allowed keys and values.
+		
+		\subsubsection{Standardization}
+		
+			A community driven standardization strategy is used by the \term*{OpenStreetMap} (\term*{OSM}) project (covered in \cref{subsec:osm} with more details), where the projects Wiki defines certain keys and value but still explicitly allows arbitrary tags to exist\cite{osm-wiki-proposal-process}.
+			This ensures the possibility to adapt to arbitrary real world objects, while having a standard for the most common and globally used attributes.
+			
+			Other systems define a fixed set of allowed and keys and values for attributes.
+			For example, the INSPIRE standard of the EU defines \texttt{natureConservation} as one allowed value for the \texttt{SiteProtectionClassification} attribute to mark nature protection areas \enquote{for the maintenance of biological diversity}\cite[31]{inspire-protected-sites}.
 			
 	\subsection{File formats}
 	\label{subsec:file-formats}
@@ -89,38 +96,42 @@
 		\subsubsection{Esri shapefile}
 		\label{subsubsec:shapefile}
 		
-			The \term[shapefile]{Esri Shapefile} format was developed in the 1990s and is a popular file format and used for example in Esri products like the ArcGIS platform.
+			The \term[shapefile]{Esri Shapefile} format (often just called shapefile) was developed in the 1990s by the company Esri and is a popular file format not only used in Esri products like the ArcGIS platform.
 			Each shapefile actually consists of multiple files on disk\cite{esri-shapefile-file-ext-spec}.
 			Three of them are mandatory containing the geometries (\texttt{.shp}), an index (\texttt{.idx}) and a dBASE table with attributes (\texttt{.dbf}).
-			Additional files are optional and can contain additional indices or details about the CRS.
-			Even though shapefiles are very popular\cite[356]{spatial-file-formats-trends}, there are several limitations regarding the containing geometries and attributes.
-			Only one type of geometry is supported per shapefile, which means a shapefile cannot contain points and polygons at the same time\cite[4]{esri-shapefile-spec}.
-			Attributes also have limitations in their size and structure, for example are the attribute keys limited to 10 and values to 254 characters\cite{esri-shapefile-limitations}.
+			Additional files are optional and can contain additional indices or details about the CRS (\texttt{.prj}).
+			Shapefiles are very popular\cite[356]{spatial-file-formats-trends} but have several significant technical limitations regarding the containing geometries and attributes.
+			
+			Even though the first byte of every geometry in the shapefile encodes its type \cite[4-23]{esri-shapefile-spec}, the standard allows only one type of geometry per shapefile \cite[4]{esri-shapefile-spec}.
+			Storing for example points and polygons would require two separate shapefiles even though the data might belong together.
+			Attributes have limitations in their size and structure.
+			One major limitation is the maximum length of 10 characters per attribute name and a maximum of 254 characters per value \cite{esri-shapefile-limitations}.
+			The maximum number of attributes per geometry is limited by 255.
 			The default CRS is based on latitudes and longitudes using the NAD 27 datum\cite{esri-shapefile-coordinate-system}.
 			
 		\subsubsection{KML}
 		
 			Another popular spatial format is the \term[kml]{Keyhole Markup Language} (KML), which was standardized by the OGC in 2008\cite{ogc-kml-2.2}.
 			A KML file consist of a single XML structured file.
-			Since it follows the XML standard, which is plain text, geometry and attribute count and lengths are irrelevant.
+			Since it follows the XML standard, which is plain text, the amount of geometries and attributes are not restricted.
 			KML files may contain more information than just features:
-			Features can be grouped and hirarchically organized, temporal data can be added to define a lifetime of a feature and camera views for visualization applications can be defined\cite{ogc-kml-2.3}.
+			Features can be grouped and hierarchically organized, temporal data can be added to define the lifetime of a feature and camera views for visualization applications can be defined \cite{ogc-kml-2.3}.
 			The CRS can be specified but WGS 84 with latitudes and longitudes is used by default.
 		
 		\subsubsection{GeoJSON}
 		\label{subsubsec:geojson}
 		
 			Another open but not OGC standardized format is \term{GeoJSON}.
-			As the name suggests, a GeoJSON file is valid JSON following the structure defined in \href{https://datatracker.ietf.org/doc/html/rfc7946}{RFC7946}\cite{ietf-geojson}.
-			The file may contain a collection of geometries or features but can also just contain a single geometry or feature.
-			As in KML files, the length, character choice and amount of attributes or geometries are not restricted.
+			As the name suggests, a GeoJSON file is valid JSON following the structure defined in \href{https://datatracker.ietf.org/doc/html/rfc7946}{RFC7946} \cite{ietf-geojson}.
+			The file can contain a collection of features (of type \texttt{FeatureCollection}), where each feature contains a geometry, or the file just contains a list of geometries (one geometry of type \texttt{GeometryCollection}) without attributes.
+			As in KML files, the length, character choice, amount of attributes and amount of geometries are not restricted.
 			The CRS has been set to WGS 84.
 			
 		\subsubsection{GeoTIFF}
 		
-			All formats mentioned so far are store vector data, however, raster data can be georeferenced as well.
-			One format to store such raster data in form of an image, is the OGC standardized \term{GeoTIFF} format.
-			As the name suggests, it is an TIFF formatted image with spatial metadata such as the CRS and a mapping of pixel to coordinates\cite{ogc-geotiff}.
+			All formats mentioned so far store vector data, however, raster data can be georeferenced as well.
+			One format to store such raster data in form of an image, is the OGC standardized \term{GeoTIFF} format \cite{ogc-geotiff}.
+			As the name suggests, it is an TIFF formatted image with spatial metadata such as the CRS and a mapping of pixel to coordinates.
 			Typical use cases for such images are aerial or satellite imagery and digital elevation models (DEM).
 		
 		\subsubsection{Other formats}
@@ -130,8 +141,8 @@
 			A \emph{comma-separated value} (\term*{CSV}) file can also serve as a spatial file format where certain columns contain geographical information.
 			The simplicity of this format is its biggest advantage and it is used as transportation format for many public datasets.
 			One example is the public available timetable data of the HVV (public transport network in Hamburg, Germany) \cite{hvv-fahrplandaten}.
-			This uses the GTFS format, which is based on CSV files and also contains some shapes to describe the route a vehicle takes \cite{google-gtfs}.
-			However, there are no popular standard using CSV files for pure spatial data.
+			This uses the \term{GTFS} format, which is based on CSV files (even though each file has the ending \texttt{.txt}) and also contains a \texttt{shapes.txt} CSV file to describe which routes the vehicles take \cite{google-gtfs}.
+			However, there is no popular standard using CSV files to store spatial data only.
 			
 			The \term{Well-known Text} (\term*{WKT}) format is a simple, text based format specified by the OGC\cite[51]{ogc-sfa}.
 			One popular use case is communication with databases.
