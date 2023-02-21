@@ -119,12 +119,15 @@
 \renewcommand{\headrulewidth}{0pt}
 \setlength{\footnotemargin}{1ex}
 
-\begin{document}
-	\newgeometry{left=3.5cm, top=3.5cm, right=3.5cm, bottom=3.5cm}
-	
-	\include{titlepage.tex}
+\let\olditemize=\itemize
+\def\itemize{
+	\olditemize
+	\setlength{\itemindent}{-0.5em}
+	\setlength{\itemsep}{0ex}
+}
 
-	\restoregeometry
+\begin{document}
+	\include{titlepage.tex}
 	
 	\tableofcontents
 	\thispagestyle{empty}

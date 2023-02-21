@@ -132,7 +132,7 @@
 			All formats mentioned so far store vector data, however, raster data can be georeferenced as well.
 			One format to store such raster data in form of an image, is the OGC standardized \term{GeoTIFF} format \cite{ogc-geotiff}.
 			As the name suggests, it is an TIFF formatted image with spatial metadata such as the CRS and a mapping of pixel to coordinates.
-			Typical use cases for such images are aerial or satellite imagery and digital elevation models (DEM).
+			Typical use cases for such images are aerial or satellite imagery and \term*{digital elevation models} (\term*{DEM}).
 		
 		\subsubsection{Other formats}
 		
@@ -151,31 +151,27 @@
 			
 			More complex formats are \term{SpatiaLite} and \term{GeoPackage}.
 			SpatiaLite specifies an extension to file based SQLite database engine and offers additional geodata specific functionality\cite{spatialite-website}.
-			The GeoPackage is based on an SQLite database as well, but it diverged from the SpatiaLite format, for example by using a different WKB encoding\cite{geopackage-faq}.
+			The GeoPackage format is very similar to SpataLite as it is based on an SQLite database as well, but it diverged from the SpatiaLite format, for example by using a different WKB encoding\cite{geopackage-faq}.
 			
-	
-	
 	\subsection{OGC web services}
 	
-		Next to the above mentioned local and file based formats, there are web based standards as well.
+		Next to the above mentioned file based formats, there are web based standards as well.
 		The OGC standardized some APIs for web based services.
 		Popular standards are the \term{Web Map Service} (\term*{WMS}), \term{Web Map Tile Service} (\term*{WMTS}) and \term{Web Feature Service} (\term*{WFS}).
 		
-		Each API has a \texttt{REQUEST} parameter used to specify a operation to perform.
-		This can be an operation to get metadata of the service itself (for example with \texttt{GetCapabilities}), but can also be a specific operation to interact with the data.
+		Each API has a \texttt{REQUEST} parameter used to specify a operation to perform, for example get metadata with \texttt{GetCapabilities} or features with \texttt{GetFeature}.
 		Each operation accepts additional parameters, for example the extent from with data is requested or the output format.
-		
 		
 		\subsubsection{WMS -- Web Map Service}
 		
-			A \term*{Web Map Service} provides access to rendered images from geodata but not the the underlying raw data used to create the image.
+			A \term*{Web Map Service} provides access to rendered images but not the the underlying raw data.
 			However, one optional operation a WMS API might support, is the \texttt{GetFeatureInfo} operation\cite[38]{ogc-wms}, which returns more information about features in the image, but does not necessarily return the raw data.
 		
 		\subsubsection{WMTS -- Web Map Tile Service}
 		
-			Similar to a WMS service, the \term*{Web Map Tile Service} specification was created to provide a more scalable service providing rendered maps\cite[12]{ogc-wmts}.
-			Each request returns a tile with a fixed bounding box, making server and client side caching possible.
-			While a WMS can be used for dynamic and changing data, WMTS focuses on more static data, which can be prerendered to increase performance\cite[13]{ogc-wmts}.
+			Similar to a WMS service, the \term*{Web Map Tile Service} specification was created to provide a more scalable service providing rendered map tiles\cite[12]{ogc-wmts}.
+			Each request returns a tile with a fixed bounding box, making caching on the server and client side possible.
+			While a WMS can be used for dynamic and changing data, WMTS focuses on more static data, which can be prerendered to increase request performance\cite[13]{ogc-wmts}.
 		
 		\subsubsection{WFS -- Web Feature Service}
 		
@@ -185,7 +181,7 @@
 	
 	\subsection{GIS}
 	
-		A file format alone, as described in the \hyperref[subsec:file-formats]{previous section}, is only useful when it comes to storing or transferring data or ensuring interoperability.
+		A file format alone, as described in the \hyperref[subsec:file-formats]{previous section}, is only useful when it comes to storing or transferring data ensuring interoperability.
 		Processing the data is part of applications referred to as \term[geographic information system]{geographic information systems} (\term*{GIS}).
 		
 		The term GIS is very broad and describes nearly all systems working with spatial data.
@@ -197,99 +193,107 @@
 	
 		\term{OpenStreetMap} (\term*{OSM}) is a geospatial database that is maintained by a global community and licensed under the \term{Open Data Commons Open Database License} (\term*{ODbL})\cite{osm-wiki-about}.
 		It can therefore be used, changed and redistributed as long as a proper attribution is given and results stay under the ODbL\cite{odbl-summary}.
-		In 2006, two years after the OSM project started, the OpenStreetMap Foundation was established to perform fund-raising, maintain the servers and also act as a legal entity.
-		People contributing to OSM are called \textit{mappers} or simply \textit{contributors}.
-		Most of them are volunteers, often mapping their local vicinity or concentrating on specific topics, but a significant amount of changes are contributed by companies with payed mappers\cite{osm-corporate-mappers}.
+		In 2006, two years after the OSM project started, the OpenStreetMap Foundation was established to perform fund-raising, maintain the servers and also act as a legal entity for the project.
+		People contributing to OSM are called \textit{mappers} or simply \textit{contributors} and most of them are volunteers, often mapping their local vicinity or concentrating on specific topics.
+		However, a rising number of companies with payed mappers contribute as well adding data for their business model \cite{osm-corporate-mappers}.
 		
 		\subsubsection{Data model}
 		
 			The model of OSM is much simpler compared to many of the \hyperref[subsec:file-formats]{above mentioned} data formats.
 			There are three main data types in OSM: \term{node}, \term{way} and \term{relations}\cite{osm-wiki-data-model}.
 			
-			Nodes and ways are analogous to \texttt{Point} and \texttt{LineString} from the OGC Simple Feature Access (SFA) specification described in \cref{subsec:data-structures}.
+			Nodes and ways are analogous to \texttt{Point} and \texttt{LineString} from the OGC \term*{Simple Feature Access} (\term*{SFA}) specification described in \cref{subsec:data-structures}.
 			Areas also exist but they are modeled as closed ways, therefore they do not form a new type of geometry.
 			A way is closed, when the first and last coordinates are identical, and thus are analogous to a \texttt{Polygon} in the SFA specification.
 			
 			Relations form multi-geometries, so they are analogous to \texttt{MultiPoint}, \texttt{MultiLineString} and \texttt{MultiPolygon} of the SFA specification.
-			Typical use cases are multipolygons (for example a lake in a forest), turn restrictions and bus routes.
+			Typical use cases are multipolygons, turn restrictions and bus routes.
 			Each element in a relation can have the optional attribute \texttt{role} specifying \enquote{the function of a member in the relation}\cite{osm-wiki-relation}.
-			Example values for this role are \texttt{outer} and \texttt{inner} for rings in a multipolygon or \texttt{stop} and \texttt{platform} in a bus route relation.
+			Example values for this role are \texttt{outer} and \texttt{inner} for rings in a multipolygon, \texttt{from}, \texttt{via} and \texttt{to} for turn restrictions or \texttt{stop} and \texttt{platform} in a bus route.
 			
 		\subsubsection{Attributes}
 		\label{subsubsec:osm-attributes}
 			
 			Attributes are called \term[tag]{tags} and are simple unrestricted key-value pairs.
-			The Wiki of OpenStreetMap defines many tags with designated values via a special proposal process, but new reasonable values can always be added\cite{osm-wiki-proposal-process}.
+			The Wiki of OpenStreetMap standardizes many tags with designated values via a special proposal process, but it is still allowed to use new, reasonable and unstandardized values \cite{osm-wiki-proposal-process}.
 			
 			Most tags describe the properties of the feature.
 			For example a node can have tags making it a restaurant with additional tags for the name, address, the food to get there, the opening hours and if the toilets are barrier free or not.
 			
 			Some tags, however, like \texttt{area=[yes|no]} or the \texttt{type} key for relations, influence the type of geometry.
-			A closed way with \texttt{area=no} does in fast \textit{not} form an area or polygon, but is just a closed line.
+			A closed way with \texttt{area=no} does in fact \textit{not} represent a polygon, but just a closed line.
 			This of course affects visualizations but may also need to be considered in other processing and analysis tasks.
 			
-			Other tags add metadata to objects, for example the last time the feature was checked, the source or internal notes to other mappers.
+			Other tags add metadata to objects, for example the last time the feature was surveyed, the source of the data or internal notes to other mappers.
 			
 			There are two ways a combination of key and value becomes an \enquote{official} tag:
 			By using it so often that it is de-facto accepted or by a proposal and vote.
-			The proposal process tries to organize and professionalize the development of new tasks.
-			Not only is a new tagging scheme accepted or rejected by a democratic vote, a mandatory discussion needs to take place earlier.
-			Due to the vast amount of contributors, different opinions, different editors and different knowledge about the tagging schemes, sometimes two or more competing schemes evolve (for example \texttt{phone=*} and \texttt{contact:phone=*}).
-			Tagging schemes change over time and some may become deprecated, leading to outdated tags on objects.
+			The proposal process tries to organize and professionalize the development of new tags.
+			Not only is a proposed tagging scheme accepted or rejected by a democratic vote, a mandatory public discussion of a minimum duration needs to take place earlier.
+			Due to the vast amount of contributors, different opinions, different editors and different knowledge about the tagging schemes, multiple competing schemes might evolve (for example \texttt{phone=*} and \texttt{contact:phone=*}).
+			Tagging schemes change over time and some may become deprecated or are officially abandoned via a proposal, leading to outdated tags on objects.
 			
 		\subsubsection{Contributions to OSM}
 		
-			Uploads to OSM always happen in so called \term[changeset]{changesets} combining multiple changed on the map\cite{osm-wiki-changeset}.
-			Each changeset can have tags, just like features can.
+			Uploads to OSM always happen in so called \term[changeset]{changesets} combining multiple changes on the map\cite{osm-wiki-changeset}, they can therefore be seen as a kind of transaction.
+			Each changeset itself can have tags, just like features can.
 			However, tags on a changeset specify certain metadata to the change.
-			The \texttt{created\_by}, \texttt{comment} and \texttt{source} tags are the most common ones but more details can be added and depends on the editor.
+			The \texttt{created\_by}, \texttt{comment} and \texttt{source} tags are the most common ones but more details can be added depending on the editor being used.
 			
-			Because some mappers also perform manual quality assurance, each changeset should fulfill certain quality criteria.
+			Because some mappers also perform manual quality assurance by reviews, each changeset should fulfill certain quality criteria.
 			The simplest one is a good changeset comment answering questions like \textit{what changed?} and \textit{why was the change necessary?}.
 			For legal reasons, specifying the source is very important since the ODbL is not necessarily compatible with licenses of other data sources.
 			Ideally a changeset should be coherent, which means that it should focus on one thematic aspect in one local area.
-			Too large and crowded changesets are difficult to maintain.
+			Too large and crowded changesets are difficult to maintain and therefore might get reverted.
 			
 		\subsubsection{Data contained in OSM}
 		
-			Since OSM has no focus on specific topics and due to the flexible tagging scheme (see \cref{subsubsec:osm-attributes}) nearly anything can be added to OSM.
-			However, there are some types of features that are very common according to the \href{https://taginfo.openstreetmap.org/keys}{taginfo.openstreetmap.org}, a service providing basic statistics about the currently used keys and values\cite{taginfo-keys}.
-			The statistics cover the whole OSM database and are updated once per day.
+			Since OSM has no focus on specific topics and due to the flexible tagging scheme \hyperref[subsubsec:osm-attributes]{mentioned above}, nearly anything can be added to OSM.
+			However, there are some types of features that are very common according to \href{https://taginfo.openstreetmap.org/keys}{taginfo.openstreetmap.org}, a service providing basic statistics about the currently used keys and values\cite{taginfo-keys}.
+			The statistics cover the whole OSM database and are updated daily.
 			
 			According to these statistics, the most common objects are buildings with over 542 million occurrences.
 			In fact 6\% of all objects and nearly 60\% of all ways in OSM are buildings.
 			Highways (mainly roads and streets but also paths, bridleways, railways and more) are the second common type of features with over 233 million occurrences.
 			Addresses are also very common, about 32\% of all nodes and 7\% of all ways have a house number.
-			Other area features like forests or lakes exist a lot as well as line features like barriers and waterways.
+			Other often added area features are forests and lakes as well as line features like barriers and waterways.
 			
 		\subsubsection{Data \textit{not} contained in OSM}
 		
-			Even though, the tagging scheme can be extended arbitrarily, some data will probably not be added to OSM.
+			Even though the tagging scheme can be extended arbitrarily, some data will probably not be added to OSM.
 			This can have multiple reasons.
 			
-			First, some data is too detailed and therefore people will not invest the time necessary to create that data.
+			First, some data is too detailed and therefore people will not invest the time necessary to create or maintain that data.
+			
 			Second, OSM follows some strategies on what to add and what not.
 			One important strategy is the verifiability of objects on the ground.
 			Anyone visiting a certain place should be able to find the data from OSM and therefore verify its existence and correctness.
+			
 			Third, temporary data should not be added since OSM is not a real-time database.
 			However, there's not a strict definition when a feature is temporary and when it is (potentially) permanent.
-			And fourth, data under a uncompatible license will not be added.
+			
+			And fourth, data under an incompatible license will not be added.
 			This also includes data from many public authorities and nearly all companies.
 			
-			Unfortunately, data relevant to routing is often added to roads and paths only but not to areas.
+			Unfortunately, data relevant to routing is often added to ways representing roads and paths, but not to areas.
 			This includes primarily accessibility and surface information.
 			However, latter can potentially be inferred or approximated from other tags on a polygon, for example \texttt{surface=grass} can be interred from \texttt{natural=grassland} and \texttt{access=yes} from \texttt{place=square}.
+			However, automatic inference of tags always leads to a certain amount of errors.
 			
-			Private areas, however, do often not exist at all or have very little details.
-			This is mainly due to reason two from above and rooted in a common sense of privacy towards companies and residents.
-			But also the areas in question are often not accessible to everyone, rendering them unverifiable for unauthorized people.
+			Private areas often not part of OSM or contain only very little details.
+			This is mainly due to reason two from above, since private areas are often unverifiable for unauthorized people, and rooted in a common sense of privacy towards companies and residents.
 			
 		\subsubsection{Data used in this thesis}
 		
 			This thesis uses OSM data for routing purposes.
 			Since geometric routing is the major topic, certain features in OSM are used as obstacles to navigate between them.
 			
-			\todo[inline]{Describe the exact features used during evaluation.}
+			The following features are considered as obstalces:
+			\begin{itemize}
+				\item \textbf{Buildings}: Anything with the \texttt{building} tag.
+				\item \textbf{Water areas}: This mainly includes lakes and rivers.
+				\item \textbf{Barriers}: The \texttt{barrier}-tag also includes passable structures like gates, so only specific barriers (for example fences) are considered.
+			\end{itemize}
 
 \section{Routing}
 
