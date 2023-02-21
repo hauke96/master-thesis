@@ -295,26 +295,26 @@
 				\item \textbf{Barriers}: The \texttt{barrier}-tag also includes passable structures like gates, so only specific barriers (for example fences) are considered.
 			\end{itemize}
 
-\section{Routing}
+\section{Graph based routing}
+\label{sec:graph-routing}
 
-	% fastest, shortest path, all shortest...
-	
 	\subsection{Theoretic considerations}
-	\label{subsec:routing-theoretic-considerations}
+	\label{subsec:routing-theoretic-considerations}	
 	
-		Formally, routing describes the process of finding an optimal path within a graph $G=(V, E)$ from a start location $s$ to a target location $t$ with $s, t \in V$.
-		A path is an ordered list of connected vertices $p=\left\langle v_0, v_1, \dots v_n \right\rangle$, so for an edge $(v_i, v_j)$ of consecutive vertices, $(v_i, v_j) \in E$ must hold.
-		In geometric routing approaches (see \cref{subsec:geometric-routing}), the result may be a list of coordinates that do not need to be within $V$.
+		Formally, routing describes the process of finding an optimal path within a graph $G=(V, E)$ from a source $s$ to a vertex $t$ with $s, t \in V$.
+		A path is an ordered list of connected vertices $p=\left\langle v_0, v_1, \dots v_n \right\rangle$, so for two consecutive vertices $v_i$ and $v_j$, $(v_i, v_j) \in E$ must hold.
 		
-		Often, \enquote{optimal} means shortest, whereby the length of an edge is considered as arbitrary weight and is therefore not bound to geographic lengths of edges.
-		In theoretic computer science, the fundamental problem behind routing algorithms is the \term{shortest path problem}.
-		However, the shortest path problem exists in several variants\cite[644]{cormen-introduction-to-alg}:
+		Often, \enquote{optimal} means shortest, whereby the length of an edge is a numeric value which is not necessarily bound to geographic lengths of edges.
+		Instead a weight function $w : E \rightarrow \mathbb{R}$ is used to attach a weight $w(u, v)$ to each edge $(u, v) \in E$.
+		Thus routing a minimization problem trying to find a path $p$ with the minimum sum $w(p) = \sum{w(v_{i-1}, v_i)}$ \cite[645]{cormen-introduction-to-alg}.
+		
+		In theoretic computer science, the fundamental problem behind routing algorithms is called the \term{shortest path problem}, which exists in several variants\cite[644]{cormen-introduction-to-alg}:
 		
 		\subsubsection{\term*[single-source shortest paths]{Single-source shortest paths}}
 		\label{subsubsec:single-source-shortest-path}
 		
 			One source vertex is given and the shortest paths to all other vertices should be determined.
-			Algorithms that solve this problem are for example Dijkstra, which will be described in detail in \cref{subsubsec:dijkstra}, or the Bellman-Ford algorithm, which can handle negative edge weights \cite[651]{cormen-introduction-to-alg}.
+			Algorithms that solve this problem are for example Dijkstra, which will be described in detail in \cref{subsubsec:dijkstra}, or the Bellman-Ford algorithm, which additionally can handle negative edge weights \cite[651]{cormen-introduction-to-alg}.
 		
 		\subsubsection{\term*[single-destination shortest paths]{Single-destination shortest paths}}
 		
@@ -326,7 +326,7 @@
 		\subsubsection{\term*[single-pair shortest paths]{Single-pair shortest paths}}
 		
 			Like the single-source but shortest paths from one source to one target vertex are requested.
-			Even though algorithms like TRANSIT (described in \cref{subsubsec:transit}) solve this problem efficiently, other approaches like Dijkstra, which actually solves the single-source problem, are used more often.
+			Even though algorithms like TRANSIT (described in \cref{subsubsec:transit}) solve this problem efficiently, approaches solving the single-source problem, like Dijkstra or algorithms based on it, are used more often.
 		
 		\subsubsection{\term*[all-pair shortest paths]{All-pair shortest paths}}
 		\label{subsubsec:all-pair-shortest-path}
@@ -334,23 +334,23 @@
 			This problem is similar to the single-pair problem but is not restricted to a single source vertex.
 			A naive approach would be to use an algorithm solving the single-pair problem on each vertex, but there are faster ways to solve this.
 			Two popular algorithms solving this problem are the Floyd-Warshall algorithm, allowing negative edge weights by assuming no negative cycles exist \cite[693]{cormen-introduction-to-alg}, and Johnson's algorithm, which also detects negative cycles and terminates in such case \cite[700]{cormen-introduction-to-alg}.
-
-	\subsection{Graph based routing}
 		
-		As describes above in \cref{subsec:routing-theoretic-considerations}, graph based routing uses a Graph $G=(V, E)$ with vertices $V$ and edges $E$ and finds a path within that graph.
-		The optimal route is determined based on weights $w : E \rightarrow \mathbb{R}$ on each edge, so an edge $(u, v) \in E$ has weight $w(u, v)$.
-		Usually, a path with the minimal weight should be determines, meaning for a path $p$ of vertices, $w(p) = \sum{w(v_{i-1}, v_i)}$ should be minimal\cite[645]{cormen-introduction-to-alg}.
+	\subsection{Routing engines}
 		
-		The function $w$ needs to be chosen based on the situation, vehicle and other desirable properties.
-		These criteria are bundled in a \term{routing profile}, which maps attributed from the input data to a certain weight.
-		Such weight might be the predicted speed\cite{graphhopper-profile-bike-speeds}, the length of the edge\cite{graphhopper-profile-shortest} or just represent a certain number based on a combination of attributes\cite{graphhopper-profile-short-fastest}.
+		A \term{routing engine} is software built to create routes but might perform other operations as well, such as map matching or calculation of isochrones.
+		In all cases, finding optimal paths is the central algorithmic task.
+		
+		To find desirable paths, the weight function $w$ mentioned in \cref{subsec:routing-theoretic-considerations} needs to be carefully chosen based on the domain of the application, target vehicles, personal preferences and other influencing factors.
+		Applications in our everyday life bundle these aspects into a \term{routing profile}, which maps attributed from the input data to a certain weight.
+		The input data can consist of multiple data sources like a road network graph and a digital elevation model (DEM).
+		Common types of weight functions predict the expected speed on an edge \cite{graphhopper-profile-bike-speeds}, use the length of an edge \cite{graphhopper-profile-shortest} or numerically represent a combination of attributes \cite{graphhopper-profile-short-fastest}.
 		
 		Routing engines, such as Graphhopper, come with predefined profiles for different modalities and situations.
-		For example the \texttt{car\_delivery} profile is made for delivery services using cars and therefore allowing to drive on private roads\cite{graphhopper-routing-profiles}.
+		For example the \texttt{car\_delivery} profile is made for delivery services using cars and therefore allows driving on private roads \cite{graphhopper-routing-profiles}.
 		
 		To enhance performance, speed up methods were developed to be able to perform fast routing queries on datasets of continental sizes.
-		Popular methods are \term{contraction hierarchies}, the usage of \term{landmarks}, \term[transit node]{transit nodes} and \term[hub label]{hub labels}.
-		Even though there are several more approaches to increase performance, the mentioned techniques will be described in the following sections.
+		Popular methods are \term{contraction hierarchies} or the use of \term{landmarks}, \term[transit node]{transit nodes} and \term[hub label]{hub labels}.
+		Even though there are several more approaches to increase performance, the mentioned techniques will be described in \cref{subsec:speedup-methods}.
 		
 		\subsubsection{Dijkstra}
 		\label{subsubsec:dijkstra}
@@ -410,7 +410,7 @@
 				\label{alg:astar}
 			\end{algorithm}
 		
-	\subsection{Speedup methods for graph based routing}
+	\subsection{Speedup methods}
 	\label{subsec:speedup-methods}
 		
 		\subsubsection{Contraction Hierarchies}
@@ -532,31 +532,31 @@
 			Compressing the same network with all mentioned techniques together can decrease the size even further to a CPD, which is another 5.3 times smaller.
 			This is a factor of 950 compared to an uncompressed database.
 	
-	\subsection{Geometric routing}
-	\label{subsec:geometric-routing}
+\section{Geometric routing}
+\label{sec:geometric-routing}
+
+	Geometric routing determines shortest paths via open spaces by avoiding obstacles.
+	Because this way of routing is based on geometric properties, attributes of edges (for example the surface conditions) are of no use.
+	There are to main strategies for finding shortest paths:
+	Create edges in open spaces or create a shortest paths map, a structure similar to CPDs.
 	
-		Geometric routing determines shortest paths via open spaces by avoiding obstacles.
-		Because this way of routing is based on geometric properties, attributes of edges (for example the surface conditions) are of no use.
-		There are to main strategies for finding shortest paths:
-		Create edges in open spaces or create a shortest paths map, a structure similar to CPDs.
-		
-		The first mechanism creates edges and then utilizes a normal graph based routing algorithm to actually find the shortest path.
-		There are multiple ways on how to create such edges.
-		A well known and often used mechanism creates a \term{visibility graph}, which is a normal graph with edges between vertices that are visible to each other.
-		Or in other words, for any two $u, v \in V$ there is an edge $(u, v) \in E$ if and only if there is \textit{no} obstacle intersecting this edge.
-		Since a visibility graph might become very large, some edges might be removed or other strategies are more efficient.
-		In fact, the worst-case of a visibility graph is a complete graph with $\frac{n^2 - n}{2}$ edges.
-		Alternatives to the visibility method are for example based on Voronoi diagrams or other skeletonization methods\cite[3-4]{graser-osm-open-spaces}.
-		However, routing results might not be optimal anymore, since a straight edge between visible vertices is the shortest connection one might get and those alternatives might not create such short edges\cite[7]{graser-osm-open-spaces}.
-		Another aspect of graph generating methods is, that the start and target locations must be on the graph to be precisely reachable by routing algorithms.
-		
-		The second strategy creates a map of predecessor vertices, which can be used to determine shortest paths from a source vertex $s$ by following the predecessor relations from any given location.
-		This map can also be seen as a tree with $s$ as its root and each region as a leaf.
-		Such a tree might remind one of Dijkstras algorithm, which creates such a shortest path tree as well.
-		Due to this similarity, this strategy is also called the \term{continuous dijkstra} paradigm\cite[648]{mitchell-discrete-geodesic}.
-		The key difficulty of this approach is the propagation of wavefront through space and their interactions with obstacles and other wavefronts\cite[3]{hershberger-suri}.
-		A well fitting analogy for this approach is the propagation of sound or water waves traveling through space, folding around obstacles and finally reaching the target.
-		Recursively following each wave back to its origin yields the shortest path from the source to the target.
+	The first mechanism creates edges and then utilizes a normal graph based routing algorithm to actually find the shortest path.
+	There are multiple ways on how to create such edges.
+	A well known and often used mechanism creates a \term{visibility graph}, which is a normal graph with edges between vertices that are visible to each other.
+	Or in other words, for any two $u, v \in V$ there is an edge $(u, v) \in E$ if and only if there is \textit{no} obstacle intersecting this edge.
+	Since a visibility graph might become very large, some edges might be removed or other strategies are more efficient.
+	In fact, the worst-case of a visibility graph is a complete graph with $\frac{n^2 - n}{2}$ edges.
+	Alternatives to the visibility method are for example based on Voronoi diagrams or other skeletonization methods\cite[3-4]{graser-osm-open-spaces}.
+	However, routing results might not be optimal anymore, since a straight edge between visible vertices is the shortest connection one might get and those alternatives might not create such short edges\cite[7]{graser-osm-open-spaces}.
+	Another aspect of graph generating methods is, that the start and target locations must be on the graph to be precisely reachable by routing algorithms.
+	
+	The second strategy creates a map of predecessor vertices, which can be used to determine shortest paths from a source vertex $s$ by following the predecessor relations from any given location.
+	This map can also be seen as a tree with $s$ as its root and each region as a leaf.
+	Such a tree might remind one of Dijkstras algorithm, which creates such a shortest path tree as well.
+	Due to this similarity, this strategy is also called the \term{continuous dijkstra} paradigm\cite[648]{mitchell-discrete-geodesic}.
+	The key difficulty of this approach is the propagation of wavefront through space and their interactions with obstacles and other wavefronts\cite[3]{hershberger-suri}.
+	A well fitting analogy for this approach is the propagation of sound or water waves traveling through space, folding around obstacles and finally reaching the target.
+	Recursively following each wave back to its origin yields the shortest path from the source to the target.
 
 \section{Agent based systems and simulations}
 
