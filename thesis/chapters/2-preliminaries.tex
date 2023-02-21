@@ -356,24 +356,24 @@
 		\label{subsubsec:dijkstra}
 		
 			Dijkstra's algorithm, often just called \term{Dijkstra}, is an rather old algorithm from the 1950s solving the single-source shortest paths problem.
-			It actually creates a spanning tree such that all paths in the tree are shortest paths from a start vertex $s$.
-			Despite its age, Dijkstra's algorithm and optimized versions of it are frequently used in science and real life applications and will be mentioned quite often in this thesis.
-			\Cref{alg:dijkstra} is an already enhanced version using a priority queue for the vertices\cite[658]{cormen-introduction-to-alg}.
+			It actually creates a spanning tree rooted in the source vertex $s$ covering all other vertices such that all paths in the tree are shortest paths.
+			Despite its age, Dijkstra's algorithm and optimized versions of it are frequently used in science and real world applications and will be mentioned quite often in this thesis.
+			\Cref{alg:dijkstra} is an already enhanced version using a priority queue for the vertices \cite[658]{cormen-introduction-to-alg}.
 			
 			\begin{algorithm}[h]
 				\begin{algorithmic}[1]
 					\ForAll{vertices $v \in V$}
-						\State Set shortest path distance $v.d = \infty$ and predecessor $v.\pi = undefined$
+						\State Set shortest path distance $v.d = \infty$ and predecessor vertex $v.\pi = undefined$
 					\EndFor
-					\State Insert all vertices into distance based min-queue $Q$
+					\State Insert all vertices by distance into min-queue $Q$
 					\State
 					\While{$Q \neq \emptyset$}
-						\State Get the next closest vertex: $u = Q.min$ \label{alg:dijkstra:extract-queue}
+						\State Get closest vertex: $u = Q.min$
 						\ForAll{adjacent vertices $v$ of $u$}
-							\If{the path to $v$ via $u$ is shorter, so if $v.d > u.d + d(u, v)$}
+							\If{the path to $v$ via $u$ is shorter than $v.d$, so if $u.d + d(u, v) < v.d$}
 								\State Set $v.d = u.d + d(u, v)$ and $v.\pi = u$
 							\EndIf
-						\EndFor
+						\EndFor \label{alg:dijkstra:end-inner-loop}
 					\EndWhile
 				\end{algorithmic}
 				\caption{Pseudocode of an slightly optimized version of Dijkstra's algorithm.}
@@ -381,30 +381,30 @@
 			\end{algorithm}
 		
 			Once a vertex is taken from the queue, it is considered as \emph{visited}.
-			It can be proven that for each visited vertex $v$, the distance $v.d$ is optimal \cite[659-661]{cormen-introduction-to-alg}.
+			It can be proven that for each visited vertex $v$ after the inner for-loop, the distance $v.d$ is optimal \cite[659-661]{cormen-introduction-to-alg}.
 			This also means following back the predecessor relation $v.\pi$ yields the shortest path.
-			Therefore, placing an exit condition after line \ref{alg:dijkstra:extract-queue} can increase performance when a target vertex is known.
+			Therefore, stopping the algorithm after line \ref{alg:dijkstra:end-inner-loop} when $u$ is equal to the target vertex $t$ is possible since the optimal path to $t$ has been found.
 		
 		\subsubsection{A*}
 		\label{subsubsec:astar}
 		
-			The A* shortest path algorithm was introduced in 1968 and uses a heuristic $h : V \rightarrow \mathbb{R}$ to decide that vertex to visit next.
+			The A* shortest path algorithm was introduced in 1968 and uses a heuristic $h : V \rightarrow \mathbb{R}$ to decide what vertex to visit next \cite[1]{astar}.
 			
-			It is rather simple and \cref{alg:astar} expresses it in pseudocode.
+			It is rather simple and \cref{alg:astar} expresses it in pseudocode \cite[3]{astar}.
 			The path from $s$ to $t$ is requested and $h$ is the heuristic.
 			
 			\begin{algorithm}[h]
 				\begin{algorithmic}[1]
-					\State Mark $s$ as \emph{open}
-					\State Set $u = s$
+					\State Mark $s$ \emph{open}
+					\State Set $u = s$ since $s$ is the only open vertex
 					\While{$u \neq t$}
 						\State Mark $u$ as \emph{closed}
-						\State Store $u$ to output graph $G_s$
+						\State Store $u$ to output graph $G$
 						\State Mark all non-closed successors of $u$ as \emph{open}
-						\State Mark each closed successor $u'$ of $u$ as \emph{open} when $h(u')$ became lower since it has been marked as \emph{closed}
+						\State Mark each closed successor $u'$ of $u$ as \emph{open} when $h(u')$ became lower since the last visit where it has been marked as \emph{closed}
 						\State Select open vertex $u$ with minimal $h(u)$
 					\EndWhile
-					\State Take $G_s$, follow $t$ back to the source $s$ and output the path
+					\State Take $G$, follow $t$ back to the source $s$ and output the path
 				\end{algorithmic}
 				\caption{Pseudocode of the originally proposed A* algorithm.}
 				\label{alg:astar}
@@ -416,13 +416,13 @@
 		\subsubsection{Contraction Hierarchies}
 		\label{subsubsec:ch}
 		
-			Contraction hierarchies are based on the idea to reduce the amount of hops made by a routing algorithm by adding so called \emph{shortcut edges} between nodes \cite{geisberger-contraction-hierarchies}.
-			Consider a vertex $u$ with incoming edge $(v, u)$ and outgoing edge $(u, w)$.
+			Contraction hierarchies are based on the idea to reduce the amount vertices a routing algorithm has to visit by adding so called \emph{shortcut edges} \cite{geisberger-contraction-hierarchies}.
+			Consider a vertex $u$ with incoming edge $(v, u)$ and outgoing edge $(u, w)$, meaning there is a path from $v$ via $u$ to $w$.
 			Vertex $u$ is \emph{contracted} by adding a new edge $e = (v, w)$ with weight $w(e) = w(v, u) + w(u, w)$.
 			If $e$ already exists with a higher weight, its weight is decreased accordingly.
 			
-			A very important part of this technique is the selection of nodes to contract \cite[14]{geisberger-contraction-hierarchies}.
-			The nodes are selected by a total order $<$ defining a level of importance to each node.
+			A very important part of this technique is the selection of vertices to contract \cite[14]{geisberger-contraction-hierarchies}.
+			The vertices are selected by a total order $<$ defining a level of importance for each vertex.
 			Selecting the correct order is difficult and heuristics are used to approximate a perfect ordering.
 			Such heuristic can for example be the difference in edge counts from before and after contraction, the uniformity of the distribution of contractions in the Graph or the resulting size of the query search space.
 			Multiple heuristics can be combined leading to even better results \cite[49]{geisberger-contraction-hierarchies}.
@@ -430,8 +430,8 @@
 			
 			The contraction hierarchy can be used with an adjusted bidirectional Dijkstra algorithm \cite[29-30]{geisberger-contraction-hierarchies}.
 			A query for the shortest path is done on two graphs, an upward and downward graph.
-			The upward graph contains only edges from lower to higher order nodes and the downward graph only from higher to lower order nodes.
-			The query finishes, when the two queries (bidirectional) meet \emph{and} there is no lower weighted edge to nodes in the priority queue.
+			The upward graph contains only edges from lower to higher order vertices and the downward graph only from higher to lower order vertices.
+			The query finishes, when the two queries (bidirectional) meet \emph{and} there is no lower weighted edge to vertices still waiting in the priority queue.
 			All shortcut edges must now be recursively relaxed to create the actual shortest path.
 		
 		\subsubsection{Landmarks}
