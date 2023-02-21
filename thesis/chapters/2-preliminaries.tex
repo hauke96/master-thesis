@@ -438,47 +438,52 @@
 		
 			A popular usage of so called \term[landmark]{landmarks} is the ALT algorithm, which stands for A*, landmarks and triangle inequality \cite{goldberg-landmarks}.
 			As described in \cref{subsubsec:astar}, the A* algorithm needs a heuristic leading the search for the shortest path towards the target vertex.
-			This heuristic is often the euclidean distance divided by a certain speed.
-			This is simple but rather inaccurate.
+			This heuristic is often the euclidean distance divided by a certain speed, which is simple but rather inaccurate.
 			
-			A better, but also more complex, approach is the use of landmarks.
+			A better, but also more complex, approach is to use a set of landmarks $L$.
 			Landmarks are vertices to which all distances are calculated in a precomputation step.
 			
-			Consider a distance function $d : V \times V \rightarrow \mathbb{R}$, two vertices $u$ and $v$ as well as a landmark vertex $l$.
+			Consider a distance function $d : V \times V \rightarrow \mathbb{R}$, two vertices $u, v \in V$ as well as a landmark $l \in L$.
 			The triangle inequality says $d(u,v) \geq d(u,l) - d(v,l)$ for the distances \emph{to} $l$ but also $d(u,v) \geq d(l,u) - d(l,v)$ for distances \emph{from} $l$.
-			This can be used to build the heuristic $h(u) = \max{d(u,l)-d(v,l), d(l,u)-d(l,v)}$ for all landmarks $l$ \cite[6-7]{goldberg-landmarks}.
+			This can be used to build the heuristic $h(u) = \max \{ d(u,l)-d(v,l), d(l,u)-d(l,v) \}$ for all landmarks $l$ \cite[6-7]{goldberg-landmarks}.
+			
+			The critical part regarding the landmarks is their selection.
+			A naive approach selects them at random, which already works, but selecting them in a way that maximized the minimum distance between the landmarks works better \cite[7]{goldberg-landmarks}.
 			
 			Thanks to the triangle inequality, the A* algorithm can use this to determine good choices for next vertices.
-			Since the heuristic consist of the tightest bound by using the $\max$ function, the value estimated distance to $t$ using the heuristic is likely to increase or decrease when the actual distance does the same.
+			Since the heuristic consist of the tightest bound by using the $\max$ function, the estimated distance to $t$ using the heuristic is likely to increase or decrease when the actual distance does the same.
 		
 		\subsubsection{Transit nodes}
 		\label{subsubsec:transit}
 		
-			The routing algorithm called \term{TRANSIT} uses specially selected vertices, so called \term[transit node]{transit nodes}, and a the distances between them and all other vertices to find shortest paths very quickly \cite{bast-transit}.
+			Due to the name of the approach and the terminology in the original paper, this section uses the term \emph{node} instead of \emph{vertex}.
+			The routing algorithm called \term{TRANSIT} uses specially selected nodes, so called \term[transit node]{transit nodes}, and the distances to all other nodes in the graph to find shortest paths very quickly \cite{bast-transit}.
 		
-			First, the graph is divided into smaller cells.
-			Local queries using Dijkstra are then used to determine the transit nodes.
-			A good transit node is a vertex through which many shortest paths lead to vertices in more distant cells \cite[6]{bast-transit}. 
-			Since Dijkstra solved the single-source shortest paths problem (described in \cref{subsubsec:single-source-shortest-path}), the distances from any normal vertex to its nearest transit nodes are stored.
+			First, the graph is divided into smaller rectangular cells and Dijkstra queries are then used to determine the transit nodes.
+			For each cell, the neighboring cells of a $5 \times 5$ (inner neighbors) and $9 \times 9$ (outer neighbors) neighborhood are determined.
+			Determining transit nodes in a naive way works as follows:
+			For every vertex in the center cell, shortest paths to all vertices in the outer cells are determined.
+			A vertex being on the edge between an inner and outer cell and lying on one of the shortest paths is considered a transit node \cite[6]{bast-transit}.
+			Since Dijkstra solves the single-source shortest paths problem (described in \cref{subsubsec:single-source-shortest-path}), the distances from any normal node to all its nearest transit nodes can be stored.
 			The final step of the preprocessing is the calculation of the distances between all transit nodes, which means solving the all-pair shortest path problem as described in \cref{subsubsec:all-pair-shortest-path}.
 			
-			Having the distances between transit nodes and the distances from any other vertex to its closest transit nodes makes it easy to compute distances between arbitrary vertices.
-			This is done by the two following routines.
+			Having the distances between transit nodes and the distances between any normal nodes to its closest transit nodes makes it easy to compute distances between arbitrary nodes.
+			Finding shortest paths is done by the following two routines.
 			
 			The first routine calculates just the distance of the shortest path using the precomputed values from above \cite[7-8]{bast-transit}.
-			Given a start vertex $src \in V$ and target vertex $trg \in V$, the distance $d(src, trg)$ needs to be known.
-			All distances $d(src, t_{src})$ for each transit node $t_{src} \in T_{src}$, which are the closest transit nodes of $src$, are precomputed an known.
+			Given a start node $src \in V$ and target node $trg \in V$, the distance $d(src, trg)$ needs to be known.
+			For each closest transit node $t_{src} \in T_{src}$ of $src$, all distances $d(src, t_{src})$ were already precomputed an known.
 			Same holds for all distances $d(t_{trg}, trg)$ from each closest transit node $t_{trg} \in T_{trg}$ to $trg$.
 			The minimal distance between $src$ and $trg$ can be found by going through all pairs of the closest transit nodes $t_{src} \in T_{src}$ and $t_{trg} \in T_{trg}$ and calculating $d(src, trg) = d(src, t_{src}) + d(t_{src}, t_{trg}) + d(t_{trg}, trg)$.
 			
-			The second routing is the actual query routine, which returns the edges of the shortest path, is quite simple \cite[8]{bast-transit}:
-			First, calculate $d(src, trg)$ and let $u$ be the currently visited vertex, initially $u = src$.
-			The distance from $u$ to the target can be calculated by $d(u, trg) = d(src, trg) - d(src, u)$ of which $d(src, u)$ is known since we started at $src$ and can simply remember the traveled distance so far.
-			Next, find the adjacent vertex $v$ of $u$ for which $d(u, trg) = d(u, v) + d(v, trg)$ holds.
-			The distance $d(v, trg)$ can easily be computed with the above mentioned routine.
-			Finally, store $u$ to a list, let $u$ the the vertex $v$ and repeat the described steps.
+			The second routine actually determines the shortest path, is quite simple and therefore very fast \cite[8]{bast-transit}:
+			First, calculate $d(src, trg)$, as described above, and let $u$ be the currently visited node, with $u = src$ initially.
+			The distance from $u$ to the target can be calculated by $d(u, trg) = d(src, trg) - d(src, u)$ of which $d(src, u)$ is known since we started at $src$ and can simply remember the distance traveled so far.
+			Next, find the adjacent node $v$ of $u$ for which $d(u, trg) = d(u, v) + d(v, trg)$ holds.
+			The distance $d(v, trg)$ can easily be computed with the routine described above.
+			Finally, store $u$ to a list, set $u = v$ and repeat the described steps.
 			
-			After reaching the target, the list of stored vertices build the shortest path.
+			After reaching the target, the list of stored nodes build the shortest path.
 		
 		\subsubsection{Hub labels}
 		
@@ -496,11 +501,11 @@
 			In fact, any order on vertices can be used to create a correct labeling.
 
 			Routing requests for a shortest path from $u$ to $v$ are simple and fast to answer:
-			Get the labels $L(u)$ and $L(v)$ and get the common hubs in them.
+			Get the labels $L(u)$ and $L(v)$ and find all common hubs.
 			When storing the hubs in a sorted list, building the intersection can be done in linear time time.
 			Find the hub pair $h_u$ and $h_v$ in the intersection with the minimum distance sum and return their paths.
 			
-			Even though the requests can be answered incredibly fast, actually faster than probably any other method, it needs a lot of space and preprocessing time \cite[23]{bast-transportation-networks}.
+			Even though the requests can be answered incredibly fast, actually faster than probably any other method, it needs a lot of space and preprocessing time to store and determine all the labels \cite[23]{bast-transportation-networks}.
 		
 		\subsubsection{Compressed path databases}
 		
