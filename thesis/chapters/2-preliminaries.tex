@@ -489,7 +489,7 @@
 		
 			The \term{hub label} strategy is a labeling algorithm calculating labels $L(v)$ for each vertex $v$.
 			Each label contains a set of vertices (so called \emph{hubs}) and the length of the shortest path to each of the hubs.
-			A label must fulfill two main properties \cite[11]{bast-transportation-networks}.
+			A label must fulfill the following two properties \cite[11]{bast-transportation-networks}.
 			
 			First, the distance $d(u, v)$ from vertex $u$ to $v$ must be determinable using only their labels $L(u)$ and $L(v)$.
 			Since $u$ and $v$ can be arbitrary vertices, the vertex $v$ is not necessarily within $L(u)$.
@@ -502,40 +502,41 @@
 
 			Routing requests for a shortest path from $u$ to $v$ are simple and fast to answer:
 			Get the labels $L(u)$ and $L(v)$ and find all common hubs.
-			When storing the hubs in a sorted list, building the intersection can be done in linear time time.
+			When storing the hubs in a sorted list during preprocessing, building the intersection can be done in linear time time.
 			Find the hub pair $h_u$ and $h_v$ in the intersection with the minimum distance sum and return their paths.
 			
-			Even though the requests can be answered incredibly fast, actually faster than probably any other method, it needs a lot of space and preprocessing time to store and determine all the labels \cite[23]{bast-transportation-networks}.
+			Even though the requests can be answered incredibly fast, actually faster than most other routing methods, it needs a lot of space and preprocessing time to store and determine all the labels \cite[23]{bast-transportation-networks}.
 		
 		\subsubsection{Compressed path databases}
 		
-			A \term{compressed path database} (\term*{CPD}) itself is not directly a routing algorithm but rather a technique to efficiently store shortest paths between points \cite{botea-cpd-2013}.
-			In other words, the solution of the all-pair shortest paths problem from \cref{subsubsec:all-pair-shortest-path} can be stored in a CPD.
+			A \term{compressed path database} (\term*{CPD}) itself is not directly a routing algorithm but rather a technique to efficiently store shortest paths between any two locations of a domain \cite{botea-cpd-2013}.
+			In other words, the solution of the all-pair shortest paths problem from \cref{subsubsec:all-pair-shortest-path} can be stored in a CPD without having extensive memory requirements.
 			
-			The simplest form of a CPD works on a grid rather than a graph, where the number of neighbors is limited and visualization and compression is simpler.
-			Such grid based CPDs actually consist of $n$ many grids (for $n$ cells), each one storing movement information from a fixed cell $v$ to all other cell.
-			Movement information here means, that only a single step is stored.
+			The simplest form of a CPD works on a grid rather than a graph, where the number of neighbors is limited and visualization, calculations and compression is simpler.
+			Such grid based CPDs actually consist not of one but of $n$ many grids, each one storing movement information from a fixed cell $v$ to all other cells.
+			When having $n$ cells per grid, $n$ grids are needed so that for each cell, one grid with movement information exists.
+			However, movement information here means, that only a single step is stored in a grid.
 			
-			Let us consider the following example:
+			Consider the following example:
 			The path from cell $u$ to $v$ is requested, so the grid $u$ is used first.
-			On that grid, the cell for $u$ is empty (since it is the root cell) and the cell for $v$ stores the first step to take in order to get from $u$ to $v$.
+			On that grid, the cell for $u$ is empty (since it is the source cell) and the cell for $v$ stores the first step to take from $u$ in order to get to $v$.
 			This first step (on a grid for example the direction \enquote{north east}) leads to a new cell $u'$.
-			The grid for $u'$ is used and again the cell for $v$ tells the algorithm what direction to take.
+			The grid for $u'$ is then looked at and, just as before, the cell $v$ tells the algorithm what direction to take.
 			This goes on until the cell $v$ is found.
 			
 			The construction of a CPD is similarly simple \cite[2]{botea-cpd-2013}.
 			For each vertex $v$, the shortest paths to all other vertices are calculated, which can be done using Dijkstra or any other single-source or all-pairs shortest path algorithm.
 			After converting the shortest paths into a compatible format (in the above case a grid), the data needs to be compressed.
-			Otherwise the data becomes too large as the space requirement is in $\bigo{n^2}$ or even $\bigo{n^2 \log n}$ \cite[1]{botea-cpd-2013}.
+			Uncompressed data is usually too large as the space requirement is in $\bigo{n^2}$ or even $\bigo{n^2 \log n}$ for graphs \cite[1]{botea-cpd-2013}.
 			
 			There are multiple possible ways to compress a raw CPD.
 			The original paper uses a decomposition of rectangles with common movement directions to reduce the amount of redundant data \cite[1]{botea-cpd-2011}.
-			A new approach presented two years later uses general purpose compression techniques like run-length encoding (RLE) and sliding-window compression (SWC) as well as special list-trimming with default movements.
+			A new approach presented two years later uses general purpose compression techniques like run-length encoding (RLE) and sliding-window compression (SWC) as well as a special list-trimming using default movements to reduce the amount of information being explicitly stored.
 			
 			The original approach already showed good results.
 			Using the originally proposed compression (rectangle decomposition only) on a road network yields a CPD with a compression factor of about 180 \cite[4]{botea-cpd-2013}.
 			Compressing the same network with all mentioned techniques together can decrease the size even further to a CPD, which is another 5.3 times smaller.
-			This is a factor of 950 compared to an uncompressed database.
+			This is a compression factor of over 950 compared to an uncompressed database.
 	
 \section{Geometric routing}
 \label{sec:geometric-routing}
