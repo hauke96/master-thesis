@@ -20,12 +20,10 @@ This section gives an overview about closely related work from these areas.
 	Shortly after Welzl and others published their work on visibility graphs, which can be used in combination with Dijkstra to find shortest paths, Mitchell presented a pure geometric method to find euclidean shortest paths around obstacles in the plain in 1993\cite{mitchell-shortest-path}.
 	He used wavefronts propagating from the source towards the target vertex.
 	Each origin of a wavefront can be traces back to the source giving the shortest path.
-	Because this algorithm solves the \term*{single-source shortest-paths} problem just like the Dijkstra algorithm does on a network, this technique is also called the \term{continuous dijkstra} paradigm.
-	
-	\todo[inline]{Normal routing: Dijkstra, A*, and others?}
+	Because this algorithm solves the \hyperref[subsubsec:single-source-shortest-path]{\term*{single-source shortest path} problem} just like the Dijkstra algorithm does on a network, this technique is also called the \term{continuous dijkstra} paradigm.
 	
 	% An Optimal Algorithm for Euclidean Shortest Paths in the Plane (Hershberger, Suri, 1999)
-	Another approach solving the geometric \term*{single-source shortest-path} problem was presented by Hershberger and Suri one year later, in 1997.
+	Another approach solving the geometric single-source shortest path problem was presented by Hershberger and Suri one year later, in 1997.
 	They also use the \term*{continuous dijkstra} paradigm but increase performance by introducing a special quad-tree like structure and smart subdivision of the plain.
 	The result is then actually a path map allowing shortest-path request to be processed in only $\bigo{n \log n}$.
 	
@@ -33,7 +31,7 @@ This section gives an overview about closely related work from these areas.
 
 \section{Pedestrian path finding}
 	
-	A special case of the general \term[single-source shortest-path]{shortest-path} problem is pedestrian routing, also called pedestrian shortest-path finding.
+	A special case of the general single-source shortest path problem is pedestrian routing, also called pedestrian shortest-path finding.
 	This problem is especially interesting since pedestrians have the maximum degree of flexibility/freedom compared to other traffic participants like bikes or cars.
 	Therefore, geometric routing is a good way to find shortest-paths for pedestrians.
 	

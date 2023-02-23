@@ -1,6 +1,13 @@
 % !TEX root = ../thesis.tex
 % !TeX spellcheck = en_US
 
+This chapter introduces basic concepts relevant for this thesis.
+Primarily, this includes geodata and routing but also agent based simulations are looked at.
+The section about geodata gives a broad overview of coordinate systems, file formats, standards and OpenStreetMap as one important source of geospatial data.
+Such data can be used to find shortest paths between two locations using routing algorithms.
+Both strategies, graph based and geometric routing, are covered and different approaches are described.
+Agent based simulations will be covered as well since pedestrian simulations often use these routing techniques.
+
 \section{Geospatial data}
 
 	According to the ISO standard 19109:2015\cite{geolexica-202}, the term \term{geospatial data} refers to \enquote{data with implicit or explicit reference to a location relative to the Earth}.
@@ -55,7 +62,7 @@
 		Some of these are used in many or all frameworks and formats, but some are vendor specific.
 		This section gives an overview of common data structures in spatial data.
 		
-		The \term{simple feature access} (\term*{SFA}) standard by the Open Geospatial Consortium (\term*{OGC}) defines numerous geometry types\cite{ogc-sfa}, but not all of them are implemented in all formats and most of them are not relevant for this thesis.
+		The \term{Simple Feature Access} (\term*{SFA}) standard by the Open Geospatial Consortium (\term*{OGC}) defines numerous geometry types\cite{ogc-sfa}, but not all of them are implemented in all formats and most of them are not relevant for this thesis.
 		Because the widely used GeoJSON format (described in more detail in \cref{subsubsec:geojson}) implements the most important geometries of the SFA standard\cite[2]{ietf-geojson}, this section gives an overview of the geometry types implemented by GeoJSON.
 		
 		The first concepts to consider are geometries and features.
@@ -90,7 +97,7 @@
 	
 		Spatial data can be stored in a variety of different file formats with different properties and use cases.
 		Next to proprietary formats, there are many open standards.
-		The \term[ogc]{Open Geospatial Consortium} (OGC) published open standard definitions and schemas for some of these open file formats.		
+		The \term[OGC]{Open Geospatial Consortium} (OGC) published open standard definitions and schemas for some of these open file formats.		
 		This section gives an overview of some popular formats:
 		
 		\subsubsection{Esri shapefile}
@@ -132,7 +139,7 @@
 			All formats mentioned so far store vector data, however, raster data can be georeferenced as well.
 			One format to store such raster data in form of an image, is the OGC standardized \term{GeoTIFF} format \cite{ogc-geotiff}.
 			As the name suggests, it is an TIFF formatted image with spatial metadata such as the CRS and a mapping of pixel to coordinates.
-			Typical use cases for such images are aerial or satellite imagery and \term*{digital elevation models} (\term*{DEM}).
+			Typical use cases for such images are aerial or satellite imagery and \term[digital elevation model]*{digital elevation models} (\term*{DEM}).
 		
 		\subsubsection{Other formats}
 		
@@ -200,7 +207,7 @@
 		\subsubsection{Data model}
 		
 			The model of OSM is much simpler compared to many of the \hyperref[subsec:file-formats]{above mentioned} data formats.
-			There are three main data types in OSM: \term{node}, \term{way} and \term{relations}\cite{osm-wiki-data-model}.
+			There are three main data types in OSM: \term{node}, \term{way} and \term[relation]{relations}\cite{osm-wiki-data-model}.
 			
 			Nodes and ways are analogous to \texttt{Point} and \texttt{LineString} from the OGC \term*{Simple Feature Access} (\term*{SFA}) specification described in \cref{subsec:data-structures}.
 			Areas also exist but they are modeled as closed ways, therefore they do not form a new type of geometry.
@@ -308,27 +315,27 @@
 		Instead a weight function $w : E \rightarrow \mathbb{R}$ is used to attach a weight $w(u, v)$ to each edge $(u, v) \in E$.
 		Thus routing a minimization problem trying to find a path $p$ with the minimum sum $w(p) = \sum{w(v_{i-1}, v_i)}$ \cite[645]{cormen-introduction-to-alg}.
 		
-		In theoretic computer science, the fundamental problem behind routing algorithms is called the \term{shortest path problem}, which exists in several variants\cite[644]{cormen-introduction-to-alg}:
+		In theoretic computer science, the fundamental problem behind routing algorithms is called the \term{shortest-path problem}, which exists in several variants\cite[644]{cormen-introduction-to-alg}:
 		
-		\subsubsection{\term*[single-source shortest paths]{Single-source shortest paths}}
+		\subsubsection{\term*[single-source shortest path]{Single-source shortest paths}}
 		\label{subsubsec:single-source-shortest-path}
 		
 			One source vertex is given and the shortest paths to all other vertices should be determined.
 			Algorithms that solve this problem are for example Dijkstra, which will be described in detail in \cref{subsubsec:dijkstra}, or the Bellman-Ford algorithm, which additionally can handle negative edge weights \cite[651]{cormen-introduction-to-alg}.
 		
-		\subsubsection{\term*[single-destination shortest paths]{Single-destination shortest paths}}
+		\subsubsection{\term*[single-destination shortest path]{Single-destination shortest paths}}
 		
 			This is the opposite to the above problem.
 			All shortest paths to a specific vertex from any other vertex should be found.
 			However, no new algorithms are needed to solve this problem.
 			Instead, the direction of each edge can be reversed turning this problem into the single-source problem.
 		
-		\subsubsection{\term*[single-pair shortest paths]{Single-pair shortest paths}}
+		\subsubsection{\term*[single-pair shortest path]{Single-pair shortest paths}}
 		
 			Like the single-source but shortest paths from one source to one target vertex are requested.
 			Even though algorithms like TRANSIT (described in \cref{subsubsec:transit}) solve this problem efficiently, approaches solving the single-source problem, like Dijkstra or algorithms based on it, are used more often.
 		
-		\subsubsection{\term*[all-pair shortest paths]{All-pair shortest paths}}
+		\subsubsection{\term*[all-pair shortest path]{All-pair shortest paths}}
 		\label{subsubsec:all-pair-shortest-path}
 		
 			This problem is similar to the single-pair problem but is not restricted to a single source vertex.
@@ -349,7 +356,7 @@
 		For example the \texttt{car\_delivery} profile is made for delivery services using cars and therefore allows driving on private roads \cite{graphhopper-routing-profiles}.
 		
 		To enhance performance, speed up methods were developed to be able to perform fast routing queries on datasets of continental sizes.
-		Popular methods are \term{contraction hierarchies} or the use of \term{landmarks}, \term[transit node]{transit nodes} and \term[hub label]{hub labels}.
+		Popular methods are \term{contraction hierarchies} or the use of \term[landmark]{landmarks}, \term[transit node]{transit nodes} and \term[hub label]{hub labels}.
 		Even though there are several more approaches to increase performance, the mentioned techniques will be described in \cref{subsec:speedup-methods}.
 		
 		\subsubsection{Dijkstra}

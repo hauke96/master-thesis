@@ -34,9 +34,9 @@
 	However, the space between arbitrary coordinates and the actual road network can contain numerous obstacles and a connection might not even exist.
 	
 	% alternative: geometric routing avoiding obstacles
-	Next to graph based shortest path algorithms, pure geometric approaches exist to determine shortest paths\index{geometric routing} among obstacles in open spaces.
+	Next to graph based shortest path algorithms, pure geometric approaches exist to determine shortest paths among obstacles in open spaces.
 	Obstacles are geometries that cannot be passed like buildings, fences, lakes or cliffs.
-	There are two main strategies to solve this problem\cite[2]{hershberger-suri}:
+	There are two main strategies to solve this problem \cite[2]{hershberger-suri}:
 	
 	The first approach generates an auxiliary network around these obstacles (just like the auxiliary paths mentioned above) and then uses a graph based shortest path algorithm to find the actual path.
 	Probably the most common way is to create a so called \term{visibility graph}, a graph with edged between all vertices that are visible to each other.
