@@ -541,42 +541,59 @@
 \section{Geometric routing}
 \label{sec:geometric-routing}
 
-	Geometric routing determines shortest paths via open spaces by avoiding obstacles.
-	Because this way of routing is based on geometric properties, attributes of edges (for example the surface conditions) are of no use.
+	Geometric routing determines shortest paths through open spaces by avoiding obstacles.
+	Because this way of routing is based on geometric properties, attributes of edges (for example the surface conditions of roads) are of no use.
 	There are to main strategies for finding shortest paths:
-	Create edges in open spaces or create a shortest paths map, a structure similar to CPDs.
+	Create edges through open spaces for graph based routing or create a shortest paths map, a structure similar to CPDs.
 	
-	The first mechanism creates edges and then utilizes a normal graph based routing algorithm to actually find the shortest path.
-	There are multiple ways on how to create such edges.
-	A well known and often used mechanism creates a \term{visibility graph}, which is a normal graph with edges between vertices that are visible to each other.
-	Or in other words, for any two $u, v \in V$ there is an edge $(u, v) \in E$ if and only if there is \textit{no} obstacle intersecting this edge.
-	Since a visibility graph might become very large, some edges might be removed or other strategies are more efficient.
-	In fact, the worst-case of a visibility graph is a complete graph with $\frac{n^2 - n}{2}$ edges.
-	Alternatives to the visibility method are for example based on Voronoi diagrams or other skeletonization methods\cite[3-4]{graser-osm-open-spaces}.
-	However, routing results might not be optimal anymore, since a straight edge between visible vertices is the shortest connection one might get and those alternatives might not create such short edges\cite[7]{graser-osm-open-spaces}.
-	Another aspect of graph generating methods is, that the start and target locations must be on the graph to be precisely reachable by routing algorithms.
+	\subsection{Visibility graphs}
 	
-	The second strategy creates a map of predecessor vertices, which can be used to determine shortest paths from a source vertex $s$ by following the predecessor relations from any given location.
-	This map can also be seen as a tree with $s$ as its root and each region as a leaf.
-	Such a tree might remind one of Dijkstras algorithm, which creates such a shortest path tree as well.
-	Due to this similarity, this strategy is also called the \term{continuous dijkstra} paradigm\cite[648]{mitchell-discrete-geodesic}.
-	The key difficulty of this approach is the propagation of wavefront through space and their interactions with obstacles and other wavefronts\cite[3]{hershberger-suri}.
-	A well fitting analogy for this approach is the propagation of sound or water waves traveling through space, folding around obstacles and finally reaching the target.
-	Recursively following each wave back to its origin yields the shortest path from the source to the target.
+		The first mechanism creates edges and then utilizes a normal graph based routing algorithm to actually find the shortest path.
+		There are multiple ways on how to create such edges.
+		A well known and often used mechanism is the creation of a so called \term{visibility graph}, which is a normal graph with edges between vertices that are visible to each other.
+		Or in other words, for any two $u, v \in V$ there is an edge $(u, v) \in E$ if and only if there is no obstacle intersecting this edge.
+		Since a visibility graph might become very large, some edges might be removed or other strategies are more efficient.
+		In fact, the worst-case of a visibility graph is a complete graph with $\bigo{|V|^2}$ many edges.
+		
+		Alternatives to the visibility method are based on Voronoi diagrams or skeletonization methods\cite[3-4]{graser-osm-open-spaces}.
+		However, routing results on such graphs are not be optimal anymore, since a straight edge between visible vertices is the shortest possible connection and those alternatives so not always create such direct edges\cite[7]{graser-osm-open-spaces}.
+		Another property of graph generating methods is, that the start and target locations must still be on the graph to be precisely reachable by routing algorithms.
+	
+	\subsection{Continuous Dijkstra}
+	
+		The second strategy creates a map of regions starting from a source vertex $s$.
+		Each region of this map stores the predecessor vertex, which can be used to determine shortest paths by following the predecessor relations from any given location back to $s$.
+
+		This map can also be seen as a tree with $s$ as its root and each region as a leaf.
+		Such a tree might remind one of Dijkstras algorithm, which creates such a shortest path tree as well.
+		Due to this similarity, this strategy is also called the \term{continuous dijkstra} paradigm\cite[2]{mitchell-discrete-geodesic}.
+		
+		To precisely determine these regions, one popular approach is to create \term[wavefront]{wavefronts} (sometimes also called \term[wavelet]{wavelets}) propagating through open spaces.
+		A well fitting analogy for this approach is the propagation of sound or water waves traveling through space, folding around obstacles and finally reaching the target.
+		Recursively following each wave back to its origin yields the shortest path from the source to the target.
+		
+		Each wavefront can interact with edges and vertices but also with other wavelets.
+		Interactions in this case are collisions creating the borders of the regions.
+		For each region the origin of the wavefront is known, which enables the query routine to follow these predecessors back to the source.
+		The key difficulty of this approach is the efficient propagation of these wavefronts, which means the fast detection of collision with obstacles and other wavefronts\cite[3]{hershberger-suri}.
 
 \section{Agent based systems and simulations}
 
-	Simulating complex systems with numerous individuals is a complicated task.
-	Agent-based models help to break down this complexity by simulating each individual separately with its own behavior and decision-making. \cite{macal2014introductory}
-	Interactions are also an essential part of such simulating and affect other agents as well as the environment.
+	Simulating complex systems with numerous individuals is a complex task.
+	Agent-based models help to break down this complexity by simulating each individual separately with its own behavior and decision-making \cite{macal-introductory-tutorial}.
+	Interactions between agents and the environment as well as agents with other agents are an essential part of agent based simulations.
+	Each interaction can affect other agents and the environment.
 	
-	The modeling of agents can be more or less complex.
-	Basic agents can interact with other agents and the environment, are able to make decisions on their own and are autonomous, meaning there is no controlling unit commanding agents to act.
-	More complex agents may have a specific goal, are able to adapt themselves to their environment and thus must be modeled with a memory.
+	The modeling of agents can be arbitrarily complex.
+	Basic agents can interact with other agents and the environment.
+	They are able to make decisions on their own, meaning they are autonomous since there is no controlling unit commanding them how to act.
+	More complex agents may have a specific goal, are able to adapt themselves to their environment and thus must be able to memorize and plan things.
 	
 	An agent might be a simulated person but could also be a company, car or other non-living part of the simulated world.
-	Many simulations use pedestrians as agents to better understand human behaviors but many more scenarios are thinkable\cite[8]{macal2014introductory}.
-	This often involves a spatial environment where agents can move and interact with each other.
-	Since uncontrolled movement is rather uninteresting, most of the time, algorithms finding optimal paths are involved\cite{kneidl-borrmann-hartmann-navigation,gloor-hybrid-pedestrian-routing,teknomo-millonig-routing}.
+	Many simulations use pedestrians (or generally humans) as agents to better understand human behaviors but many more scenarios are thinkable \cite[8]{macal-introductory-tutorial}.
+
+	Studying the behavior of pedestrians requires a spatial environment where agents can move and interact with each other.
+	Since uncontrolled movement is rather uninteresting, most of the time, algorithms finding optimal paths are involved \cite{kneidl-borrmann-hartmann-navigation,gloor-hybrid-pedestrian-routing,teknomo-millonig-routing}.
+	This not only includes \hyperref[sec:graph-routing]{graph based routing} but often utilizes \hyperref[sec:geometric-routing]{geometric routing} as well \cite[3]{kneidl-borrmann-hartmann-navigation}.
 	
 	% TODO Describe MARS here or later?
