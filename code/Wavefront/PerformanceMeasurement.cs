@@ -252,8 +252,7 @@ public class PerformanceMeasurement
     private static long GetRamUsage()
     {
         Process.GetCurrentProcess().Refresh();
-        var memBefore = Process.GetCurrentProcess().WorkingSet64;
-        return memBefore;
+        return Process.GetCurrentProcess().WorkingSet64;
     }
 
     public static Result ForFunction(Action func, string name = "", int iterationCount = -1, int warmupCount = -1)
