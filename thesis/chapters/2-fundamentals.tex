@@ -107,7 +107,7 @@ Agent based simulations will be covered as well since pedestrian simulations oft
 			Each shapefile actually consists of multiple files on disk\cite{esri-shapefile-file-ext-spec}.
 			Three of them are mandatory containing the geometries (\texttt{.shp}), an index (\texttt{.idx}) and a dBASE table with attributes (\texttt{.dbf}).
 			Additional files are optional and can contain additional indices or details about the CRS (\texttt{.prj}).
-			Shapefiles are very popular\cite[356]{spatial-file-formats-trends} but have several significant technical limitations regarding the containing geometries and attributes.
+			Shapefiles are very popular\cite[3]{spatial-file-formats-trends} but have several significant technical limitations regarding the containing geometries and attributes.
 			
 			Even though the first byte of every geometry in the shapefile encodes its type \cite[4-23]{esri-shapefile-spec}, the standard allows only one type of geometry per shapefile \cite[4]{esri-shapefile-spec}.
 			Storing for example points and polygons would require two separate shapefiles even though the data might belong together.
