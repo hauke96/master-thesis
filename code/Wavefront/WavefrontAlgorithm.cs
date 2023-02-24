@@ -74,8 +74,7 @@ namespace Wavefront
             Reset();
 
             // The data will be changed (e.g. vertices and neighbor-relations added), so a copy is used for each routing call. 
-            var vertices = Vertices.CreateCopy();
-            var obstacles = _obstacles.CreateCopy();
+            var vertices = Vertices.Map(v => v.clone());
             var vertexNeighbors = _vertexNeighbors.CreateCopy();
 
             var sourceVertex = new Vertex(source);
@@ -88,11 +87,11 @@ namespace Wavefront
             SetPredecessor(source, null, stopwatch, WaveletRootPredecessor, WaveletRootToWaypoint, 0);
 
             vertexNeighbors[sourceVertex] =
-                WavefrontPreprocessor.GetVisibleNeighborsForVertex(obstacles, vertices, sourceVertex,
+                WavefrontPreprocessor.GetVisibleNeighborsForVertex(_obstacles, vertices, sourceVertex,
                     _knnSearchNeighborBins);
 
             var neighborsOfTarget =
-                WavefrontPreprocessor.GetVisibleNeighborsForVertex(obstacles, vertices, targetVertex,
+                WavefrontPreprocessor.GetVisibleNeighborsForVertex(_obstacles, vertices, targetVertex,
                     _knnSearchNeighborBins);
 
             neighborsOfTarget.Each(neighbor => vertexNeighbors[neighbor].Add(targetVertex));

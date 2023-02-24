@@ -48,6 +48,18 @@ public class Vertex
         _id = ID_COUNTER++;
     }
 
+    private Vertex(Position position, List<Position> neighbors, int id)
+    {
+        Position = position;
+        Neighbors = neighbors;
+        _id = id;
+    }
+
+    public Vertex clone()
+    {
+        return new Vertex(Position, Neighbors, _id);
+    }
+
     /// <summary>
     /// Returns the neighbor that's right (=clockwise) or equal to the angle of the given position.
     /// </summary>
