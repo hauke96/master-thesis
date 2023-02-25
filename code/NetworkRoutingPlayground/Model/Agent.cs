@@ -13,6 +13,7 @@ using NetTopologySuite.IO.Converters;
 using NetworkRoutingPlayground.Layer;
 using Newtonsoft.Json;
 using ServiceStack;
+using ServiceStack.Text;
 using Wavefront;
 using Feature = NetTopologySuite.Features.Feature;
 using Position = Mars.Interfaces.Environments.Position;
@@ -21,7 +22,8 @@ namespace NetworkRoutingPlayground.Model
 {
     public class Agent : IAgent<VectorLayer>, ISpatialGraphEntity
     {
-        private static readonly double STEP_SIZE = 1;
+        private static readonly double STEP_SIZE = 10;
+        private static readonly Random RANDOM = new((int)DateTime.Now.ToUnixTime());
 
         [PropertyDescription] public UnregisterAgent UnregisterHandle { get; set; }
         [PropertyDescription] public NetworkLayer NetworkLayer { get; set; }
@@ -41,24 +43,18 @@ namespace NetworkRoutingPlayground.Model
 
         public void Init(VectorLayer layer)
         {
-            // Works for the "data.geojson" since it directly connects the given positions creating a shortcut for the agent.
-            var a = NetworkLayer.Environment.NearestNode(Position.CreatePosition(10.0013933, 53.5491645));
-            var b = NetworkLayer.Environment.NearestNode(Position.CreatePosition(10.0021255, 53.5492393));
-            NetworkLayer.Environment.AddEdge(a, b);
+            var allNodes = NetworkLayer.Environment.Nodes.ToList();
+            var startNode = allNodes[RANDOM.Next(allNodes.Count)];
+            var destinationNode = startNode;
+            while (destinationNode == startNode)
+            {
+                destinationNode = allNodes[RANDOM.Next(allNodes.Count)];
+            }
             
-            var start = new Position(9.9980671, 53.5497337);
-            var destination = new Position(10.0048312, 53.5492613);
-
-            var startNode = NetworkLayer.Environment.NearestNode(start, null, SpatialModalityType.Walking);
-            var destinationNode = NetworkLayer.Environment.NearestNode(destination, SpatialModalityType.Walking);
-
-            _route = NetworkLayer.Environment.FindShortestRoute(startNode, destinationNode);
+            _route = NetworkLayer.Environment.FindFastestRoute(startNode, destinationNode);
             NetworkLayer.Environment.Insert(this, startNode);
             
-            WriteRouteToFile(_route.SelectMany(edgeStop =>
-            {
-                return edgeStop.Edge.Geometry;
-            }).ToList());
+            WriteRouteToFile(_route.SelectMany(edgeStop => edgeStop.Edge.Geometry).ToList());
         }
 
         public void Tick()
@@ -81,8 +77,15 @@ namespace NetworkRoutingPlayground.Model
                 return;
             }
 
-            NetworkLayer.Environment.Move(this, _route, STEP_SIZE);
+            var moved = NetworkLayer.Environment.Move(this, _route, STEP_SIZE);
+            if (!moved)
+            {
+                Kill();
+                return;
+            }
+            
             Position = this.CalculateNewPositionFor(_route, out _);
+            Console.WriteLine(Position);
         }
 
         private void Kill()
