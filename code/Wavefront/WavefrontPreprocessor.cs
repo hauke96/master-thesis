@@ -4,11 +4,10 @@ using Mars.Common.Collections;
 using Mars.Common.Core.Collections;
 using Mars.Numerics;
 using NetTopologySuite.Geometries;
-using NetTopologySuite.IO;
-using Newtonsoft.Json;
 using ServiceStack;
 using Wavefront.Geometry;
 using Wavefront.Index;
+using Wavefront.IO;
 using Position = Mars.Interfaces.Environments.Position;
 
 namespace Wavefront;
@@ -117,7 +116,7 @@ public class WavefrontPreprocessor
 
         if (!PerformanceMeasurement.IS_ACTIVE && debugModeActive)
         {
-            WriteVertexNeighborsToFile(positionToNeighbors);
+            Exporter.WriteVertexNeighborsToFile(positionToNeighbors);
         }
 
         // Use a list for easier handling later on (Vertices will eventually receive these neighbors and must be able to
@@ -250,7 +249,7 @@ public class WavefrontPreprocessor
                 vertexPositionDict[vertex.Position] = new HashSet<Position>(visibleNeighborPositions);
             });
 
-            WriteVertexNeighborsToFile(vertexPositionDict, "vertex-visibility.geojson");
+            Exporter.WriteVertexNeighborsToFile(vertexPositionDict, "vertex-visibility.geojson");
         }
 
         return result;
@@ -406,39 +405,5 @@ public class WavefrontPreprocessor
         }
 
         return false;
-    }
-
-    private static async void WriteVertexNeighborsToFile(Dictionary<Position, HashSet<Position>> positionToNeighbors,
-        string filename = "vertex-neighbors.geojson")
-    {
-        var geometries = new List<NetTopologySuite.Geometries.Geometry>();
-        foreach (var pair in positionToNeighbors)
-        {
-            if (pair.Value.IsEmpty())
-            {
-                continue;
-            }
-
-            var coordinates = new List<Coordinate>();
-            coordinates.Add(pair.Key.ToCoordinate());
-            foreach (var position in pair.Value)
-            {
-                coordinates.Add(position.ToCoordinate());
-                coordinates.Add(pair.Key.ToCoordinate());
-            }
-
-            geometries.Add(new LineString(coordinates.ToArray()));
-        }
-
-        var geometry = new GeometryCollection(geometries.ToArray());
-
-        var serializer = GeoJsonSerializer.Create();
-        await using var stringWriter = new StringWriter();
-        using var jsonWriter = new JsonTextWriter(stringWriter);
-
-        serializer.Serialize(jsonWriter, geometry);
-        var geoJson = stringWriter.ToString();
-
-        await File.WriteAllTextAsync(filename, geoJson);
     }
 }

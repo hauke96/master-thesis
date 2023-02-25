@@ -15,13 +15,13 @@ public class GeometryZMConverter : GeometryConverter
             return;
         }
 
-        writer.WriteStartObject();
 
         bool writeCoordinateData = serializer.NullValueHandling == NullValueHandling.Include || !geom.IsEmpty;
 
         switch (geom)
         {
             case LineString lineString:
+                writer.WriteStartObject();
                 writer.WritePropertyName("type");
                 writer.WriteValue(nameof(GeoJsonObjectType.LineString));
 
@@ -32,7 +32,6 @@ public class GeometryZMConverter : GeometryConverter
                 }
 
                 break;
-
             default:
                 base.WriteJson(writer, value, serializer);
                 return;

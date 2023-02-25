@@ -13,6 +13,7 @@ namespace HikerModel
         {
             try
             {
+                // PerformanceMeasurement.IS_ACTIVE = false;
                 PerformanceMeasurement.IS_ACTIVE = true;
 
                 Log.LogLevel = Log.DEBUG;

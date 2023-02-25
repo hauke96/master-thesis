@@ -26,7 +26,6 @@ public class CoordinateZMConverter : CoordinateConverter
             case null:
                 writer.WriteToken(JsonToken.Null);
                 break;
-
             case IEnumerable<IEnumerable<IEnumerable<Coordinate>>>:
                 base.WriteJson(writer, value, serializer);
                 break;
