@@ -8,9 +8,15 @@ public class Vertex
 {
     private static int ID_COUNTER;
 
+    /// <summary>
+    /// The neighbors are neighboring vertices on obstacles but not across open spaces. These are not the visible
+    /// vertices one might obtain by running the knn-search to find all n many visible neighbors. This list is sorted by
+    /// the bearing of each position.
+    /// </summary>
     public List<Position> Neighbors { get; }
+
     private readonly Position _position;
-    private readonly int _id;
+    public int Id { get; }
 
     public Position Position
     {
@@ -36,28 +42,41 @@ public class Vertex
     {
     }
 
+    /// <param name="neighbors">
+    /// The neighbors are neighboring vertices on obstacles but not across open spaces. These are not the visible
+    /// vertices one might obtain by running the knn-search to find all n many visible neighbors.
+    /// </param>
     public Vertex(Position position, params Position[] neighbors) : this(position, neighbors.ToList())
     {
     }
 
+    /// <param name="neighbors">
+    /// The neighbors are neighboring vertices on obstacles but not across open spaces. These are not the visible
+    /// vertices one might obtain by running the knn-search to find all n many visible neighbors.
+    /// </param>
     public Vertex(Position position, List<Position> neighbors)
     {
         Position = position;
-        Neighbors = neighbors;
-        Neighbors.Sort((p1, p2) => (int)(Angle.GetBearing(Position, p1) - Angle.GetBearing(Position, p2)));
-        _id = ID_COUNTER++;
+        neighbors.ForEach(neighbor => neighbor.Bearing = Angle.GetBearing(Position, neighbor));
+        Neighbors = neighbors.OrderBy(neighbor => neighbor.Bearing).ToList();
+        // Neighbors = neighbors;
+        // Neighbors.Sort((p1, p2) => (int)(Angle.GetBearing(Position, p1) - Angle.GetBearing(Position, p2)));
+        Id = ID_COUNTER++;
     }
 
+    /// <summary>
+    /// Should only be used to create a clone of a vertex.
+    /// </summary>
     private Vertex(Position position, List<Position> neighbors, int id)
     {
         Position = position;
         Neighbors = neighbors;
-        _id = id;
+        Id = id;
     }
 
     public Vertex clone()
     {
-        return new Vertex(Position, Neighbors, _id);
+        return new Vertex(Position, Neighbors, Id);
     }
 
     /// <summary>
@@ -149,6 +168,6 @@ public class Vertex
 
     public override string ToString()
     {
-        return "v#" + _id + " : " + Position.ToString();
+        return "v#" + Id + " : " + Position.ToString();
     }
 }

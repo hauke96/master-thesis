@@ -64,6 +64,8 @@ public class Wavelet
 
     private void FilterAndEnqueueVertices(ICollection<Vertex> vertices, bool verticesFromWaveletWithSameRoot)
     {
+        vertices = vertices.Distinct().ToList();
+
         foreach (var vertex in vertices)
         {
             var bearing = Angle.GetBearing(RootVertex.Position, vertex.Position);

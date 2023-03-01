@@ -13,9 +13,11 @@ namespace Wavefront
     {
         private QuadTree<Obstacle> _obstacles;
 
-        // Map from vertex to neighboring vertices. The term "neighbor" here refers to all vertices with an edge to the
-        // key vertex of a dict entry.
-        private Dictionary<Vertex, List<Vertex>> _vertexNeighbors;
+        // Map from vertex to bins of neighboring vertices. The term "neighbor" here refers to all vertices with an edge
+        // to the key vertex of a dict entry. The bins contain all visible neighbors within the angle area of the
+        // obstacle neighbors of the key vertex (Vertex.Neighbors). The first bin contains the visible neighbors between
+        // the first and second obstacle neighbors of the vertex, and so on.
+        private Dictionary<Vertex, List<List<Vertex>>> _vertexNeighbors;
 
         // Stores the predecessor of each visited vertex position. Recursively following the predecessors from a vertex
         // v to the source gives the shortest path from the source to v.
@@ -94,16 +96,36 @@ namespace Wavefront
                 WavefrontPreprocessor.GetVisibleNeighborsForVertex(_obstacles, vertices, targetVertex,
                     _knnSearchNeighborBins);
 
-            neighborsOfTarget.Each(neighbor => vertexNeighbors[neighbor].Add(targetVertex));
+            neighborsOfTarget.SelectMany(x => x).Each(neighbor =>
+            {
+                // Get all neighbor bins of "neighbor" in which the target vertex falls. This is usually just one bin
+                // But might be two.
+                var bearing = Angle.GetBearing(neighbor.Position, targetVertex.Position);
+                vertexNeighbors[neighbor].Each((i, bin) =>
+                {
+                    var targetIsInBin = neighbor.Neighbors.Count < 2 || Angle.IsBetweenEqual(
+                        neighbor.Neighbors[i].Bearing,
+                        bearing,
+                        neighbor.Neighbors[(i + 1) % neighbor.Neighbors.Count].Bearing
+                    );
+
+                    if (targetIsInBin)
+                    {
+                        bin.Add(targetVertex);
+                    }
+                });
+            });
 
             // TODO Optimize this: When the target is visible from the source, we don't need any routing at all.
-            if (!vertexNeighbors[sourceVertex].Contains(targetVertex) &&
+            if (!vertexNeighbors[sourceVertex].SelectMany(x => x).Contains(targetVertex) &&
                 isTargetVisibleFromSource(sourceVertex, targetVertex))
             {
-                vertexNeighbors[sourceVertex].Add(targetVertex);
+                // TODO Instead of [0], choose the right bin. However, this should work.
+                vertexNeighbors[sourceVertex][0].Add(targetVertex);
             }
 
-            var initialWavelet = Wavelet.New(0, 360, sourceVertex, vertexNeighbors[sourceVertex], 0, false);
+            var allSourceVertexNeighbors = vertexNeighbors[sourceVertex].SelectMany(x => x).ToList();
+            var initialWavelet = Wavelet.New(0, 360, sourceVertex, allSourceVertexNeighbors, 0, false);
             if (initialWavelet == null)
             {
                 return new RoutingResult();
@@ -532,7 +554,8 @@ namespace Wavefront
             if (newWaveletNeeded)
             {
                 double distanceToRootFromSource = wavelet.DistanceTo(currentVertex.Position);
-                createdWaveletAtCurrentVertex = AddNewWavelet(_vertexNeighbors[currentVertex], currentVertex,
+                var currentVertexNeighbors = _vertexNeighbors[currentVertex].SelectMany(x => x).ToList();
+                createdWaveletAtCurrentVertex = AddNewWavelet(currentVertexNeighbors, currentVertex,
                     distanceToRootFromSource, angleNewWaveletFrom, angleNewWaveletTo, false);
             }
 

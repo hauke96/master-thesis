@@ -85,9 +85,9 @@ public class WavefrontPreprocessor
     }
 
     /// <summary>
-    /// Calculates the neighbor relationship for each vertex in the given obstacles.
-    ///
-    /// Neighbor here means across obstacles.
+    /// Calculates the neighbor relationship for each vertex v in the given obstacles. The term "neighbor" here means
+    /// neighboring positions on multiple obstacles but not across open spaces. This means there is an edge on at least
+    /// one of the given obstacles from v to its neighboring positions.
     /// </summary>
     /// <returns>A dict from position to a duplicate free list of all neighbors found.</returns>
     public static Dictionary<Position, List<Position>> GetNeighborsFromObstacleVertices(IList<Obstacle> obstacles,
@@ -177,7 +177,7 @@ public class WavefrontPreprocessor
         });
     }
 
-    public static Dictionary<Vertex, List<Vertex>> CalculateVisibleKnn(QuadTree<Obstacle> obstacles,
+    public static Dictionary<Vertex, List<List<Vertex>>> CalculateVisibleKnn(QuadTree<Obstacle> obstacles,
         int neighborBinCount, int neighborsPerBin = 10, bool debugModeActive = false)
     {
         Log.D("Get direct neighbors on each obstacle geometry");
@@ -200,7 +200,7 @@ public class WavefrontPreprocessor
         });
 
         Log.I("Calculate KNN to get visible vertices");
-        var vertexNeighbors = new Dictionary<Vertex, List<Vertex>>();
+        var vertexNeighbors = new Dictionary<Vertex, List<List<Vertex>>>();
         result = PerformanceMeasurement.ForFunction(() =>
         {
             vertexNeighbors =
@@ -212,10 +212,10 @@ public class WavefrontPreprocessor
         return vertexNeighbors;
     }
 
-    private static Dictionary<Vertex, List<Vertex>> CalculateVisibleKnnInternal(QuadTree<Obstacle> obstacles,
+    private static Dictionary<Vertex, List<List<Vertex>>> CalculateVisibleKnnInternal(QuadTree<Obstacle> obstacles,
         List<Vertex> vertices, int neighborBinCount, int neighborsPerBin = 10, bool debugModeActive = false)
     {
-        var result = new Dictionary<Vertex, List<Vertex>>();
+        var result = new Dictionary<Vertex, List<List<Vertex>>>();
         Log.D(
             $"Calculate nearest visible neighbors for each vertex. Bin size is {neighborBinCount} with {neighborsPerBin} neighbors per bin.");
 
@@ -241,21 +241,22 @@ public class WavefrontPreprocessor
 
         if (!PerformanceMeasurement.IS_ACTIVE && debugModeActive)
         {
-            var vertexPositionDict = new Dictionary<Position, HashSet<Position>>();
-            result.Keys.Each(vertex =>
-            {
-                var visibleNeighbors = result[vertex];
-                var visibleNeighborPositions = visibleNeighbors.Map(v => v.Position);
-                vertexPositionDict[vertex.Position] = new HashSet<Position>(visibleNeighborPositions);
-            });
-
-            Exporter.WriteVertexNeighborsToFile(vertexPositionDict, "vertex-visibility.geojson");
+            // TODO Fix this for the double-list of vertices
+            // var vertexPositionDict = new Dictionary<Position, HashSet<Position>>();
+            // result.Keys.Each(vertex =>
+            // {
+            //     var visibleNeighbors = result[vertex];
+            //     var visibleNeighborPositions = visibleNeighbors.Map(v => v.Position);
+            //     vertexPositionDict[vertex.Position] = new HashSet<Position>(visibleNeighborPositions);
+            // });
+            //
+            // Exporter.WriteVertexNeighborsToFile(vertexPositionDict, "vertex-visibility.geojson");
         }
 
         return result;
     }
 
-    public static List<Vertex> GetVisibleNeighborsForVertex(QuadTree<Obstacle> obstacles, List<Vertex> vertices,
+    public static List<List<Vertex>> GetVisibleNeighborsForVertex(QuadTree<Obstacle> obstacles, List<Vertex> vertices,
         Vertex vertex, int neighborBinCount, int neighborsPerBin = 10)
     {
         var shadowAreas = new BinIndex<AngleArea>(360);
@@ -378,17 +379,83 @@ public class WavefrontPreprocessor
                 }
             }
         }
-        
+
         // The vertex was removed above, so we re-add it here.
         vertices.Add(vertex);
 
-        var result = new List<Vertex>();
+        var allNeighbors = new List<Vertex>();
         foreach (var neighbor in neighbors)
         {
             if (neighbor != null)
             {
-                result.AddRange(neighbor);
+                allNeighbors.AddRange(neighbor);
             }
+        }
+
+        return SortVisibleNeighborsIntoBins(vertex, allNeighbors);
+    }
+
+    /// <summary>
+    /// Takes the obstacle neighbors from the given vertex and interprets the angle areas between these neighbors as
+    /// bins. Each of the given visible neighbors is then sorted into these bins.
+    /// </summary>
+    public static List<List<Vertex>> SortVisibleNeighborsIntoBins(Vertex vertex, List<Vertex> allVisibleNeighbors)
+    {
+        if (vertex.Neighbors.Count < 2)
+        {
+            return new List<List<Vertex>>
+            {
+                allVisibleNeighbors
+            };
+        }
+
+        allVisibleNeighbors.Sort((p1, p2) =>
+            (int)(Angle.GetBearing(vertex.Position, p1.Position) - Angle.GetBearing(vertex.Position, p2.Position)));
+
+        /*
+         * This following routing collects all visible neighbors we just determined above and puts them into bins.
+         * Each bin covers the angle area between two obstacle neighbors on the vertex.
+         */
+        var result = new List<List<Vertex>>();
+        // var allNeighborIndex = 0;
+        // var initialAllNeighborIndex = 0;
+
+        // Skip all visible neighbors which angle is lower than the first obstacle neighbor. This just makes processing
+        // below a bit easier.
+        // foreach (var visibleNeighbor in allVisibleNeighbors)
+        // {
+        //     if (Angle.GetBearing(vertex.Position, visibleNeighbor.Position) >= vertex.Neighbors[0].Bearing)
+        //     {
+        //         break;
+        //     }
+        //
+        //     initialAllNeighborIndex++;
+        // }
+
+        var bin = new List<Vertex>();
+
+        // Collect all visible neighbors visible between two obstacle neighbors. We go all the way through the obstacle
+        // neighbors of the vertex and always process the angle area between the current neighbor and the next. For the
+        // last neighbor, the index of the next neighbor is 0 (hence the modulo).
+        for (var obstacleNeighborIndex = 0; obstacleNeighborIndex < vertex.Neighbors.Count; obstacleNeighborIndex++)
+        {
+            var thisObstacleNeighbor = vertex.Neighbors[obstacleNeighborIndex];
+            var nextObstacleNeighbor = vertex.Neighbors[(obstacleNeighborIndex + 1) % vertex.Neighbors.Count];
+
+            bin.Add(allVisibleNeighbors.First(v => v.Position.Equals(thisObstacleNeighbor)));
+            for (var i = 0; i < allVisibleNeighbors.Count; i++)
+            {
+                var visibleNeighbor = allVisibleNeighbors[i];
+                if (Angle.IsBetweenEqual(thisObstacleNeighbor.Bearing,
+                        Angle.GetBearing(vertex.Position, visibleNeighbor.Position), nextObstacleNeighbor.Bearing))
+                {
+                    bin.Add(visibleNeighbor);
+                }
+            }
+
+            bin.Add(allVisibleNeighbors.First(v => v.Position.Equals(nextObstacleNeighbor)));
+            result.Add(bin.Distinct().ToList());
+            bin = new List<Vertex>();
         }
 
         return result;

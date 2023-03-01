@@ -99,18 +99,28 @@ public class WavefrontPreprocessorTest
         public void CalculateVisibleKnn()
         {
             var visibleKnn = WavefrontPreprocessor.CalculateVisibleKnn(obstacleQuadTree, 100);
+            vertices = visibleKnn.Keys.OrderBy(v => v.Id).ToList();
 
-            Assert.AreEqual(2, visibleKnn[vertices[0]].Count);
-            Assert.Contains(vertices[1], visibleKnn[vertices[0]]);
-            Assert.Contains(vertices[2], visibleKnn[vertices[0]]);
+            var bin = visibleKnn[vertices[0]];
+            Assert.AreEqual(1, bin.Count);
+            Assert.AreEqual(2, bin[0].Count);
+            Assert.Contains(vertices[1], bin[0]);
+            Assert.Contains(vertices[2], bin[0]);
 
-            Assert.AreEqual(2, visibleKnn[vertices[1]].Count);
-            Assert.Contains(vertices[0], visibleKnn[vertices[1]]);
-            Assert.Contains(vertices[2], visibleKnn[vertices[1]]);
+            bin = visibleKnn[vertices[1]];
+            Assert.AreEqual(2, bin.Count);
+            Assert.AreEqual(2, bin[0].Distinct().Count());
+            Assert.Contains(vertices[0], bin[0]);
+            Assert.Contains(vertices[2], bin[0]);
+            Assert.AreEqual(2, bin[1].Distinct().Count());
+            Assert.Contains(vertices[0], bin[1]);
+            Assert.Contains(vertices[2], bin[1]);
 
-            Assert.AreEqual(2, visibleKnn[vertices[2]].Count);
-            Assert.Contains(vertices[0], visibleKnn[vertices[2]]);
-            Assert.Contains(vertices[1], visibleKnn[vertices[2]]);
+            bin = visibleKnn[vertices[2]];
+            Assert.AreEqual(1, bin.Count);
+            Assert.AreEqual(2, bin[0].Distinct().Count());
+            Assert.Contains(vertices[0], bin[0]);
+            Assert.Contains(vertices[1], bin[0]);
         }
     }
 
@@ -119,7 +129,7 @@ public class WavefrontPreprocessorTest
         private QuadTree<Obstacle> obstacleQuadTree;
         private List<Vertex> vertices;
         private List<Obstacle> obstacles;
-        
+
         [SetUp]
         public void Setup()
         {
@@ -162,7 +172,7 @@ public class WavefrontPreprocessorTest
             var visibleKnn = WavefrontPreprocessor.CalculateVisibleKnn(obstacleQuadTree, 1);
 
             // vertices[0] = vertex at (2, 2)
-            var actualCoordinates = visibleKnn[vertices[0]].Map(v => v.Coordinate);
+            var actualCoordinates = visibleKnn[vertices[0]].SelectMany(x => x).Map(v => v.Coordinate).Distinct();
             var expectedCoordinates = new List<Coordinate>
             {
                 obstacles[0].Coordinates[1],
@@ -185,7 +195,7 @@ public class WavefrontPreprocessorTest
             var visibleKnn = WavefrontPreprocessor.CalculateVisibleKnn(obstacleQuadTree, 1);
 
             // vertices[0] = vertex at (2, 0.5)
-            var actualCoordinates = visibleKnn[vertices[1]].Map(v => v.Coordinate);
+            var actualCoordinates = visibleKnn[vertices[1]].SelectMany(x => x).Map(v => v.Coordinate).Distinct();
             var expectedCoordinates = new List<Coordinate>
             {
                 obstacles[1].Coordinates[0],
@@ -252,7 +262,7 @@ public class WavefrontPreprocessorTest
             var visibleKnn = WavefrontPreprocessor.CalculateVisibleKnn(obstacleQuadTree, 100);
 
             // vertices[0] = lower left of square 
-            var actualCoordinates = visibleKnn[vertices[0]].Map(v => v.Coordinate);
+            var actualCoordinates = visibleKnn[vertices[0]].SelectMany(x => x).Map(v => v.Coordinate).Distinct();
             var expectedCoordinates = new List<Coordinate>
             {
                 obstacles[0].Coordinates[1],
@@ -261,7 +271,7 @@ public class WavefrontPreprocessorTest
             CollectionAssert.AreEquivalent(expectedCoordinates, actualCoordinates);
 
             // vertices[1] = lower right of square
-            actualCoordinates = visibleKnn[vertices[1]].Map(v => v.Coordinate);
+            actualCoordinates = visibleKnn[vertices[1]].SelectMany(x => x).Map(v => v.Coordinate).Distinct();
             expectedCoordinates = new List<Coordinate>
             {
                 obstacles[0].Coordinates[0],
@@ -272,7 +282,7 @@ public class WavefrontPreprocessorTest
             CollectionAssert.AreEquivalent(expectedCoordinates, actualCoordinates);
 
             // vertices[2] = upper right of square
-            actualCoordinates = visibleKnn[vertices[2]].Map(v => v.Coordinate);
+            actualCoordinates = visibleKnn[vertices[2]].SelectMany(x => x).Map(v => v.Coordinate).Distinct();
             expectedCoordinates = new List<Coordinate>
             {
                 obstacles[0].Coordinates[1],
@@ -283,7 +293,7 @@ public class WavefrontPreprocessorTest
             CollectionAssert.AreEquivalent(expectedCoordinates, actualCoordinates);
 
             // vertices[3] = upper left of square
-            actualCoordinates = visibleKnn[vertices[3]].Map(v => v.Coordinate);
+            actualCoordinates = visibleKnn[vertices[3]].SelectMany(x => x).Map(v => v.Coordinate).Distinct();
             expectedCoordinates = new List<Coordinate>
             {
                 obstacles[0].Coordinates[0],
@@ -484,5 +494,38 @@ public class WavefrontPreprocessorTest
 
         Assert.AreEqual(1, positionToNeighbors[obstacle2[2].ToPosition()].Count);
         Assert.Contains(obstacle2[1].ToPosition(), positionToNeighbors[obstacle2[2].ToPosition()]);
+    }
+
+    [Test]
+    public void SortVisibleNeighborsIntoBins()
+    {
+        var neighbors = new List<Position>
+        {
+            new Position(1.1, 2), // Little >0°
+            new Position(2.0, 1), // 90°
+            new Position(0.0, 1), // 270°
+        };
+        var neighborVertices = new List<Position>
+        {
+            new Position(1, 2), // 0°
+            new Position(2, 2), // 45°
+            new Position(3, 1), // 90°
+            new Position(1, 0), // 180°
+            new Position(0, 2), // 315°
+        }.Map(n => new Vertex(n));
+
+        var vertex = new Vertex(new Position(1, 1), neighbors);
+
+        var allNeighbors = neighborVertices.CreateCopy();
+        allNeighbors.AddRange(neighbors.Map(n => new Vertex(n)));
+        var bins = WavefrontPreprocessor.SortVisibleNeighborsIntoBins(vertex, allNeighbors);
+
+        Assert.Contains(neighborVertices[0], bins[2]);
+        Assert.Contains(neighborVertices[1], bins[0]);
+        Assert.Contains(neighborVertices[2], bins[0]);
+        Assert.Contains(neighborVertices[2], bins[1]);
+        Assert.Contains(neighborVertices[3], bins[1]);
+        Assert.Contains(neighborVertices[4], bins[2]);
+        
     }
 }
