@@ -241,16 +241,15 @@ public class WavefrontPreprocessor
 
         if (!PerformanceMeasurement.IS_ACTIVE && debugModeActive)
         {
-            // TODO Fix this for the double-list of vertices
-            // var vertexPositionDict = new Dictionary<Position, HashSet<Position>>();
-            // result.Keys.Each(vertex =>
-            // {
-            //     var visibleNeighbors = result[vertex];
-            //     var visibleNeighborPositions = visibleNeighbors.Map(v => v.Position);
-            //     vertexPositionDict[vertex.Position] = new HashSet<Position>(visibleNeighborPositions);
-            // });
-            //
-            // Exporter.WriteVertexNeighborsToFile(vertexPositionDict, "vertex-visibility.geojson");
+            var vertexPositionDict = new Dictionary<Position, HashSet<Position>>();
+            result.Keys.Each(vertex =>
+            {
+                var visibleNeighbors = result[vertex];
+                var visibleNeighborPositions = visibleNeighbors.SelectMany(x => x).Map(v => v.Position);
+                vertexPositionDict[vertex.Position] = new HashSet<Position>(visibleNeighborPositions);
+            });
+
+            Exporter.WriteVertexNeighborsToFile(vertexPositionDict, "vertex-visibility.geojson");
         }
 
         return result;
