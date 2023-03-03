@@ -12,7 +12,6 @@ using ServiceStack;
 using Wavefront;
 using Wavefront.Geometry;
 using Feature = NetTopologySuite.Features.Feature;
-using Position = Mars.Interfaces.Environments.Position;
 
 namespace NetworkRoutingPlayground.Layer;
 
@@ -42,44 +41,69 @@ public class NetworkLayer : VectorLayer
         var obstacles = WavefrontPreprocessor.SplitObstacles(obstacleGeometries);
         Console.WriteLine($"WavefrontPreprocessor: Splitting obstacles done after {watch.ElapsedMilliseconds}ms");
 
-        var vertexNeighbors = WavefrontPreprocessor.CalculateVisibleKnn(obstacles, 36, 10, false);
+        var vertexNeighbors = WavefrontPreprocessor.CalculateVisibleKnn(obstacles, 36, 10, true);
         var graph = new SpatialGraph();
-        var nodes = new Dictionary<Position, int>();
+        var nodes = new Dictionary<Vertex, int[]>(); // One node per neighbor-bin
+        var nodeToNeighbors = new Dictionary<int, Vertex>();
         var features = new FeatureCollection();
         vertexNeighbors.Keys.Each(vertex =>
         {
-            var nodeKey = graph.AddNode(new Dictionary<string, object>
+            nodes[vertex] = new int[vertexNeighbors[vertex].Count];
+            vertexNeighbors[vertex].Each((i, _) =>
             {
-                { "x", vertex.Position.X },
-                { "y", vertex.Position.X },
-            }).Key;
-            nodes[vertex.Position] = nodeKey;
+                var nodeKey = graph.AddNode(new Dictionary<string, object>
+                {
+                    { "x", vertex.Position.X },
+                    { "y", vertex.Position.Y },
+                }).Key;
+                nodes[vertex][i] = nodeKey;
+                nodeToNeighbors[nodeKey] = vertex;
+            });
         });
+
+        vertexNeighbors.Keys.Each(vertex =>
+        {
+            vertexNeighbors[vertex].Each((i, neighborBin) =>
+            {
+                var vertexNode = nodes[vertex][i];
+
+                neighborBin.Each(otherVertex =>
+                {
+                    var otherVertexNode = nodes[otherVertex].First(potentialOtherVertexNode =>
+                    {
+                        // TODO This is never true for single vertices (i guess) because the get filtered out during preprocessing and never become a neighbor. Handle this.
+                        return vertexNeighbors[nodeToNeighbors[potentialOtherVertexNode]]
+                            .SelectMany(x => x)
+                            .Contains(vertex);
+                    });
+
+                    var edgeForwardAlreadyExists =
+                        graph.Edges.Values.Any(edge => vertexNode == edge.From && otherVertexNode == edge.To);
+                    if (!edgeForwardAlreadyExists)
+                    {
+                        graph.AddEdge(vertexNode, otherVertexNode);
+                        features.Add(new Feature(new LineString(new[] { vertex.Coordinate, otherVertex.Coordinate }),
+                            new AttributesTable()));
+                    }
+
+                    var edgeBackwardAlreadyExists =
+                        graph.Edges.Values.Any(edge => otherVertexNode == edge.From && vertexNode == edge.To);
+                    if (!edgeBackwardAlreadyExists)
+                    {
+                        graph.AddEdge(otherVertexNode, vertexNode);
+                        features.Add(new Feature(new LineString(new[] { otherVertex.Coordinate, vertex.Coordinate }),
+                            new AttributesTable()));
+                    }
+                });
+            });
+        });
+
+
         vertexNeighbors.ForEach((vertex, otherVertices) =>
         {
-            var vertexNode = nodes[vertex.Position];
-            otherVertices.Each(otherVertex =>
-            {
-                var otherVertexNode = nodes[otherVertex.Position];
-                
-                var edgeForwardAlreadyExists =
-                    graph.Edges.Values.Any(edge => vertexNode == edge.From && otherVertexNode == edge.To);
-                if (!edgeForwardAlreadyExists)
-                {
-                    graph.AddEdge(vertexNode, otherVertexNode);
-                    features.Add(new Feature(new LineString(new[] { vertex.Coordinate, otherVertex.Coordinate }),
-                        new AttributesTable()));
-                }
-                
-                var edgeBackwardAlreadyExists =
-                    graph.Edges.Values.Any(edge => otherVertexNode == edge.From && vertexNode == edge.To);
-                if (!edgeBackwardAlreadyExists)
-                {
-                    graph.AddEdge(otherVertexNode, vertexNode);
-                    features.Add(new Feature(new LineString(new[] { otherVertex.Coordinate, vertex.Coordinate }),
-                        new AttributesTable()));
-                }
-            });
+            var vertexNode = nodes[vertex];
+
+            otherVertices.Each(neighborBin => { });
         });
 
         Environment = new SpatialGraphEnvironment(graph);
