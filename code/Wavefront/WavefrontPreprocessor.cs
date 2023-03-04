@@ -106,11 +106,6 @@ public class WavefrontPreprocessor
         var positionToNeighbors = new Dictionary<Position, HashSet<Position>>();
         obstacles.Each(obstacle =>
         {
-            if (obstacle.Coordinates.Count <= 1)
-            {
-                return;
-            }
-
             AddNeighborsForObstacle(obstacle, positionToNeighbors, isCoordinateHidden);
         });
 
@@ -131,6 +126,14 @@ public class WavefrontPreprocessor
         Func<Coordinate, Coordinate, Obstacle, bool> isCoordinateHidden)
     {
         var coordinates = obstacle.Coordinates.CreateCopy().Distinct().ToList();
+
+        if (coordinates.Count == 1)
+        {
+            positionToNeighbors[coordinates[0].ToPosition()] = new HashSet<Position>();
+            positionToNeighbors[coordinates[0].ToPosition()].AddRange(new[] { coordinates[0].ToPosition() });
+            return;
+        }
+
         coordinates.Each((index, coordinate) =>
         {
             var position = coordinate.ToPosition();
@@ -306,7 +309,12 @@ public class WavefrontPreprocessor
                     return;
                 }
 
-                if (!obstaclesCastingShadow.Contains(obstacle))
+                var vertexIsOnThisObstacle = obstacle.Vertices.Contains(vertex);
+                var obstacleIsAlreadyCastingShadow = obstaclesCastingShadow.Contains(obstacle);
+                
+                // Only consider obstacles not belonging to this vertex (could lead to false shadows) and also just
+                // consider new obstacles, since a shadow test with existing obstacles was already performed earlier.
+                if (!vertexIsOnThisObstacle && !obstacleIsAlreadyCastingShadow)
                 {
                     var (angleFrom, angleTo, distance) = obstacle.GetAngleAreaOfObstacle(vertex);
 
