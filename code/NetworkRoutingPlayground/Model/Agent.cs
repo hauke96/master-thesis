@@ -1,23 +1,12 @@
-using Mars.Common;
 using Mars.Components.Environments;
 using Mars.Components.Layers;
 using Mars.Interfaces.Agents;
 using Mars.Interfaces.Annotations;
 using Mars.Interfaces.Environments;
 using Mars.Interfaces.Layers;
-using NetTopologySuite.Features;
-using NetTopologySuite.Geometries;
-using NetTopologySuite.Geometries.Implementation;
-using NetTopologySuite.IO;
-using NetTopologySuite.IO.Converters;
 using NetworkRoutingPlayground.Layer;
-using Newtonsoft.Json;
-using ServiceStack;
 using ServiceStack.Text;
-using Wavefront;
 using Wavefront.IO;
-using Feature = NetTopologySuite.Features.Feature;
-using Position = Mars.Interfaces.Environments.Position;
 
 namespace NetworkRoutingPlayground.Model
 {
@@ -45,11 +34,11 @@ namespace NetworkRoutingPlayground.Model
         public void Init(VectorLayer layer)
         {
             var allNodes = NetworkLayer.Environment.Nodes.ToList();
-            var startNode = allNodes[RANDOM.Next(allNodes.Count)];
-            var destinationNode = startNode;
+            var startNode = NetworkLayer.Environment.NearestNode(new Position(0.5, 0));//RANDOM.Next(allNodes.Count)];
+            var destinationNode = NetworkLayer.Environment.NearestNode(new Position(1.5, 2));//startNode;
             while (destinationNode == startNode)
             {
-                destinationNode = allNodes[RANDOM.Next(allNodes.Count)];
+                destinationNode = allNodes[0];//RANDOM.Next(allNodes.Count)];
             }
             
             _route = NetworkLayer.Environment.FindFastestRoute(startNode, destinationNode);
@@ -86,7 +75,6 @@ namespace NetworkRoutingPlayground.Model
             }
             
             Position = this.CalculateNewPositionFor(_route, out _);
-            Console.WriteLine(Position);
         }
 
         private void Kill()

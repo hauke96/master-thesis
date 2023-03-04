@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Mars.Common;
 using Mars.Common.Collections.Graph;
 using Mars.Components.Environments;
 using Mars.Components.Layers;
@@ -24,17 +25,6 @@ public class NetworkLayer : VectorLayer
     {
         base.InitLayer(layerInitData, registerAgentHandle, unregisterAgent);
 
-        // To load the data from an input GeoJSON file:
-        // var inputs = layerInitData.LayerInitConfig.Inputs;
-        //
-        // if (inputs != null && inputs.Any())
-        // {
-        //     Environment = new SpatialGraphEnvironment(new SpatialGraphOptions
-        //     {
-        //         GraphImports = inputs
-        //     });
-        // }
-
         var obstacleGeometries = Features.Map(f => new Obstacle(f.VectorStructured.Geometry));
         var watch = Stopwatch.StartNew();
 
@@ -42,68 +32,45 @@ public class NetworkLayer : VectorLayer
         Console.WriteLine($"WavefrontPreprocessor: Splitting obstacles done after {watch.ElapsedMilliseconds}ms");
 
         var vertexNeighbors = WavefrontPreprocessor.CalculateVisibleKnn(obstacles, 36, 10, true);
+
         var graph = new SpatialGraph();
-        var nodes = new Dictionary<Vertex, int[]>(); // One node per neighbor-bin
-        var nodeToNeighbors = new Dictionary<int, Vertex>();
-        var features = new FeatureCollection();
+        var vertexToNode = new Dictionary<Vertex, int[]>();
+        var nodeToBinVertices = new Dictionary<int, List<Vertex>>();
         vertexNeighbors.Keys.Each(vertex =>
         {
-            nodes[vertex] = new int[vertexNeighbors[vertex].Count];
-            vertexNeighbors[vertex].Each((i, _) =>
+            var vertexNeighborBin = vertexNeighbors[vertex];
+            vertexToNode[vertex] = new int[vertexNeighborBin.Count];
+            vertexNeighborBin.Each((i, bin) =>
             {
                 var nodeKey = graph.AddNode(new Dictionary<string, object>
                 {
                     { "x", vertex.Position.X },
                     { "y", vertex.Position.Y },
                 }).Key;
-                nodes[vertex][i] = nodeKey;
-                nodeToNeighbors[nodeKey] = vertex;
+                vertexToNode[vertex][i] = nodeKey;
+                nodeToBinVertices[nodeKey] = bin;
             });
         });
 
+        var nodeNeighbors = new Dictionary<int, List<int>>();
         vertexNeighbors.Keys.Each(vertex =>
         {
             vertexNeighbors[vertex].Each((i, neighborBin) =>
             {
-                var vertexNode = nodes[vertex][i];
+                var vertexNode = vertexToNode[vertex][i];
+                nodeNeighbors[vertexNode] = new List<int>();
 
                 neighborBin.Each(otherVertex =>
                 {
-                    var otherVertexNode = nodes[otherVertex].First(potentialOtherVertexNode =>
+                    var otherVertexNode = vertexToNode[otherVertex].First(potentialOtherVertexNode =>
                     {
-                        // TODO This is never true for single vertices (i guess) because the get filtered out during preprocessing and never become a neighbor. Handle this.
-                        return vertexNeighbors[nodeToNeighbors[potentialOtherVertexNode]]
-                            .SelectMany(x => x)
-                            .Contains(vertex);
+                        return nodeToBinVertices[potentialOtherVertexNode].Contains(vertex);
                     });
 
-                    var edgeForwardAlreadyExists =
-                        graph.Edges.Values.Any(edge => vertexNode == edge.From && otherVertexNode == edge.To);
-                    if (!edgeForwardAlreadyExists)
-                    {
-                        graph.AddEdge(vertexNode, otherVertexNode);
-                        features.Add(new Feature(new LineString(new[] { vertex.Coordinate, otherVertex.Coordinate }),
-                            new AttributesTable()));
-                    }
-
-                    var edgeBackwardAlreadyExists =
-                        graph.Edges.Values.Any(edge => otherVertexNode == edge.From && vertexNode == edge.To);
-                    if (!edgeBackwardAlreadyExists)
-                    {
-                        graph.AddEdge(otherVertexNode, vertexNode);
-                        features.Add(new Feature(new LineString(new[] { otherVertex.Coordinate, vertex.Coordinate }),
-                            new AttributesTable()));
-                    }
+                    nodeNeighbors[vertexNode].Add(otherVertexNode);
+                    graph.AddEdge(vertexNode, otherVertexNode);
                 });
             });
-        });
-
-
-        vertexNeighbors.ForEach((vertex, otherVertices) =>
-        {
-            var vertexNode = nodes[vertex];
-
-            otherVertices.Each(neighborBin => { });
         });
 
         Environment = new SpatialGraphEnvironment(graph);
@@ -114,7 +81,26 @@ public class NetworkLayer : VectorLayer
         Console.WriteLine($"Store layer as GeoJSON");
         try
         {
-            WriteFeatures(features);
+            var graphFeatures = new FeatureCollection();
+            graph.NodesMap.Each((key, nodeData) =>
+            {
+                graphFeatures.Add(new Feature(new Point(nodeData.Position.X, nodeData.Position.Y),
+                    new AttributesTable(new Dictionary<string, object>()
+                    {
+                        { "node_id", key },
+                        { "neighbors", nodeNeighbors[key] }
+                    })));
+            });
+            graph.Edges.Values.Each((key, edgeData) =>
+            {
+                graphFeatures.Add(new Feature(
+                    new LineString(edgeData.Geometry.Map(p => p.ToCoordinate()).ToArray()),
+                    new AttributesTable(new Dictionary<string, object>()
+                    {
+                        { "edge_id", key }
+                    })));
+            });
+            WriteFeatures(graphFeatures);
         }
         catch (Exception e)
         {
