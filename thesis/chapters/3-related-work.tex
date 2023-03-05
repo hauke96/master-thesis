@@ -6,6 +6,8 @@ This section gives an overview about closely related work from these areas.
 
 \section{Graphs and networks}
 
+	% TODO Add other paper not based on visibility graph generation?
+
 	\subsection{Visibility graphs}
 	\label{subsec:related-work:visibility-graph}
 
@@ -32,24 +34,29 @@ This section gives an overview about closely related work from these areas.
 
 \section{Routing}
 
-	% Shortest paths among obstacles in the plane (Mitchell, 1993)
-	\label{related-work:mitchell}
-	Shortly after Welzl and others published their work on visibility graphs, which can be used in combination with Dijkstra to find shortest paths, Mitchell presented a pure geometric method to find euclidean shortest paths around obstacles in the plain in 1993\cite{mitchell-shortest-path}.
-	He used wavefronts propagating from the source towards the target vertex.
-	Each origin of a wavefront can be traces back to the source giving the shortest path.
-	Because this algorithm solves the \hyperref[subsubsec:single-source-shortest-path]{\term*{single-source shortest path} problem} just like the Dijkstra algorithm does on a network, this technique is also called the \term{continuous dijkstra} paradigm.
+	As done in the previous chapter, this section covers geometric and network based routing.
+	Related work regarding specific routing techniques for pedestrian navigation is described below in \cref{sec:pedestrian-path-planning}.
 	
-	% An Optimal Algorithm for Euclidean Shortest Paths in the Plane (Hershberger, Suri, 1999)
-	Another approach solving the geometric single-source shortest path problem was presented by Hershberger and Suri one year later, in 1997 \cite{hershberger-suri}.
-	They also use the \term*{continuous dijkstra} paradigm but increase performance by introducing a special quad-tree like structure as a smart subdivision of the plain and also introduce approximate wavefronts.
-	Instead of wavefronts, the paper refers to them as wavelets, since they are actually arcs with a certain angle region.
-	The difficult part is the collision handling of non neighboring wavelets.
-	Maintaining some important properties, most important the $\bigo{1}$ many neighboring cells around an edge, when creating the subdivision is crucial to the efficiency.
-	Their algorithm calculates a shortest path map allowing request to be processed in only $\bigo{n \log n}$.
+	\subsection{Geometric routing}
 	
-	% maybe: Efficient algorithms for Euclidean shortest path and visibility problems with polygonal obstacles (Kapoor, Maheshwari, 1988)
+		% Shortest paths among obstacles in the plane (Mitchell, 1993)
+		\label{related-work:mitchell}
+		Shortly after Welzl and others published their work on visibility graphs, which can be used in combination with Dijkstra to find shortest paths, Mitchell presented a pure geometric method to find euclidean shortest paths around obstacles in the plain in 1993\cite{mitchell-shortest-path}.
+		He used wavefronts propagating from the source towards the target vertex.
+		Each origin of a wavefront can be traces back to its source giving the shortest path.
+		Because this algorithm solves the \hyperref[subsubsec:single-source-shortest-path]{\term*{single-source shortest path} problem}, just like the Dijkstra algorithm does on a network, this technique is also called the \term{continuous dijkstra} paradigm.
+		
+		% An Optimal Algorithm for Euclidean Shortest Paths in the Plane (Hershberger, Suri, 1999)
+		Another approach solving the geometric single-source shortest path problem was presented by Hershberger and Suri one year later, in 1997 \cite{hershberger-suri}.
+		They also use the \term*{continuous dijkstra} paradigm but increase performance by introducing a special quad-tree like structure as a smart subdivision of the plane and also introduce approximate wavefronts.
+		The difficult part is the collision handling of non neighboring wavelets.
+		Maintaining some important properties is crucial to the efficiency when creating the subdivision, most important is the $\bigo{1}$ amount of neighboring cells around an edge.
+		Their algorithm calculates a shortest path map allowing queries to be answered in only $\bigo{\log n}$.
+		
+	\subsection{Network based routing}
 
 \section{Pedestrian path finding}
+\label{sec:pedestrian-path-planning}
 	
 	A special case of the general single-source shortest path problem is pedestrian routing, also called pedestrian shortest-path finding.
 	This problem is especially interesting since pedestrians have the maximum degree of flexibility/freedom compared to other traffic participants like bikes or cars.
@@ -58,17 +65,19 @@ This section gives an overview about closely related work from these areas.
 	Pedestrian path finding is, however, not only relevant for real world users, who want to know how to get from one location to another.
 	Such algorithms are also used in (multi) agent simulations of pedestrian behavior.
 	Scenarios in such simulations are for example evacuation or crowd behaviors.
-	The area of pedestrian path planning and simulations is divided into two strategies: Network and field based path finding\cite[2]{hartmann-geodesic}.
+	The area of pedestrian path planning and simulations is divided into two strategies: Network and field based path finding \cite[2]{hartmann-geodesic}.
 	Work from both strategies will be covered here.
 	
-	\subsection{Field based navigation}
+	\subsection{Field based and dynamic navigation}
+	
+		Next to geometric and network based routing, potential fields can be used to find shortest paths within this field.
 		
 		% online routing: A Navigation Algorithm for Pedestrian Simulation in Dynamic Environments (Teknomo, Millonig, 2007)
 		Teknomo and Millonig created a dynamic algorithm which does not pre-compute the path with one of the above mentioned approaches\cite{teknomo-millonig-routing}.
 		This is interesting, since the probably most common and naive approach is to pre-compute the route used by an agent within a simulation.
 		The term \enquote{dynamic} refers to the fact, that real world pedestrians often only consider the near neighborhood within their path planning.
 		Even if a person knows the hole area, dynamic changes (closed doors, construction work, crowds blocking the way) can still occur at any point in time.
-		Therefore, such dynamic considerations can be one aspect to make simulations more realistic.
+		Therefore, considering such dynamic changes make agent based simulations more realistic.
 		
 		% maybe: pure geometric/geodesic approach with navigation fields: https://iopscience.iop.org/article/10.1088/1367-2630/12/4/043032/pdf
 		The above mentioned dynamic routing by Teknomo and Millonig has strong similarities to approaches based on potential fields, like the dynamic path finding from Hartmann, 2010\cite{hartmann-geodesic}.
@@ -92,12 +101,18 @@ This section gives an overview about closely related work from these areas.
 		A very similar approach, at least with visibility graphs as a base, was chosen by Kneidl, Borrmann and Hartmann to produce a sparse navigation graph \cite[5]{kneidl-borrmann-hartmann-navigation}.
 		They chose the construction of a visibility graph over generalized Voronoi diagrams for more realistic edges.
 		
-		Stefan Funke et al. also wanted to generate a navigation graph, but to fill holes in an existing graph, which was the OpenStreetMap network in their case \cite{funke-osm-extrapolation}.
-		They needed to develop a metric to detect holes in an existing graph.
-		The idea behind this metric is the following: If the shortest path between two vertices is much longer than the euclidean distance, there is probably a hole in the network.
+		Their work was used by Kielar et al. as a basis for a generalized routing model for pedestrian simulations taking cognitive models of agents into account \cite[5]{kielar-unified-pedestrian-routing}.
+		Cognitive models take into account that humans create their own mixed and fuzzy path finding behavior, which differs from optimal mathematical algorithms like Dijkstra.
+		Basic behaviors of human crowds are herding and learning from others, which makes communication and observation between agents necessary \cite[4]{kielar-unified-pedestrian-routing}.
+		
+		Stefan Funke et al. also wanted to generate a navigation graph, but instead of filling open spaces with edges, they wanted to fill holes in an existing road graph, which was the OpenStreetMap network in their case \cite{funke-osm-extrapolation}.
+		To do so, they developed a metric to detect holes in an existing graph based on the following idea:
+		If the shortest path between two vertices is much longer than the euclidean distance, there is probably a hole in the network.
 		However, this metric leads to false positives when large obstacles, such as a river, is between the two vertices.
-		To handle these obstacles, they discussed the use of Mitchells wavefront propagation algorithm as discussed \hyperref[related-work:mitchell]{above} \cite[4]{funke-osm-extrapolation}.
-		Due to the complexity and lower performance, they decided to use a dense grid, cut out edges intersecting obstacles and use this remaining grid for navigation.
+		In this case, the euclidean and shortest path distances differ a lot, which is in deed correct in such cases.
+		To handle such problems caused by obstacles, they discussed the use of Mitchells wavefront propagation algorithm as discussed \hyperref[related-work:mitchell]{above} \cite[4]{funke-osm-extrapolation}.
+		Due to the complexity and lower performance, they decided to use a dense grid instead, cutting out edges intersecting obstacles and use this remaining grid for navigation.
+		Unfortunately, the use of other graph generation algorithms (for example generating a visibility graph) was not discussed.
 		
 		Another interesting paper on enhancing existing navigation graphs, like Gloor, Stucki and Nagel did, was presented in 2016 by Anita Graser by integrating visibility graph edges into the existing OSM data model\cite{graser-osm-open-spaces}.
 		Again, the visibility graph was the preferred method of producing edges.
