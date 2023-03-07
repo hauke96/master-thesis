@@ -4,9 +4,11 @@
 Scientific literature contains related work from many different areas, mostly from geodata, graph construction and networks as well as routing and (pedestrian) path planning.
 This section gives an overview about closely related work from these areas.
 
-\section{Graphs and networks}
+\section{Graph generation}
 
-	% TODO Add other paper not based on visibility graph generation?
+	Generating, enhancing and filling graphs with edges is an important topic for this thesis.
+	Numerous approaches exist and have been used and discussed in the literature.
+	This section gives an overview of some approaches.
 
 	\subsection{Visibility graphs}
 	\label{subsec:related-work:visibility-graph}
@@ -31,7 +33,66 @@ This section gives an overview about closely related work from these areas.
 		Their approach to create the visibility graph has the same complexity as Ghosh and Mounts, but is simpler structured and therefore might lead to a better performance in practice.
 		
 		% evtl. noch: A NEW ALGORITHM FOR COMPUTING VISIBILITY GRAPHS OF POLYGONAL OBSTACLES IN THE PLANE
-
+		
+		% Showing low performance of visibility graph generation (probably not well optimized? + 2010 computers): https://www.researchgate.net/profile/Jukka_Krisp/publication/311582140_Goal_Directed_Visibility_Polygon_Routing_for_Pedestrian_Navigation/links/584ec1cf08aecb6bd8d004a1/Goal-Directed-Visibility-Polygon-Routing-for-Pedestrian-Navigation.pdf
+	
+	\subsection{Enhancing existing graphs}
+	
+		Graph generation techniques can be used to fill missing data in routing graphs or enhance these in case of a low degree of detail.
+		
+		Stefan Funke et al. achieved this by filling holes in an existing road graph, which was the OpenStreetMap network in their case \cite{funke-osm-extrapolation}.
+		To do so, they developed a metric to detect holes in an existing graph based on the following idea:
+		If the shortest path between two vertices is much longer than the euclidean distance, there is probably a hole in the network.
+		However, this metric leads to false positives when large obstacles, such as a river, is between the two vertices.
+		In this case, the euclidean and shortest path distances differ a lot, which is in deed correct in such cases.
+		To handle such problems caused by obstacles, they discussed the use of Mitchells wavefront propagation algorithm as discussed \hyperref[related-work:mitchell]{above} \cite[4]{funke-osm-extrapolation}.
+		Due to the complexity and lower performance, they decided to use a dense grid instead, cutting out edges intersecting obstacles and use this remaining grid for navigation.
+		Unfortunately, the use of other graph generation algorithms (for example generating a visibility graph) was not discussed.
+		
+		% https://drops.dagstuhl.de/opus/volltexte/2015/5459/pdf/10.pdf
+		Andreev et al. also worked on the existing OpenStreetMap graph but they added sidewalks to roads for more realistic routing and also tried to handle arbitrary source and target locations of routing queries \cite{andreev-osm-generate-sidewalks}.
+		They not only added sidewalks but also dealt with open spaces such as plazas and parks.
+		For each plaza, which usually do not contain designated footways, they create a visibility graph to generate edges within the plaza.
+		Edges not relevant for paths through the plaza are removed afterwards.\todo[inline]{Im paper "of Bungiu et al. [ 7]" nachschauen}
+		Parks are handles differently, since they often contain designated paths.
+		If the source or target starts within a park, special edges are added based on the walking speed and existing edges for paths within the park.
+		After this preprocessing, Dijkstra is used to determine the complete shortest path.
+	
+	\subsection{Filling open spaces}
+	\label{subsec:filling-open-spaces}
+	
+		A task, which is more relevant for this thesis, is filling open spaces with edges for navigation purposes.
+		This can be done by using one of several approaches.
+	
+		Kneidl, Borrmann and Hartmann used visibility graphs to produce a sparse graph suitable for navigation \cite[5]{kneidl-borrmann-hartmann-navigation}.
+		They chose the construction of a visibility graph over generalized Voronoi diagrams for more realistic edges.
+		
+		Another interesting paper on enhancing existing navigation graphs was presented in 2016 by Anita Graser, where she integrated visibility graph edges into the existing OSM data model\cite{graser-osm-open-spaces}.
+		Again, the visibility graph was the preferred method to generate edges.
+		Considered and discussed alternatives were two skeletonization methods and the usage of a simple grid layed over open spaces.
+		
+	\subsection{Generate graphs from existing maps}
+	
+		A graph is not always available, which motivated Walter et al. to create a procedure using raster maps \cite{walter-raster-maps}.
+		They proposed an algorithm with four steps:
+		First, the raster data is classified in obstacle and non-obstacle pixels.
+		Second, the data is used to create a skeletonization graph from it.
+		Third, this graph is used for routing with the A* algorithm.
+		Fourth, the result is smoothed since the skeletonization might yield edges, which will not naturally be used by pedestrians.
+		Even though, this technique works well on large datasets, the reason of skeletonization instead of visibility edges or other generation algorithms, was not further discussed.
+		
+		A similar work was presented by Birgit Elias merging multiple data sources, like topographical maps or indoor building plans, into one vector dataset for routing \cite{elias-tailored-geodatabase}.
+		To create a graph from existing maps, she uses a skeletonization method based on a Delaunay triangulation.
+		She also took into account that important point like structures, like entrances or other \term*{points of interest}, need to be connected to the graph as well.
+		This was solves by creating a perpendicular line to the nearest edge of the graph \cite[5]{elias-tailored-geodatabase}.
+		The problem of unconnected points of interest is one topic of this thesis and will be discussed \todo{ref} in a later section.
+		
+	\subsection{Crowd sourced graph generation}
+	
+		% https://www.researchgate.net/profile/Jincai-Huang-2/publication/345771914_A_Pedestrian_Network_Construction_System_Based_on_Crowdsourced_Walking_Trajectories/links/609411bea6fdccaebd11ca67/A-Pedestrian-Network-Construction-System-Based-on-Crowdsourced-Walking-Trajectories.pdf
+	
+		% https://sci-hub.ru/https://doi.org/10.1016/j.trc.2012.09.007
+	
 \section{Routing}
 
 	As done in the previous chapter, this section covers geometric and network based routing.
@@ -84,9 +145,7 @@ This section gives an overview about closely related work from these areas.
 		He proposed a mechanism using vector fields in a cellular automaton model with hexagonal cells.
 		Interestingly, this method can be interpreted as wavefronts, like in Mitchells algorithm described above, propagating through the vector field\cite[4]{hartmann-geodesic}.
 			
-		% unified pedestrian routing (they use the above navigation field graph generation): A Unified Pedestrian Routing Model for Graph-Based Wayfinding Built on Cognitive Principles (Kielar, et al. 2017)
-	
-	\subsection{Graph generation for path planning}
+	\subsection{Graph based path planning}
 	
 		An alternative to field based approaches are graph based ones, where a graph is constructed and then used in navigation.
 		The construction can be based on potential fields but also on the \hyperref[subsec:related-work:visibility-graph]{above} mentioned \term*[visibility graph]{visibility graphs}.
@@ -94,26 +153,10 @@ This section gives an overview about closely related work from these areas.
 		In fact, Gloor, Stucki and Nagel presented a pedestrian navigation model and a comparison of these two strategies regarding their performance\cite{gloor-hybrid-pedestrian-routing}.
 		They developed this model for a pedestrian simulation in the Alps, where a hiking network should be enhanced with additional navigation information.
 		Two approaches were presented: A potential field based method, which is used in navigation when needed, and a visibility graph, which is merged into the existing hiking network.
-		The visibility graph strategy strongly relates to this thesis.
-		For the performance evaluation, they used an evacuation scenario.
-		The results showed, that both navigation mechanisms are comparably fast.
+		For the performance evaluation, they used an evacuation scenario and the results showed, that both navigation mechanisms are comparably fast.
 		
-		A very similar approach, at least with visibility graphs as a base, was chosen by Kneidl, Borrmann and Hartmann to produce a sparse navigation graph \cite[5]{kneidl-borrmann-hartmann-navigation}.
-		They chose the construction of a visibility graph over generalized Voronoi diagrams for more realistic edges.
-		
-		Their work was used by Kielar et al. as a basis for a generalized routing model for pedestrian simulations taking cognitive models of agents into account \cite[5]{kielar-unified-pedestrian-routing}.
+		The work of Kneidl et al. from \cref{subsec:filling-open-spaces}, was used by Kielar et al. as a basis for a generalized routing model for pedestrian simulations taking cognitive models of agents into account \cite[5]{kielar-unified-pedestrian-routing}.
 		Cognitive models take into account that humans create their own mixed and fuzzy path finding behavior, which differs from optimal mathematical algorithms like Dijkstra.
 		Basic behaviors of human crowds are herding and learning from others, which makes communication and observation between agents necessary \cite[4]{kielar-unified-pedestrian-routing}.
 		
-		Stefan Funke et al. also wanted to generate a navigation graph, but instead of filling open spaces with edges, they wanted to fill holes in an existing road graph, which was the OpenStreetMap network in their case \cite{funke-osm-extrapolation}.
-		To do so, they developed a metric to detect holes in an existing graph based on the following idea:
-		If the shortest path between two vertices is much longer than the euclidean distance, there is probably a hole in the network.
-		However, this metric leads to false positives when large obstacles, such as a river, is between the two vertices.
-		In this case, the euclidean and shortest path distances differ a lot, which is in deed correct in such cases.
-		To handle such problems caused by obstacles, they discussed the use of Mitchells wavefront propagation algorithm as discussed \hyperref[related-work:mitchell]{above} \cite[4]{funke-osm-extrapolation}.
-		Due to the complexity and lower performance, they decided to use a dense grid instead, cutting out edges intersecting obstacles and use this remaining grid for navigation.
-		Unfortunately, the use of other graph generation algorithms (for example generating a visibility graph) was not discussed.
 		
-		Another interesting paper on enhancing existing navigation graphs, like Gloor, Stucki and Nagel did, was presented in 2016 by Anita Graser by integrating visibility graph edges into the existing OSM data model\cite{graser-osm-open-spaces}.
-		Again, the visibility graph was the preferred method of producing edges.
-		Considered and discussed alternatives here were two skeletonization methods and a simple grid places over open spaces.
