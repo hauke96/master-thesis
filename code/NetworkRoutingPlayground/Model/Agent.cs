@@ -12,7 +12,7 @@ namespace NetworkRoutingPlayground.Model
 {
     public class Agent : IAgent<VectorLayer>, ISpatialGraphEntity
     {
-        private static readonly double STEP_SIZE = 10;
+        private static readonly double STEP_SIZE = 2;
         private static readonly Random RANDOM = new((int)DateTime.Now.ToUnixTime());
 
         [PropertyDescription] public UnregisterAgent UnregisterHandle { get; set; }
@@ -33,15 +33,19 @@ namespace NetworkRoutingPlayground.Model
 
         public void Init(VectorLayer layer)
         {
+            // var startNode = NetworkLayer.Environment.NearestNode(new Position(0.5, 0));
+            // var destinationNode = NetworkLayer.Environment.NearestNode(new Position(1.5, 2));
             var allNodes = NetworkLayer.Environment.Nodes.ToList();
-            var startNode = NetworkLayer.Environment.NearestNode(new Position(0.5, 0));//RANDOM.Next(allNodes.Count)];
-            var destinationNode = NetworkLayer.Environment.NearestNode(new Position(1.5, 2));//startNode;
+            var startNode = allNodes[RANDOM.Next(allNodes.Count)];
+            var destinationNode = startNode;
             while (destinationNode == startNode)
             {
-                destinationNode = allNodes[0];//RANDOM.Next(allNodes.Count)];
+                destinationNode = allNodes[RANDOM.Next(allNodes.Count)];
             }
+            // var startNode = allNodes.First(node => node.Index == 6);
+            // var destinationNode = allNodes.First(node => node.Index == 0);
             
-            _route = NetworkLayer.Environment.FindFastestRoute(startNode, destinationNode);
+            _route = NetworkLayer.Environment.FindShortestRoute(startNode, destinationNode);
             NetworkLayer.Environment.Insert(this, startNode);
             
             Exporter.WriteRouteToFile(_route.SelectMany(edgeStop => edgeStop.Edge.Geometry).ToList());
