@@ -25,7 +25,14 @@ public class NetworkLayer : VectorLayer
     {
         base.InitLayer(layerInitData, registerAgentHandle, unregisterAgent);
 
-        var obstacleGeometries = Features.Map(f => new Obstacle(f.VectorStructured.Geometry));
+        var obstacleGeometries = Features.Where(f =>
+        {
+            return f.VectorStructured.Attributes.GetNames().Any(name =>
+            {
+                var lowerName = name.ToLower();
+                return lowerName.Contains("building") || lowerName.Contains("natural");
+            });
+        }).Map(f => new Obstacle(f.VectorStructured.Geometry));
         var watch = Stopwatch.StartNew();
 
         var obstacles = WavefrontPreprocessor.SplitObstacles(obstacleGeometries);
@@ -36,22 +43,30 @@ public class NetworkLayer : VectorLayer
         var graph = new SpatialGraph();
         var vertexToNode = new Dictionary<Vertex, int[]>();
         var nodeToBinVertices = new Dictionary<int, List<Vertex>>();
+
+        // Create a node for every vertex in the dataset. Also store the mapping between node keys and vertices.
         vertexNeighbors.Keys.Each(vertex =>
         {
             var vertexNeighborBin = vertexNeighbors[vertex];
             vertexToNode[vertex] = new int[vertexNeighborBin.Count];
             vertexNeighborBin.Each((i, bin) =>
             {
+                // For debug porposes to see the different nodes in the GeoJSON file.
+                // var nodePosition = PositionHelper.CalculatePositionByBearing(vertex.Position.X, vertex.Position.Y,
+                //     360 / vertexNeighborBin.Count * i, 0.000005);
+                var nodePosition = vertex.Position;
+                
                 var nodeKey = graph.AddNode(new Dictionary<string, object>
                 {
-                    { "x", vertex.Position.X },
-                    { "y", vertex.Position.Y },
+                    { "x", nodePosition.X },
+                    { "y", nodePosition.Y },
                 }).Key;
                 vertexToNode[vertex][i] = nodeKey;
                 nodeToBinVertices[nodeKey] = bin;
             });
         });
 
+        // Create visibility edges in the graph.
         var nodeNeighbors = new Dictionary<int, List<int>>();
         vertexNeighbors.Keys.Each(vertex =>
         {
@@ -62,11 +77,20 @@ public class NetworkLayer : VectorLayer
 
                 neighborBin.Each(otherVertex =>
                 {
-                    var otherVertexNode = vertexToNode[otherVertex].First(potentialOtherVertexNode =>
+                    var otherVertexNodes = vertexToNode[otherVertex].Where(potentialOtherVertexNode =>
                     {
                         return nodeToBinVertices[potentialOtherVertexNode].Contains(vertex);
-                    });
+                    }).ToList();
 
+                    // Due to the bins, it can happen that visibility edges only exist in one direction. In this case,
+                    // it would be really difficult to determine the node of the target vertex to connect the edge to.
+                    if (otherVertexNodes.IsEmpty())
+                    {
+                        Log.I("WARN: No visibility edge found from " + vertex + " to " + otherVertex);
+                        return;
+                    }
+
+                    var otherVertexNode = otherVertexNodes[0];
                     nodeNeighbors[vertexNode].Add(otherVertexNode);
                     graph.AddEdge(vertexNode, otherVertexNode);
                 });
