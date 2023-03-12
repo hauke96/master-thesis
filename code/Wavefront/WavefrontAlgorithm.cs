@@ -157,6 +157,7 @@ namespace Wavefront
         {
             var envelope = new Envelope(source.Coordinate, target.Coordinate);
             var intersectsWithObstacle = false;
+            var coordinateToObstacles = new Dictionary<Coordinate, List<Obstacle>>();
             _obstacles.Query(envelope, (Action<Obstacle>)(obstacle =>
             {
                 if (intersectsWithObstacle || !obstacle.CanIntersect(envelope))
@@ -164,7 +165,7 @@ namespace Wavefront
                     return;
                 }
 
-                intersectsWithObstacle |= obstacle.IntersectsWithLine(source.Coordinate, target.Coordinate);
+                intersectsWithObstacle |= obstacle.IntersectsWithLine(source.Coordinate, target.Coordinate, coordinateToObstacles);
             }));
 
             return !intersectsWithObstacle;

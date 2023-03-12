@@ -932,7 +932,6 @@ namespace Wavefront.Tests
                 {
                     sourceVertex.ToCoordinate(),
                     new Coordinate(1, 2),
-                    new Coordinate(2, 2),
                     new Coordinate(3, 2),
                     new Coordinate(4, 2),
                     new Coordinate(5, 2),
@@ -981,7 +980,6 @@ namespace Wavefront.Tests
                 var expectedRoute = new List<Coordinate>()
                 {
                     sourceVertex.ToCoordinate(),
-                    new Coordinate(3, 0.5),
                     targetVertex.ToCoordinate()
                 };
 

@@ -3,6 +3,7 @@ using Mars.Common;
 using Mars.Common.Collections;
 using Mars.Common.Core.Collections;
 using Mars.Numerics;
+using Microsoft.VisualBasic;
 using NetTopologySuite.Geometries;
 using ServiceStack;
 using Wavefront.Geometry;
@@ -91,7 +92,7 @@ public class WavefrontPreprocessor
     /// </summary>
     /// <returns>A dict from position to a duplicate free list of all neighbors found.</returns>
     public static Dictionary<Position, List<Position>> GetNeighborsFromObstacleVertices(IList<Obstacle> obstacles,
-        bool debugModeActive = false)
+        Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles, bool debugModeActive = false)
     {
         // A function that determines if any obstacles is between the two given coordinates.
         var isCoordinateHidden = (Coordinate coordinate, Coordinate otherCoordinate, Obstacle obstacleOfCoordinate) =>
@@ -100,14 +101,11 @@ public class WavefrontPreprocessor
                 (
                     !obstacleOfCoordinate.Equals(o) &&
                     o.HasLineSegment(coordinate, otherCoordinate) ||
-                    o.IntersectsWithLine(coordinate, otherCoordinate)
+                    o.IntersectsWithLine(coordinate, otherCoordinate, coordinateToObstacles)
                 ));
 
         var positionToNeighbors = new Dictionary<Position, HashSet<Position>>();
-        obstacles.Each(obstacle =>
-        {
-            AddNeighborsForObstacle(obstacle, positionToNeighbors, isCoordinateHidden);
-        });
+        obstacles.Each(obstacle => { AddNeighborsForObstacle(obstacle, positionToNeighbors, isCoordinateHidden); });
 
         if (!PerformanceMeasurement.IS_ACTIVE && debugModeActive)
         {
@@ -184,10 +182,17 @@ public class WavefrontPreprocessor
         int neighborBinCount, int neighborsPerBin = 10, bool debugModeActive = false)
     {
         Log.D("Get direct neighbors on each obstacle geometry");
-        Dictionary<Position, List<Position>> positionToNeighbors = new();
         var allObstacles = obstacles.QueryAll();
+
+        var coordinateToObstacles = GetCoordinateToObstaclesMapping(allObstacles);
+
+        Dictionary<Position, List<Position>> positionToNeighbors = new();
         var result = PerformanceMeasurement.ForFunction(
-            () => { positionToNeighbors = GetNeighborsFromObstacleVertices(allObstacles, debugModeActive); },
+            () =>
+            {
+                positionToNeighbors =
+                    GetNeighborsFromObstacleVertices(allObstacles, coordinateToObstacles, debugModeActive);
+            },
             "GetNeighborsFromObstacleVertices");
         result.Print();
         result.WriteToFile();
@@ -207,7 +212,8 @@ public class WavefrontPreprocessor
         result = PerformanceMeasurement.ForFunction(() =>
         {
             vertexNeighbors =
-                CalculateVisibleKnnInternal(obstacles, vertices, neighborBinCount, neighborsPerBin, debugModeActive);
+                CalculateVisibleKnnInternal(obstacles, coordinateToObstacles, vertices, neighborBinCount,
+                    neighborsPerBin, debugModeActive);
         }, "CalculateVisibleKnn");
         result.Print();
         result.WriteToFile();
@@ -216,7 +222,8 @@ public class WavefrontPreprocessor
     }
 
     private static Dictionary<Vertex, List<List<Vertex>>> CalculateVisibleKnnInternal(QuadTree<Obstacle> obstacles,
-        List<Vertex> vertices, int neighborBinCount, int neighborsPerBin = 10, bool debugModeActive = false)
+        Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles, List<Vertex> vertices, int neighborBinCount,
+        int neighborsPerBin = 10, bool debugModeActive = false)
     {
         var result = new Dictionary<Vertex, List<List<Vertex>>>();
         Log.D(
@@ -238,8 +245,8 @@ public class WavefrontPreprocessor
 
             i++;
 
-            result[vertex] = GetVisibleNeighborsForVertex(obstacles, new List<Vertex>(vertices), vertex,
-                neighborBinCount, neighborsPerBin);
+            result[vertex] = GetVisibleNeighborsForVertex(obstacles, new List<Vertex>(vertices), coordinateToObstacles,
+                vertex, neighborBinCount, neighborsPerBin);
         }
 
         if (!PerformanceMeasurement.IS_ACTIVE && debugModeActive)
@@ -261,10 +268,16 @@ public class WavefrontPreprocessor
     public static List<List<Vertex>> GetVisibleNeighborsForVertex(QuadTree<Obstacle> obstacles, List<Vertex> vertices,
         Vertex vertex, int neighborBinCount, int neighborsPerBin = 10)
     {
+        return GetVisibleNeighborsForVertex(obstacles, vertices, new Dictionary<Coordinate, List<Obstacle>>(), vertex,
+            neighborBinCount, neighborsPerBin);
+    }
+
+    public static List<List<Vertex>> GetVisibleNeighborsForVertex(QuadTree<Obstacle> obstacles, List<Vertex> vertices,
+        Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles, Vertex vertex, int neighborBinCount,
+        int neighborsPerBin = 10)
+    {
         var shadowAreas = new BinIndex<AngleArea>(360);
         var obstaclesCastingShadow = new HashSet<Obstacle>();
-
-        vertices.Remove(vertex);
 
         var degreePerBin = 360.0 / neighborBinCount;
 
@@ -277,6 +290,11 @@ public class WavefrontPreprocessor
 
         foreach (var otherVertex in vertices)
         {
+            if (otherVertex.Equals(vertex))
+            {
+                continue;
+            }
+
             var angle = Angle.GetBearing(vertex.Coordinate, otherVertex.Coordinate);
             var binKey = (int)(angle / degreePerBin);
 
@@ -311,7 +329,7 @@ public class WavefrontPreprocessor
 
                 var vertexIsOnThisObstacle = obstacle.Vertices.Contains(vertex);
                 var obstacleIsAlreadyCastingShadow = obstaclesCastingShadow.Contains(obstacle);
-                
+
                 // Only consider obstacles not belonging to this vertex (could lead to false shadows) and also just
                 // consider new obstacles, since a shadow test with existing obstacles was already performed earlier.
                 if (!vertexIsOnThisObstacle && !obstacleIsAlreadyCastingShadow)
@@ -332,7 +350,8 @@ public class WavefrontPreprocessor
                     }
                 }
 
-                intersectsWithObstacle |= obstacle.IntersectsWithLine(vertex.Coordinate, otherVertex.Coordinate);
+                intersectsWithObstacle |=
+                    obstacle.IntersectsWithLine(vertex.Coordinate, otherVertex.Coordinate, coordinateToObstacles);
             }));
 
             if (!intersectsWithObstacle)
@@ -387,10 +406,7 @@ public class WavefrontPreprocessor
             }
         }
 
-        // The vertex was removed above, so we re-add it here.
-        vertices.Add(vertex);
-
-        var allNeighbors = new List<Vertex>();
+        var allNeighbors = new HashSet<Vertex>();
         foreach (var neighbor in neighbors)
         {
             if (neighbor != null)
@@ -399,7 +415,7 @@ public class WavefrontPreprocessor
             }
         }
 
-        return SortVisibleNeighborsIntoBins(vertex, allNeighbors);
+        return SortVisibleNeighborsIntoBins(vertex, allNeighbors.ToList());
     }
 
     /// <summary>
@@ -449,7 +465,14 @@ public class WavefrontPreprocessor
             var thisObstacleNeighbor = vertex.Neighbors[obstacleNeighborIndex];
             var nextObstacleNeighbor = vertex.Neighbors[(obstacleNeighborIndex + 1) % vertex.Neighbors.Count];
 
-            bin.Add(allVisibleNeighbors.First(v => v.Position.Equals(thisObstacleNeighbor)));
+            // Due to the bins, it can happen that this obstacle neighbor is not within the list of visible neighbors,
+            // even though it's obviously visible. Therefore this obstacle neighbor might not be added here.
+            var thisVisibleNeighbor = allVisibleNeighbors.Where(v => v.Position.Equals(thisObstacleNeighbor)).ToList();
+            if (!thisVisibleNeighbor.IsEmpty())
+            {
+                bin.Add(thisVisibleNeighbor[0]);
+            }
+
             for (var i = 0; i < allVisibleNeighbors.Count; i++)
             {
                 var visibleNeighbor = allVisibleNeighbors[i];
@@ -460,12 +483,34 @@ public class WavefrontPreprocessor
                 }
             }
 
-            bin.Add(allVisibleNeighbors.First(v => v.Position.Equals(nextObstacleNeighbor)));
+            // Due to the bins, it can happen that this obstacle neighbor is not within the list of visible neighbors,
+            // even though it's obviously visible. Therefore this obstacle neighbor might not be added here.
+            var nextVisibleNeighbor = allVisibleNeighbors.Where(v => v.Position.Equals(nextObstacleNeighbor)).ToList();
+            if (!nextVisibleNeighbor.IsEmpty())
+            {
+                bin.Add(nextVisibleNeighbor[0]);
+            }
+
             result.Add(bin.Distinct().ToList());
             bin = new List<Vertex>();
         }
 
         return result;
+    }
+
+    public static Dictionary<Coordinate, List<Obstacle>> GetCoordinateToObstaclesMapping(IList<Obstacle> allObstacles)
+    {
+        Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles = new();
+        allObstacles.Each(o => o.Vertices.Each(v =>
+        {
+            if (!coordinateToObstacles.ContainsKey(v.Coordinate))
+            {
+                coordinateToObstacles[v.Coordinate] = new List<Obstacle>();
+            }
+
+            coordinateToObstacles[v.Coordinate].Add(o);
+        }));
+        return coordinateToObstacles;
     }
 
     private static bool IsInShadowArea(BinIndex<AngleArea> shadowAreas, double angle, double distance)

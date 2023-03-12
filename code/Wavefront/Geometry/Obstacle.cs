@@ -12,6 +12,8 @@ namespace Wavefront.Geometry
         public readonly bool IsClosed;
         public readonly int Hash;
 
+        private readonly NetTopologySuite.Geometries.Geometry Geometry;
+
         public Obstacle(NetTopologySuite.Geometries.Geometry geometry) : this(geometry,
             geometry.Coordinates.Map(c => new Vertex(c.X, c.Y)))
         {
@@ -23,7 +25,10 @@ namespace Wavefront.Geometry
             Vertices = vertices;
             Hash = (int)geometry.Coordinates.Sum(coordinate => coordinate.X * 7919 + coordinate.Y * 4813);
             Envelope = geometry.EnvelopeInternal;
-            IsClosed = Equals(Coordinates.First(), Coordinates.Last());
+            IsClosed = Coordinates.Count > 2 && Equals(Coordinates.First(), Coordinates.Last());
+
+            // Ensure it's a polygon when closed.
+            Geometry = IsClosed ? new Polygon(new LinearRing(geometry.Coordinates)) : geometry;
         }
 
         public bool CanIntersect(Envelope envelope)
@@ -31,60 +36,100 @@ namespace Wavefront.Geometry
             return Coordinates.Count >= 2 && Envelope.Intersects(envelope);
         }
 
-        public bool IntersectsWithLine(Coordinate coordinateStart, Coordinate coordinateEnd)
+        /// <summary>
+        /// Check is this obstacle intersects with the given line, specified by the two coordinate parameters.
+        ///
+        /// A few remarks and edge cases on what's considered an intersection:
+        /// <ul>
+        ///   <li>A line touching the obstacle (i.e. having at least one coordinate in common) is <i>not</i> considered an intersection.</li>
+        ///   <li>A line fully within the obstacle (in case of a closed polygon) is considered as intersecting this obstacle.</li>
+        /// </ul>
+        /// </summary>
+        public bool IntersectsWithLine(Coordinate coordinateStart, Coordinate coordinateEnd,
+            Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles)
         {
-            // Used below when a vertex is found lying exactly on the line between start and end -> the angle from
-            // start to that vertex is exactly this angle here, so we can pre-calculate it.
-            var rotationAngle = -1 * Angle.GetBearing(coordinateStart, coordinateEnd);
+            var indexOfStartCoordinate = Coordinates.IndexOf(coordinateStart);
+            var indexOfEndCoordinate = Coordinates.IndexOf(coordinateEnd);
 
-            for (var i = 0; i < Coordinates.Count - 1; i++)
+            if (indexOfStartCoordinate != -1 && indexOfEndCoordinate != -1)
             {
-                var coordinate = Coordinates[i];
-
-                if (Intersect.DoIntersect(coordinateStart, coordinateEnd, coordinate, Coordinates[i + 1]))
-                {
-                    return true;
-                }
-
-                // They do not intersect. However, it can happen that the coordinate i is exactly on the line from the
-                // given start the the given end. In this case it's interesting to know if there are other obstacles
-                // touching the coordinate i causing the line from the given start to the given end to intersect the
-                // connection between these two obstacles.
-                if (!coordinateStart.Equals(coordinate) && !coordinateEnd.Equals(coordinate) &&
-                    Intersect.Orientation(coordinateStart, coordinateEnd, coordinate) == 0 &&
-                    Intersect.IsOnSegment(coordinateStart, coordinateEnd, coordinate))
-                {
-                    // The coordinate i lies exactly on the line segment from the given start to the given end
-                    // coordinate. So we check if any neighbor of that coordinate/vertex is on the left or right side.
-                    // If not, so if at least one neighbor is on the east and one on the west side, then there's an
-                    // intersection. Also see the WavefrontAlgorithm.HandleNeighbors for a similar handling of
-                    // intersection checks.
-                    var vertex = Vertices.First(v => v.Coordinate.Equals(coordinate));
-                    var allVerticesOnSameSide = vertex.Neighbors
-                        .Where(n => n.X != coordinateStart.X || n.Y != coordinateStart.Y)
-                        .Map(n =>
-                        {
-                            var angleFromStartToNeighbor =
-                                Angle.GetBearing(coordinateStart.X, coordinateStart.Y, n.X, n.Y);
-                            var angle = Angle.Normalize(angleFromStartToNeighbor + rotationAngle);
-                            // Return -1 (west side), 0 (neither side and exactly aligned) or 1 (east side) to specify on
-                            // which side the neighbor is.
-                            return angle == 0 || angle == 180 ? 0 : angle < 180 ? 1 : -1;
-                        })
-                        // Neighbors with angle of 0 are aligned (directly in front of the vertex seen from
-                        // coordinateStart) and can be ignored since such a neighbor would be visible from the start.
-                        .Where(a => a != 0)
-                        .Distinct()
-                        .Count() == 1; // Only one element after .Distinct() -> all elements are the same
-
-                    if (!allVerticesOnSameSide)
-                    {
-                        return true;
-                    }
-                }
+                // Both coordinates are part of the obstacle -> Check if the line is out- or inside the polygon or in
+                // case of a line-obstacle if the coordinates intersect any other line segment.
+                return IntersectBetweenObstacleVertices(coordinateStart, coordinateEnd, indexOfStartCoordinate,
+                    indexOfEndCoordinate, coordinateToObstacles);
             }
 
-            return false;
+            // At most one coordinate is part of this obstacle.
+            return IntersectsWithNonObstacleLine(coordinateStart, coordinateEnd);
+        }
+
+        /// <summary>
+        /// Checks of the line segment, specified by the two given coordinates, intersects with this obstacle. Both
+        /// coordinates are considered to be part of the obstacle, hence the two indices must be valid.
+        /// </summary>
+        private bool IntersectBetweenObstacleVertices(Coordinate coordinateStart, Coordinate coordinateEnd,
+            int indexOfStartCoordinate, int indexOfEndCoordinate,
+            Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles)
+        {
+            // Check if the line segment defined by the two parameter coordinates is a segment of this obstacle.
+            if (
+                indexOfStartCoordinate == (indexOfEndCoordinate + 1) % (Coordinates.Count - 1) ||
+                indexOfEndCoordinate == (indexOfStartCoordinate + 1) % (Coordinates.Count - 1)
+            )
+            {
+                // The two parameter coordinates build a line segment, which is part of this obstacle. Check if this
+                // segment is shared between two obstacles, which are touching each other on this segment. Only if this
+                // obstacle is closed, this check needs to be performed. Open obstacles can touch too, but all shared
+                // segments can be correctly be used in a route (e.g. when the two parameter coordinates are start and
+                // target of a routing query).
+
+                if (!IsClosed)
+                {
+                    return false;
+                }
+
+                var commonObstacles = coordinateToObstacles[coordinateStart]
+                    .Intersect(coordinateToObstacles[coordinateEnd]).ToList();
+                return commonObstacles.Count > 1 &&
+                       commonObstacles.All(o => o.HasLineSegment(coordinateStart, coordinateEnd));
+            }
+            
+            // The two parameter coordinates are actually not building a line segment of this obstacle. This means the
+            // line could be inside or outside the obstacle.
+            
+            if (IsClosed)
+            {
+                return Geometry.Intersects(new LineString(new[] { coordinateStart, coordinateEnd }));
+            }
+
+            // This obstacle is open, so we check if any line segment intersects with the segment defined by the
+            // coordinate parameters.
+            var intersectsWithSegment = false;
+            for (var i = 1; !intersectsWithSegment && i < Coordinates.Count; i++)
+            {
+                var coordinate = Coordinates[i - 1];
+
+                intersectsWithSegment |=
+                    Intersect.DoIntersect(coordinateStart, coordinateEnd, coordinate, Coordinates[i]);
+            }
+
+            return intersectsWithSegment;
+        }
+
+        /// <summary>
+        /// Check for intersection with the given line, specified by the two given coordinates. It's assumes that one
+        /// or none of the coordinates is part of this obstacle.
+        /// </summary>
+        private bool IntersectsWithNonObstacleLine(Coordinate coordinateStart, Coordinate coordinateEnd)
+        {
+            var intersects = Geometry.Intersects(new LineString(new[] { coordinateStart, coordinateEnd }));
+            var touches = Geometry.Touches(new LineString(new[] { coordinateStart, coordinateEnd }));
+
+            // The "Geometry.Intersects" method returns "true" as soon as there are points in common or the geometry is
+            // entirely within the polygon of this obstacle. However, this method assumes that at most one parameter
+            // coordinate is contained in this obstacle, so a line only touching but not intersecting the geometry is
+            // fine and not considered an intersection.
+            return intersects && !touches;
         }
 
         public bool HasLineSegment(Coordinate coordinateStart, Coordinate coordinateEnd)

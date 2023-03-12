@@ -40,7 +40,7 @@ public class WavefrontPreprocessorTest
 
             var obstacles = obstacleGeometries.Map(geometry => new Obstacle(geometry));
 
-            positionToNeighbors = WavefrontPreprocessor.GetNeighborsFromObstacleVertices(obstacles);
+            positionToNeighbors = WavefrontPreprocessor.GetNeighborsFromObstacleVertices(obstacles, new Dictionary<Coordinate, List<Obstacle>>());
 
             obstacleQuadTree = new QuadTree<Obstacle>();
             obstacles.Each(obstacle => obstacleQuadTree.Insert(obstacle.Envelope, obstacle));
@@ -266,7 +266,8 @@ public class WavefrontPreprocessorTest
             var expectedCoordinates = new List<Coordinate>
             {
                 obstacles[0].Coordinates[1],
-                obstacles[0].Coordinates[3]
+                obstacles[0].Coordinates[3],
+                obstacles[1].Coordinates[0],
             };
             CollectionAssert.AreEquivalent(expectedCoordinates, actualCoordinates);
 
@@ -298,6 +299,55 @@ public class WavefrontPreprocessorTest
             {
                 obstacles[0].Coordinates[0],
                 obstacles[0].Coordinates[2],
+                obstacles[1].Coordinates[1],
+            };
+            CollectionAssert.AreEquivalent(expectedCoordinates, actualCoordinates);
+        }
+
+        [Test]
+        public void CalculateVisibleKnn_correctBins()
+        {
+            var visibleKnn = WavefrontPreprocessor.CalculateVisibleKnn(obstacleQuadTree, 100);
+
+            // vertices[0] = lower left of square 
+            var actualCoordinates = visibleKnn[vertices[0]].SelectMany(x => x).Map(v => v.Coordinate).Distinct();
+            var expectedCoordinates = new List<Coordinate>
+            {
+                obstacles[0].Coordinates[1],
+                obstacles[0].Coordinates[3],
+                obstacles[1].Coordinates[0],
+            };
+            CollectionAssert.AreEquivalent(expectedCoordinates, actualCoordinates);
+
+            // vertices[1] = lower right of square
+            actualCoordinates = visibleKnn[vertices[1]].SelectMany(x => x).Map(v => v.Coordinate).Distinct();
+            expectedCoordinates = new List<Coordinate>
+            {
+                obstacles[0].Coordinates[0],
+                obstacles[0].Coordinates[2],
+                obstacles[1].Coordinates[0],
+                obstacles[1].Coordinates[1],
+            };
+            CollectionAssert.AreEquivalent(expectedCoordinates, actualCoordinates);
+
+            // vertices[2] = upper right of square
+            actualCoordinates = visibleKnn[vertices[2]].SelectMany(x => x).Map(v => v.Coordinate).Distinct();
+            expectedCoordinates = new List<Coordinate>
+            {
+                obstacles[0].Coordinates[1],
+                obstacles[0].Coordinates[3],
+                obstacles[1].Coordinates[0],
+                obstacles[1].Coordinates[1],
+            };
+            CollectionAssert.AreEquivalent(expectedCoordinates, actualCoordinates);
+
+            // vertices[3] = upper left of square
+            actualCoordinates = visibleKnn[vertices[3]].SelectMany(x => x).Map(v => v.Coordinate).Distinct();
+            expectedCoordinates = new List<Coordinate>
+            {
+                obstacles[0].Coordinates[0],
+                obstacles[0].Coordinates[2],
+                obstacles[1].Coordinates[1],
             };
             CollectionAssert.AreEquivalent(expectedCoordinates, actualCoordinates);
         }
@@ -312,7 +362,7 @@ public class WavefrontPreprocessorTest
             new Coordinate(2, 10)
         });
         var positionToNeighbors =
-            WavefrontPreprocessor.GetNeighborsFromObstacleVertices(new List<Obstacle> { new(obstacle) });
+            WavefrontPreprocessor.GetNeighborsFromObstacleVertices(new List<Obstacle> { new(obstacle) }, new Dictionary<Coordinate, List<Obstacle>>());
 
         Assert.AreEqual(2, positionToNeighbors.Count);
 
@@ -333,7 +383,7 @@ public class WavefrontPreprocessorTest
             new Coordinate(7, 4),
         });
         var positionToNeighbors =
-            WavefrontPreprocessor.GetNeighborsFromObstacleVertices(new List<Obstacle> { new(obstacle) });
+            WavefrontPreprocessor.GetNeighborsFromObstacleVertices(new List<Obstacle> { new(obstacle) }, new Dictionary<Coordinate, List<Obstacle>>());
 
         Assert.AreEqual(3, positionToNeighbors.Count);
 
@@ -360,8 +410,9 @@ public class WavefrontPreprocessorTest
             new Coordinate(1, 2.5)
         });
 
+        var coordinateToObstacles = WavefrontPreprocessor.GetCoordinateToObstaclesMapping(new List<Obstacle> { new(obstacle) });
         var positionToNeighbors =
-            WavefrontPreprocessor.GetNeighborsFromObstacleVertices(new List<Obstacle> { new(obstacle) });
+            WavefrontPreprocessor.GetNeighborsFromObstacleVertices(new List<Obstacle> { new(obstacle) }, coordinateToObstacles);
 
         Assert.AreEqual(4, positionToNeighbors.Count);
 
@@ -404,7 +455,8 @@ public class WavefrontPreprocessorTest
 
         var list = new List<Obstacle> { new(obstacle1), new(obstacle2) };
 
-        var positionToNeighbors = WavefrontPreprocessor.GetNeighborsFromObstacleVertices(list);
+        var coordinateToObstacles = WavefrontPreprocessor.GetCoordinateToObstaclesMapping(new List<Obstacle> { new(obstacle1), new(obstacle2) });
+        var positionToNeighbors = WavefrontPreprocessor.GetNeighborsFromObstacleVertices(list, coordinateToObstacles);
 
         Assert.AreEqual(6, positionToNeighbors.Count);
 
@@ -462,7 +514,7 @@ public class WavefrontPreprocessorTest
 
         var list = new List<Obstacle> { new(obstacle1), new(obstacle2) };
 
-        var positionToNeighbors = WavefrontPreprocessor.GetNeighborsFromObstacleVertices(list);
+        var positionToNeighbors = WavefrontPreprocessor.GetNeighborsFromObstacleVertices(list, new Dictionary<Coordinate, List<Obstacle>>());
 
         Assert.AreEqual(5, positionToNeighbors.Count);
 
@@ -516,6 +568,8 @@ public class WavefrontPreprocessorTest
 
         var vertex = new Vertex(new Position(1, 1), neighbors);
 
+        var obstacleQuadTree = new QuadTree<Obstacle>();
+
         var allNeighbors = neighborVertices.CreateCopy();
         allNeighbors.AddRange(neighbors.Map(n => new Vertex(n)));
         var bins = WavefrontPreprocessor.SortVisibleNeighborsIntoBins(vertex, allNeighbors);
@@ -526,6 +580,45 @@ public class WavefrontPreprocessorTest
         Assert.Contains(neighborVertices[2], bins[1]);
         Assert.Contains(neighborVertices[3], bins[1]);
         Assert.Contains(neighborVertices[4], bins[2]);
-        
+    }
+
+    [Test]
+    public void GetVisibleNeighborsForVertex_noInnerVisibilities()
+    {
+        var obstacleQuadTree = new QuadTree<Obstacle>();
+        var squareObstacle = new Obstacle(new Polygon(new LinearRing(new[]
+        {
+            new Coordinate(0, 0),
+            new Coordinate(1, 0),
+            new Coordinate(1, 1),
+            new Coordinate(0, 1),
+            new Coordinate(0, 0),
+        })));
+        obstacleQuadTree.Insert(squareObstacle.Envelope, squareObstacle);
+        var coordinateToObstacles = WavefrontPreprocessor.GetCoordinateToObstaclesMapping(new List<Obstacle> { squareObstacle });
+
+        var vertices = squareObstacle.Vertices;
+        Vertex vertex;
+        List<List<Vertex>> neighborBins;
+
+        vertex = vertices[0];
+        neighborBins = WavefrontPreprocessor.GetVisibleNeighborsForVertex(obstacleQuadTree, vertices, coordinateToObstacles, vertex, 10);
+        Assert.AreEqual(1, neighborBins.Count);
+        CollectionAssert.AreEquivalent(new List<Vertex> { vertices[1], vertices[3] }, neighborBins[0]);
+
+        vertex = vertices[1];
+        neighborBins = WavefrontPreprocessor.GetVisibleNeighborsForVertex(obstacleQuadTree, vertices, coordinateToObstacles, vertex, 10);
+        Assert.AreEqual(1, neighborBins.Count);
+        CollectionAssert.AreEquivalent(new List<Vertex> { vertices[0], vertices[2] }, neighborBins[0]);
+
+        vertex = vertices[2];
+        neighborBins = WavefrontPreprocessor.GetVisibleNeighborsForVertex(obstacleQuadTree, vertices, coordinateToObstacles, vertex, 10);
+        Assert.AreEqual(1, neighborBins.Count);
+        CollectionAssert.AreEquivalent(new List<Vertex> { vertices[1], vertices[3] }, neighborBins[0]);
+
+        vertex = vertices[3];
+        neighborBins = WavefrontPreprocessor.GetVisibleNeighborsForVertex(obstacleQuadTree, vertices, coordinateToObstacles, vertex, 10);
+        Assert.AreEqual(1, neighborBins.Count);
+        CollectionAssert.AreEquivalent(new List<Vertex> { vertices[0], vertices[2] }, neighborBins[0]);
     }
 }
