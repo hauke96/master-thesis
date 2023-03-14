@@ -232,7 +232,9 @@ public class WavefrontPreprocessor
         var i = 1;
         var verticesPerPercent = vertices.Count / 100d;
         var nextProcessOutput = verticesPerPercent;
+        var totalTimeStopWatch = new Stopwatch();
         var stopWatch = new Stopwatch();
+        totalTimeStopWatch.Start();
         stopWatch.Start();
         foreach (var vertex in vertices)
         {
@@ -248,6 +250,7 @@ public class WavefrontPreprocessor
             result[vertex] = GetVisibleNeighborsForVertex(obstacles, new List<Vertex>(vertices), coordinateToObstacles,
                 vertex, neighborBinCount, neighborsPerBin);
         }
+        Log.D($"  100% done after a total of {totalTimeStopWatch.ElapsedMilliseconds}ms");
 
         if (!PerformanceMeasurement.IS_ACTIVE && debugModeActive)
         {
