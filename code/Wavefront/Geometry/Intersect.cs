@@ -35,6 +35,16 @@ namespace Wavefront.Geometry
 
         public static bool DoIntersect(Coordinate start1, Coordinate end1, Coordinate start2, Coordinate end2)
         {
+            if (
+                start1.X > start2.X && start1.X > end2.X && end1.X > start2.X && end1.X > end2.X ||
+                start1.X < start2.X && start1.X < end2.X && end1.X < start2.X && end1.X < end2.X ||
+                start1.Y > start2.Y && start1.Y > end2.Y && end1.Y > start2.Y && end1.Y > end2.Y ||
+                start1.Y < start2.Y && start1.Y < end2.Y && end1.Y < start2.Y && end1.Y < end2.Y
+            )
+            {
+                return false;
+            }
+
             if (start1.Equals(start2) || end1.Equals(end2) ||
                 start1.Equals(end2) || end1.Equals(start2))
             {

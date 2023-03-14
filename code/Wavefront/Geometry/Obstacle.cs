@@ -19,7 +19,8 @@ namespace Wavefront.Geometry
             return geometries.Map(g => new Obstacle(g));
         }
 
-        public static List<NetTopologySuite.Geometries.Geometry> UnwrapMultiGeometries(NetTopologySuite.Geometries.Geometry geometry)
+        public static List<NetTopologySuite.Geometries.Geometry> UnwrapMultiGeometries(
+            NetTopologySuite.Geometries.Geometry geometry)
         {
             var geometries = new List<NetTopologySuite.Geometries.Geometry>();
             if (geometry is MultiPolygon multiPolygon)
@@ -88,8 +89,19 @@ namespace Wavefront.Geometry
         public bool IntersectsWithLine(Coordinate coordinateStart, Coordinate coordinateEnd,
             Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles)
         {
-            var indexOfStartCoordinate = Coordinates.IndexOf(coordinateStart);
-            var indexOfEndCoordinate = Coordinates.IndexOf(coordinateEnd);
+            var indexOfStartCoordinate = -1;
+            var indexOfEndCoordinate = -1;
+            for (var i = 0; i < Coordinates.Count && (indexOfStartCoordinate == -1 || indexOfEndCoordinate == -1); i++)
+            {
+                if (indexOfStartCoordinate == -1 && Coordinates[i].Equals(coordinateStart))
+                {
+                    indexOfStartCoordinate = i;
+                }
+                else if (indexOfEndCoordinate == -1 && Coordinates[i].Equals(coordinateEnd))
+                {
+                    indexOfEndCoordinate = i;
+                }
+            }
 
             if (indexOfStartCoordinate != -1 && indexOfEndCoordinate != -1)
             {
