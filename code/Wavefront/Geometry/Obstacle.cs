@@ -15,21 +15,27 @@ namespace Wavefront.Geometry
 
         public static List<Obstacle> Create(NetTopologySuite.Geometries.Geometry geometry)
         {
-            var obstacles = new List<Obstacle>();
+            var geometries = UnwrapMultiGeometries(geometry);
+            return geometries.Map(g => new Obstacle(g));
+        }
+
+        public static List<NetTopologySuite.Geometries.Geometry> UnwrapMultiGeometries(NetTopologySuite.Geometries.Geometry geometry)
+        {
+            var geometries = new List<NetTopologySuite.Geometries.Geometry>();
             if (geometry is MultiPolygon multiPolygon)
             {
                 multiPolygon.Each(polygon =>
                 {
                     var simplePolygon = new Polygon((LinearRing)((Polygon)polygon.GetGeometryN(0)).ExteriorRing);
-                    obstacles.Add(new Obstacle(simplePolygon));
+                    geometries.Add(simplePolygon);
                 });
             }
             else
             {
-                obstacles.Add(new Obstacle(geometry));
+                geometries.Add(geometry);
             }
 
-            return obstacles;
+            return geometries;
         }
 
         public Obstacle(NetTopologySuite.Geometries.Geometry geometry) : this(geometry,
@@ -45,13 +51,24 @@ namespace Wavefront.Geometry
             }
 
             Coordinates = geometry.Coordinates.ToList();
+            IsClosed = IsGeometryClosed(geometry);
+            if (IsClosed && Coordinates.Count > 4)
+            {
+                throw new Exception(
+                    $"Obstacle is closed but not a triangle (has {geometry.Coordinates.Length - 1} vertices)!");
+            }
+
             Vertices = vertices;
             Hash = (int)geometry.Coordinates.Sum(coordinate => coordinate.X * 7919 + coordinate.Y * 4813);
             Envelope = geometry.EnvelopeInternal;
-            IsClosed = Coordinates.Count > 2 && Equals(Coordinates.First(), Coordinates.Last());
 
             // Ensure it's a polygon when closed.
             Geometry = IsClosed ? new Polygon(new LinearRing(geometry.Coordinates)) : geometry;
+        }
+
+        public static bool IsGeometryClosed(NetTopologySuite.Geometries.Geometry geometry)
+        {
+            return geometry.Coordinates.Length > 2 && Equals(geometry.Coordinates.First(), geometry.Coordinates.Last());
         }
 
         public bool CanIntersect(Envelope envelope)
@@ -76,9 +93,7 @@ namespace Wavefront.Geometry
 
             if (indexOfStartCoordinate != -1 && indexOfEndCoordinate != -1)
             {
-                // Both coordinates are part of the obstacle -> Check if the line is out- or inside the polygon or in
-                // case of a line-obstacle if the coordinates intersect any other line segment.
-                return IntersectBetweenObstacleVertices(coordinateStart, coordinateEnd, indexOfStartCoordinate,
+                return IntersectBetweenVerticesOnOpenObstacle(coordinateStart, coordinateEnd, indexOfStartCoordinate,
                     indexOfEndCoordinate, coordinateToObstacles);
             }
 
@@ -87,10 +102,11 @@ namespace Wavefront.Geometry
         }
 
         /// <summary>
-        /// Checks of the line segment, specified by the two given coordinates, intersects with this obstacle. Both
-        /// coordinates are considered to be part of the obstacle, hence the two indices must be valid.
+        /// Checks of the line segment, specified by the two given coordinates, intersects with this open obstacle. Both
+        /// coordinates are considered to be part of the obstacle, hence the two given indices must point to existing
+        /// coordinates.
         /// </summary>
-        private bool IntersectBetweenObstacleVertices(Coordinate coordinateStart, Coordinate coordinateEnd,
+        private bool IntersectBetweenVerticesOnOpenObstacle(Coordinate coordinateStart, Coordinate coordinateEnd,
             int indexOfStartCoordinate, int indexOfEndCoordinate,
             Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles)
         {
@@ -100,36 +116,15 @@ namespace Wavefront.Geometry
                 indexOfEndCoordinate == (indexOfStartCoordinate + 1) % (Coordinates.Count - 1)
             )
             {
-                // The two parameter coordinates build a line segment, which is part of this obstacle. Check if this
-                // segment is shared between two obstacles, which are touching each other on this segment. Only if this
-                // obstacle is closed, this check needs to be performed. Open obstacles can touch too, but all shared
-                // segments can be correctly be used in a route (e.g. when the two parameter coordinates are start and
-                // target of a routing query).
-
-                if (!IsClosed)
-                {
-                    return false;
-                }
-
                 var commonObstacles = coordinateToObstacles[coordinateStart]
                     .Intersect(coordinateToObstacles[coordinateEnd]).ToList();
                 return commonObstacles.Count > 1 &&
                        commonObstacles.All(o => o.HasLineSegment(coordinateStart, coordinateEnd));
             }
 
-            // The two parameter coordinates are actually not building a line segment of this obstacle. This means the
-            // line could be inside or outside the obstacle.
-
-            if (IsClosed)
-            {
-                return Geometry.Intersects(new LineString(new[] { coordinateStart, coordinateEnd }));
-            }
-
-            // This obstacle is open, so we check if any line segment intersects with the segment defined by the
-            // coordinate parameters.
-            var intersectsWithSegment = IntersectsWithLineString(coordinateStart, coordinateEnd);
-
-            return intersectsWithSegment;
+            // The two given coordinates to not build a line segment of this open obstacle, so we check if any line
+            // segment intersects with the line string defined by the coordinate parameters.
+            return IntersectsWithLineString(coordinateStart, coordinateEnd);
         }
 
         /// <summary>
@@ -143,16 +138,20 @@ namespace Wavefront.Geometry
             // within a polygon, which also counts as an intersection. Therefore, the Geometry.Contains methods are
             // additionally used.
             return
-            (
                 IntersectsWithLineString(coordinateStart, coordinateEnd) ||
+                IsClosed &&
                 (
-                    IsClosed &&
-                    (
-                        ((Polygon)Geometry).Contains(new Point(coordinateStart)) ||
-                        ((Polygon)Geometry).Contains(new Point(coordinateEnd))
+                    IsInTriangle(coordinateStart.X, coordinateStart.Y,
+                        Coordinates[0].X, Coordinates[0].Y,
+                        Coordinates[1].X, Coordinates[1].Y,
+                        Coordinates[2].X, Coordinates[2].Y
+                    ) ||
+                    IsInTriangle(coordinateEnd.X, coordinateEnd.Y,
+                        Coordinates[0].X, Coordinates[0].Y,
+                        Coordinates[1].X, Coordinates[1].Y,
+                        Coordinates[2].X, Coordinates[2].Y
                     )
-                )
-            );
+                );
         }
 
         /// <summary>
@@ -171,6 +170,27 @@ namespace Wavefront.Geometry
             }
 
             return intersectsWithSegment;
+        }
+
+        /// <summary>
+        /// Check is the coordinate specified by <code>x</code> and <code>y</code> is inside the given triangle using
+        /// the barycentric collision check, which is considered one of the fastest ways to check is a point is inside
+        /// a triangle.
+        /// If <code>x</code> and <code>y</code> build a location on an edge or corner of the triangle, it's not
+        /// considered "inside" and returns false.
+        /// </summary>
+        private static bool IsInTriangle(double x, double y, double x1, double y1, double x2, double y2, double x3,
+            double y3)
+        {
+            var d = (x2 - x1) * (y3 - y1) - (x3 - x1) * (y2 - y1);
+
+            var u = ((x2 - x) * (y3 - y) - (x3 - x) * (y2 - y)) / d;
+            var v = ((x3 - x) * (y1 - y) - (x1 - x) * (y3 - y)) / d;
+            var w = ((x1 - x) * (y2 - y) - (x2 - x) * (y1 - y)) / d;
+
+            return 0 < u && u < 1 &&
+                   0 < v && v < 1 &&
+                   0 < w && w < 1;
         }
 
         public bool HasLineSegment(Coordinate coordinateStart, Coordinate coordinateEnd)
