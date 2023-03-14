@@ -216,9 +216,18 @@ Even though this enhanced the performance, splitting obstacles (s. below) in com
 
 See branch `visible-knn-using-BinIndex` for the code.
 
-#### Splitting obstacles
+#### Splitting obstacles (attempt 1)
 
 Because some very large obstacles are checked very very often for collisions (due to their huge bounding box), splitting obstacles into smaller linestrings of a certain max. length was quite successful.
+
+**Problem:** Intersection-checks are now incredibly compres, since former polygons do not have an "inside" anymore, since they're now line strings.
+
+#### Splitting obstacles (attempt 2)
+
+Two preprocessing steps are performed:
+
+1. MultiPolygon geometries are "simplified", meaning they're converted into several polygons and only their exterior rings are used.
+2. All polygons are triangulated, which makes intersection checks and queries much easier and faster.
 
 ### Ideas for further optimizations
 
@@ -249,19 +258,27 @@ Currently the MARS `QuadTree` is used. I tried using the NetTopologySuite `STRtr
 **Spatial pruning:**
 This could be helpful for preprocessing when the nearest neighbors need to be found. Use several growing queries to get near vertices. If the first queries didn't contain enough nearest visible vertices, increase the query range. This can be done by rectangular queries so that no area is queried twice.
 
+**Hershberger & Suri Algorithmus:**
+> This probably won't help today since I use visibility graphs now
+
+This is also a wave propagation algorithm which is theoretically faster than Mitchells algorithm I'm using right now. However it's a 50+ page paper and sounds quite complicated. The question is: Is it worth the work? My thesis is not about implementing a very performant routing engine but rather to enhance routing results for agent based simulations.
+
+**Faster visibility graph algorithms:**
+There are pretty fast algorithms for visibility graphs out there. Maybe implementing a state of the art algorithm helps increasing performance and scalability. However, the quadratic runtime is inherent in the structure of visibility graphs.
+
+**Other graph generation:**
+Some paper use skeletons, delaunay triangulations or medial axis algorithms to create graphs. They're often faster but create less good results.
+
 #### Miscellaneous
 
 **Other programming language:**
 I don't have the impression that C# (including the libraries) is meant to be used for high performance applications.
 
 Example:
-the NetTopologySuite `STRtree` class uses by default the normal array based `List` class to collect the resulting features [0]. Due to the resize of the array, a lot of data has to be copied over and over again decreasing the performance significantly.
+The NetTopologySuite `STRtree` class uses by default the normal array based `List` class to collect the resulting features [0]. Due to the resize of the array, a lot of data has to be copied over and over again decreasing the performance significantly.
 
 [0]
 https://github.com/NetTopologySuite/NetTopologySuite/blob/c5be50bb638be90ef8eb8c63456ae393194beba2/src/NetTopologySuite/Index/Strtree/AbstractSTRtree.cs#L279
 
 **Parallelism:**
 One could (hopefully) easily parallel the preprocessing by dividing the vertices in bins, every thread then works on one bin.
-
-**Hershberger & Suri Algorithmus:**
-This is also a wave propagation algorithm which is theoretically faster than Mitchells algorithm I'm using right now. However it's a 50+ page paper and sounds quite complicated. The question is: Is it worth the work? My thesis is not about implementing a very performant routing engine but rather to enhance routing results for agent based simulations.
