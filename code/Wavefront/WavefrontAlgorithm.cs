@@ -119,9 +119,8 @@ namespace Wavefront
 
             // TODO Optimize this: When the target is visible from the source, we don't need any routing at all.
             if (!vertexNeighbors[sourceVertex].SelectMany(x => x).Contains(targetVertex) &&
-                isTargetVisibleFromSource(sourceVertex, targetVertex))
+                IsTargetVisibleFromSource(sourceVertex, targetVertex))
             {
-                // TODO Instead of [0], choose the right bin. However, this should work.
                 vertexNeighbors[sourceVertex][0].Add(targetVertex);
             }
 
@@ -154,7 +153,7 @@ namespace Wavefront
             return new RoutingResult(waypoints, GetAllRoutes());
         }
 
-        private bool isTargetVisibleFromSource(Vertex source, Vertex target)
+        private bool IsTargetVisibleFromSource(Vertex source, Vertex target)
         {
             var envelope = new Envelope(source.Coordinate, target.Coordinate);
             var intersectsWithObstacle = false;

@@ -185,10 +185,10 @@ namespace Wavefront.Geometry
         }
 
         /// <summary>
-        /// Check is the coordinate specified by <code>x</code> and <code>y</code> is inside the given triangle using
+        /// Check is the coordinate specified by "x" and "y"" is inside the given triangle using
         /// the barycentric collision check, which is considered one of the fastest ways to check is a point is inside
         /// a triangle.
-        /// If <code>x</code> and <code>y</code> build a location on an edge or corner of the triangle, it's not
+        /// If "x" and "y" build a location on an edge or corner of the triangle, it's not
         /// considered "inside" and returns false.
         /// </summary>
         private static bool IsInTriangle(double x, double y, double x1, double y1, double x2, double y2, double x3,
@@ -210,7 +210,7 @@ namespace Wavefront.Geometry
             // Initialize start indices far away from each other because the distance matters below.
             var indexStart = -10;
             var indexEnd = -20;
-            for (int i = 0; i < Coordinates.Count && (indexStart < 0 || indexEnd < 0); i++)
+            for (var i = 0; i < Coordinates.Count && (indexStart < 0 || indexEnd < 0); i++)
             {
                 if (Coordinates[i].Equals(coordinateStart))
                 {
@@ -293,21 +293,6 @@ namespace Wavefront.Geometry
 
                         angleFrom = mergedAngleFrom;
                         angleTo = mergedAngleTo;
-
-                        // We definitely don't have complete overlaps, that (angleFrom, angleTo) is completely in
-                        // (a1, a2) and vice versa. Always exactly one side (from or to) is touching the current region.
-                        // if (angleFrom == newSegmentAngleTo)
-                        // {
-                        //     // angle area goes  a1 -> a2 == angleFrom -> angleTo
-                        //     angleFrom = newSegmentAngleFrom;
-                        //     coordinateFrom = coordinate;
-                        // }
-                        // else if (angleTo == newSegmentAngleFrom)
-                        // {
-                        //     // angle area goes  angleFrom -> a1 == angleTo -> a2
-                        //     angleTo = newSegmentAngleTo;
-                        //     coordinateTo = coordinate;
-                        // }
                     }
                 }
 

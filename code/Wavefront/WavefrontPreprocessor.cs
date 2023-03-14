@@ -134,6 +134,11 @@ public class WavefrontPreprocessor
         return result;
     }
 
+    /// <summary>
+    /// Adds the obstacle neighbors (neighbors on this and touching obstacles but not across open spaces) to the given
+    /// map.
+    /// </summary>
+    /// <param name="isCoordinateHidden">A function that determines if the obstacle is between the two given coordinates , in other words, if the two coordinates see each other.</param>
     private static void AddNeighborsForObstacle(Obstacle obstacle,
         Dictionary<Position, HashSet<Position>> positionToNeighbors,
         Func<Coordinate, Coordinate, Obstacle, bool> isCoordinateHidden)
@@ -193,6 +198,17 @@ public class WavefrontPreprocessor
         });
     }
 
+    /// <summary>
+    /// Determines for each vertex all visible other vertices with respect to the given obstacles. The vertices are
+    /// extracted from the obstacles.
+    ///
+    /// This method uses bins to limit the number of visible neighbors per angle area, since each bin covers a certain
+    /// angle area of each vertex. Example: If "neighborBinCount" is set to 4, then each bin covers 90°. The
+    /// "neighborsPerBin" also limit the amount of visible vertices per bin.
+    /// </summary>
+    /// <returns>
+    /// A map from vertex to "neighborBinCount"-many sub-lists, each containing vertices of one bin.
+    /// </returns>
     public static Dictionary<Vertex, List<List<Vertex>>> CalculateVisibleKnn(QuadTree<Obstacle> obstacles,
         int neighborBinCount, int neighborsPerBin = 10, bool debugModeActive = false)
     {
@@ -236,6 +252,13 @@ public class WavefrontPreprocessor
         return vertexNeighbors;
     }
 
+    /// <summary>
+    /// Same as "CalculateVisibleKnn()" but takes the already determines vertices and the mapping from coordinate to
+    /// obstacles.
+    /// </summary>
+    /// <param name="coordinateToObstacles">
+    /// A map from coordinate to all obstacles that include this geometry somewhere in their geometry.
+    /// </param>
     private static Dictionary<Vertex, List<List<Vertex>>> CalculateVisibleKnnInternal(QuadTree<Obstacle> obstacles,
         Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles, List<Vertex> vertices, int neighborBinCount,
         int neighborsPerBin = 10, bool debugModeActive = false)
@@ -291,10 +314,24 @@ public class WavefrontPreprocessor
             neighborBinCount, neighborsPerBin);
     }
 
-    public static List<List<Vertex>> GetVisibleNeighborsForVertex(QuadTree<Obstacle> obstacles, List<Vertex> vertices,
+    /// <summary>
+    /// Determines all visible neighbors with respect to the limits given by the maximum of "neighborsPerBin" many
+    /// neighbors per bin for each of the "neighborBinCount" many bins.
+    /// </summary>
+    private static List<List<Vertex>> GetVisibleNeighborsForVertex(QuadTree<Obstacle> obstacles, List<Vertex> vertices,
         Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles, Vertex vertex, int neighborBinCount,
         int neighborsPerBin = 10)
     {
+        /*
+         * The idea of the shadow areas:
+         *
+         * Imagine a vertex is a lamp, each obstacle casts a shadow, which covers a certain angle area. Each shadow
+         * (= instance of the AngleArea class) also has a certain distance. Everything within this angle area and
+         * further away than that distance is definitely not visible.
+         *
+         * Keeping track of these shadow areas and their distances reduces the amount of expensive collision checks
+         * significantly (i.e. by a factor of 20 for a ~250 obstacles large dataset).
+         */
         var shadowAreas = new BinIndex<AngleArea>(360);
         var obstaclesCastingShadow = new HashSet<Obstacle>();
 
@@ -459,21 +496,6 @@ public class WavefrontPreprocessor
          * Each bin covers the angle area between two obstacle neighbors on the vertex.
          */
         var result = new List<List<Vertex>>();
-        // var allNeighborIndex = 0;
-        // var initialAllNeighborIndex = 0;
-
-        // Skip all visible neighbors which angle is lower than the first obstacle neighbor. This just makes processing
-        // below a bit easier.
-        // foreach (var visibleNeighbor in allVisibleNeighbors)
-        // {
-        //     if (Angle.GetBearing(vertex.Position, visibleNeighbor.Position) >= vertex.Neighbors[0].Bearing)
-        //     {
-        //         break;
-        //     }
-        //
-        //     initialAllNeighborIndex++;
-        // }
-
         var bin = new List<Vertex>();
 
         // Collect all visible neighbors visible between two obstacle neighbors. We go all the way through the obstacle
