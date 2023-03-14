@@ -30,7 +30,7 @@ public class NetworkLayer : VectorLayer
                 return f.VectorStructured.Attributes.GetNames().Any(name =>
                 {
                     var lowerName = name.ToLower();
-                    return lowerName.Contains("building") || lowerName.Contains("natural");
+                    return lowerName.Contains("building") || lowerName.Contains("barrier") || lowerName.Contains("natural");
                 });
             })
             .Map(f => Obstacle.Create(f.VectorStructured.Geometry))
@@ -38,12 +38,15 @@ public class NetworkLayer : VectorLayer
             .ToList();
         var watch = Stopwatch.StartNew();
 
+        var watch = Stopwatch.StartNew();
         var obstacles = WavefrontPreprocessor.SplitObstacles(importedObstacles, true);
-
         Console.WriteLine($"WavefrontPreprocessor: Splitting obstacles done after {watch.ElapsedMilliseconds}ms");
 
+        watch.Restart();
         var vertexNeighbors = WavefrontPreprocessor.CalculateVisibleKnn(obstacles, 36, 10, true);
+        Console.WriteLine($"WavefrontPreprocessor: CalculateVisibleKnn done after {watch.ElapsedMilliseconds}ms");
 
+        watch.Restart();
         var graph = new SpatialGraph();
         var vertexToNode = new Dictionary<Vertex, int[]>();
         var nodeToBinVertices = new Dictionary<int, List<Vertex>>();
@@ -100,10 +103,11 @@ public class NetworkLayer : VectorLayer
                 });
             });
         });
+        Console.WriteLine($"NetworkLayer: Graph creation done after {watch.ElapsedMilliseconds}ms");
+        Console.WriteLine($"  Number of nodes: {graph.NodesMap.Count}");
+        Console.WriteLine($"  Number of edges: {graph.EdgesMap.Count}");
 
         Environment = new SpatialGraphEnvironment(graph);
-
-        Console.WriteLine($"WavefrontPreprocessor: CalculateVisibleKnn done after {watch.ElapsedMilliseconds}ms");
 
         watch.Restart();
         Console.WriteLine($"Store layer as GeoJSON");
