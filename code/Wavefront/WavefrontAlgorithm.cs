@@ -43,7 +43,7 @@ namespace Wavefront
             _debugModeActive = debugModeActive;
             _knnSearchNeighborBins = knnSearchNeighborBins;
             _knnSearchNeighborsPerBin = knnSearchNeighborsPerBin;
-            _obstacles = WavefrontPreprocessor.SplitObstacles(obstacles);
+            _obstacles = WavefrontPreprocessor.SplitObstacles(obstacles, _debugModeActive);
             _vertexNeighbors =
                 WavefrontPreprocessor.CalculateVisibleKnn(_obstacles, _knnSearchNeighborBins, _knnSearchNeighborsPerBin,
                     _debugModeActive);

@@ -263,7 +263,9 @@ namespace Wavefront.Tests
 
                 Assert.AreEqual(1, wavelets.Count);
                 var newWavelet = wavelets[0];
-                Assert.AreEqual(new List<Vertex> { simpleLineVertices[2] }, newWavelet.RelevantVertices);
+                Assert.AreEqual(simpleLineVertices[3], newWavelet.RootVertex);
+                CollectionAssert.AreEquivalent(new List<Vertex> { simpleLineVertices[1], simpleLineVertices[2] },
+                    newWavelet.RelevantVertices);
                 Assert.AreEqual(90, newWavelet.FromAngle);
                 Assert.AreEqual(270, newWavelet.ToAngle);
             }
@@ -932,6 +934,7 @@ namespace Wavefront.Tests
                 {
                     sourceVertex.ToCoordinate(),
                     new Coordinate(1, 2),
+                    new Coordinate(2, 2),
                     new Coordinate(3, 2),
                     new Coordinate(4, 2),
                     new Coordinate(5, 2),

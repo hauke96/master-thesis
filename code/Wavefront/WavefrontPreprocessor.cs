@@ -3,12 +3,14 @@ using Mars.Common;
 using Mars.Common.Collections;
 using Mars.Common.Core.Collections;
 using Mars.Numerics;
-using Microsoft.VisualBasic;
+using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
+using NetTopologySuite.Triangulate.Polygon;
 using ServiceStack;
 using Wavefront.Geometry;
 using Wavefront.Index;
 using Wavefront.IO;
+using Feature = NetTopologySuite.Features.Feature;
 using Position = Mars.Interfaces.Environments.Position;
 
 namespace Wavefront;
@@ -42,7 +44,7 @@ public class WavefrontPreprocessor
     /// Splits each obstacle into smaller obstacles with the given amount of edges. This enhances the performance of
     /// further preprocessing, because collision checks are now performed on smaller objects.
     /// </summary>
-    public static QuadTree<Obstacle> SplitObstacles(List<Obstacle> obstacles, int maxObstacleLength = 20)
+    public static QuadTree<Obstacle> SplitObstacles(List<Obstacle> obstacles, bool debugModeActive = false)
     {
         var vertexCount = obstacles.Sum(o => o.Coordinates.Count);
         PerformanceMeasurement.TOTAL_VERTICES = vertexCount;
@@ -50,35 +52,45 @@ public class WavefrontPreprocessor
         Log.D($"Amount of vertices before splitting: {vertexCount}");
 
         obstacles = obstacles.Map(o =>
-        {
-            var result = new List<Obstacle>();
-
-            if (o.Coordinates.Count <= maxObstacleLength)
             {
-                result.Add(o);
-                return result;
-            }
-
-            for (int i = 0; i < o.Coordinates.Count - 1; i += maxObstacleLength)
-            {
-                if (i + maxObstacleLength < o.Coordinates.Count)
+                if (!o.IsClosed)
                 {
-                    result.Add(new Obstacle(new LineString(o.Coordinates.Skip(i).Take(maxObstacleLength + 1)
-                        .ToArray())));
+                    return new List<Obstacle> { o };
                 }
-                else
-                {
-                    result.Add(new Obstacle(new LineString(o.Coordinates.Skip(i).ToArray())));
-                }
-            }
 
-            return result;
-        }).SelectMany(x => x).ToList();
+                var newObstacles = new List<Obstacle>();
+
+                // Perform a triangulation of each polygon. This makes it much easier to perform visibility checks.
+                try
+                {
+                    var geometryCollection = (GeometryCollection)PolygonTriangulator.Triangulate(o.Geometry);
+                    geometryCollection.Each(triangle =>
+                    {
+                        Obstacle.Create(triangle).Each(newObstacle => newObstacles.Add(newObstacle));
+                    });
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    throw;
+                }
+
+                return newObstacles;
+            })
+            .SelectMany(x => x)
+            .ToList();
 
         vertexCount = obstacles.Sum(o => o.Coordinates.Count);
         PerformanceMeasurement.TOTAL_VERTICES_AFTER_PREPROCESSING = vertexCount;
         Log.D($"Amount of obstacles after splitting: {obstacles.Count}");
         Log.D($"Amount of vertices after splitting: {vertexCount}");
+
+        if (debugModeActive)
+        {
+            var featureCollection = new FeatureCollection();
+            obstacles.Each(o => featureCollection.Add(new Feature(o.Geometry, new AttributesTable())));
+            Exporter.WriteFeaturesToFile(featureCollection, "obstacles-splitted.geojson").Wait();
+        }
 
         var obstacleIndex = new QuadTree<Obstacle>();
         obstacles.Each(obstacle => obstacleIndex.Insert(obstacle.Envelope, obstacle));
@@ -250,6 +262,7 @@ public class WavefrontPreprocessor
             result[vertex] = GetVisibleNeighborsForVertex(obstacles, new List<Vertex>(vertices), coordinateToObstacles,
                 vertex, neighborBinCount, neighborsPerBin);
         }
+
         Log.D($"  100% done after a total of {totalTimeStopWatch.ElapsedMilliseconds}ms");
 
         if (!PerformanceMeasurement.IS_ACTIVE && debugModeActive)

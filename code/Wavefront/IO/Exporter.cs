@@ -47,7 +47,7 @@ public static class Exporter
         await WriteFeaturesToFile(features, "agent-points.geojson");
     }
 
-    private static async Task WriteFeaturesToFile(FeatureCollection features, string filename)
+    public static async Task WriteFeaturesToFile(FeatureCollection features, string filename)
     {
         var serializer = GeoJsonSerializer.Create();
         foreach (var converter in serializer.Converters

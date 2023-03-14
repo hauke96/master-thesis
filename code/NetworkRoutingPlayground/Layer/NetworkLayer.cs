@@ -38,7 +38,8 @@ public class NetworkLayer : VectorLayer
             .ToList();
         var watch = Stopwatch.StartNew();
 
-        var obstacles = WavefrontPreprocessor.SplitObstacles(obstacleGeometries);
+        var obstacles = WavefrontPreprocessor.SplitObstacles(importedObstacles, true);
+
         Console.WriteLine($"WavefrontPreprocessor: Splitting obstacles done after {watch.ElapsedMilliseconds}ms");
 
         var vertexNeighbors = WavefrontPreprocessor.CalculateVisibleKnn(obstacles, 36, 10, true);
