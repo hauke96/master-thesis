@@ -5,9 +5,11 @@ using System.Linq;
 using Mars.Common;
 using Mars.Common.Collections;
 using NetTopologySuite.Geometries;
+using NetTopologySuite.Features;
 using NUnit.Framework;
 using ServiceStack;
 using Wavefront.Geometry;
+using Feature = NetTopologySuite.Features.Feature;
 using Position = Mars.Interfaces.Environments.Position;
 
 namespace Wavefront.Tests
@@ -215,7 +217,7 @@ namespace Wavefront.Tests
                 obstacleGeometries.Add(new LineString(new[] { c0, c1 }));
                 obstacleGeometries.Add(new LineString(new[] { c1, c2 }));
                 obstacleGeometries.Add(new LineString(new[] { c2, c3 }));
-                var obstacles = obstacleGeometries.Map(geometry => new Obstacle(geometry));
+                var obstacles = obstacleGeometries.Map(geometry => new Feature(geometry, new AttributesTable()));
 
                 simpleLineVertices = new List<Vertex>();
                 simpleLineVertices.Add(new Vertex(c0.ToPosition(), c1.ToPosition()));
@@ -780,7 +782,7 @@ namespace Wavefront.Tests
                 obstacleGeometries.Add(multiVertexLineObstacle);
                 obstacleGeometries.Add(rotatedLineObstacle);
 
-                var obstacles = obstacleGeometries.Map(geometry => new Obstacle(geometry));
+                var obstacles = obstacleGeometries.Map(geometry => new Feature(geometry, new AttributesTable()));
 
                 wavefrontAlgorithm = new WavefrontAlgorithm(obstacles);
             }
@@ -880,12 +882,18 @@ namespace Wavefront.Tests
                 var obstacleGeometries = new List<NetTopologySuite.Geometries.Geometry>();
                 obstacleGeometries.Add(new LineString(new[]
                 {
+                    new Coordinate(1, 1),
+                    new Coordinate(2, 1),
+                    new Coordinate(1, 2),
+                    new Coordinate(1, 1)
+                })); // -> left triangle (forming a square with the other triangle)
+                obstacleGeometries.Add(new LineString(new[]
+                {
+                    new Coordinate(1, 2),
                     new Coordinate(2, 1),
                     new Coordinate(2, 2),
-                    new Coordinate(1, 2),
-                    new Coordinate(1, 1),
-                    new Coordinate(2, 1)
-                })); // -> square
+                    new Coordinate(1, 2)
+                })); // -> right triangle (forming a square with the other triangle)
                 obstacleGeometries.Add(new LineString(new[]
                 {
                     new Coordinate(3, 1),
@@ -916,7 +924,7 @@ namespace Wavefront.Tests
                     new Coordinate(3, 1)
                 })); // -> make vertical part of "r" longer 
 
-                var obstacles = obstacleGeometries.Map(geometry => new Obstacle(geometry));
+                var obstacles = obstacleGeometries.Map(geometry => new Feature(geometry, new AttributesTable()));
 
                 wavefrontAlgorithm = new WavefrontAlgorithm(obstacles);
             }
@@ -934,7 +942,6 @@ namespace Wavefront.Tests
                 {
                     sourceVertex.ToCoordinate(),
                     new Coordinate(1, 2),
-                    new Coordinate(2, 2),
                     new Coordinate(3, 2),
                     new Coordinate(4, 2),
                     new Coordinate(5, 2),
@@ -1007,7 +1014,7 @@ namespace Wavefront.Tests
                     new Coordinate(1, 2)
                 }));
 
-                var obstacles = obstacleGeometries.Map(geometry => new Obstacle(geometry));
+                var obstacles = obstacleGeometries.Map(geometry => new Feature(geometry, new AttributesTable()));
 
                 wavefrontAlgorithm = new WavefrontAlgorithm(obstacles);
             }
@@ -1040,7 +1047,7 @@ namespace Wavefront.Tests
             [SetUp]
             public void Setup()
             {
-                wavefrontAlgorithm = new WavefrontAlgorithm(new List<Obstacle>());
+                wavefrontAlgorithm = new WavefrontAlgorithm(new List<Feature>());
             }
 
             [Test]
@@ -1067,27 +1074,27 @@ namespace Wavefront.Tests
             [SetUp]
             public void Setup()
             {
-                var eastBuilding = new LineString(new[]
+                var eastBuilding = new Polygon(new LinearRing(new[]
                 {
                     new Coordinate(1, 2.5),
                     new Coordinate(2.5, 1),
                     new Coordinate(3.5, 2),
                     new Coordinate(2, 3.5),
                     new Coordinate(1, 2.5)
-                });
-                var westBuilding = new LineString(new[]
+                }));
+                var westBuilding = new Polygon(new LinearRing(new[]
                 {
                     new Coordinate(3, 3.5),
                     new Coordinate(5, 1.5),
                     new Coordinate(6.5, 3),
                     new Coordinate(4.5, 5),
                     new Coordinate(3, 3.5)
-                });
+                }));
                 var obstacleGeometries = new List<NetTopologySuite.Geometries.Geometry>();
                 obstacleGeometries.Add(eastBuilding);
                 obstacleGeometries.Add(westBuilding);
 
-                var obstacles = obstacleGeometries.Map(geometry => new Obstacle(geometry));
+                var obstacles = obstacleGeometries.Map(geometry => new Feature(geometry, new AttributesTable()));
 
                 wavefrontAlgorithm = new WavefrontAlgorithm(obstacles);
             }
@@ -1121,7 +1128,6 @@ namespace Wavefront.Tests
                 {
                     new Coordinate(0, 0),
                     new Coordinate(3, 0),
-                    new Coordinate(3, 1),
                     new Coordinate(0, 1),
                     new Coordinate(0, 0)
                 });
@@ -1134,7 +1140,7 @@ namespace Wavefront.Tests
                 obstacleGeometries.Add(obstacle);
                 obstacleGeometries.Add(line);
 
-                var obstacles = obstacleGeometries.Map(geometry => new Obstacle(geometry));
+                var obstacles = obstacleGeometries.Map(geometry => new Feature(geometry, new AttributesTable()));
 
                 wavefrontAlgorithm = new WavefrontAlgorithm(obstacles);
             }
@@ -1143,7 +1149,7 @@ namespace Wavefront.Tests
             public void TargetWithinObstacle()
             {
                 var source = Position.CreateGeoPosition(1, 2);
-                var target = Position.CreateGeoPosition(2, 0.5);
+                var target = Position.CreateGeoPosition(2, 0.25);
                 var routingResult = wavefrontAlgorithm.Route(source, target);
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
@@ -1185,7 +1191,7 @@ namespace Wavefront.Tests
                 obstacleGeometries.Add(line2);
                 obstacleGeometries.Add(line3);
 
-                var obstacles = obstacleGeometries.Map(geometry => new Obstacle(geometry));
+                var obstacles = obstacleGeometries.Map(geometry => new Feature(geometry, new AttributesTable()));
 
                 wavefrontAlgorithm = new WavefrontAlgorithm(obstacles);
             }
@@ -1247,7 +1253,7 @@ namespace Wavefront.Tests
 
         public class OverlappingObstacles_PolygonSharingEdge
         {
-            private List<Obstacle> obstacles;
+            private List<Feature> obstacles;
             private WavefrontAlgorithm wavefrontAlgorithm;
             private Position start;
             private Position target;
@@ -1272,9 +1278,9 @@ namespace Wavefront.Tests
                     new Coordinate(4, 2),
                 });
 
-                obstacles = new List<Obstacle>();
-                obstacles.Add(new Obstacle(obstacle1));
-                obstacles.Add(new Obstacle(obstacle2));
+                obstacles = new List<Feature>();
+                obstacles.Add(new Feature(obstacle1, new AttributesTable()));
+                obstacles.Add(new Feature(obstacle2, new AttributesTable()));
 
                 wavefrontAlgorithm = new WavefrontAlgorithm(obstacles);
 
@@ -1324,7 +1330,7 @@ namespace Wavefront.Tests
                 obstacleGeometries.Add(line1);
                 obstacleGeometries.Add(line2);
 
-                var obstacles = obstacleGeometries.Map(geometry => new Obstacle(geometry));
+                var obstacles = obstacleGeometries.Map(geometry => new Feature(geometry, new AttributesTable()));
 
                 wavefrontAlgorithm = new WavefrontAlgorithm(obstacles);
             }

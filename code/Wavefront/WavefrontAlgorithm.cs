@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Mars.Common.Collections;
 using Mars.Common.Core.Collections;
+using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using ServiceStack;
 using Wavefront.Geometry;
@@ -37,7 +38,7 @@ namespace Wavefront
         private readonly int _knnSearchNeighborBins;
         private readonly int _knnSearchNeighborsPerBin;
 
-        public WavefrontAlgorithm(List<Obstacle> obstacles, bool debugModeActive = false,
+        public WavefrontAlgorithm(IEnumerable<IFeature> obstacles, bool debugModeActive = false,
             int knnSearchNeighborBins = 36, int knnSearchNeighborsPerBin = 10)
         {
             _debugModeActive = debugModeActive;

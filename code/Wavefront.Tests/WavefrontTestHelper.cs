@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using Mars.Common;
+using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NUnit.Framework;
 using ServiceStack;
 using Wavefront.Geometry;
+using Feature = NetTopologySuite.Features.Feature;
 using Position = Mars.Interfaces.Environments.Position;
 
 namespace Wavefront.Tests;
@@ -19,7 +21,7 @@ public class WavefrontTestHelper
         protected static List<Vertex> vertices;
         protected static List<Vertex> multiVertexLineVertices;
         protected static List<Vertex> simpleLineVertices;
-        protected static List<Obstacle> obstacles;
+        protected static List<Feature> obstacleFeatures;
 
         [SetUp]
         public void Setup()
@@ -59,9 +61,9 @@ public class WavefrontTestHelper
             obstacleGeometries.Add(multiVertexLineObstacle);
             obstacleGeometries.Add(simpleLineObstacle);
 
-            obstacles = obstacleGeometries.Map(geometry => new Obstacle(geometry));
+            obstacleFeatures = obstacleGeometries.Map(geometry => new Feature(geometry, new AttributesTable()));
 
-            wavefrontAlgorithm = new WavefrontAlgorithm(obstacles);
+            wavefrontAlgorithm = new WavefrontAlgorithm(obstacleFeatures);
             rootVertex = new Vertex(Position.CreateGeoPosition(5, 2));
         }
     }

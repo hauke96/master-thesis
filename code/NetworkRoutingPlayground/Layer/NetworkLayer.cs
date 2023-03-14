@@ -33,10 +33,7 @@ public class NetworkLayer : VectorLayer
                     return lowerName.Contains("building") || lowerName.Contains("barrier") || lowerName.Contains("natural");
                 });
             })
-            .Map(f => Obstacle.Create(f.VectorStructured.Geometry))
-            .SelectMany(x => x)
-            .ToList();
-        var watch = Stopwatch.StartNew();
+            .Map(f => f.VectorStructured);
 
         var watch = Stopwatch.StartNew();
         var obstacles = WavefrontPreprocessor.SplitObstacles(importedObstacles, true);

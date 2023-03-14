@@ -1,12 +1,10 @@
 using System.Diagnostics;
-using GeoJsonRouting.Model;
 using Mars.Common;
 using Mars.Components.Layers;
 using Mars.Interfaces.Data;
 using Mars.Interfaces.Layers;
 using ServiceStack;
 using Wavefront;
-using Wavefront.Geometry;
 using Position = Mars.Interfaces.Environments.Position;
 
 namespace GeoJsonRouting.Layer
@@ -40,13 +38,8 @@ namespace GeoJsonRouting.Layer
             _startPositions = FindLocationsByKey("start");
             _targetPositions = FindLocationsByKey("target");
 
-            var obstacleGeometries = Features
-                .Map(f => Obstacle.Create(f.VectorStructured.Geometry))
-                .SelectMany(x => x)
-                .ToList();
             var watch = Stopwatch.StartNew();
-
-            WavefrontAlgorithm = new WavefrontAlgorithm(obstacleGeometries, true);
+            WavefrontAlgorithm = new WavefrontAlgorithm(Features.Map(f=>f.VectorStructured), true);
             Console.WriteLine($"Algorithm creation: {watch.ElapsedMilliseconds}ms");
 
             return true;

@@ -44,18 +44,21 @@ public class WavefrontPreprocessor
     /// Splits each obstacle into smaller obstacles with the given amount of edges. This enhances the performance of
     /// further preprocessing, because collision checks are now performed on smaller objects.
     /// </summary>
-    public static QuadTree<Obstacle> SplitObstacles(List<Obstacle> obstacles, bool debugModeActive = false)
+    public static QuadTree<Obstacle> SplitObstacles(IEnumerable<IFeature> features, bool debugModeActive = false)
     {
-        var vertexCount = obstacles.Sum(o => o.Coordinates.Count);
+        var featureList = features.ToList();
+        var vertexCount = featureList.Sum(o => o.Geometry.Coordinates.Length);
         PerformanceMeasurement.TOTAL_VERTICES = vertexCount;
-        Log.D($"Amount of obstacles before splitting: {obstacles.Count}");
+        Log.D($"Amount of obstacles before splitting: {featureList.Count}");
         Log.D($"Amount of vertices before splitting: {vertexCount}");
 
-        obstacles = obstacles.Map(o =>
+        var geometryList = featureList.Map(g => Obstacle.UnwrapMultiGeometries(g.Geometry)).SelectMany(x => x).ToList();
+
+        var obstacles = geometryList.Map(geometry =>
             {
-                if (!o.IsClosed)
+                if (geometry is not Polygon && geometry is not MultiPolygon)
                 {
-                    return new List<Obstacle> { o };
+                    return Obstacle.Create(geometry);
                 }
 
                 var newObstacles = new List<Obstacle>();
@@ -63,7 +66,7 @@ public class WavefrontPreprocessor
                 // Perform a triangulation of each polygon. This makes it much easier to perform visibility checks.
                 try
                 {
-                    var geometryCollection = (GeometryCollection)PolygonTriangulator.Triangulate(o.Geometry);
+                    var geometryCollection = (GeometryCollection)PolygonTriangulator.Triangulate(geometry);
                     geometryCollection.Each(triangle =>
                     {
                         Obstacle.Create(triangle).Each(newObstacle => newObstacles.Add(newObstacle));
