@@ -3,6 +3,7 @@ using Mars.Components.Starter;
 using Mars.Interfaces.Model;
 using NetworkRoutingPlayground.Layer;
 using NetworkRoutingPlayground.Model;
+using Wavefront;
 
 namespace NetworkRoutingPlayground
 {
@@ -11,6 +12,7 @@ namespace NetworkRoutingPlayground
         static void Main(string[] args)
         {
             CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+            Log.LogLevel = Log.DEBUG;
 
             var description = new ModelDescription();
             description.AddLayer<NetworkLayer>();

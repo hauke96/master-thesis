@@ -11,16 +11,39 @@ namespace Wavefront.Geometry
         public readonly Envelope Envelope;
         public readonly bool IsClosed;
         public readonly int Hash;
+        public readonly NetTopologySuite.Geometries.Geometry Geometry;
 
-        private readonly NetTopologySuite.Geometries.Geometry Geometry;
+        public static List<Obstacle> Create(NetTopologySuite.Geometries.Geometry geometry)
+        {
+            var obstacles = new List<Obstacle>();
+            if (geometry is MultiPolygon multiPolygon)
+            {
+                multiPolygon.Each(polygon =>
+                {
+                    var simplePolygon = new Polygon((LinearRing)((Polygon)polygon.GetGeometryN(0)).ExteriorRing);
+                    obstacles.Add(new Obstacle(simplePolygon));
+                });
+            }
+            else
+            {
+                obstacles.Add(new Obstacle(geometry));
+            }
+
+            return obstacles;
+        }
 
         public Obstacle(NetTopologySuite.Geometries.Geometry geometry) : this(geometry,
             geometry.Coordinates.Map(c => new Vertex(c.X, c.Y)))
         {
         }
 
-        public Obstacle(NetTopologySuite.Geometries.Geometry geometry, List<Vertex> vertices)
+        private Obstacle(NetTopologySuite.Geometries.Geometry geometry, List<Vertex> vertices)
         {
+            if (geometry is not Polygon && geometry is not LineString && geometry is not Point)
+            {
+                throw new Exception("The obstacle geometry must be of type Polygon, LineString or Point!");
+            }
+
             Coordinates = geometry.Coordinates.ToList();
             Vertices = vertices;
             Hash = (int)geometry.Coordinates.Sum(coordinate => coordinate.X * 7919 + coordinate.Y * 4813);
@@ -93,10 +116,10 @@ namespace Wavefront.Geometry
                 return commonObstacles.Count > 1 &&
                        commonObstacles.All(o => o.HasLineSegment(coordinateStart, coordinateEnd));
             }
-            
+
             // The two parameter coordinates are actually not building a line segment of this obstacle. This means the
             // line could be inside or outside the obstacle.
-            
+
             if (IsClosed)
             {
                 return Geometry.Intersects(new LineString(new[] { coordinateStart, coordinateEnd }));

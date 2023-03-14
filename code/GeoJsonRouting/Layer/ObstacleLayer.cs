@@ -15,7 +15,7 @@ namespace GeoJsonRouting.Layer
     {
         private List<Position> _startPositions;
         private List<Position> _targetPositions;
-        
+
         private readonly Random _random = new(DateTime.Now.ToString().GetHashCode());
 
         public WavefrontAlgorithm WavefrontAlgorithm { get; private set; }
@@ -25,7 +25,7 @@ namespace GeoJsonRouting.Layer
             _startPositions = new List<Position>();
             _targetPositions = new List<Position>();
         }
-        
+
         public override bool InitLayer(
             LayerInitData layerInitData,
             RegisterAgent registerAgentHandle = null,
@@ -39,8 +39,11 @@ namespace GeoJsonRouting.Layer
 
             _startPositions = FindLocationsByKey("start");
             _targetPositions = FindLocationsByKey("target");
-            
-            var obstacleGeometries = Features.Map(f => new Obstacle(f.VectorStructured.Geometry));
+
+            var obstacleGeometries = Features
+                .Map(f => Obstacle.Create(f.VectorStructured.Geometry))
+                .SelectMany(x => x)
+                .ToList();
             var watch = Stopwatch.StartNew();
 
             WavefrontAlgorithm = new WavefrontAlgorithm(obstacleGeometries, true);

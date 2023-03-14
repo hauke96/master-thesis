@@ -1,3 +1,4 @@
+using System.Linq;
 using Mars.Components.Layers;
 using Mars.Interfaces.Data;
 using Mars.Interfaces.Layers;
@@ -20,7 +21,10 @@ namespace HikerModel.Model
                 return false;
             }
             
-            var obstacleGeometries = Features.Map(f => new Obstacle(f.VectorStructured.Geometry));
+            var obstacleGeometries = Features
+                .Map(f => Obstacle.Create(f.VectorStructured.Geometry))
+                .SelectMany(x => x)
+                .ToList();
 
             // When performance measurement active -> Turn off performance measurements within the constructor call.
             // Below this if-block, the performance measurement is reactivated and the calls within the constructor will

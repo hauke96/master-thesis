@@ -25,14 +25,17 @@ public class NetworkLayer : VectorLayer
     {
         base.InitLayer(layerInitData, registerAgentHandle, unregisterAgent);
 
-        var obstacleGeometries = Features.Where(f =>
-        {
-            return f.VectorStructured.Attributes.GetNames().Any(name =>
+        var importedObstacles = Features.Where(f =>
             {
-                var lowerName = name.ToLower();
-                return lowerName.Contains("building") || lowerName.Contains("natural");
-            });
-        }).Map(f => new Obstacle(f.VectorStructured.Geometry));
+                return f.VectorStructured.Attributes.GetNames().Any(name =>
+                {
+                    var lowerName = name.ToLower();
+                    return lowerName.Contains("building") || lowerName.Contains("natural");
+                });
+            })
+            .Map(f => Obstacle.Create(f.VectorStructured.Geometry))
+            .SelectMany(x => x)
+            .ToList();
         var watch = Stopwatch.StartNew();
 
         var obstacles = WavefrontPreprocessor.SplitObstacles(obstacleGeometries);
@@ -55,7 +58,7 @@ public class NetworkLayer : VectorLayer
                 // var nodePosition = PositionHelper.CalculatePositionByBearing(vertex.Position.X, vertex.Position.Y,
                 //     360 / vertexNeighborBin.Count * i, 0.000005);
                 var nodePosition = vertex.Position;
-                
+
                 var nodeKey = graph.AddNode(new Dictionary<string, object>
                 {
                     { "x", nodePosition.X },
