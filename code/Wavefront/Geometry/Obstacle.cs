@@ -127,6 +127,40 @@ namespace Wavefront.Geometry
 
             // This obstacle is open, so we check if any line segment intersects with the segment defined by the
             // coordinate parameters.
+            var intersectsWithSegment = IntersectsWithLineString(coordinateStart, coordinateEnd);
+
+            return intersectsWithSegment;
+        }
+
+        /// <summary>
+        /// Check for intersection with the given line, specified by the two given coordinates. It's assumes that one
+        /// or none of the coordinates is part of this obstacle. When this obstacle is a polygonal obstacle, a line
+        /// being fully within the obstacle counts as an intersection.
+        /// </summary>
+        private bool IntersectsWithNonObstacleLine(Coordinate coordinateStart, Coordinate coordinateEnd)
+        {
+            // The IntersectsWithLineString method is used due to its speed. However, a line string could also be fully
+            // within a polygon, which also counts as an intersection. Therefore, the Geometry.Contains methods are
+            // additionally used.
+            return
+            (
+                IntersectsWithLineString(coordinateStart, coordinateEnd) ||
+                (
+                    IsClosed &&
+                    (
+                        ((Polygon)Geometry).Contains(new Point(coordinateStart)) ||
+                        ((Polygon)Geometry).Contains(new Point(coordinateEnd))
+                    )
+                )
+            );
+        }
+
+        /// <summary>
+        /// Checks if the given line string defined by the coordinate parameters, intersects with any line segment of
+        /// the obstacle.
+        /// </summary>
+        private bool IntersectsWithLineString(Coordinate coordinateStart, Coordinate coordinateEnd)
+        {
             var intersectsWithSegment = false;
             for (var i = 1; !intersectsWithSegment && i < Coordinates.Count; i++)
             {
@@ -137,22 +171,6 @@ namespace Wavefront.Geometry
             }
 
             return intersectsWithSegment;
-        }
-
-        /// <summary>
-        /// Check for intersection with the given line, specified by the two given coordinates. It's assumes that one
-        /// or none of the coordinates is part of this obstacle.
-        /// </summary>
-        private bool IntersectsWithNonObstacleLine(Coordinate coordinateStart, Coordinate coordinateEnd)
-        {
-            var intersects = Geometry.Intersects(new LineString(new[] { coordinateStart, coordinateEnd }));
-            var touches = Geometry.Touches(new LineString(new[] { coordinateStart, coordinateEnd }));
-
-            // The "Geometry.Intersects" method returns "true" as soon as there are points in common or the geometry is
-            // entirely within the polygon of this obstacle. However, this method assumes that at most one parameter
-            // coordinate is contained in this obstacle, so a line only touching but not intersecting the geometry is
-            // fine and not considered an intersection.
-            return intersects && !touches;
         }
 
         public bool HasLineSegment(Coordinate coordinateStart, Coordinate coordinateEnd)
