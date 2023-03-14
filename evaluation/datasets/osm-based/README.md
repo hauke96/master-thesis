@@ -22,15 +22,16 @@ Example: You reproject a layer "my layer" and get a layer "reprojected", then di
 4. Postprocessing with QGIS:
 	1. Load the obstacle data into QGIS
 	2. Load passable area data into QGIS (to cut obstacles where e.g. roards are -> where pedestrian can walk)
-	3. Use the "Reproject layer" tool to change the projection of the passable areas line layer to UTM32N (to use meters as unit in the next step)
+	3. Use the "Reproject layer" tool to change the projection of the passable areas line layer to UTM32N (e.g. EPSG:25832 for UTM 32N; to use meters as unit in the next step)
 	4. Use the "Buffer" tool to turn lines and points into polygons. Use e.g. 2m as buffer size (that's why the reprojection is useful). Use the "Square" cap and "Miter" join style for less vertices.
 	5. Use the "Multipart to Singlepart" tool to convert the passable area layers (the buffered point and line layer as well as the polygon layer). This turns all multipolygons into normal polygons for the next step.
-	6. Use the "Merge" tool to merge the three single part passable areas layers into one layer
-	7. Use the "Difference" tool to subtract the merged passable area layer from the obstacle line and polygon layers (you might have to use the "Check validity" tool first to fix somehow broken geometries on the passable area layer)
-	8. Use the "Dissolve" too to merge touching polygons into one.
-	9. Use the "Delete holes" tool to remove unreachable holes in polygons.
-	10. Export the two new obstacle layers to two GeoJSON files. QGIS cannot merge layers of different geometries, so we have to merge the two layers with an external tool.
-	11. Use the @mapbox/geojson-merge tool to merge the two GeoJSON files into one (usage: `geojson-merge file.geojson otherfile.geojson > combined.geojson`)
+	6. Use the "Merge vector layers" tool to merge the three single part passable areas layers into one layer.
+	7. Optional (but recommended): You might have to use the "Check validity" tool first to fix somehow broken geometries on the merged passable and/or obstacle layers.
+	8. Use the "Difference" tool to subtract the merged passable area layer from the obstacle line and polygon layers
+	9. Use the "Dissolve" too to merge touching polygons into one.
+	10. Use the "Delete holes" tool to remove unreachable holes in polygons.
+	11. Export the two new obstacle layers to two GeoJSON files. QGIS cannot merge layers of different geometries, so we have to merge the two layers with an external tool.
+	12. Use the @mapbox/geojson-merge tool to merge the two GeoJSON files into one (usage: `geojson-merge file.geojson otherfile.geojson > combined.geojson`)
 
 ## Problems
 
