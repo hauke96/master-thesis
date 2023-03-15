@@ -58,7 +58,16 @@ public class WavefrontPreprocessor
             {
                 if (geometry is not Polygon && geometry is not MultiPolygon)
                 {
-                    return Obstacle.Create(geometry);
+                    if (geometry.Coordinates[0].Equals(geometry.Coordinates[^1]))
+                    {
+                        // Non-polygonal geometries (like a closed LineString or LinearRing) can easily be converted
+                        // into a valid polygon for triangulation below.
+                        geometry = new Polygon(new LinearRing(geometry.Coordinates));
+                    }
+                    else
+                    {
+                        return Obstacle.Create(geometry);
+                    }
                 }
 
                 var newObstacles = new List<Obstacle>();
