@@ -53,10 +53,10 @@ namespace Wavefront.Geometry
 
             Coordinates = geometry.Coordinates.ToList();
             IsClosed = IsGeometryClosed(geometry);
-            if (IsClosed && Coordinates.Count > 4)
+            if (IsClosed && Coordinates.Count > 4 && (geometry is Polygon || geometry is MultiPolygon))
             {
                 throw new Exception(
-                    $"Obstacle is closed but not a triangle (has {geometry.Coordinates.Length - 1} vertices)!");
+                    $"Obstacle of type {geometry.GeometryType} is closed but not a triangle (has {geometry.Coordinates.Length - 1} vertices)!");
             }
 
             Vertices = vertices;
