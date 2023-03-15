@@ -1,10 +1,8 @@
-using System.Linq;
 using Mars.Components.Layers;
 using Mars.Interfaces.Data;
 using Mars.Interfaces.Layers;
 using ServiceStack;
 using Wavefront;
-using Wavefront.Geometry;
 
 namespace HikerModel.Model
 {
@@ -20,11 +18,6 @@ namespace HikerModel.Model
             {
                 return false;
             }
-            
-            var obstacleGeometries = Features
-                .Map(f => Obstacle.Create(f.VectorStructured.Geometry))
-                .SelectMany(x => x)
-                .ToList();
 
             // When performance measurement active -> Turn off performance measurements within the constructor call.
             // Below this if-block, the performance measurement is reactivated and the calls within the constructor will
@@ -38,16 +31,16 @@ namespace HikerModel.Model
                     {
                         // Deactivate measurement within constructor:
                         PerformanceMeasurement.IS_ACTIVE = false;
-                        new WavefrontAlgorithm(obstacleGeometries);
+                        new WavefrontAlgorithm(Features.Map(f => f.VectorStructured));
                     },
                     "WavefrontAlgorithmCreation");
                 result.Print();
                 result.WriteToFile();
-                
+
                 PerformanceMeasurement.IS_ACTIVE = true;
             }
 
-            WavefrontAlgorithm = new WavefrontAlgorithm(obstacleGeometries, true);
+            WavefrontAlgorithm = new WavefrontAlgorithm(Features.Map(f => f.VectorStructured), true);
 
             return true;
         }
