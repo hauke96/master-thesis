@@ -85,6 +85,7 @@ namespace HikerModel.Model
                 if (NextRouteWaypoint == null)
                 {
                     Log.I("Hiker reached end of route, choose next target and calculate new route.");
+                    var previousWaypoint = NextTargetWaypoint;
                     _targetWaypoints.MoveNext();
 
                     if (NextTargetWaypoint == null)
@@ -98,7 +99,7 @@ namespace HikerModel.Model
                         return;
                     }
 
-                    CalculateRoute(Position, NextTargetWaypoint.ToPosition());
+                    CalculateRoute(previousWaypoint.ToPosition(), NextTargetWaypoint.ToPosition());
                 }
             }
 
