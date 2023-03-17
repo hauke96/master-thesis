@@ -24,13 +24,30 @@ public class NetworkLayer : VectorLayer
         UnregisterAgent unregisterAgent = null)
     {
         base.InitLayer(layerInitData, registerAgentHandle, unregisterAgent);
+        var graph = new SpatialGraph();
 
+        var vertexNeighbors = GetObstacleNeighbors();
+
+        var nodeNeighbors = AddVisibilityVerticesAndEdges(vertexNeighbors, graph);
+
+        // TODO Split edges in half when they intersect with each other and add a node at the intersection point.
+
+        Environment = new SpatialGraphEnvironment(graph);
+
+        WriteGraphToFile(graph, nodeNeighbors);
+
+        return true;
+    }
+
+    private Dictionary<Vertex, List<List<Vertex>>> GetObstacleNeighbors()
+    {
         var importedObstacles = Features.Where(f =>
             {
                 return f.VectorStructured.Attributes.GetNames().Any(name =>
                 {
                     var lowerName = name.ToLower();
-                    return lowerName.Contains("building") || lowerName.Contains("barrier") || lowerName.Contains("natural");
+                    return lowerName.Contains("building") || lowerName.Contains("barrier") ||
+                           lowerName.Contains("natural");
                 });
             })
             .Map(f => f.VectorStructured);
@@ -42,9 +59,14 @@ public class NetworkLayer : VectorLayer
         watch.Restart();
         var vertexNeighbors = WavefrontPreprocessor.CalculateVisibleKnn(obstacles, 36, 10, true);
         Console.WriteLine($"WavefrontPreprocessor: CalculateVisibleKnn done after {watch.ElapsedMilliseconds}ms");
+        
+        return vertexNeighbors;
+    }
 
-        watch.Restart();
-        var graph = new SpatialGraph();
+    private static Dictionary<int, List<int>> AddVisibilityVerticesAndEdges(
+        Dictionary<Vertex, List<List<Vertex>>> vertexNeighbors, SpatialGraph graph)
+    {
+        var watch = Stopwatch.StartNew();
         var vertexToNode = new Dictionary<Vertex, int[]>();
         var nodeToBinVertices = new Dictionary<int, List<Vertex>>();
 
@@ -100,14 +122,20 @@ public class NetworkLayer : VectorLayer
                 });
             });
         });
+
         Console.WriteLine($"NetworkLayer: Graph creation done after {watch.ElapsedMilliseconds}ms");
         Console.WriteLine($"  Number of nodes: {graph.NodesMap.Count}");
         Console.WriteLine($"  Number of edges: {graph.EdgesMap.Count}");
 
-        Environment = new SpatialGraphEnvironment(graph);
+        return nodeNeighbors;
+    }
 
-        watch.Restart();
+    private void WriteGraphToFile(SpatialGraph graph, Dictionary<int, List<int>> nodeNeighbors)
+    {
         Console.WriteLine($"Store layer as GeoJSON");
+        
+        var watch = Stopwatch.StartNew();
+        
         try
         {
             var graphFeatures = new FeatureCollection();
@@ -138,8 +166,6 @@ public class NetworkLayer : VectorLayer
         }
 
         Console.WriteLine($"Store layer as GeoJSON done after {watch.ElapsedMilliseconds}ms");
-
-        return true;
     }
 
     private void WriteFeatures(FeatureCollection vectorFeatures)
