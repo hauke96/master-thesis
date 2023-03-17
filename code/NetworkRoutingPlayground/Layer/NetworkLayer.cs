@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Mars.Common;
 using Mars.Common.Collections.Graph;
+using Mars.Common.Core.Collections;
 using Mars.Components.Environments;
 using Mars.Components.Layers;
 using Mars.Interfaces.Data;
@@ -8,6 +9,7 @@ using Mars.Interfaces.Environments;
 using Mars.Interfaces.Layers;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
+using NetTopologySuite.Index.Strtree;
 using NetTopologySuite.IO;
 using ServiceStack;
 using Wavefront;
@@ -59,11 +61,11 @@ public class NetworkLayer : VectorLayer
         watch.Restart();
         var vertexNeighbors = WavefrontPreprocessor.CalculateVisibleKnn(obstacles, 36, 10, true);
         Console.WriteLine($"WavefrontPreprocessor: CalculateVisibleKnn done after {watch.ElapsedMilliseconds}ms");
-        
+
         return vertexNeighbors;
     }
 
-    private static Dictionary<int, List<int>> AddVisibilityVerticesAndEdges(
+    private Dictionary<int, List<int>> AddVisibilityVerticesAndEdges(
         Dictionary<Vertex, List<List<Vertex>>> vertexNeighbors, SpatialGraph graph)
     {
         var watch = Stopwatch.StartNew();
@@ -130,12 +132,61 @@ public class NetworkLayer : VectorLayer
         return nodeNeighbors;
     }
 
+    private void AddRoadsToGraph(SpatialGraph graph)
+    {
+        var index = new STRtree<Feature>();
+
+        Features.Where(f =>
+            {
+                return f.VectorStructured.Attributes.GetNames().Any(name =>
+                {
+                    var lowerName = name.ToLower();
+                    return f.VectorStructured.Geometry is LineString ||
+                           lowerName.Contains("highway");
+                });
+            })
+            .Map(f => new Feature(f.VectorStructured.Geometry, f.VectorStructured.Attributes))
+            .Each(f => index.Insert(f.Geometry.EnvelopeInternal, f));
+
+        graph.Edges.Values.Each((i, e) => 
+        {
+            Feature feature;
+
+            // if (e.Geometry[0].Equals(e.Geometry[^1]))
+            // {
+            //     // Closed geometry
+            //     feature = new Feature(
+            //         new Polygon(
+            //             new LinearRing(
+            //                 e.Geometry.Map(p => p.ToCoordinate()).ToArray()
+            //             )
+            //         ),
+            //         new AttributesTable()
+            //     );
+            // }
+            // else
+            // {
+            //     // Open LineString
+                feature = new Feature(
+                    new LineString(
+                        e.Geometry.Map(p => p.ToCoordinate()).ToArray()
+                    ),
+                    new AttributesTable()
+                );
+            // }
+            // index.Insert(feature.Geometry.EnvelopeInternal, feature);
+            
+            index.Query(feature.Geometry.EnvelopeInternal)
+                .Whe
+        });
+    }
+
     private void WriteGraphToFile(SpatialGraph graph, Dictionary<int, List<int>> nodeNeighbors)
     {
         Console.WriteLine($"Store layer as GeoJSON");
-        
+
         var watch = Stopwatch.StartNew();
-        
+
         try
         {
             var graphFeatures = new FeatureCollection();
