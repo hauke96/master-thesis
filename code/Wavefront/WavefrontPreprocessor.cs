@@ -58,6 +58,11 @@ public class WavefrontPreprocessor
             {
                 if (geometry is not Polygon && geometry is not MultiPolygon)
                 {
+                    if (geometry.Coordinates.Length == 1)
+                    {
+                        return Obstacle.Create(geometry);
+                    }
+
                     if (geometry.Coordinates[0].Equals(geometry.Coordinates[^1]))
                     {
                         // Non-polygonal geometries (like a closed LineString or LinearRing) can easily be converted
@@ -157,7 +162,6 @@ public class WavefrontPreprocessor
         if (coordinates.Count == 1)
         {
             positionToNeighbors[coordinates[0].ToPosition()] = new HashSet<Position>();
-            positionToNeighbors[coordinates[0].ToPosition()].AddRange(new[] { coordinates[0].ToPosition() });
             return;
         }
 
