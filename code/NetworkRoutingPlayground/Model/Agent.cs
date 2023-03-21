@@ -5,6 +5,7 @@ using Mars.Interfaces.Annotations;
 using Mars.Interfaces.Environments;
 using Mars.Interfaces.Layers;
 using NetworkRoutingPlayground.Layer;
+using ServiceStack;
 using ServiceStack.Text;
 using Wavefront.IO;
 
@@ -35,19 +36,25 @@ namespace NetworkRoutingPlayground.Model
         {
             // var startNode = NetworkLayer.Environment.NearestNode(new Position(0.5, 0));
             // var destinationNode = NetworkLayer.Environment.NearestNode(new Position(1.5, 2));
-            var allNodes = NetworkLayer.Environment.Nodes.ToList();
+
+            var allNodes = FindNodesByKey("poi");
+            // var allNodes = NetworkLayer.Environment.Nodes.ToList();
             var startNode = allNodes[RANDOM.Next(allNodes.Count)];
             var destinationNode = startNode;
             while (destinationNode == startNode)
             {
                 destinationNode = allNodes[RANDOM.Next(allNodes.Count)];
             }
-            // var startNode = allNodes.First(node => node.Index == 6);
-            // var destinationNode = allNodes.First(node => node.Index == 0);
-            
-            _route = NetworkLayer.Environment.FindShortestRoute(startNode, destinationNode);
+
+            // var allNodes = NetworkLayer.Environment.Nodes.ToList();
+            // var startNode = allNodes.First(node => node.Index == 9);
+            // var destinationNode = allNodes.First(node => node.Index == 37);
+
+            _route = NetworkLayer.Environment
+                .FindRoute(startNode, destinationNode,
+                    (from, via, to) => via.Length * (via.Attributes.IsEmpty() ? 1 : 0.1));
             NetworkLayer.Environment.Insert(this, startNode);
-            
+
             Exporter.WriteRouteToFile(_route.SelectMany(edgeStop => edgeStop.Edge.Geometry).ToList());
         }
 
@@ -77,7 +84,7 @@ namespace NetworkRoutingPlayground.Model
                 Kill();
                 return;
             }
-            
+
             Position = this.CalculateNewPositionFor(_route, out _);
         }
 
@@ -86,6 +93,12 @@ namespace NetworkRoutingPlayground.Model
             Console.WriteLine("Agent reached target");
             NetworkLayer.Environment.Remove(this);
             UnregisterHandle.Invoke(NetworkLayer, this);
+        }
+
+        private List<ISpatialNode> FindNodesByKey(string attributeName)
+        {
+            return NetworkLayer.Environment.Nodes.Where(node => node.Attributes.ContainsKey(attributeName))
+                .ToList();
         }
     }
 }
