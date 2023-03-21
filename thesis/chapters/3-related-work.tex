@@ -92,9 +92,19 @@ This section gives an overview about closely related work from these areas.
 		
 	\subsection{Crowd sourced graph generation}
 	
-		% https://www.researchgate.net/profile/Jincai-Huang-2/publication/345771914_A_Pedestrian_Network_Construction_System_Based_on_Crowdsourced_Walking_Trajectories/links/609411bea6fdccaebd11ca67/A-Pedestrian-Network-Construction-System-Based-on-Crowdsourced-Walking-Trajectories.pdf
-	
-		% https://sci-hub.ru/https://doi.org/10.1016/j.trc.2012.09.007
+		All graph generation method presented so far are algorithmic approaches.
+		However, mobile devices can store the users location and trajectory, which can be used as a data source to construct a navigation graph.
+		
+		Kasemsuppakorn et al. use GPS traces to create a pedestrian navigation graph \cite{kasemsuppakorn-gps-traces-pedestrain-network}.
+		Due to the inherent inaccuracies, outliers and general noise of GPS data, the traces are preprocessed to ensure a certain level of quality (for example by only allowing points created using at least four satellites).
+		The graph generation process takes one trace at a time and first determines the most significant points on that trace, which build a simplified shape of the trace.
+		New segments are created and possibly merged with existing closely located segments having an almost parallel trajectory.
+		
+		Zhou et al. also used the idea of using crowd sourced location data to create a navigation \cite{zhou-crowd-sourced-navigation}.
+		They also filtered out GPS based data anomalies and created a density map from this cleaned location data.
+		The ridge lines of this density map were turned in to edges, since many people walked along these ridge lines.
+		An evaluation of their approach showed that even small amounts of data are enough to create a sufficient routing network.
+		Unsurprisingly, the accuracy and density of the network increases with the number of input trajectories.
 	
 \section{Routing}
 
