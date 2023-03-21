@@ -12,15 +12,37 @@
 \section{Combination of routing algorithms}
 
 	This section describes the core aspect of this thesis:
-	The combination of network and geometric based routing algorithms.
+	The combination of graph and geometric based routing algorithms.
 	
 	In the following subsections, four approaches are discussed of which the last one seemed to be the most promising.
-	The first three are using any normal network based routing algorithm, like A* or Dijkstra, in combination with the geometric continuous Dijkstra paradigm.
+	The first three are using any normal graph based routing algorithm, like A* or Dijkstra, in combination with the geometric continuous Dijkstra paradigm.
 	Only the last and further pursued approach uses visibility graphs for routing.
 
 	% Ad-hoc creation of edges by stopping A* and continuing with wavefront algorithm
-	\subsection{Ad-hoc generation of edges}
+	\subsection{Ad hoc generation of edges}
 	
+		The idea of an ad hoc generation of edges is the following:
+		Whenever the graph routing algorithm reaches a crossing of ways, it's paused and the continuous Dijkstra algorithm is started.
+		Since no target vertex is defined, the geometric routing will be stopped after the furthest wavelet reached a certain distance.
+		The continuous Dijkstra approach actually creates a shortest path map, so the shortest paths of all reached vertices are calculated yielding a series of edges.
+		These edges are then added to the graph for the paused graph based routing algorithm.
+		
+		In a real world example for this approach would be a pedestrian walking down a road but then crossing a park for a shortcut before continuing to follow the roads again.
+		Doing the shortcut was not planned but an ad hoc decision just as the algorithm would do.
+		
+		The advantage of this approach is the realistic behavior of pedestrians not planning the route in beforehand.
+		In fact Teknomo and Millonig introduced a routing mechanism for agent based simulations with the assumption of little to no apriori knowledge of agents about their environment \cite{teknomo-millonig-routing}.
+		
+		One disadvantage is a relatively high complexity since no standard algorithm from frequently used software frameworks support a pause functionality, so any routing algorithm has to be manually adjusted or implemented from scratch.
+		
+		Also this approach will likely cause performance issues.
+		When using Dijkstra as graph based routing algorithm, $\bigo{|V|}$ many vertices are visited, which leads to $\bigo{|V|}$ routing requests using the geometric continuous Dijkstra algorithm.
+		Because a simple caching of the shortest path map is not possible, at least not without a smart and complex caching strategy, this decreases the runtime of the whole routing process significantly.
+		Even when using the continuous Dijkstra approach from Hershberger and Suri \cite{hershberger-suri} with only $\bigo{n \log n}$ time requirement, the number $n$ of vertices in obstacles is expected to be much higher than the size of $V$.
+		
+		Another aspect against this approach is the hypothesis that an ad hoc generation of edges will probably not change the resulting shortest path compared to a precomputed graph consisting of all possible edges.
+		\todo[inline]{Explain this a bit more? Formulate a simple proof idea?}
+		
 	% Concurrent routing: Use A* and wavefront in parallel and merge the results
 	\subsection{Concurrent routing}
 	

@@ -125,9 +125,11 @@ This section gives an overview about closely related work from these areas.
 		They also use the \term*{continuous dijkstra} paradigm but increase performance by introducing a special quad-tree like structure as a smart subdivision of the plane and also introduce approximate wavefronts.
 		The difficult part is the collision handling of non neighboring wavelets.
 		Maintaining some important properties is crucial to the efficiency when creating the subdivision, most important is the $\bigo{1}$ amount of neighboring cells around an edge.
-		Their algorithm calculates a shortest path map allowing queries to be answered in only $\bigo{\log n}$.
+		Their algorithm calculates a shortest path map allowing queries to be answered in only $\bigo{n \log n}$ time and space, where $n$ is the number of vertices in all obstacles.
 		
 	\subsection{Network based routing}
+	
+		\todo[inline]{Related work: Network based routing}
 
 \section{Pedestrian path finding}
 \label{sec:pedestrian-path-planning}
