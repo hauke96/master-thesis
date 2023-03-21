@@ -1,0 +1,31 @@
+% !TEX root = ../thesis.tex
+% !TeX spellcheck = en_US
+
+\section{Frameworks}
+
+% Why what framework? Only if interesting
+
+\section{Wavefront/Visibility Graph}
+
+% Any special features of .NET used? What features used from MARS?
+
+\section{Combination of routing algorithms}
+
+	This section describes the core aspect of this thesis:
+	The combination of network and geometric based routing algorithms.
+	
+	In the following subsections, four approaches are discussed of which the last one seemed to be the most promising.
+	The first three are using any normal network based routing algorithm, like A* or Dijkstra, in combination with the geometric continuous Dijkstra paradigm.
+	Only the last and further pursued approach uses visibility graphs for routing.
+
+	% Ad-hoc creation of edges by stopping A* and continuing with wavefront algorithm
+	\subsection{Ad-hoc generation of edges}
+	
+	% Concurrent routing: Use A* and wavefront in parallel and merge the results
+	\subsection{Concurrent routing}
+	
+	% Concurrent routing for segments (e.g. start new routing calls every 100m)
+	\subsection{Concurrent routing on smaller segments}
+	
+	% Merge of networks
+	\subsection{Merge an existing network with a visibility graph}

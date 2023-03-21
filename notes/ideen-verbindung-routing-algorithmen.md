@@ -99,7 +99,7 @@ Im obigen Beispiel wären das also drei Listen:
 
 **Offene Fragen:**
 
-* Klappt es, dass man im Graphen für A* dann mehrere Knoten an der identischen Stelle hat? Es müsste nämlich an der Position von v für alle drei Nachbarschaftslisten einen Knoten geben.
+* Klappt es, dass man im Graphen für A* dann mehrere Knoten an der identischen Stelle hat? Es müsste nämlich an der Position von v für alle drei Nachbarschaftslisten einen Knoten geben. → Ja klappt.
 
 **Vorteile:**
 
