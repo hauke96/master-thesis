@@ -17,6 +17,7 @@ using ServiceStack.Text;
 using Wavefront;
 using Wavefront.Geometry;
 using Feature = NetTopologySuite.Features.Feature;
+using Position = Mars.Interfaces.Environments.Position;
 
 namespace NetworkRoutingPlayground.Layer;
 
@@ -36,6 +37,17 @@ public class NetworkLayer : VectorLayer
 
         Environment = new SpatialGraphEnvironment(graph);
 
+        Features.Where(f => f.VectorStructured.Attributes.Exists("poi"))
+            .Each(f =>
+            {
+                var nearestNode = Environment.NearestNode(f.VectorStructured.Geometry.Coordinates[0].ToPosition(), null,
+                    null, 0.1);
+                if (nearestNode != null)
+                {
+                    nearestNode.Attributes.AddRange(f.VectorStructured.Attributes.ToObjectDictionary());
+                }
+            });
+
         WriteGraphToFile(graph, nodeNeighbors);
 
         return true;
@@ -49,7 +61,7 @@ public class NetworkLayer : VectorLayer
                 {
                     var lowerName = name.ToLower();
                     return lowerName.Contains("building") || lowerName.Contains("barrier") ||
-                           lowerName.Contains("natural");
+                           lowerName.Contains("natural") || lowerName.Contains("poi");
                 });
             })
             .Map(f => f.VectorStructured);
@@ -157,6 +169,8 @@ public class NetworkLayer : VectorLayer
             {
                 var roadFeatureFrom = roadEdgeFeature.Geometry.Coordinates[0];
                 var roadFeatureTo = roadEdgeFeature.Geometry.Coordinates[1];
+                var roadFeatureFromPosition = roadFeatureFrom.ToPosition();
+                var roadFeatureToPosition = roadFeatureTo.ToPosition();
 
                 // Get all IDs of visibility edges that truly intersect the road edge. 
                 var edgeIds = index.Query(roadEdgeFeature.Geometry.EnvelopeInternal).Where(id =>
@@ -220,43 +234,52 @@ public class NetworkLayer : VectorLayer
                     });
 
                     // 4. Add new line segments for our whole road segment
-                    var roadFeatureFromPosition = roadFeatureFrom.ToPosition();
-                    var roadFeatureToPosition = roadFeatureTo.ToPosition();
                     var orderedNodeIds = intersectionNodeMap.Values
                         .OrderBy(nodeId => graph.NodesMap[nodeId].Position.DistanceInMTo(roadFeatureFromPosition))
                         .ToList();
 
-                    var fromNode = graph.NodesMap.Values
-                        .MinBy(node => node.Position.DistanceInMTo(roadFeatureFromPosition));
-                    if (fromNode.Position.DistanceInMTo(roadFeatureFromPosition) > 0.1)
-                    {
-                        fromNode = graph.AddNode(roadFeatureFromPosition.X, roadFeatureFromPosition.Y);
-                    }
+                    // Find or create from-node and to-node of unsplitted road segment
+                    var fromNode = GetOrCreateNodeAt(graph, roadFeatureFromPosition);
+                    var toNode = GetOrCreateNodeAt(graph, roadFeatureToPosition);
 
-                    var toNode = graph.NodesMap.Values
-                        .MinBy(node => node.Position.DistanceInMTo(roadFeatureToPosition));
-                    if (toNode.Position.DistanceInMTo(roadFeatureToPosition) > 0.1)
-                    {
-                        toNode = graph.AddNode(roadFeatureToPosition.X, roadFeatureToPosition.Y);
-                    }
-
-                    graph.AddEdge(fromNode.Key, orderedNodeIds[0]);
-                    graph.AddEdge(orderedNodeIds[0], fromNode.Key);
+                    // Add first new segment, then iterate over all pieces from the intersection checks above and
+                    // finally add the last segment to the to-node.
+                    graph.AddEdge(fromNode.Key, orderedNodeIds[0], roadEdgeFeature.Attributes.ToObjectDictionary());
+                    graph.AddEdge(orderedNodeIds[0], fromNode.Key, roadEdgeFeature.Attributes.ToObjectDictionary());
 
                     for (int i = 0; i < orderedNodeIds.Count - 1; i++)
                     {
-                        graph.AddEdge(orderedNodeIds[i], orderedNodeIds[i + 1]);
-                        graph.AddEdge(orderedNodeIds[i + 1], orderedNodeIds[i]);
+                        graph.AddEdge(orderedNodeIds[i], orderedNodeIds[i + 1],
+                            roadEdgeFeature.Attributes.ToObjectDictionary());
+                        graph.AddEdge(orderedNodeIds[i + 1], orderedNodeIds[i],
+                            roadEdgeFeature.Attributes.ToObjectDictionary());
                     }
 
-                    graph.AddEdge(toNode.Key, orderedNodeIds[^1]);
-                    graph.AddEdge(orderedNodeIds[^1], toNode.Key);
+                    graph.AddEdge(toNode.Key, orderedNodeIds[^1], roadEdgeFeature.Attributes.ToObjectDictionary());
+                    graph.AddEdge(orderedNodeIds[^1], toNode.Key, roadEdgeFeature.Attributes.ToObjectDictionary());
                 }
                 else
                 {
-                    // TODO handle empty result
+                    var fromNode = GetOrCreateNodeAt(graph, roadFeatureFromPosition);
+                    var toNode = GetOrCreateNodeAt(graph, roadFeatureToPosition);
+                    graph.AddEdge(fromNode.Key, toNode.Key, roadEdgeFeature.Attributes.ToObjectDictionary());
                 }
             });
+    }
+
+    /// <summary>
+    /// Gets the nearest node at the given location. Is no node was found, a new one is created and returned.
+    /// </summary>
+    private static NodeData GetOrCreateNodeAt(SpatialGraph graph, Position position)
+    {
+        var node = graph.NodesMap.Values.MinBy(node => node.Position.DistanceInMTo(position));
+
+        if (node.Position.DistanceInMTo(position) > 0.1)
+        {
+            node = graph.AddNode(position.X, position.Y);
+        }
+
+        return node;
     }
 
     /// <returns>A list of all segments from the given features. Which means, each of these line strings has only two coordinates.</returns>
