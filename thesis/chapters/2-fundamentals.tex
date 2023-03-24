@@ -63,7 +63,7 @@ Agent based simulations will be covered as well since pedestrian simulations oft
 		This section gives an overview of common data structures in spatial data.
 		
 		The \term{Simple Feature Access} (\term*{SFA}) standard by the Open Geospatial Consortium (\term*{OGC}) defines numerous geometry types\cite{ogc-sfa}, but not all of them are implemented in all formats and most of them are not relevant for this thesis.
-		Because the widely used GeoJSON format (described in more detail in \cref{subsubsec:geojson}) implements the most important geometries of the SFA standard\cite[2]{ietf-geojson}, this section gives an overview of the geometry types implemented by GeoJSON.
+		Because the widely used GeoJSON format (described in more detail in \cref{subsubsec:geojson}) implements the most important geometries of the SFA standard\cite{ietf-geojson}, this section gives an overview of the geometry types implemented by GeoJSON.
 		
 		The first concepts to consider are geometries and features.
 		
@@ -79,7 +79,7 @@ Agent based simulations will be covered as well since pedestrian simulations oft
 		
 		\subsubsection{Features}
 		
-			According to the OGC, a \term{feature} is an \enquote{abstraction of real world phenomena}\cite[9]{ogc-sfa}, for example a tree, road or lake.
+			According to the OGC, a \term{feature} is an \enquote{abstraction of real world phenomena}\cite{ogc-sfa}, for example a tree, road or lake.
 			It therefore consists of a geometry, describing \textit{where} the feature is, and certain attributes (sometimes also called properties or tags), describing \textit{what} the feature represents.
 			Such attributes are -- in the case of GeoJSON -- not further defined but consist of a list of key-value pairs which can contain arbitrary entries.
 			Some file formats, however, have technical restrictions regarding possible attributes (for example length restriction in Esri shapefiles as described in \cref{subsubsec:shapefile}) while others try to standardize the allowed keys and values.
@@ -107,9 +107,9 @@ Agent based simulations will be covered as well since pedestrian simulations oft
 			Each shapefile actually consists of multiple files on disk\cite{esri-shapefile-file-ext-spec}.
 			Three of them are mandatory containing the geometries (\texttt{.shp}), an index (\texttt{.idx}) and a dBASE table with attributes (\texttt{.dbf}).
 			Additional files are optional and can contain additional indices or details about the CRS (\texttt{.prj}).
-			Shapefiles are very popular\cite[3]{spatial-file-formats-trends} but have several significant technical limitations regarding the containing geometries and attributes.
+			Shapefiles are very popular\cite{spatial-file-formats-trends} but have several significant technical limitations regarding the containing geometries and attributes.
 			
-			Even though the first byte of every geometry in the shapefile encodes its type \cite[4-23]{esri-shapefile-spec}, the standard allows only one type of geometry per shapefile \cite[4]{esri-shapefile-spec}.
+			Even though the first byte of every geometry in the shapefile encodes its type, the standard allows only one type of geometry per shapefile \cite{esri-shapefile-spec}.
 			Storing for example points and polygons would require two separate shapefiles even though the data might belong together.
 			Attributes have limitations in their size and structure.
 			One major limitation is the maximum length of 10 characters per attribute name and a maximum of 254 characters per value \cite{esri-shapefile-limitations}.
@@ -171,18 +171,18 @@ Agent based simulations will be covered as well since pedestrian simulations oft
 		
 		\subsubsection{WMS -- Web Map Service}
 		
-			A \term*{Web Map Service} provides access to rendered images but not the the underlying raw data.
-			However, one optional operation a WMS API might support, is the \texttt{GetFeatureInfo} operation\cite[38]{ogc-wms}, which returns more information about features in the image, but does not necessarily return the raw data.
+			A \term*{Web Map Service} provides access to rendered images but not the the underlying raw data \cite{ogc-wms}.
+			However, one optional operation a WMS API might support, is the \texttt{GetFeatureInfo} operation, which returns more information about features in the image, but does not necessarily return the raw data.
 		
 		\subsubsection{WMTS -- Web Map Tile Service}
 		
-			Similar to a WMS service, the \term*{Web Map Tile Service} specification was created to provide a more scalable service providing rendered map tiles\cite[12]{ogc-wmts}.
+			Similar to a WMS service, the \term*{Web Map Tile Service} specification was created to provide a more scalable service providing rendered map tiles \cite{ogc-wmts}.
 			Each request returns a tile with a fixed bounding box, making caching on the server and client side possible.
-			While a WMS can be used for dynamic and changing data, WMTS focuses on more static data, which can be prerendered to increase request performance\cite[13]{ogc-wmts}.
+			While a WMS can be used for dynamic and changing data, WMTS focuses on more static data, which can be prerendered to increase request performance.
 		
 		\subsubsection{WFS -- Web Feature Service}
 		
-			To access raw data, a \term*{Web Feature Service} can be used\cite{ogc-wfs}.
+			To access raw data, a \term*{Web Feature Service} can be used \cite{ogc-wfs}.
 			As the name suggests, it returns features instead of a rendered map.
 			Next to query operations like \texttt{GetFeature}, the API specification also describes an optional \texttt{Transaction} operation to change the data.
 	
@@ -395,9 +395,9 @@ Agent based simulations will be covered as well since pedestrian simulations oft
 		\subsubsection{A*}
 		\label{subsubsec:astar}
 		
-			The A* shortest path algorithm was introduced in 1968 and uses a heuristic $h : V \rightarrow \mathbb{R}$ to decide what vertex to visit next \cite[1]{astar}.
+			The A* shortest path algorithm was introduced in 1968 and uses a heuristic $h : V \rightarrow \mathbb{R}$ to decide what vertex to visit next \cite{astar}.
 			
-			It is rather simple and \cref{alg:astar} expresses it in pseudocode \cite[3]{astar}.
+			It is rather simple and \cref{alg:astar} expresses it in pseudocode.
 			The path from $s$ to $t$ is requested and $h$ is the heuristic.
 			
 			\begin{algorithm}[h]
@@ -452,10 +452,10 @@ Agent based simulations will be covered as well since pedestrian simulations oft
 			
 			Consider a distance function $d : V \times V \rightarrow \mathbb{R}$, two vertices $u, v \in V$ as well as a landmark $l \in L$.
 			The triangle inequality says $d(u,v) \geq d(u,l) - d(v,l)$ for the distances \emph{to} $l$ but also $d(u,v) \geq d(l,u) - d(l,v)$ for distances \emph{from} $l$.
-			This can be used to build the heuristic $h(u) = \max \{ d(u,l)-d(v,l), d(l,u)-d(l,v) \}$ for all landmarks $l$ \cite[6-7]{goldberg-landmarks}.
+			This can be used to build the heuristic $h(u) = \max \{ d(u,l)-d(v,l), d(l,u)-d(l,v) \}$ for all landmarks $l$.
 			
 			The critical part regarding the landmarks is their selection.
-			A naive approach selects them at random, which already works, but selecting them in a way that maximized the minimum distance between the landmarks works better \cite[7]{goldberg-landmarks}.
+			A naive approach selects them at random, which already works, but selecting them in a way that maximized the minimum distance between the landmarks works better.
 			
 			Thanks to the triangle inequality, the A* algorithm can use this to determine good choices for next vertices.
 			Since the heuristic consist of the tightest bound by using the $\max$ function, the estimated distance to $t$ using the heuristic is likely to increase or decrease when the actual distance does the same.
@@ -470,20 +470,20 @@ Agent based simulations will be covered as well since pedestrian simulations oft
 			For each cell, the neighboring cells of a $5 \times 5$ (inner neighbors) and $9 \times 9$ (outer neighbors) neighborhood are determined.
 			Determining transit nodes in a naive way works as follows:
 			For every vertex in the center cell, shortest paths to all vertices in the outer cells are determined.
-			A vertex being on the edge between an inner and outer cell and lying on one of the shortest paths is considered a transit node \cite[6]{bast-transit}.
+			A vertex being on the edge between an inner and outer cell and lying on one of the shortest paths is considered a transit node.
 			Since Dijkstra solves the single-source shortest paths problem (described in \cref{subsubsec:single-source-shortest-path}), the distances from any normal node to all its nearest transit nodes can be stored.
 			The final step of the preprocessing is the calculation of the distances between all transit nodes, which means solving the all-pair shortest path problem as described in \cref{subsubsec:all-pair-shortest-path}.
 			
 			Having the distances between transit nodes and the distances between any normal nodes to its closest transit nodes makes it easy to compute distances between arbitrary nodes.
 			Finding shortest paths is done by the following two routines.
 			
-			The first routine calculates just the distance of the shortest path using the precomputed values from above \cite[7-8]{bast-transit}.
+			The first routine calculates just the distance of the shortest path using the precomputed values from above.
 			Given a start node $src \in V$ and target node $trg \in V$, the distance $d(src, trg)$ needs to be known.
 			For each closest transit node $t_{src} \in T_{src}$ of $src$, all distances $d(src, t_{src})$ were already precomputed an known.
 			Same holds for all distances $d(t_{trg}, trg)$ from each closest transit node $t_{trg} \in T_{trg}$ to $trg$.
 			The minimal distance between $src$ and $trg$ can be found by going through all pairs of the closest transit nodes $t_{src} \in T_{src}$ and $t_{trg} \in T_{trg}$ and calculating $d(src, trg) = d(src, t_{src}) + d(t_{src}, t_{trg}) + d(t_{trg}, trg)$.
 			
-			The second routine actually determines the shortest path, is quite simple and therefore very fast \cite[8]{bast-transit}:
+			The second routine actually determines the shortest path, is quite simple and therefore very fast:
 			First, calculate $d(src, trg)$, as described above, and let $u$ be the currently visited node, with $u = src$ initially.
 			The distance from $u$ to the target can be calculated by $d(u, trg) = d(src, trg) - d(src, u)$ of which $d(src, u)$ is known since we started at $src$ and can simply remember the distance traveled so far.
 			Next, find the adjacent node $v$ of $u$ for which $d(u, trg) = d(u, v) + d(v, trg)$ holds.
@@ -494,9 +494,9 @@ Agent based simulations will be covered as well since pedestrian simulations oft
 		
 		\subsubsection{Hub labels}
 		
-			The \term{hub label} strategy is a labeling algorithm calculating labels $L(v)$ for each vertex $v$.
+			The \term{hub label} strategy \cite{bast-transportation-networks} is a labeling algorithm calculating labels $L(v)$ for each vertex $v$.
 			Each label contains a set of vertices (so called \emph{hubs}) and the length of the shortest path to each of the hubs.
-			A label must fulfill the following two properties \cite[11]{bast-transportation-networks}.
+			A label must fulfill the following two properties.
 			
 			First, the distance $d(u, v)$ from vertex $u$ to $v$ must be determinable using only their labels $L(u)$ and $L(v)$.
 			Since $u$ and $v$ can be arbitrary vertices, the vertex $v$ is not necessarily within $L(u)$.
@@ -512,7 +512,7 @@ Agent based simulations will be covered as well since pedestrian simulations oft
 			When storing the hubs in a sorted list during preprocessing, building the intersection can be done in linear time time.
 			Find the hub pair $h_u$ and $h_v$ in the intersection with the minimum distance sum and return their paths.
 			
-			Even though the requests can be answered incredibly fast, actually faster than most other routing methods, it needs a lot of space and preprocessing time to store and determine all the labels \cite[23]{bast-transportation-networks}.
+			Even though the requests can be answered incredibly fast, actually faster than most other routing methods, it needs a lot of space and preprocessing time to store and determine all the labels.
 		
 		\subsubsection{Compressed path databases}
 		
@@ -531,17 +531,17 @@ Agent based simulations will be covered as well since pedestrian simulations oft
 			The grid for $u'$ is then looked at and, just as before, the cell $v$ tells the algorithm what direction to take.
 			This goes on until the cell $v$ is found.
 			
-			The construction of a CPD is similarly simple \cite[2]{botea-cpd-2013}.
+			The construction of a CPD \cite{botea-cpd-2013} is similarly simple.
 			For each vertex $v$, the shortest paths to all other vertices are calculated, which can be done using Dijkstra or any other single-source or all-pairs shortest path algorithm.
 			After converting the shortest paths into a compatible format (in the above case a grid), the data needs to be compressed.
-			Uncompressed data is usually too large as the space requirement is in $\bigo{n^2}$ or even $\bigo{n^2 \log n}$ for graphs \cite[1]{botea-cpd-2013}.
+			Uncompressed data is usually too large as the space requirement is in $\bigo{n^2}$ or even $\bigo{n^2 \log n}$ for graphs.
 			
 			There are multiple possible ways to compress a raw CPD.
-			The original paper uses a decomposition of rectangles with common movement directions to reduce the amount of redundant data \cite[1]{botea-cpd-2011}.
+			The original paper uses a decomposition of rectangles with common movement directions to reduce the amount of redundant data.
 			A new approach presented two years later uses general purpose compression techniques like run-length encoding (RLE) and sliding-window compression (SWC) as well as a special list-trimming using default movements to reduce the amount of information being explicitly stored.
 			
 			The original approach already showed good results.
-			Using the originally proposed compression (rectangle decomposition only) on a road network yields a CPD with a compression factor of about 180 \cite[4]{botea-cpd-2013}.
+			Using the originally proposed compression (rectangle decomposition only) on a road network yields a CPD with a compression factor of about 180.
 			Compressing the same network with all mentioned techniques together can decrease the size even further to a CPD, which is another 5.3 times smaller.
 			This is a compression factor of over 950 compared to an uncompressed database.
 	
@@ -562,8 +562,8 @@ Agent based simulations will be covered as well since pedestrian simulations oft
 		Since a visibility graph might become very large, some edges might be removed or other strategies are more efficient.
 		In fact, the worst-case of a visibility graph is a complete graph with $\bigo{|V|^2}$ many edges.
 		
-		Alternatives to the visibility method are based on Voronoi diagrams or skeletonization methods\cite[3-4]{graser-osm-open-spaces}.
-		However, routing results on such graphs are not be optimal anymore, since a straight edge between visible vertices is the shortest possible connection and those alternatives so not always create such direct edges\cite[7]{graser-osm-open-spaces}.
+		Alternatives to the visibility method are based on Voronoi diagrams or skeletonization methods.
+		However, routing results on such graphs are not be optimal anymore, since a straight edge between visible vertices is the shortest possible connection and those alternatives so not always create such direct edges \cite{graser-osm-open-spaces}.
 		Another property of graph generating methods is, that the start and target locations must still be on the graph to be precisely reachable by routing algorithms.
 	
 	\subsection{Continuous Dijkstra}
@@ -573,7 +573,7 @@ Agent based simulations will be covered as well since pedestrian simulations oft
 
 		This map can also be seen as a tree with $s$ as its root and each region as a leaf.
 		Such a tree might remind one of Dijkstras algorithm, which creates such a shortest path tree as well.
-		Due to this similarity, this strategy is also called the \term{continuous dijkstra} paradigm\cite[2]{mitchell-discrete-geodesic}.
+		Due to this similarity, this strategy is also called the \term{continuous dijkstra} paradigm \cite{mitchell-discrete-geodesic}.
 		
 		To precisely determine these regions, one popular approach is to create \term[wavefront]{wavefronts} (sometimes also called \term[wavelet]{wavelets}) propagating through open spaces.
 		A well fitting analogy for this approach is the propagation of sound or water waves traveling through space, folding around obstacles and finally reaching the target.
@@ -582,7 +582,7 @@ Agent based simulations will be covered as well since pedestrian simulations oft
 		Each wavefront can interact with edges and vertices but also with other wavelets.
 		Interactions in this case are collisions creating the borders of the regions.
 		For each region the origin of the wavefront is known, which enables the query routine to follow these predecessors back to the source.
-		The key difficulty of this approach is the efficient propagation of these wavefronts, which means the fast detection of collision with obstacles and other wavefronts\cite[3]{hershberger-suri}.
+		The key difficulty of this approach is the efficient propagation of these wavefronts, which means the fast detection of collision with obstacles and other wavefronts \cite{hershberger-suri}.
 
 \section{Agent based systems and simulations}
 
@@ -597,10 +597,10 @@ Agent based simulations will be covered as well since pedestrian simulations oft
 	More complex agents may have a specific goal, are able to adapt themselves to their environment and thus must be able to memorize and plan things.
 	
 	An agent might be a simulated person but could also be a company, car or other non-living part of the simulated world.
-	Many simulations use pedestrians (or generally humans) as agents to better understand human behaviors but many more scenarios are thinkable \cite[8]{macal-introductory-tutorial}.
+	Many simulations use pedestrians (or generally humans) as agents to better understand human behaviors but many more scenarios are thinkable \cite{macal-introductory-tutorial}.
 
 	Studying the behavior of pedestrians requires a spatial environment where agents can move and interact with each other.
 	Since uncontrolled movement is rather uninteresting, most of the time, algorithms finding optimal paths are involved \cite{kneidl-borrmann-hartmann-navigation,gloor-hybrid-pedestrian-routing,teknomo-millonig-routing}.
-	This not only includes \hyperref[sec:graph-routing]{graph based routing} but often utilizes \hyperref[sec:geometric-routing]{geometric routing} as well \cite[3]{kneidl-borrmann-hartmann-navigation}.
+	This not only includes \hyperref[sec:graph-routing]{graph based routing} but often utilizes \hyperref[sec:geometric-routing]{geometric routing} as well \cite{kneidl-borrmann-hartmann-navigation}.
 	
 	% TODO Describe MARS here or later?

@@ -45,7 +45,7 @@ This section gives an overview about closely related work from these areas.
 		If the shortest path between two vertices is much longer than the euclidean distance, there is probably a hole in the network.
 		However, this metric leads to false positives when large obstacles, such as a river, is between the two vertices.
 		In this case, the euclidean and shortest path distances differ a lot, which is in deed correct in such cases.
-		To handle such problems caused by obstacles, they discussed the use of Mitchells wavefront propagation algorithm as discussed \hyperref[related-work:mitchell]{above} \cite[4]{funke-osm-extrapolation}.
+		To handle such problems caused by obstacles, they discussed the use of Mitchells wavefront propagation algorithm as discussed \hyperref[related-work:mitchell]{above}.
 		Due to the complexity and lower performance, they decided to use a dense grid instead, cutting out edges intersecting obstacles and use this remaining grid for navigation.
 		Unfortunately, the use of other graph generation algorithms (for example generating a visibility graph) was not discussed.
 		
@@ -64,7 +64,7 @@ This section gives an overview about closely related work from these areas.
 		A task, which is more relevant for this thesis, is filling open spaces with edges for navigation purposes.
 		This can be done by using one of several approaches.
 	
-		Kneidl, Borrmann and Hartmann used visibility graphs to produce a sparse graph suitable for navigation \cite[5]{kneidl-borrmann-hartmann-navigation}.
+		Kneidl, Borrmann and Hartmann used visibility graphs to produce a sparse graph suitable for navigation \cite{kneidl-borrmann-hartmann-navigation}.
 		They chose the construction of a visibility graph over generalized Voronoi diagrams for more realistic edges.
 		
 		The same strategy was used by Liu and Zlatanova for indoor routing through open spaces \cite{liu-indoor-routing}, however, they took the size of a pedestrians into account and added a buffer area around obstacles by calculating their Minkowski sum.
@@ -87,7 +87,7 @@ This section gives an overview about closely related work from these areas.
 		A similar work was presented by Birgit Elias merging multiple data sources, like topographical maps or indoor building plans, into one vector dataset for routing \cite{elias-tailored-geodatabase}.
 		To create a graph from existing maps, she uses a skeletonization method based on a Delaunay triangulation.
 		She also took into account that important point like structures, like entrances or other \term*{points of interest}, need to be connected to the graph as well.
-		This was solves by creating a perpendicular line to the nearest edge of the graph \cite[5]{elias-tailored-geodatabase}.
+		This was solves by creating a perpendicular line to the nearest edge of the graph.
 		The problem of unconnected points of interest is one topic of this thesis and will be discussed \todo{ref} in a later section.
 		
 	\subsection{Crowd sourced graph generation}
@@ -141,7 +141,7 @@ This section gives an overview about closely related work from these areas.
 	Pedestrian path finding is, however, not only relevant for real world users, who want to know how to get from one location to another.
 	Such algorithms are also used in (multi) agent simulations of pedestrian behavior.
 	Scenarios in such simulations are for example evacuation or crowd behaviors.
-	The area of pedestrian path planning and simulations is divided into two strategies: Network and field based path finding \cite[2]{hartmann-geodesic}.
+	The area of pedestrian path planning and simulations is divided into two strategies: Network and field based path finding \cite{hartmann-geodesic}.
 	Work from both strategies will be covered here.
 	
 	\subsection{Field based and dynamic navigation}
@@ -158,7 +158,7 @@ This section gives an overview about closely related work from these areas.
 		% maybe: pure geometric/geodesic approach with navigation fields: https://iopscience.iop.org/article/10.1088/1367-2630/12/4/043032/pdf
 		The above mentioned dynamic routing by Teknomo and Millonig has strong similarities to approaches based on potential fields, like the dynamic path finding from Hartmann, 2010\cite{hartmann-geodesic}.
 		He proposed a mechanism using vector fields in a cellular automaton model with hexagonal cells.
-		Interestingly, this method can be interpreted as wavefronts, like in Mitchells algorithm described above, propagating through the vector field\cite[4]{hartmann-geodesic}.
+		Interestingly, this method can be interpreted as wavefronts, like in Mitchells algorithm described above, propagating through the vector field.
 			
 	\subsection{Graph based path planning}
 	
@@ -170,8 +170,8 @@ This section gives an overview about closely related work from these areas.
 		Two approaches were presented: A potential field based method, which is used in navigation when needed, and a visibility graph, which is merged into the existing hiking network.
 		For the performance evaluation, they used an evacuation scenario and the results showed, that both navigation mechanisms are comparably fast.
 		
-		The work of Kneidl et al. from \cref{subsec:filling-open-spaces}, was used by Kielar et al. as a basis for a generalized routing model for pedestrian simulations taking cognitive models of agents into account \cite[5]{kielar-unified-pedestrian-routing}.
+		The work of Kneidl et al. from \cref{subsec:filling-open-spaces}, was used by Kielar et al. as a basis for a generalized routing model for pedestrian simulations \cite{kielar-unified-pedestrian-routing} taking cognitive models of agents into account.
 		Cognitive models take into account that humans create their own mixed and fuzzy path finding behavior, which differs from optimal mathematical algorithms like Dijkstra.
-		Basic behaviors of human crowds are herding and learning from others, which makes communication and observation between agents necessary \cite[4]{kielar-unified-pedestrian-routing}.
+		Basic behaviors of human crowds are herding and learning from others, which makes communication and observation between agents necessary.
 		
 		
