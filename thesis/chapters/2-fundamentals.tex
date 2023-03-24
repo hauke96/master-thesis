@@ -554,6 +554,7 @@ Agent based simulations will be covered as well since pedestrian simulations oft
 	Create edges through open spaces for graph based routing or create a shortest paths map, a structure similar to CPDs.
 	
 	\subsection{Visibility graphs}
+	\label{subsec:visibility-graph}
 	
 		The first mechanism creates edges and then utilizes a normal graph based routing algorithm to actually find the shortest path.
 		There are multiple ways on how to create such edges.
@@ -567,6 +568,7 @@ Agent based simulations will be covered as well since pedestrian simulations oft
 		Another property of graph generating methods is, that the start and target locations must still be on the graph to be precisely reachable by routing algorithms.
 	
 	\subsection{Continuous Dijkstra}
+	\label{subsec:continuous-dijkstra}
 	
 		The second strategy creates a map of regions starting from a source vertex $s$.
 		Each region of this map stores the predecessor vertex, which can be used to determine shortest paths by following the predecessor relations from any given location back to $s$.
