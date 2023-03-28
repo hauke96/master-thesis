@@ -41,7 +41,21 @@
 		Even when using the continuous Dijkstra approach from Hershberger and Suri \cite{hershberger-suri} with only $\bigo{n \log n}$ time requirement, the number $n$ of vertices in obstacles is expected to be much higher than the size of $V$.
 		
 		Another aspect against this approach is the hypothesis that an ad hoc generation of edges will probably not change the resulting shortest path compared to a precomputed graph consisting of all possible edges.
-		\todo[inline]{Explain this a bit more? Formulate a simple proof idea?}
+		An argumentation for the correctness of this hypothesis can be sketched as follows.
+		
+		Assume that the ad hoc generation starts at each road junction vertex $j$ and stops when a certain condition is fulfilled (for example only generating paths of a certain length).
+		When the graph routing algorithm reaches an unvisited junction vertex $j$ from some other vertex $v$, it either used a road edge or preprocessed edge to get there. Therefore, the following two cases exist:
+		
+		\begin{itemize}
+			\item In case a preprocessed edge was used, then the shortest path from $v$ to $j$ would be identical when using a completely preprocessed graph containing this exact edge $(v, j)$.
+			\item In case a road edge was used to get to $j$, then there are two sub-cases.
+			\begin{itemize}
+				\item In case the road edge was in deed the optimal path to $j$, it would have been used in a preprocessed graph as well.
+				\item In case the road edge was not the optimal path, then the ad hoc generation stopped before reaching $j$ (due to the distance or any other stopping condition) and the edge $(v, j)$ was never added.
+			\end{itemize}
+		\end{itemize}
+		
+		Even though, this is not a formal proof, generating a preprocessed graph and using a normal routing algorithm is probably as least as good as using the ad hoc generation approach.
 		
 	% Concurrent routing: Use A* and wavefront in parallel and merge the results
 	\subsection{Concurrent routing}
