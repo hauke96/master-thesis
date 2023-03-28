@@ -86,11 +86,17 @@ Agent based simulations will be covered as well since pedestrian simulations oft
 		
 		\subsubsection{Standardization}
 		
-			A community driven standardization strategy is used by the \term*{OpenStreetMap} (\term*{OSM}) project (covered in \cref{subsec:osm} with more details), where the projects Wiki defines certain keys and value but still explicitly allows arbitrary tags to exist\cite{osm-wiki-proposal-process}.
-			This ensures the possibility to adapt to arbitrary real world objects, while having a standard for the most common and globally used attributes.
+			Standards exist to keep a data source consistent but also to allow interoperability between systems.
+			Common standards were defined by organizations like the OGC but also companies of government agencies define standards.
 			
-			Other systems define a fixed set of allowed and keys and values for attributes.
-			For example, the INSPIRE standard of the EU defines \texttt{natureConservation} as one allowed value for the \texttt{SiteProtectionClassification} attribute to mark nature protection areas \enquote{for the maintenance of biological diversity}\cite[31]{inspire-protected-sites}.
+			A widely used proprietary standard established the company Esri Inc. is the Shapefile file format.
+			This format will be covered in more detail in \cref{subsubsec:shapefile}.
+			
+			One example for a governmental standard, is the INSPIRE standard.
+			It was established based on an initiative of the European Commission and defines fixed attributes with keys and values \cite[31]{inspire-protected-sites}.
+		
+			A standardization based on democratic votes is used by \term*{OpenStreetMap} (\term*{OSM}), a crowdsourced spatial database (covered in \cref{subsec:osm} with more details).
+			The standardization of OSM takes place in the projects wiki, which defines certain keys and values but still explicitly allows arbitrary tags (key value pairs) to ensure a high degree of flexibility \cite{osm-wiki-proposal-process}.
 			
 	\subsection{File formats}
 	\label{subsec:file-formats}
