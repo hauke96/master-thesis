@@ -90,11 +90,11 @@ namespace Wavefront
             SetPredecessor(source, null, stopwatch, WaveletRootPredecessor, WaveletRootToWaypoint, 0);
 
             vertexNeighbors[sourceVertex] =
-                WavefrontPreprocessor.GetVisibleNeighborsForVertex(_obstacles, vertices, sourceVertex,
+                WavefrontPreprocessor.GetVisibilityNeighborsForVertex(_obstacles, vertices, sourceVertex,
                     _knnSearchNeighborBins);
 
             var neighborsOfTarget =
-                WavefrontPreprocessor.GetVisibleNeighborsForVertex(_obstacles, vertices, targetVertex,
+                WavefrontPreprocessor.GetVisibilityNeighborsForVertex(_obstacles, vertices, targetVertex,
                     _knnSearchNeighborBins);
 
             neighborsOfTarget.SelectMany(x => x).Each(neighbor =>
@@ -104,10 +104,10 @@ namespace Wavefront
                 var bearing = Angle.GetBearing(neighbor.Position, targetVertex.Position);
                 vertexNeighbors[neighbor].Each((i, bin) =>
                 {
-                    var targetIsInBin = neighbor.Neighbors.Count < 2 || Angle.IsBetweenEqual(
-                        neighbor.Neighbors[i].Bearing,
+                    var targetIsInBin = neighbor.ObstacleNeighbors.Count < 2 || Angle.IsBetweenEqual(
+                        neighbor.ObstacleNeighbors[i].Bearing,
                         bearing,
-                        neighbor.Neighbors[(i + 1) % neighbor.Neighbors.Count].Bearing
+                        neighbor.ObstacleNeighbors[(i + 1) % neighbor.ObstacleNeighbors.Count].Bearing
                     );
 
                     if (targetIsInBin)

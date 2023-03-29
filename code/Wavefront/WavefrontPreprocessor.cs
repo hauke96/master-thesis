@@ -120,7 +120,7 @@ public class WavefrontPreprocessor
     /// one of the given obstacles from v to its neighboring positions.
     /// </summary>
     /// <returns>A dict from position to a duplicate free list of all neighbors found.</returns>
-    public static Dictionary<Position, List<Position>> GetNeighborsFromObstacleVertices(IList<Obstacle> obstacles,
+    public static Dictionary<Position, List<Position>> GetObstacleNeighborsFromObstacleVertices(IList<Obstacle> obstacles,
         Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles, bool debugModeActive = false)
     {
         // A function that determines if any obstacles is between the two given coordinates.
@@ -133,18 +133,18 @@ public class WavefrontPreprocessor
                     o.IntersectsWithLine(coordinate, otherCoordinate, coordinateToObstacles)
                 ));
 
-        var positionToNeighbors = new Dictionary<Position, HashSet<Position>>();
-        obstacles.Each(obstacle => { AddNeighborsForObstacle(obstacle, positionToNeighbors, isCoordinateHidden); });
+        var positionToObstacleNeighbors = new Dictionary<Position, HashSet<Position>>();
+        obstacles.Each(obstacle => { AddObstacleNeighborsForObstacle(obstacle, positionToObstacleNeighbors, isCoordinateHidden); });
 
         if (!PerformanceMeasurement.IS_ACTIVE && debugModeActive)
         {
-            Exporter.WriteVertexNeighborsToFile(positionToNeighbors);
+            Exporter.WriteVertexNeighborsToFile(positionToObstacleNeighbors);
         }
 
         // Use a list for easier handling later on (Vertices will eventually receive these neighbors and must be able to
         // sort them).
         var result = new Dictionary<Position, List<Position>>();
-        positionToNeighbors.Each(pair => result.Add(pair.Key, pair.Value.ToList()));
+        positionToObstacleNeighbors.Each(pair => result.Add(pair.Key, pair.Value.ToList()));
         return result;
     }
 
@@ -153,24 +153,24 @@ public class WavefrontPreprocessor
     /// map.
     /// </summary>
     /// <param name="isCoordinateHidden">A function that determines if the obstacle is between the two given coordinates , in other words, if the two coordinates see each other.</param>
-    private static void AddNeighborsForObstacle(Obstacle obstacle,
-        Dictionary<Position, HashSet<Position>> positionToNeighbors,
+    private static void AddObstacleNeighborsForObstacle(Obstacle obstacle,
+        Dictionary<Position, HashSet<Position>> positionToObstacleNeighbors,
         Func<Coordinate, Coordinate, Obstacle, bool> isCoordinateHidden)
     {
         var coordinates = obstacle.Coordinates.CreateCopy().Distinct().ToList();
 
         if (coordinates.Count == 1)
         {
-            positionToNeighbors[coordinates[0].ToPosition()] = new HashSet<Position>();
+            positionToObstacleNeighbors[coordinates[0].ToPosition()] = new HashSet<Position>();
             return;
         }
 
         coordinates.Each((index, coordinate) =>
         {
             var position = coordinate.ToPosition();
-            if (!positionToNeighbors.ContainsKey(position))
+            if (!positionToObstacleNeighbors.ContainsKey(position))
             {
-                positionToNeighbors[position] = new HashSet<Position>();
+                positionToObstacleNeighbors[position] = new HashSet<Position>();
             }
 
             Coordinate? nextCoordinate =
@@ -207,7 +207,7 @@ public class WavefrontPreprocessor
                 }
             }
 
-            positionToNeighbors[position].AddRange(neighbors);
+            positionToObstacleNeighbors[position].AddRange(neighbors);
         });
     }
 
@@ -215,8 +215,8 @@ public class WavefrontPreprocessor
     /// Determines for each vertex all visible other vertices with respect to the given obstacles. The vertices are
     /// extracted from the obstacles.
     ///
-    /// This method uses bins to limit the number of visible neighbors per angle area, since each bin covers a certain
-    /// angle area of each vertex. Example: If "neighborBinCount" is set to 4, then each bin covers 90°. The
+    /// This method uses bins to limit the number of visibility neighbors per angle area, since each bin covers a
+    /// certain angle area of each vertex. Example: If "neighborBinCount" is set to 4, then each bin covers 90°. The
     /// "neighborsPerBin" also limit the amount of visible vertices per bin.
     /// </summary>
     /// <returns>
@@ -235,19 +235,19 @@ public class WavefrontPreprocessor
             () =>
             {
                 positionToNeighbors =
-                    GetNeighborsFromObstacleVertices(allObstacles, coordinateToObstacles, debugModeActive);
+                    GetObstacleNeighborsFromObstacleVertices(allObstacles, coordinateToObstacles, debugModeActive);
             },
             "GetNeighborsFromObstacleVertices");
         result.Print();
         result.WriteToFile();
 
-        Log.I("Create map of direct neighbor vertices on the obstacle geometries");
-        var vertices = positionToNeighbors.Keys.Map(position => new Vertex(position, positionToNeighbors[position]));
+        Log.I("Create all unique vertices");
+        var allVertices = positionToNeighbors.Keys.Map(position => new Vertex(position, positionToNeighbors[position]));
 
         Log.I("Add vertices with neighbor information to obstacles");
         allObstacles.Each(o =>
         {
-            var verticesInObstacle = vertices.Intersect(o.Vertices);
+            var verticesInObstacle = allVertices.Intersect(o.Vertices);
             o.Vertices = verticesInObstacle.ToList();
         });
 
@@ -256,7 +256,7 @@ public class WavefrontPreprocessor
         result = PerformanceMeasurement.ForFunction(() =>
         {
             vertexNeighbors =
-                CalculateVisibleKnnInternal(obstacles, coordinateToObstacles, vertices, neighborBinCount,
+                CalculateVisibleKnnInternal(obstacles, coordinateToObstacles, allVertices, neighborBinCount,
                     neighborsPerBin, debugModeActive);
         }, "CalculateVisibleKnn");
         result.Print();
@@ -298,7 +298,7 @@ public class WavefrontPreprocessor
 
             i++;
 
-            result[vertex] = GetVisibleNeighborsForVertex(obstacles, new List<Vertex>(vertices), coordinateToObstacles,
+            result[vertex] = GetVisibilityNeighborsForVertex(obstacles, new List<Vertex>(vertices), coordinateToObstacles,
                 vertex, neighborBinCount, neighborsPerBin);
         }
 
@@ -309,9 +309,9 @@ public class WavefrontPreprocessor
             var vertexPositionDict = new Dictionary<Position, HashSet<Position>>();
             result.Keys.Each(vertex =>
             {
-                var visibleNeighbors = result[vertex];
-                var visibleNeighborPositions = visibleNeighbors.SelectMany(x => x).Map(v => v.Position);
-                vertexPositionDict[vertex.Position] = new HashSet<Position>(visibleNeighborPositions);
+                var visibilityNeighbors = result[vertex];
+                var visibilityNeighborPositions = visibilityNeighbors.SelectMany(x => x).Map(v => v.Position);
+                vertexPositionDict[vertex.Position] = new HashSet<Position>(visibilityNeighborPositions);
             });
 
             Exporter.WriteVertexNeighborsToFile(vertexPositionDict, "vertex-visibility.geojson");
@@ -320,18 +320,18 @@ public class WavefrontPreprocessor
         return result;
     }
 
-    public static List<List<Vertex>> GetVisibleNeighborsForVertex(QuadTree<Obstacle> obstacles, List<Vertex> vertices,
+    public static List<List<Vertex>> GetVisibilityNeighborsForVertex(QuadTree<Obstacle> obstacles, List<Vertex> vertices,
         Vertex vertex, int neighborBinCount, int neighborsPerBin = 10)
     {
-        return GetVisibleNeighborsForVertex(obstacles, vertices, new Dictionary<Coordinate, List<Obstacle>>(), vertex,
+        return GetVisibilityNeighborsForVertex(obstacles, vertices, new Dictionary<Coordinate, List<Obstacle>>(), vertex,
             neighborBinCount, neighborsPerBin);
     }
 
     /// <summary>
-    /// Determines all visible neighbors with respect to the limits given by the maximum of "neighborsPerBin" many
+    /// Determines all visibility neighbors with respect to the limits given by the maximum of "neighborsPerBin" many
     /// neighbors per bin for each of the "neighborBinCount" many bins.
     /// </summary>
-    private static List<List<Vertex>> GetVisibleNeighborsForVertex(QuadTree<Obstacle> obstacles, List<Vertex> vertices,
+    private static List<List<Vertex>> GetVisibilityNeighborsForVertex(QuadTree<Obstacle> obstacles, List<Vertex> vertices,
         Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles, Vertex vertex, int neighborBinCount,
         int neighborsPerBin = 10)
     {
@@ -352,9 +352,9 @@ public class WavefrontPreprocessor
 
         /*
          * These arrays store the neighbors sorted by their distance from close (at index 0) for furthest. In the end
-         * the "neighbors" array contains the closest "neighborsPerBin"-many neighbors.
+         * the "neighbors" array contains the closest "neighborsPerBin"-many visibility neighbors.
          */
-        var neighbors = new LinkedList<Vertex>?[neighborBinCount];
+        var visibilityNeighbors = new LinkedList<Vertex>?[neighborBinCount];
         var maxDistances = new LinkedList<double>?[neighborBinCount];
 
         foreach (var otherVertex in vertices)
@@ -427,27 +427,28 @@ public class WavefrontPreprocessor
             {
                 // For simplicity, only the neighbor list is used for null checks. However, the maxDistance list is
                 // null if and only if the neighbor list is null.
+                // TODO Find a better solution for this two-list-situation
 
-                if (neighbors[binKey] == null)
+                if (visibilityNeighbors[binKey] == null)
                 {
-                    neighbors[binKey] = new LinkedList<Vertex>();
+                    visibilityNeighbors[binKey] = new LinkedList<Vertex>();
                     maxDistances[binKey] = new LinkedList<double>();
                 }
 
-                var neighborList = neighbors[binKey]!;
+                var visibilityNeighborList = visibilityNeighbors[binKey]!;
                 var maxDistanceList = maxDistances[binKey]!;
 
-                var neighborNode = neighborList.Last;
+                var visibilityNeighborNode = visibilityNeighborList.Last;
                 var distanceNode = maxDistanceList.Last;
 
                 // Find the first element in the list with a distance lower than the calculated  "distanceToOtherVertex"
-                while (neighborNode != null)
+                while (visibilityNeighborNode != null)
                 {
                     var distance = distanceNode!.Value;
 
                     if (distance > distanceToOtherVertex)
                     {
-                        neighborNode = neighborNode.Previous;
+                        visibilityNeighborNode = visibilityNeighborNode.Previous;
                         distanceNode = distanceNode.Previous;
                     }
                     else
@@ -456,93 +457,93 @@ public class WavefrontPreprocessor
                     }
                 }
 
-                if (neighborNode == null)
+                if (visibilityNeighborNode == null)
                 {
-                    neighborList.AddLast(otherVertex);
+                    visibilityNeighborList.AddLast(otherVertex);
                     maxDistanceList.AddLast(distanceToOtherVertex);
                 }
                 else
                 {
-                    neighborList.AddAfter(neighborNode, otherVertex);
+                    visibilityNeighborList.AddAfter(visibilityNeighborNode, otherVertex);
                     maxDistanceList.AddAfter(distanceNode, distanceToOtherVertex);
                 }
 
-                if (neighborList.Count > neighborsPerBin)
+                if (visibilityNeighborList.Count > neighborsPerBin)
                 {
-                    neighborList.RemoveLast();
+                    visibilityNeighborList.RemoveLast();
                     maxDistanceList.RemoveLast();
                 }
             }
         }
 
-        var allNeighbors = new HashSet<Vertex>();
-        foreach (var neighbor in neighbors)
+        var allVisibilityNeighbors = new HashSet<Vertex>();
+        foreach (var neighbor in visibilityNeighbors)
         {
             if (neighbor != null)
             {
-                allNeighbors.AddRange(neighbor);
+                allVisibilityNeighbors.AddRange(neighbor);
             }
         }
 
-        return SortVisibleNeighborsIntoBins(vertex, allNeighbors.ToList());
+        return SortVisibilityNeighborsIntoBins(vertex, allVisibilityNeighbors.ToList());
     }
 
     /// <summary>
     /// Takes the obstacle neighbors from the given vertex and interprets the angle areas between these neighbors as
-    /// bins. Each of the given visible neighbors is then sorted into these bins.
+    /// bins. Each of the given visibility neighbors is then sorted into these bins.
     /// </summary>
-    public static List<List<Vertex>> SortVisibleNeighborsIntoBins(Vertex vertex, List<Vertex> allVisibleNeighbors)
+    public static List<List<Vertex>> SortVisibilityNeighborsIntoBins(Vertex vertex, List<Vertex> allVisibilityNeighbors)
     {
-        if (vertex.Neighbors.Count < 2)
+        if (vertex.ObstacleNeighbors.Count < 2)
         {
             return new List<List<Vertex>>
             {
-                allVisibleNeighbors
+                allVisibilityNeighbors
             };
         }
 
-        allVisibleNeighbors.Sort((p1, p2) =>
+        allVisibilityNeighbors.Sort((p1, p2) =>
             (int)(Angle.GetBearing(vertex.Position, p1.Position) - Angle.GetBearing(vertex.Position, p2.Position)));
 
         /*
-         * This following routing collects all visible neighbors we just determined above and puts them into bins.
+         * This following routing collects all visibility neighbors we just determined above and puts them into bins.
          * Each bin covers the angle area between two obstacle neighbors on the vertex.
          */
         var result = new List<List<Vertex>>();
         var bin = new List<Vertex>();
 
-        // Collect all visible neighbors visible between two obstacle neighbors. We go all the way through the obstacle
-        // neighbors of the vertex and always process the angle area between the current neighbor and the next. For the
-        // last neighbor, the index of the next neighbor is 0 (hence the modulo).
-        for (var obstacleNeighborIndex = 0; obstacleNeighborIndex < vertex.Neighbors.Count; obstacleNeighborIndex++)
+        // Collect all visibility neighbors with angles between two obstacle neighbors. We go all the way through the
+        // obstacle neighbors of the vertex and always process the angle area between the current obstacle neighbor and
+        // the next. For the last obstacle neighbor, the index of the next one is 0 (hence the modulo).
+        for (var obstacleNeighborIndex = 0; obstacleNeighborIndex < vertex.ObstacleNeighbors.Count; obstacleNeighborIndex++)
         {
-            var thisObstacleNeighbor = vertex.Neighbors[obstacleNeighborIndex];
-            var nextObstacleNeighbor = vertex.Neighbors[(obstacleNeighborIndex + 1) % vertex.Neighbors.Count];
+            var thisObstacleNeighbor = vertex.ObstacleNeighbors[obstacleNeighborIndex];
+            var nextObstacleNeighbor = vertex.ObstacleNeighbors[(obstacleNeighborIndex + 1) % vertex.ObstacleNeighbors.Count];
 
-            // Due to the bins, it can happen that this obstacle neighbor is not within the list of visible neighbors,
-            // even though it's obviously visible. Therefore this obstacle neighbor might not be added here.
-            var thisVisibleNeighbor = allVisibleNeighbors.Where(v => v.Position.Equals(thisObstacleNeighbor)).ToList();
-            if (!thisVisibleNeighbor.IsEmpty())
+            // Due to the bins, it can happen that this obstacle neighbor is not within the list of visibility
+            // neighbors, even though it's obviously visible. Therefore this obstacle neighbor might not be added here.
+            var thisVisibilityNeighbor = allVisibilityNeighbors.Where(v => v.Position.Equals(thisObstacleNeighbor)).ToList();
+            if (!thisVisibilityNeighbor.IsEmpty())
             {
-                bin.Add(thisVisibleNeighbor[0]);
+                bin.Add(thisVisibilityNeighbor[0]);
             }
 
-            for (var i = 0; i < allVisibleNeighbors.Count; i++)
+            for (var i = 0; i < allVisibilityNeighbors.Count; i++)
             {
-                var visibleNeighbor = allVisibleNeighbors[i];
+                var visibilityNeighbor = allVisibilityNeighbors[i];
                 if (Angle.IsBetweenEqual(thisObstacleNeighbor.Bearing,
-                        Angle.GetBearing(vertex.Position, visibleNeighbor.Position), nextObstacleNeighbor.Bearing))
+                        Angle.GetBearing(vertex.Position, visibilityNeighbor.Position), nextObstacleNeighbor.Bearing))
                 {
-                    bin.Add(visibleNeighbor);
+                    bin.Add(visibilityNeighbor);
                 }
             }
 
-            // Due to the bins, it can happen that this obstacle neighbor is not within the list of visible neighbors,
-            // even though it's obviously visible. Therefore this obstacle neighbor might not be added here.
-            var nextVisibleNeighbor = allVisibleNeighbors.Where(v => v.Position.Equals(nextObstacleNeighbor)).ToList();
-            if (!nextVisibleNeighbor.IsEmpty())
+            // Due to the bins, it can happen that this obstacle neighbor is not within the list of visibility
+            // neighbors, even though it's obviously visible. Therefore this obstacle neighbor might not be added here.
+            var nextVisibilityNeighbor = allVisibilityNeighbors.Where(v => v.Position.Equals(nextObstacleNeighbor)).ToList();
+            if (!nextVisibilityNeighbor.IsEmpty())
             {
-                bin.Add(nextVisibleNeighbor[0]);
+                bin.Add(nextVisibilityNeighbor[0]);
             }
 
             result.Add(bin.Distinct().ToList());

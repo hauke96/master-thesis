@@ -4,8 +4,8 @@
 
 The term "neighbor" has two slightly different meanings:
 
-1. During preprocessing, the visible neighbors of a vertex are determined. Those neighbors are all vertices, regardless of the geometry they belong to, that are visible from a given vertex.
-2. When routing, neighbors to a vertex are considered. These neighbors are on the same geometries the given vertex belongs to. There can be more than one geometry the vertex belongs to because geometries can share the same point.
+1. **Visibility neighbor:** These neighbors are all vertices, regardless of the geometry they belong to, that are visible from a given vertex.
+2. **Obstacle neighbors:** These are neighbors on geometries the given vertex belongs to. There can be more than one geometry the vertex belongs to, because geometries can share the same point (for example touching building).
 
 ## Vertex
 

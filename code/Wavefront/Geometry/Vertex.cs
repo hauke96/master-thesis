@@ -12,8 +12,9 @@ public class Vertex
     /// The neighbors are neighboring vertices on obstacles but not across open spaces. These are not the visible
     /// vertices one might obtain by running the knn-search to find all n many visible neighbors. This list is sorted by
     /// the bearing of each position.
+    /// In other words: There is an edge from this vertex to these neighboring vertices in the (preprocessed) dataset. 
     /// </summary>
-    public List<Position> Neighbors { get; }
+    public List<Position> ObstacleNeighbors { get; }
 
     private readonly Position _position;
     public int Id { get; }
@@ -42,41 +43,39 @@ public class Vertex
     {
     }
 
-    /// <param name="neighbors">
+    /// <param name="obstacleNeighbors">
     /// The neighbors are neighboring vertices on obstacles but not across open spaces. These are not the visible
     /// vertices one might obtain by running the knn-search to find all n many visible neighbors.
     /// </param>
-    public Vertex(Position position, params Position[] neighbors) : this(position, neighbors.ToList())
+    public Vertex(Position position, params Position[] obstacleNeighbors) : this(position, obstacleNeighbors.ToList())
     {
     }
 
-    /// <param name="neighbors">
+    /// <param name="obstacleNeighbors">
     /// The neighbors are neighboring vertices on obstacles but not across open spaces. These are not the visible
     /// vertices one might obtain by running the knn-search to find all n many visible neighbors.
     /// </param>
-    public Vertex(Position position, List<Position> neighbors)
+    public Vertex(Position position, List<Position> obstacleNeighbors)
     {
         Position = position;
-        neighbors.ForEach(neighbor => neighbor.Bearing = Angle.GetBearing(Position, neighbor));
-        Neighbors = neighbors.OrderBy(neighbor => neighbor.Bearing).ToList();
-        // Neighbors = neighbors;
-        // Neighbors.Sort((p1, p2) => (int)(Angle.GetBearing(Position, p1) - Angle.GetBearing(Position, p2)));
+        obstacleNeighbors.ForEach(neighbor => neighbor.Bearing = Angle.GetBearing(Position, neighbor));
+        ObstacleNeighbors = obstacleNeighbors.OrderBy(neighbor => neighbor.Bearing).ToList();
         Id = ID_COUNTER++;
     }
 
     /// <summary>
     /// Should only be used to create a clone of a vertex.
     /// </summary>
-    private Vertex(Position position, List<Position> neighbors, int id)
+    private Vertex(Position position, List<Position> obstacleNeighbors, int id)
     {
         Position = position;
-        Neighbors = neighbors;
+        ObstacleNeighbors = obstacleNeighbors;
         Id = id;
     }
 
     public Vertex clone()
     {
-        return new Vertex(Position, Neighbors, Id);
+        return new Vertex(Position, ObstacleNeighbors, Id);
     }
 
     /// <summary>
@@ -88,14 +87,14 @@ public class Vertex
     /// The right neighbor depends on the fact if the angle area of that wavelet starts at this vertex or not.</param>
     public Position? RightNeighbor(Position basePosition, bool basePositionIsRightMostNeighbor = false)
     {
-        var basePositionIsANeighbor = Neighbors.Contains(basePosition);
+        var basePositionIsANeighbor = ObstacleNeighbors.Contains(basePosition);
         if (basePositionIsANeighbor && basePositionIsRightMostNeighbor)
         {
             return basePosition;
         }
 
         var vertexToBasePositionAngle = Angle.GetBearing(Position, basePosition);
-        var rotatedNeighborAngles = Neighbors
+        var rotatedNeighborAngles = ObstacleNeighbors
             .Map(n => Angle.Normalize(Angle.GetBearing(Position, n) - vertexToBasePositionAngle));
 
         var minAngle = double.PositiveInfinity;
@@ -113,7 +112,7 @@ public class Vertex
             }
         });
 
-        return 0 <= index && index < Neighbors.Count ? Neighbors[index] : null;
+        return 0 <= index && index < ObstacleNeighbors.Count ? ObstacleNeighbors[index] : null;
     }
 
 
@@ -127,14 +126,14 @@ public class Vertex
     /// The left neighbor depends on the fact if the angle area of that wavelet ends at this vertex or not.</param>
     public Position? LeftNeighbor(Position basePosition, bool basePositionIsLeftMostNeighbor = false)
     {
-        var basePositionIsANeighbor = Neighbors.Contains(basePosition);
+        var basePositionIsANeighbor = ObstacleNeighbors.Contains(basePosition);
         if (basePositionIsANeighbor && basePositionIsLeftMostNeighbor)
         {
             return basePosition;
         }
 
         var vertexToBasePositionAngle = Angle.GetBearing(Position, basePosition);
-        var rotatedNeighborAngles = Neighbors
+        var rotatedNeighborAngles = ObstacleNeighbors
             .Map(n => Angle.Normalize(Angle.GetBearing(Position, n) - vertexToBasePositionAngle));
 
         var maxAngle = double.NegativeInfinity;
@@ -148,7 +147,7 @@ public class Vertex
             }
         });
 
-        return 0 <= index && index < Neighbors.Count ? Neighbors[index] : null;
+        return 0 <= index && index < ObstacleNeighbors.Count ? ObstacleNeighbors[index] : null;
     }
 
     public override bool Equals(object? obj)
@@ -168,6 +167,6 @@ public class Vertex
 
     public override string ToString()
     {
-        return "v#" + Id + " : " + Position.ToString();
+        return "v#" + Id + " : " + Position;
     }
 }
