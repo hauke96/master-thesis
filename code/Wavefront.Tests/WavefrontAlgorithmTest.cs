@@ -793,7 +793,7 @@ namespace Wavefront.Tests
                 var sourceVertex = Position.CreateGeoPosition(3.5, 1.5);
                 var targetVertex = Position.CreateGeoPosition(1.5, 1.5);
 
-                var routingResult = _hybridGeometricRouter.Route(sourceVertex, targetVertex);
+                var routingResult = _hybridGeometricRouter.RouteLegacy(sourceVertex, targetVertex);
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.Contains(sourceVertex, waypoints);
@@ -807,7 +807,7 @@ namespace Wavefront.Tests
                 var sourceVertex = Position.CreateGeoPosition(3.5, 1.5);
                 var targetVertex = Position.CreateGeoPosition(1.5, 2.5);
 
-                var routingResult = _hybridGeometricRouter.Route(sourceVertex, targetVertex);
+                var routingResult = _hybridGeometricRouter.RouteLegacy(sourceVertex, targetVertex);
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.AreEqual(3, waypoints.Count);
@@ -823,7 +823,7 @@ namespace Wavefront.Tests
                 var sourceVertex = Position.CreateGeoPosition(3.5, 2.5);
                 var targetVertex = Position.CreateGeoPosition(1.5, 2.5);
 
-                var routingResult = _hybridGeometricRouter.Route(sourceVertex, targetVertex);
+                var routingResult = _hybridGeometricRouter.RouteLegacy(sourceVertex, targetVertex);
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.Contains(sourceVertex, waypoints);
@@ -842,7 +842,7 @@ namespace Wavefront.Tests
                 var sourceVertex = Position.CreateGeoPosition(1.5, 2.5);
                 var targetVertex = Position.CreateGeoPosition(3.5, 2.5);
 
-                var routingResult = _hybridGeometricRouter.Route(sourceVertex, targetVertex);
+                var routingResult = _hybridGeometricRouter.RouteLegacy(sourceVertex, targetVertex);
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.Contains(sourceVertex, waypoints);
@@ -861,7 +861,7 @@ namespace Wavefront.Tests
                 var sourceVertex = Position.CreateGeoPosition(6, 3);
                 var targetVertex = Position.CreateGeoPosition(7, 3);
 
-                var routingResult = _hybridGeometricRouter.Route(sourceVertex, targetVertex);
+                var routingResult = _hybridGeometricRouter.RouteLegacy(sourceVertex, targetVertex);
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.AreEqual(sourceVertex, waypoints[0]);
@@ -935,7 +935,7 @@ namespace Wavefront.Tests
                 var sourceVertex = Position.CreateGeoPosition(0, 1.9);
                 var targetVertex = Position.CreateGeoPosition(7, 1.9);
 
-                var routingResult = _hybridGeometricRouter.Route(sourceVertex, targetVertex);
+                var routingResult = _hybridGeometricRouter.RouteLegacy(sourceVertex, targetVertex);
                 var routeCoordinates = routingResult.OptimalRoute.Map(w => w.Position.ToCoordinate());
 
                 var expectedRoute = new List<Coordinate>()
@@ -958,7 +958,7 @@ namespace Wavefront.Tests
                 var sourceVertex = Position.CreateGeoPosition(0.9, 1.1);
                 var targetVertex = Position.CreateGeoPosition(6.1, 1.1);
 
-                var routingResult = _hybridGeometricRouter.Route(sourceVertex, targetVertex);
+                var routingResult = _hybridGeometricRouter.RouteLegacy(sourceVertex, targetVertex);
                 var routeCoordinates = routingResult.OptimalRoute.Map(w => w.Position.ToCoordinate());
 
                 var expectedRoute = new List<Coordinate>()
@@ -984,7 +984,7 @@ namespace Wavefront.Tests
                 var sourceVertex = Position.CreateGeoPosition(2.5, 1);
                 var targetVertex = Position.CreateGeoPosition(3.5, 1);
 
-                var routingResult = _hybridGeometricRouter.Route(sourceVertex, targetVertex);
+                var routingResult = _hybridGeometricRouter.RouteLegacy(sourceVertex, targetVertex);
                 var routeCoordinates = routingResult.OptimalRoute.Map(w => w.Position.ToCoordinate());
 
                 var expectedRoute = new List<Coordinate>()
@@ -1025,7 +1025,7 @@ namespace Wavefront.Tests
                 var sourceVertex = Position.CreateGeoPosition(0.8, -0.8);
                 var targetVertex = Position.CreateGeoPosition(0.8, 0.5);
 
-                var routingResult = _hybridGeometricRouter.Route(sourceVertex, targetVertex);
+                var routingResult = _hybridGeometricRouter.RouteLegacy(sourceVertex, targetVertex);
                 var routeCoordinates = routingResult.OptimalRoute.Map(w => w.Position.ToCoordinate());
 
                 var expectedRoute = new List<Coordinate>()
@@ -1056,7 +1056,7 @@ namespace Wavefront.Tests
                 var sourceVertex = Position.CreateGeoPosition(3.5, 1.5);
                 var targetVertex = Position.CreateGeoPosition(1.5, 1.5);
 
-                var routingResult = _hybridGeometricRouter.Route(sourceVertex, targetVertex);
+                var routingResult = _hybridGeometricRouter.RouteLegacy(sourceVertex, targetVertex);
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.Contains(sourceVertex, waypoints);
@@ -1102,7 +1102,7 @@ namespace Wavefront.Tests
             [Test]
             public void Routing()
             {
-                var routingResult = _hybridGeometricRouter.Route(Position.CreateGeoPosition(2, 1),
+                var routingResult = _hybridGeometricRouter.RouteLegacy(Position.CreateGeoPosition(2, 1),
                     Position.CreateGeoPosition(3.5, 4.5));
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
@@ -1150,7 +1150,7 @@ namespace Wavefront.Tests
             {
                 var source = Position.CreateGeoPosition(1, 2);
                 var target = Position.CreateGeoPosition(2, 0.25);
-                var routingResult = _hybridGeometricRouter.Route(source, target);
+                var routingResult = _hybridGeometricRouter.RouteLegacy(source, target);
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.AreEqual(0, waypoints.Count);
@@ -1201,7 +1201,7 @@ namespace Wavefront.Tests
             {
                 var source = Position.CreateGeoPosition(0.2, 2.25);
                 var target = Position.CreateGeoPosition(0.2, 0.5);
-                var routingResult = _hybridGeometricRouter.Route(source, target);
+                var routingResult = _hybridGeometricRouter.RouteLegacy(source, target);
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.AreEqual(5, waypoints.Count);
@@ -1244,7 +1244,7 @@ namespace Wavefront.Tests
             {
                 var source = Position.CreateGeoPosition(0.2, 2.25);
                 var target = Position.CreateGeoPosition(0.2, 1.5);
-                var routingResult = _hybridGeometricRouter.Route(source, target);
+                var routingResult = _hybridGeometricRouter.RouteLegacy(source, target);
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.AreEqual(0, waypoints.Count);
@@ -1291,7 +1291,7 @@ namespace Wavefront.Tests
             [Test]
             public void ShouldNotRouteAlongTouchingEdge()
             {
-                var result = _hybridGeometricRouter.Route(start, target);
+                var result = _hybridGeometricRouter.RouteLegacy(start, target);
                 var waypoints = result.OptimalRoute.Map(w => w.Position);
 
                 Assert.AreEqual(start, waypoints[0]);
@@ -1340,7 +1340,7 @@ namespace Wavefront.Tests
             {
                 var source = Position.CreateGeoPosition(0.1, 1.2);
                 var target = Position.CreateGeoPosition(0.1, -0.1);
-                var routingResult = _hybridGeometricRouter.Route(source, target);
+                var routingResult = _hybridGeometricRouter.RouteLegacy(source, target);
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.AreEqual(source, waypoints[0]);
@@ -1355,7 +1355,7 @@ namespace Wavefront.Tests
             {
                 var source = Position.CreateGeoPosition(0.1, 1.2);
                 var target = Position.CreateGeoPosition(0.1, 0.1);
-                var routingResult = _hybridGeometricRouter.Route(source, target);
+                var routingResult = _hybridGeometricRouter.RouteLegacy(source, target);
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.AreEqual(source, waypoints[0]);

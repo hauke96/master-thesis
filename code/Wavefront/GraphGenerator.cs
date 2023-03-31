@@ -24,6 +24,8 @@ public class GraphGenerator
         var vertexNeighbors = GetObstacleNeighbors(features);
 
         var nodeNeighbors = AddVisibilityVerticesAndEdges(vertexNeighbors, graph, features);
+        
+        MergeRoadsIntoGraph(features, graph);
 
         features.Where(f => f.VectorStructured.Attributes.Exists("poi"))
             .Each(f =>
@@ -137,18 +139,22 @@ public class GraphGenerator
             });
         });
 
-        Console.WriteLine($"NetworkLayer: Graph creation done after {watch.ElapsedMilliseconds}ms");
-        Console.WriteLine($"  Number of nodes: {graph.NodesMap.Count}");
-        Console.WriteLine($"  Number of edges: {graph.EdgesMap.Count}");
-
-        watch.Restart();
-        AddRoadsToGraph(graph, features);
-
-        Console.WriteLine($"NetworkLayer: Splitting graph edges done after {watch.ElapsedMilliseconds}ms");
+        Console.WriteLine($"Graph creation done after {watch.ElapsedMilliseconds}ms");
         Console.WriteLine($"  Number of nodes: {graph.NodesMap.Count}");
         Console.WriteLine($"  Number of edges: {graph.EdgesMap.Count}");
 
         return nodeNeighbors;
+    }
+
+    private static void MergeRoadsIntoGraph(ICollection<IVectorFeature> features, SpatialGraph graph)
+    {
+        var watch = Stopwatch.StartNew();
+        
+        AddRoadsToGraph(graph, features);
+
+        Console.WriteLine($"Merging road network into graph done after {watch.ElapsedMilliseconds}ms");
+        Console.WriteLine($"  Number of nodes: {graph.NodesMap.Count}");
+        Console.WriteLine($"  Number of edges: {graph.EdgesMap.Count}");
     }
 
     /// <summary>

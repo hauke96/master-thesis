@@ -114,7 +114,7 @@ namespace HikerModel.Model
                 RoutingResult routingResult = null;
 
                 var performanceMeasurementResult = PerformanceMeasurement.ForFunction(
-                    () => { routingResult = ObstacleLayer.HybridGeometricRouter.Route(from, to); },
+                    () => { routingResult = ObstacleLayer.HybridGeometricRouter.RouteLegacy(from, to); },
                     "CalculateRoute",
                     PerformanceMeasurement.DEFAULT_ITERATION_COUNT*10,
                     PerformanceMeasurement.DEFAULT_WARMUP_COUNT*3);

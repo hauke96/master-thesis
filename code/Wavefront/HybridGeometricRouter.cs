@@ -1,7 +1,11 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Text.Json.Serialization;
 using Mars.Common.Collections;
+using Mars.Common.Collections.Graph;
+using Mars.Common.Collections.Graph.Algorithms;
 using Mars.Common.Core.Collections;
+using Mars.Interfaces.Layers;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using ServiceStack;
@@ -18,26 +22,29 @@ namespace Wavefront
         // to the key vertex of a dict entry. The bins contain all visible neighbors within the angle area of the
         // obstacle neighbors of the key vertex (Vertex.Neighbors). The first bin contains the visible neighbors between
         // the first and second obstacle neighbors of the vertex, and so on.
-        private Dictionary<Vertex, List<List<Vertex>>> _vertexNeighbors;
+        [Obsolete] private Dictionary<Vertex, List<List<Vertex>>> _vertexNeighbors;
 
         // Stores the predecessor of each visited vertex position. Recursively following the predecessors from a vertex
         // v to the source gives the shortest path from the source to v.
-        public Dictionary<Waypoint, Waypoint?> WaypointToPredecessor;
-        public Dictionary<Position, Waypoint> PositionToWaypoint;
+        [Obsolete] public Dictionary<Waypoint, Waypoint?> WaypointToPredecessor;
+        [Obsolete] public Dictionary<Position, Waypoint> PositionToWaypoint;
 
         // Stores the known wavelet roots and their predecessor to make sure that wavelets are only spawned at vertices
         // where no other wavelet has been spawned yet. Following the predecessors from the target back to the source
         // yields the actual route the wavelets took and therefore the shortest path.
-        public Dictionary<Waypoint, Waypoint?> WaveletRootPredecessor;
-        public Dictionary<Position, Waypoint> WaveletRootToWaypoint;
+        [Obsolete] public Dictionary<Waypoint, Waypoint?> WaveletRootPredecessor;
+        [Obsolete] public Dictionary<Position, Waypoint> WaveletRootToWaypoint;
 
-        public FibonacciHeap<Wavelet, double> Wavelets;
-        public readonly List<Vertex> Vertices;
+        [Obsolete] public FibonacciHeap<Wavelet, double> Wavelets;
+        [Obsolete] public readonly List<Vertex> Vertices;
 
         private readonly bool _debugModeActive;
         private readonly int _knnSearchNeighborBins;
         private readonly int _knnSearchNeighborsPerBin;
 
+        private readonly SpatialGraph _graph;
+
+        [Obsolete]
         public HybridGeometricRouter(IEnumerable<IFeature> obstacles, bool debugModeActive = false,
             int knnSearchNeighborBins = 36, int knnSearchNeighborsPerBin = 10)
         {
@@ -53,6 +60,11 @@ namespace Wavefront
             Reset();
         }
 
+        public HybridGeometricRouter(ICollection<IVectorFeature> features)
+        {
+            _graph = GraphGenerator.Generate(features);
+        }
+
         /// <summary>
         /// Clears the results of a previous routing run.
         /// </summary>
@@ -65,12 +77,24 @@ namespace Wavefront
             Wavelets = new FibonacciHeap<Wavelet, double>(0);
         }
 
+        public IList<EdgeData> Route(Position source, Position target)
+        {
+            // TODO Add source and target to graph, determine visibility neighbors, create edges and clean up graph afterwards
+            
+            var sourceNode = 0;
+            var targetNode = 0;
+
+            return _graph.AStarAlgorithm(sourceNode, targetNode,
+                (edge, _) => edge.Length * (edge.Data.IsEmpty() ? 1 : 0.1));
+        }
+
         /// <summary>
         /// Calculates the optimal geometric route from the source vertex to the target vertex.
         /// </summary>
         /// <returns>The optimal route as well as all other routes found during this method call. Finding these
         /// alternative routes stopped at the moment the target was reached.</returns>
-        public RoutingResult Route(Position source, Position target)
+        [Obsolete]
+        public RoutingResult RouteLegacy(Position source, Position target)
         {
             var stopwatch = new Stopwatch();
 
@@ -165,7 +189,8 @@ namespace Wavefront
                     return;
                 }
 
-                intersectsWithObstacle |= obstacle.IntersectsWithLine(source.Coordinate, target.Coordinate, coordinateToObstacles);
+                intersectsWithObstacle |=
+                    obstacle.IntersectsWithLine(source.Coordinate, target.Coordinate, coordinateToObstacles);
             }));
 
             return !intersectsWithObstacle;
