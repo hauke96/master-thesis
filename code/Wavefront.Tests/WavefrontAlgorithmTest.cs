@@ -34,13 +34,13 @@ namespace Wavefront.Tests
                 var vertices = new List<Vertex>();
                 vertices.Add(new Vertex(6.5, 3.1));
                 var wavelet = Wavelet.New(0, 90, new Vertex(1, 1), vertices, 1, false)!;
-                wavefrontAlgorithm.AddWavelet(wavelet);
+                HybridGeometricRouter.AddWavelet(wavelet);
                 // Remove last remaining vertex
                 wavelet.RemoveNextVertex();
 
-                wavefrontAlgorithm.ProcessNextEvent(targetPosition, new Stopwatch());
+                HybridGeometricRouter.ProcessNextEvent(targetPosition, new Stopwatch());
 
-                Assert.AreEqual(0, wavefrontAlgorithm.Wavelets.Count);
+                Assert.AreEqual(0, HybridGeometricRouter.Wavelets.Count);
             }
 
             [Test]
@@ -51,11 +51,11 @@ namespace Wavefront.Tests
                 vertices.Add(multiVertexLineVertices[1]);
                 // Between but slightly below the multi-vertex-line
                 var wavelet = Wavelet.New(0, 90, new Vertex(6.5, 2.9), vertices, 1, false)!;
-                wavefrontAlgorithm.AddWavelet(wavelet);
+                HybridGeometricRouter.AddWavelet(wavelet);
 
-                wavefrontAlgorithm.ProcessNextEvent(targetPosition, new Stopwatch());
+                HybridGeometricRouter.ProcessNextEvent(targetPosition, new Stopwatch());
 
-                Assert.AreEqual(1, wavefrontAlgorithm.Wavelets.Count);
+                Assert.AreEqual(1, HybridGeometricRouter.Wavelets.Count);
                 Assert.AreEqual(1, wavelet.RelevantVertices.Count);
             }
 
@@ -67,16 +67,16 @@ namespace Wavefront.Tests
                 vertices.Add(nextVertex);
                 vertices.Add(multiVertexLineVertices[1]);
                 var wavelet = Wavelet.New(0, 90, new Vertex(5, 2), vertices, 1, false)!;
-                wavefrontAlgorithm.AddWavelet(wavelet);
-                wavefrontAlgorithm.WaypointToPredecessor[new Waypoint(nextVertex.Position, 0, 0, 0)] =
+                HybridGeometricRouter.AddWavelet(wavelet);
+                HybridGeometricRouter.WaypointToPredecessor[new Waypoint(nextVertex.Position, 0, 0, 0)] =
                     new Waypoint(Position.CreateGeoPosition(1, 1), 0, 0, 0);
-                wavefrontAlgorithm.WaveletRootPredecessor.Add(new Waypoint(nextVertex.Position, 0, 0, 0), null);
-                wavefrontAlgorithm.WaveletRootToWaypoint.Add(nextVertex.Position,
-                    wavefrontAlgorithm.WaveletRootPredecessor.First().Key);
+                HybridGeometricRouter.WaveletRootPredecessor.Add(new Waypoint(nextVertex.Position, 0, 0, 0), null);
+                HybridGeometricRouter.WaveletRootToWaypoint.Add(nextVertex.Position,
+                    HybridGeometricRouter.WaveletRootPredecessor.First().Key);
 
-                wavefrontAlgorithm.ProcessNextEvent(targetPosition, new Stopwatch());
+                HybridGeometricRouter.ProcessNextEvent(targetPosition, new Stopwatch());
 
-                Assert.AreEqual(1, wavefrontAlgorithm.Wavelets.Count);
+                Assert.AreEqual(1, HybridGeometricRouter.Wavelets.Count);
                 Assert.AreEqual(1, wavelet.RelevantVertices.Count);
             }
 
@@ -84,17 +84,17 @@ namespace Wavefront.Tests
             public void FirstVertexHasNeighbors_NotCastingShadow()
             {
                 var vertices = new List<Vertex>();
-                vertices.AddRange(wavefrontAlgorithm.Vertices);
+                vertices.AddRange(HybridGeometricRouter.Vertices);
                 vertices.Add(new Vertex(5, 2.5));
                 var wavelet = Wavelet.New(180, 270, new Vertex(7.5, 3.5), vertices, 1, false)!;
-                wavefrontAlgorithm.AddWavelet(wavelet);
+                HybridGeometricRouter.AddWavelet(wavelet);
                 Assert.AreEqual(multiVertexLineVertices[1].Position, wavelet.GetNextVertex()?.Position);
 
-                wavefrontAlgorithm.ProcessNextEvent(targetPosition, new Stopwatch());
+                HybridGeometricRouter.ProcessNextEvent(targetPosition, new Stopwatch());
 
-                Assert.AreEqual(2, wavefrontAlgorithm.Wavelets.Count);
+                Assert.AreEqual(2, HybridGeometricRouter.Wavelets.Count);
 
-                var wavelets = ToList(wavefrontAlgorithm.Wavelets);
+                var wavelets = ToList(HybridGeometricRouter.Wavelets);
                 var w = wavelets[0];
                 Assert.AreEqual(wavelet, w);
 
@@ -113,37 +113,37 @@ namespace Wavefront.Tests
                 vertices.Add(targetVertex);
 
                 var wavelet = Wavelet.New(0, 90, sourceVertex, vertices, 1, false)!;
-                wavefrontAlgorithm.AddWavelet(wavelet);
+                HybridGeometricRouter.AddWavelet(wavelet);
 
                 var rootWaypoint = new Waypoint(wavelet.RootVertex.Position, 0, 0, 0);
-                wavefrontAlgorithm.WaypointToPredecessor[rootWaypoint] = null;
-                wavefrontAlgorithm.PositionToWaypoint[rootWaypoint.Position] = rootWaypoint;
+                HybridGeometricRouter.WaypointToPredecessor[rootWaypoint] = null;
+                HybridGeometricRouter.PositionToWaypoint[rootWaypoint.Position] = rootWaypoint;
 
-                wavefrontAlgorithm.ProcessNextEvent(targetPosition, new Stopwatch());
+                HybridGeometricRouter.ProcessNextEvent(targetPosition, new Stopwatch());
 
                 var targetWaypoint =
-                    wavefrontAlgorithm.WaypointToPredecessor.Keys.First(k => k.Position.Equals(targetPosition));
-                Assert.NotNull(wavefrontAlgorithm.WaypointToPredecessor[targetWaypoint]);
+                    HybridGeometricRouter.WaypointToPredecessor.Keys.First(k => k.Position.Equals(targetPosition));
+                Assert.NotNull(HybridGeometricRouter.WaypointToPredecessor[targetWaypoint]);
                 Assert.AreEqual(wavelet.RootVertex.Position,
-                    wavefrontAlgorithm.WaypointToPredecessor[targetWaypoint].Position);
-                Assert.AreEqual(0, wavefrontAlgorithm.Wavelets.Count);
+                    HybridGeometricRouter.WaypointToPredecessor[targetWaypoint].Position);
+                Assert.AreEqual(0, HybridGeometricRouter.Wavelets.Count);
                 Assert.AreEqual(0, wavelet.RelevantVertices.Count);
             }
 
             [Test]
             public void WaveletFromAndToWithinShadowArea()
             {
-                var wavelet = Wavelet.New(10, 350, new Vertex(6.5, 2.5), wavefrontAlgorithm.Vertices.ToList(), 1,
+                var wavelet = Wavelet.New(10, 350, new Vertex(6.5, 2.5), HybridGeometricRouter.Vertices.ToList(), 1,
                     false)!;
                 var vertex = multiVertexLineVertices[1];
                 wavelet.RemoveNextVertex();
                 Assert.IsTrue(wavelet.HasBeenVisited(multiVertexLineObstacle[0].ToPosition()));
                 Assert.AreEqual(vertex, wavelet.GetNextVertex());
-                wavefrontAlgorithm.AddWavelet(wavelet);
+                HybridGeometricRouter.AddWavelet(wavelet);
 
-                wavefrontAlgorithm.ProcessNextEvent(targetPosition, new Stopwatch());
+                HybridGeometricRouter.ProcessNextEvent(targetPosition, new Stopwatch());
 
-                var wavelets = ToList(wavefrontAlgorithm.Wavelets);
+                var wavelets = ToList(HybridGeometricRouter.Wavelets);
                 Assert.AreEqual(2, wavelets.Count);
                 Assert.AreEqual(0, wavelets[0].FromAngle);
                 Assert.AreEqual(45, wavelets[0].ToAngle);
@@ -154,18 +154,18 @@ namespace Wavefront.Tests
             [Test]
             public void WaveletFromWithinShadowArea()
             {
-                wavefrontAlgorithm.Vertices.Add(new Vertex(10, 3));
-                var wavelet = Wavelet.New(0.0001, 90, new Vertex(6, 2), wavefrontAlgorithm.Vertices.ToList(), 1,
+                HybridGeometricRouter.Vertices.Add(new Vertex(10, 3));
+                var wavelet = Wavelet.New(0.0001, 90, new Vertex(6, 2), HybridGeometricRouter.Vertices.ToList(), 1,
                     false)!;
 
                 wavelet.RemoveNextVertex();
                 Assert.IsTrue(wavelet.HasBeenVisited(multiVertexLineObstacle[0].ToPosition()));
                 Assert.AreEqual(multiVertexLineVertices[1], wavelet.GetNextVertex());
 
-                wavefrontAlgorithm.AddWavelet(wavelet);
-                wavefrontAlgorithm.ProcessNextEvent(targetPosition, new Stopwatch());
+                HybridGeometricRouter.AddWavelet(wavelet);
+                HybridGeometricRouter.ProcessNextEvent(targetPosition, new Stopwatch());
 
-                var wavelets = ToList(wavefrontAlgorithm.Wavelets);
+                var wavelets = ToList(HybridGeometricRouter.Wavelets);
                 Assert.AreEqual(2, wavelets.Count);
                 Assert.AreEqual(0, wavelets[0].FromAngle);
                 Assert.AreEqual(45, wavelets[0].ToAngle);
@@ -178,18 +178,18 @@ namespace Wavefront.Tests
             [Test]
             public void WaveletToWithinShadowArea()
             {
-                wavefrontAlgorithm.Vertices.Add(new Vertex(7, 2.8));
-                var wavelet = Wavelet.New(180, 269.9999, new Vertex(8, 4), wavefrontAlgorithm.Vertices.ToList(), 1,
+                HybridGeometricRouter.Vertices.Add(new Vertex(7, 2.8));
+                var wavelet = Wavelet.New(180, 269.9999, new Vertex(8, 4), HybridGeometricRouter.Vertices.ToList(), 1,
                     false)!;
 
                 wavelet.RemoveNextVertex();
                 Assert.IsTrue(wavelet.HasBeenVisited(multiVertexLineObstacle[2].ToPosition()));
                 Assert.AreEqual(multiVertexLineVertices[1], wavelet.GetNextVertex());
 
-                wavefrontAlgorithm.AddWavelet(wavelet);
-                wavefrontAlgorithm.ProcessNextEvent(targetPosition, new Stopwatch());
+                HybridGeometricRouter.AddWavelet(wavelet);
+                HybridGeometricRouter.ProcessNextEvent(targetPosition, new Stopwatch());
 
-                var wavelets = ToList(wavefrontAlgorithm.Wavelets);
+                var wavelets = ToList(HybridGeometricRouter.Wavelets);
                 Assert.AreEqual(2, wavelets.Count);
                 Assert.AreEqual(180, wavelets[0].FromAngle);
                 Assert.AreEqual(225, wavelets[0].ToAngle);
@@ -203,7 +203,7 @@ namespace Wavefront.Tests
         public class WithCollinearObstacle
         {
             List<Vertex> simpleLineVertices;
-            WavefrontAlgorithm wavefrontAlgorithm;
+            HybridGeometricRouter _hybridGeometricRouter;
 
             [SetUp]
             public void setup()
@@ -225,7 +225,7 @@ namespace Wavefront.Tests
                 simpleLineVertices.Add(new Vertex(c2.ToPosition(), c1.ToPosition(), c3.ToPosition()));
                 simpleLineVertices.Add(new Vertex(c3.ToPosition(), c2.ToPosition()));
 
-                wavefrontAlgorithm = new WavefrontAlgorithm(obstacles);
+                _hybridGeometricRouter = new HybridGeometricRouter(obstacles);
             }
 
             [Test]
@@ -234,12 +234,12 @@ namespace Wavefront.Tests
                 var relevantVertices = new List<Vertex>();
                 relevantVertices.Add(simpleLineVertices[1]);
                 var wavelet = Wavelet.New(0, 90, simpleLineVertices[0], relevantVertices, 1, false)!;
-                wavefrontAlgorithm.AddWavelet(wavelet);
+                _hybridGeometricRouter.AddWavelet(wavelet);
 
-                wavefrontAlgorithm.ProcessNextEvent(new Position(5, 1), new Stopwatch());
+                _hybridGeometricRouter.ProcessNextEvent(new Position(5, 1), new Stopwatch());
 
                 Assert.AreEqual(0, wavelet.RelevantVertices.Count);
-                var wavelets = ToList(wavefrontAlgorithm.Wavelets);
+                var wavelets = ToList(_hybridGeometricRouter.Wavelets);
                 Assert.IsFalse(wavelets.Contains(wavelet));
 
                 Assert.AreEqual(1, wavelets.Count);
@@ -255,12 +255,12 @@ namespace Wavefront.Tests
                 var relevantVertices = new List<Vertex>();
                 relevantVertices.Add(simpleLineVertices[3]);
                 var wavelet = Wavelet.New(0, 90, simpleLineVertices[2], relevantVertices, 1, false)!;
-                wavefrontAlgorithm.AddWavelet(wavelet);
+                _hybridGeometricRouter.AddWavelet(wavelet);
 
-                wavefrontAlgorithm.ProcessNextEvent(new Position(5, 1), new Stopwatch());
+                _hybridGeometricRouter.ProcessNextEvent(new Position(5, 1), new Stopwatch());
 
                 Assert.AreEqual(0, wavelet.RelevantVertices.Count);
-                var wavelets = ToList(wavefrontAlgorithm.Wavelets);
+                var wavelets = ToList(_hybridGeometricRouter.Wavelets);
                 Assert.IsFalse(wavelets.Contains(wavelet));
 
                 Assert.AreEqual(1, wavelets.Count);
@@ -283,26 +283,26 @@ namespace Wavefront.Tests
             public void Setup()
             {
                 nextVertex = multiVertexLineVertices[0];
-                _wavelet = Wavelet.New(0, 350, new Vertex(5, 0), wavefrontAlgorithm.Vertices.ToList(), 1,
+                _wavelet = Wavelet.New(0, 350, new Vertex(5, 0), HybridGeometricRouter.Vertices.ToList(), 1,
                     false)!;
-                wavefrontAlgorithm.AddWavelet(_wavelet);
+                HybridGeometricRouter.AddWavelet(_wavelet);
                 targetPosition = Position.CreateGeoPosition(10, 10);
 
                 var rootWaypoint = new Waypoint(_wavelet.RootVertex.Position, 0, 0, 0);
-                wavefrontAlgorithm.WaypointToPredecessor[rootWaypoint] = null;
-                wavefrontAlgorithm.PositionToWaypoint[rootWaypoint.Position] = rootWaypoint;
+                HybridGeometricRouter.WaypointToPredecessor[rootWaypoint] = null;
+                HybridGeometricRouter.PositionToWaypoint[rootWaypoint.Position] = rootWaypoint;
 
-                wavefrontAlgorithm.ProcessNextEvent(targetPosition, new Stopwatch());
+                HybridGeometricRouter.ProcessNextEvent(targetPosition, new Stopwatch());
             }
 
             [Test]
             public void SetsPredecessorCorrectly()
             {
                 var waypoint =
-                    wavefrontAlgorithm.WaypointToPredecessor.Keys.First(k => k.Position.Equals(nextVertex.Position));
-                Assert.NotNull(wavefrontAlgorithm.WaypointToPredecessor[waypoint]);
+                    HybridGeometricRouter.WaypointToPredecessor.Keys.First(k => k.Position.Equals(nextVertex.Position));
+                Assert.NotNull(HybridGeometricRouter.WaypointToPredecessor[waypoint]);
                 Assert.AreEqual(_wavelet.RootVertex.Position,
-                    wavefrontAlgorithm.WaypointToPredecessor[waypoint].Position);
+                    HybridGeometricRouter.WaypointToPredecessor[waypoint].Position);
             }
 
             [Test]
@@ -314,7 +314,7 @@ namespace Wavefront.Tests
             [Test]
             public void NotCastingShadow_NotRemovingOldWavefront()
             {
-                var wavelets = ToList(wavefrontAlgorithm.Wavelets);
+                var wavelets = ToList(HybridGeometricRouter.Wavelets);
                 Assert.IsTrue(wavelets.Contains(_wavelet));
                 Assert.AreEqual(2, wavelets.Count);
 
@@ -330,9 +330,9 @@ namespace Wavefront.Tests
             [Test]
             public void NextVertexCastingShadow()
             {
-                wavefrontAlgorithm.ProcessNextEvent(targetPosition, new Stopwatch());
+                HybridGeometricRouter.ProcessNextEvent(targetPosition, new Stopwatch());
 
-                var wavelets = ToList(wavefrontAlgorithm.Wavelets);
+                var wavelets = ToList(HybridGeometricRouter.Wavelets);
                 Assert.IsFalse(wavelets.Contains(_wavelet));
                 Assert.AreEqual(3, wavelets.Count);
 
@@ -364,26 +364,26 @@ namespace Wavefront.Tests
             {
                 nextVertex = multiVertexLineVertices[0];
                 // Add wavelet close to the next vertex
-                _wavelet = Wavelet.New(270, 355, new Vertex(6.2, 2.8), wavefrontAlgorithm.Vertices.ToList(), 1,
+                _wavelet = Wavelet.New(270, 355, new Vertex(6.2, 2.8), HybridGeometricRouter.Vertices.ToList(), 1,
                     false)!;
-                wavefrontAlgorithm.AddWavelet(_wavelet);
+                HybridGeometricRouter.AddWavelet(_wavelet);
                 targetPosition = Position.CreateGeoPosition(10, 10);
 
                 var rootWaypoint = new Waypoint(_wavelet.RootVertex.Position, 0, 0, 0);
-                wavefrontAlgorithm.WaypointToPredecessor[rootWaypoint] = null;
-                wavefrontAlgorithm.PositionToWaypoint[rootWaypoint.Position] = rootWaypoint;
+                HybridGeometricRouter.WaypointToPredecessor[rootWaypoint] = null;
+                HybridGeometricRouter.PositionToWaypoint[rootWaypoint.Position] = rootWaypoint;
 
-                wavefrontAlgorithm.ProcessNextEvent(targetPosition, new Stopwatch());
+                HybridGeometricRouter.ProcessNextEvent(targetPosition, new Stopwatch());
             }
 
             [Test]
             public void SetsPredecessorCorrectly()
             {
                 var waypoint =
-                    wavefrontAlgorithm.WaypointToPredecessor.Keys.First(k => k.Position.Equals(nextVertex.Position));
-                Assert.NotNull(wavefrontAlgorithm.WaypointToPredecessor[waypoint]);
+                    HybridGeometricRouter.WaypointToPredecessor.Keys.First(k => k.Position.Equals(nextVertex.Position));
+                Assert.NotNull(HybridGeometricRouter.WaypointToPredecessor[waypoint]);
                 Assert.AreEqual(_wavelet.RootVertex.Position,
-                    wavefrontAlgorithm.WaypointToPredecessor[waypoint].Position);
+                    HybridGeometricRouter.WaypointToPredecessor[waypoint].Position);
             }
 
             [Test]
@@ -395,7 +395,7 @@ namespace Wavefront.Tests
             [Test]
             public void ReplacesOriginalWavefront()
             {
-                var wavelets = ToList(wavefrontAlgorithm.Wavelets);
+                var wavelets = ToList(HybridGeometricRouter.Wavelets);
                 Assert.Contains(_wavelet, wavelets);
                 Assert.AreEqual(3, wavelets.Count);
 
@@ -418,31 +418,31 @@ namespace Wavefront.Tests
             [Test]
             public void EqualAngleBetweenFromAndTo()
             {
-                Assert.True(wavefrontAlgorithm.Wavelets.IsEmpty());
-                wavefrontAlgorithm.AddWaveletIfValid(wavefrontAlgorithm.Vertices.ToList(), rootVertex, 10,
+                Assert.True(HybridGeometricRouter.Wavelets.IsEmpty());
+                HybridGeometricRouter.AddWaveletIfValid(HybridGeometricRouter.Vertices.ToList(), rootVertex, 10,
                     10, 10, false);
-                Assert.True(wavefrontAlgorithm.Wavelets.IsEmpty());
+                Assert.True(HybridGeometricRouter.Wavelets.IsEmpty());
             }
 
             [Test]
             public void NewWavefrontWouldBeInvalid()
             {
-                Assert.True(wavefrontAlgorithm.Wavelets.IsEmpty());
-                wavefrontAlgorithm.AddWaveletIfValid(wavefrontAlgorithm.Vertices.ToList(), rootVertex, 10,
+                Assert.True(HybridGeometricRouter.Wavelets.IsEmpty());
+                HybridGeometricRouter.AddWaveletIfValid(HybridGeometricRouter.Vertices.ToList(), rootVertex, 10,
                     10, 11, false);
-                Assert.True(wavefrontAlgorithm.Wavelets.IsEmpty());
+                Assert.True(HybridGeometricRouter.Wavelets.IsEmpty());
             }
 
             [Test]
             public void NewWavefrontAdded()
             {
-                Assert.True(wavefrontAlgorithm.Wavelets.IsEmpty());
+                Assert.True(HybridGeometricRouter.Wavelets.IsEmpty());
 
-                wavefrontAlgorithm.AddWaveletIfValid(wavefrontAlgorithm.Vertices.ToList(), rootVertex, 10,
+                HybridGeometricRouter.AddWaveletIfValid(HybridGeometricRouter.Vertices.ToList(), rootVertex, 10,
                     190, 360, false);
 
-                Assert.AreEqual(1, wavefrontAlgorithm.Wavelets.Count);
-                var wavelet = ToList(wavefrontAlgorithm.Wavelets)[0];
+                Assert.AreEqual(1, HybridGeometricRouter.Wavelets.Count);
+                var wavelet = ToList(HybridGeometricRouter.Wavelets)[0];
                 Assert.AreEqual(190, wavelet.FromAngle);
                 Assert.AreEqual(360, wavelet.ToAngle);
                 Assert.AreEqual(2, wavelet.RelevantVertices.Count);
@@ -455,23 +455,23 @@ namespace Wavefront.Tests
             [Test]
             public void NoNeighborToWest()
             {
-                var wavelet = Wavelet.New(0, 90, new Vertex(5, 0), wavefrontAlgorithm.Vertices.ToList(), 10,
+                var wavelet = Wavelet.New(0, 90, new Vertex(5, 0), HybridGeometricRouter.Vertices.ToList(), 10,
                     false)!;
-                wavefrontAlgorithm.AddWavelet(wavelet);
+                HybridGeometricRouter.AddWavelet(wavelet);
                 var vertex = multiVertexLineVertices[1];
                 wavelet.RemoveNextVertex();
                 Assert.IsTrue(wavelet.HasBeenVisited(multiVertexLineObstacle[0].ToPosition()));
                 Assert.AreEqual(vertex, wavelet.GetNextVertex());
 
-                wavefrontAlgorithm.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
+                HybridGeometricRouter.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
                     out var angleShadowTo, out var createdWavefront);
 
                 Assert.IsNotEmpty(createdWavefront);
                 Assert.AreEqual(18.435, angleShadowFrom, FLOAT_TOLERANCE);
                 Assert.AreEqual(33.69, angleShadowTo, FLOAT_TOLERANCE);
 
-                Assert.AreEqual(2, wavefrontAlgorithm.Wavelets.Count);
-                var wavelets = ToList(wavefrontAlgorithm.Wavelets);
+                Assert.AreEqual(2, HybridGeometricRouter.Wavelets.Count);
+                var wavelets = ToList(HybridGeometricRouter.Wavelets);
                 var w = wavelets[0];
                 Assert.AreEqual(wavelet, w);
 
@@ -487,19 +487,19 @@ namespace Wavefront.Tests
             public void EndOfLine_CreatesNew180DegreeWavefront()
             {
                 var wavelet = Wavelet.New(180, 270, new Vertex(multiVertexLineObstacle[1].ToPosition()),
-                    wavefrontAlgorithm.Vertices.ToList(), 10, false)!;
-                wavefrontAlgorithm.AddWavelet(wavelet);
+                    HybridGeometricRouter.Vertices.ToList(), 10, false)!;
+                HybridGeometricRouter.AddWavelet(wavelet);
                 var vertex = multiVertexLineVertices[0];
                 Assert.AreEqual(vertex, wavelet.GetNextVertex());
 
-                wavefrontAlgorithm.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
+                HybridGeometricRouter.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
                     out var angleShadowTo, out var createdWavefront);
 
                 Assert.IsNotEmpty(createdWavefront);
                 Assert.IsNaN(angleShadowFrom);
                 Assert.IsNaN(angleShadowTo);
 
-                var wavelets = ToList(wavefrontAlgorithm.Wavelets);
+                var wavelets = ToList(HybridGeometricRouter.Wavelets);
                 Assert.AreEqual(3, wavelets.Count);
                 var w = wavelets[0];
                 Assert.AreEqual(wavelet, w);
@@ -521,20 +521,20 @@ namespace Wavefront.Tests
             public void StartingFromEndOfLine_CreatesNewWavefront()
             {
                 var wavelet = Wavelet.New(90, 180, new Vertex(multiVertexLineObstacle[0].ToPosition()),
-                    wavefrontAlgorithm.Vertices.ToList(), 10, false)!;
-                wavefrontAlgorithm.AddWavelet(wavelet);
+                    HybridGeometricRouter.Vertices.ToList(), 10, false)!;
+                HybridGeometricRouter.AddWavelet(wavelet);
                 var vertex = multiVertexLineVertices[1];
                 Assert.AreEqual(vertex, wavelet.GetNextVertex());
 
-                wavefrontAlgorithm.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
+                HybridGeometricRouter.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
                     out var angleShadowTo, out var createdWavefront);
 
                 Assert.IsNotEmpty(createdWavefront);
                 Assert.IsNaN(angleShadowFrom);
                 Assert.IsNaN(angleShadowTo);
 
-                Assert.AreEqual(2, wavefrontAlgorithm.Wavelets.Count);
-                var wavelets = ToList(wavefrontAlgorithm.Wavelets);
+                Assert.AreEqual(2, HybridGeometricRouter.Wavelets.Count);
+                var wavelets = ToList(HybridGeometricRouter.Wavelets);
                 var w = wavelets[0];
                 Assert.AreEqual(wavelet, w);
 
@@ -548,23 +548,23 @@ namespace Wavefront.Tests
             [Test]
             public void NoNeighborToEast()
             {
-                var wavelet = Wavelet.New(190, 350, new Vertex(8, 4.5), wavefrontAlgorithm.Vertices.ToList(),
+                var wavelet = Wavelet.New(190, 350, new Vertex(8, 4.5), HybridGeometricRouter.Vertices.ToList(),
                     10, false)!;
-                wavefrontAlgorithm.AddWavelet(wavelet);
+                HybridGeometricRouter.AddWavelet(wavelet);
                 var vertex = multiVertexLineVertices[1];
                 wavelet.RemoveNextVertex();
                 Assert.IsTrue(wavelet.HasBeenVisited(multiVertexLineObstacle[2].ToPosition()));
                 Assert.AreEqual(vertex, wavelet.GetNextVertex());
 
-                wavefrontAlgorithm.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
+                HybridGeometricRouter.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
                     out var angleShadowTo, out var createdWavefront);
 
                 Assert.IsNotEmpty(createdWavefront);
                 Assert.AreEqual(243.43, angleShadowTo, FLOAT_TOLERANCE);
                 Assert.AreEqual(213.69, angleShadowFrom, FLOAT_TOLERANCE);
 
-                Assert.AreEqual(2, wavefrontAlgorithm.Wavelets.Count);
-                var wavelets = ToList(wavefrontAlgorithm.Wavelets);
+                Assert.AreEqual(2, HybridGeometricRouter.Wavelets.Count);
+                var wavelets = ToList(HybridGeometricRouter.Wavelets);
                 var w = wavelets[0];
                 Assert.AreEqual(wavelet, w);
 
@@ -579,54 +579,54 @@ namespace Wavefront.Tests
             [Test]
             public void NeighborsOutsideWavefront_NotVisited()
             {
-                var wavelet = Wavelet.New(300, 330, new Vertex(8, 2), wavefrontAlgorithm.Vertices.ToList(),
+                var wavelet = Wavelet.New(300, 330, new Vertex(8, 2), HybridGeometricRouter.Vertices.ToList(),
                     10, false)!;
-                wavefrontAlgorithm.AddWavelet(wavelet);
+                HybridGeometricRouter.AddWavelet(wavelet);
                 var vertex = multiVertexLineVertices[1];
                 Assert.IsFalse(wavelet.HasBeenVisited(multiVertexLineObstacle[2].ToPosition()));
                 Assert.AreEqual(vertex, wavelet.GetNextVertex());
 
-                wavefrontAlgorithm.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
+                HybridGeometricRouter.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
                     out var angleShadowTo, out var createdWavefront);
 
                 Assert.IsEmpty(createdWavefront);
                 Assert.AreEqual(Double.NaN, angleShadowFrom);
                 Assert.AreEqual(Double.NaN, angleShadowTo);
 
-                Assert.AreEqual(1, wavefrontAlgorithm.Wavelets.Count);
-                var w = ToList(wavefrontAlgorithm.Wavelets)[0];
+                Assert.AreEqual(1, HybridGeometricRouter.Wavelets.Count);
+                var w = ToList(HybridGeometricRouter.Wavelets)[0];
                 Assert.AreEqual(wavelet, w);
             }
 
             [Test]
             public void NeighborsInsideWavefront_NotVisited()
             {
-                var wavelet = Wavelet.New(270, 360, new Vertex(8, 2), wavefrontAlgorithm.Vertices.ToList(),
+                var wavelet = Wavelet.New(270, 360, new Vertex(8, 2), HybridGeometricRouter.Vertices.ToList(),
                     10, false)!;
-                wavefrontAlgorithm.AddWavelet(wavelet);
+                HybridGeometricRouter.AddWavelet(wavelet);
                 var vertex = multiVertexLineVertices[1];
                 Assert.IsFalse(wavelet.HasBeenVisited(multiVertexLineObstacle[0].ToPosition()));
                 Assert.IsFalse(wavelet.HasBeenVisited(multiVertexLineObstacle[2].ToPosition()));
                 Assert.AreEqual(vertex, wavelet.GetNextVertex());
 
-                wavefrontAlgorithm.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
+                HybridGeometricRouter.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
                     out var angleShadowTo, out var createdWavefront);
 
                 Assert.IsEmpty(createdWavefront);
                 Assert.AreEqual(Double.NaN, angleShadowFrom);
                 Assert.AreEqual(Double.NaN, angleShadowTo);
 
-                Assert.AreEqual(1, wavefrontAlgorithm.Wavelets.Count);
-                var w = ToList(wavefrontAlgorithm.Wavelets)[0];
+                Assert.AreEqual(1, HybridGeometricRouter.Wavelets.Count);
+                var w = ToList(HybridGeometricRouter.Wavelets)[0];
                 Assert.AreEqual(wavelet, w);
             }
 
             [Test]
             public void NeighborsInsideWavefront_BothVisited()
             {
-                var wavelet = Wavelet.New(0, 270, new Vertex(6, 4), wavefrontAlgorithm.Vertices.ToList(), 10,
+                var wavelet = Wavelet.New(0, 270, new Vertex(6, 4), HybridGeometricRouter.Vertices.ToList(), 10,
                     false)!;
-                wavefrontAlgorithm.AddWavelet(wavelet);
+                HybridGeometricRouter.AddWavelet(wavelet);
                 var vertex = multiVertexLineVertices[1];
                 wavelet.RemoveNextVertex();
                 wavelet.RemoveNextVertex();
@@ -634,15 +634,15 @@ namespace Wavefront.Tests
                 Assert.IsTrue(wavelet.HasBeenVisited(multiVertexLineObstacle[2].ToPosition()));
                 Assert.AreEqual(vertex, wavelet.GetNextVertex());
 
-                wavefrontAlgorithm.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
+                HybridGeometricRouter.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
                     out var angleShadowTo, out var createdWavefront);
 
                 Assert.IsEmpty(createdWavefront);
                 Assert.AreEqual(90, angleShadowFrom, FLOAT_TOLERANCE);
                 Assert.AreEqual(180, angleShadowTo, FLOAT_TOLERANCE);
 
-                Assert.AreEqual(1, wavefrontAlgorithm.Wavelets.Count);
-                var w = ToList(wavefrontAlgorithm.Wavelets)[0];
+                Assert.AreEqual(1, HybridGeometricRouter.Wavelets.Count);
+                var w = ToList(HybridGeometricRouter.Wavelets)[0];
                 Assert.AreEqual(wavelet, w);
             }
 
@@ -650,21 +650,21 @@ namespace Wavefront.Tests
             public void FirstVertexHasNeighbors_NotCastingShadow()
             {
                 var vertices = new List<Vertex>();
-                vertices.AddRange(wavefrontAlgorithm.Vertices);
+                vertices.AddRange(HybridGeometricRouter.Vertices);
                 vertices.Add(new Vertex(5, 2.5));
                 var wavelet = Wavelet.New(180, 270, new Vertex(7.5, 3.5), vertices, 1, false)!;
-                wavefrontAlgorithm.AddWavelet(wavelet);
+                HybridGeometricRouter.AddWavelet(wavelet);
                 var vertex = multiVertexLineVertices[1];
 
-                wavefrontAlgorithm.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
+                HybridGeometricRouter.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
                     out var angleShadowTo, out var createdWavefront);
 
                 Assert.IsNotEmpty(createdWavefront);
                 Assert.IsNaN(angleShadowFrom);
                 Assert.IsNaN(angleShadowTo);
 
-                Assert.AreEqual(2, wavefrontAlgorithm.Wavelets.Count);
-                var wavelets = ToList(wavefrontAlgorithm.Wavelets);
+                Assert.AreEqual(2, HybridGeometricRouter.Wavelets.Count);
+                var wavelets = ToList(HybridGeometricRouter.Wavelets);
                 var w = wavelets[0];
                 Assert.AreEqual(wavelet, w);
 
@@ -678,39 +678,39 @@ namespace Wavefront.Tests
             public void InnerCornerOnLine_NotCreatingNewWavefront()
             {
                 var wavelet = Wavelet.New(0, 90, multiVertexLineVertices[0],
-                    wavefrontAlgorithm.Vertices.ToList(), 1, false)!;
-                wavefrontAlgorithm.AddWavelet(wavelet);
+                    HybridGeometricRouter.Vertices.ToList(), 1, false)!;
+                HybridGeometricRouter.AddWavelet(wavelet);
                 var vertex = multiVertexLineVertices[1];
 
-                wavefrontAlgorithm.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
+                HybridGeometricRouter.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
                     out var angleShadowTo, out var createdWavefront);
 
                 Assert.IsEmpty(createdWavefront);
                 Assert.IsNaN(angleShadowFrom);
                 Assert.IsNaN(angleShadowTo);
 
-                Assert.AreEqual(1, wavefrontAlgorithm.Wavelets.Count);
-                Assert.AreEqual(wavelet, ToList(wavefrontAlgorithm.Wavelets)[0]);
+                Assert.AreEqual(1, HybridGeometricRouter.Wavelets.Count);
+                Assert.AreEqual(wavelet, ToList(HybridGeometricRouter.Wavelets)[0]);
             }
 
             [Test]
             public void InnerCorner_NotCreatingNewWavefront()
             {
                 var wavelet = Wavelet.New(0, 90,
-                    new Vertex(6.75, 3.25), wavefrontAlgorithm.Vertices.ToList(),
+                    new Vertex(6.75, 3.25), HybridGeometricRouter.Vertices.ToList(),
                     1, false)!;
-                wavefrontAlgorithm.AddWavelet(wavelet);
+                HybridGeometricRouter.AddWavelet(wavelet);
                 var vertex = multiVertexLineVertices[1];
 
-                wavefrontAlgorithm.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
+                HybridGeometricRouter.HandleNeighbors(vertex, wavelet, out var angleShadowFrom,
                     out var angleShadowTo, out var createdWavefront);
 
                 Assert.IsEmpty(createdWavefront);
                 Assert.IsNaN(angleShadowFrom);
                 Assert.IsNaN(angleShadowTo);
 
-                Assert.AreEqual(1, wavefrontAlgorithm.Wavelets.Count);
-                Assert.AreEqual(wavelet, ToList(wavefrontAlgorithm.Wavelets)[0]);
+                Assert.AreEqual(1, HybridGeometricRouter.Wavelets.Count);
+                Assert.AreEqual(wavelet, ToList(HybridGeometricRouter.Wavelets)[0]);
             }
         }
 
@@ -719,13 +719,13 @@ namespace Wavefront.Tests
             [Test]
             public void OneWavefrontAdded()
             {
-                Assert.True(wavefrontAlgorithm.Wavelets.IsEmpty());
+                Assert.True(HybridGeometricRouter.Wavelets.IsEmpty());
 
-                wavefrontAlgorithm.AddNewWavelet(wavefrontAlgorithm.Vertices.ToList(), rootVertex, 10, 190, 350,
+                HybridGeometricRouter.AddNewWavelet(HybridGeometricRouter.Vertices.ToList(), rootVertex, 10, 190, 350,
                     false);
 
-                Assert.AreEqual(1, wavefrontAlgorithm.Wavelets.Count);
-                var wavelet = ToList(wavefrontAlgorithm.Wavelets)[0];
+                Assert.AreEqual(1, HybridGeometricRouter.Wavelets.Count);
+                var wavelet = ToList(HybridGeometricRouter.Wavelets)[0];
                 Assert.AreEqual(190, wavelet.FromAngle);
                 Assert.AreEqual(350, wavelet.ToAngle);
                 Assert.AreEqual(2, wavelet.RelevantVertices.Count);
@@ -735,14 +735,14 @@ namespace Wavefront.Tests
             [Test]
             public void AngleRangeExceedsZeroDegree()
             {
-                Assert.True(wavefrontAlgorithm.Wavelets.IsEmpty());
+                Assert.True(HybridGeometricRouter.Wavelets.IsEmpty());
 
-                wavefrontAlgorithm.AddNewWavelet(wavefrontAlgorithm.Vertices.ToList(), rootVertex, 10, 190, 90,
+                HybridGeometricRouter.AddNewWavelet(HybridGeometricRouter.Vertices.ToList(), rootVertex, 10, 190, 90,
                     false);
 
-                Assert.AreEqual(2, wavefrontAlgorithm.Wavelets.Count);
+                Assert.AreEqual(2, HybridGeometricRouter.Wavelets.Count);
 
-                var wavelets = ToList(wavefrontAlgorithm.Wavelets);
+                var wavelets = ToList(HybridGeometricRouter.Wavelets);
                 var wavelet = wavelets[0];
                 Assert.AreEqual(0, wavelet.FromAngle);
                 Assert.AreEqual(90, wavelet.ToAngle);
@@ -759,7 +759,7 @@ namespace Wavefront.Tests
 
         public class Route
         {
-            static WavefrontAlgorithm wavefrontAlgorithm;
+            static HybridGeometricRouter _hybridGeometricRouter;
             static LineString multiVertexLineObstacle;
             static LineString rotatedLineObstacle;
 
@@ -784,7 +784,7 @@ namespace Wavefront.Tests
 
                 var obstacles = obstacleGeometries.Map(geometry => new Feature(geometry, new AttributesTable()));
 
-                wavefrontAlgorithm = new WavefrontAlgorithm(obstacles);
+                _hybridGeometricRouter = new HybridGeometricRouter(obstacles);
             }
 
             [Test]
@@ -793,7 +793,7 @@ namespace Wavefront.Tests
                 var sourceVertex = Position.CreateGeoPosition(3.5, 1.5);
                 var targetVertex = Position.CreateGeoPosition(1.5, 1.5);
 
-                var routingResult = wavefrontAlgorithm.Route(sourceVertex, targetVertex);
+                var routingResult = _hybridGeometricRouter.Route(sourceVertex, targetVertex);
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.Contains(sourceVertex, waypoints);
@@ -807,7 +807,7 @@ namespace Wavefront.Tests
                 var sourceVertex = Position.CreateGeoPosition(3.5, 1.5);
                 var targetVertex = Position.CreateGeoPosition(1.5, 2.5);
 
-                var routingResult = wavefrontAlgorithm.Route(sourceVertex, targetVertex);
+                var routingResult = _hybridGeometricRouter.Route(sourceVertex, targetVertex);
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.AreEqual(3, waypoints.Count);
@@ -823,7 +823,7 @@ namespace Wavefront.Tests
                 var sourceVertex = Position.CreateGeoPosition(3.5, 2.5);
                 var targetVertex = Position.CreateGeoPosition(1.5, 2.5);
 
-                var routingResult = wavefrontAlgorithm.Route(sourceVertex, targetVertex);
+                var routingResult = _hybridGeometricRouter.Route(sourceVertex, targetVertex);
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.Contains(sourceVertex, waypoints);
@@ -842,7 +842,7 @@ namespace Wavefront.Tests
                 var sourceVertex = Position.CreateGeoPosition(1.5, 2.5);
                 var targetVertex = Position.CreateGeoPosition(3.5, 2.5);
 
-                var routingResult = wavefrontAlgorithm.Route(sourceVertex, targetVertex);
+                var routingResult = _hybridGeometricRouter.Route(sourceVertex, targetVertex);
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.Contains(sourceVertex, waypoints);
@@ -861,7 +861,7 @@ namespace Wavefront.Tests
                 var sourceVertex = Position.CreateGeoPosition(6, 3);
                 var targetVertex = Position.CreateGeoPosition(7, 3);
 
-                var routingResult = wavefrontAlgorithm.Route(sourceVertex, targetVertex);
+                var routingResult = _hybridGeometricRouter.Route(sourceVertex, targetVertex);
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.AreEqual(sourceVertex, waypoints[0]);
@@ -874,7 +874,7 @@ namespace Wavefront.Tests
 
         public class RouteWithAlignedObstacles
         {
-            static WavefrontAlgorithm wavefrontAlgorithm;
+            static HybridGeometricRouter _hybridGeometricRouter;
 
             [SetUp]
             public void Setup()
@@ -926,7 +926,7 @@ namespace Wavefront.Tests
 
                 var obstacles = obstacleGeometries.Map(geometry => new Feature(geometry, new AttributesTable()));
 
-                wavefrontAlgorithm = new WavefrontAlgorithm(obstacles);
+                _hybridGeometricRouter = new HybridGeometricRouter(obstacles);
             }
 
             [Test]
@@ -935,7 +935,7 @@ namespace Wavefront.Tests
                 var sourceVertex = Position.CreateGeoPosition(0, 1.9);
                 var targetVertex = Position.CreateGeoPosition(7, 1.9);
 
-                var routingResult = wavefrontAlgorithm.Route(sourceVertex, targetVertex);
+                var routingResult = _hybridGeometricRouter.Route(sourceVertex, targetVertex);
                 var routeCoordinates = routingResult.OptimalRoute.Map(w => w.Position.ToCoordinate());
 
                 var expectedRoute = new List<Coordinate>()
@@ -958,7 +958,7 @@ namespace Wavefront.Tests
                 var sourceVertex = Position.CreateGeoPosition(0.9, 1.1);
                 var targetVertex = Position.CreateGeoPosition(6.1, 1.1);
 
-                var routingResult = wavefrontAlgorithm.Route(sourceVertex, targetVertex);
+                var routingResult = _hybridGeometricRouter.Route(sourceVertex, targetVertex);
                 var routeCoordinates = routingResult.OptimalRoute.Map(w => w.Position.ToCoordinate());
 
                 var expectedRoute = new List<Coordinate>()
@@ -984,7 +984,7 @@ namespace Wavefront.Tests
                 var sourceVertex = Position.CreateGeoPosition(2.5, 1);
                 var targetVertex = Position.CreateGeoPosition(3.5, 1);
 
-                var routingResult = wavefrontAlgorithm.Route(sourceVertex, targetVertex);
+                var routingResult = _hybridGeometricRouter.Route(sourceVertex, targetVertex);
                 var routeCoordinates = routingResult.OptimalRoute.Map(w => w.Position.ToCoordinate());
 
                 var expectedRoute = new List<Coordinate>()
@@ -999,7 +999,7 @@ namespace Wavefront.Tests
 
         public class RouteIntoOpenObstacle
         {
-            static WavefrontAlgorithm wavefrontAlgorithm;
+            static HybridGeometricRouter _hybridGeometricRouter;
 
             [SetUp]
             public void Setup()
@@ -1016,7 +1016,7 @@ namespace Wavefront.Tests
 
                 var obstacles = obstacleGeometries.Map(geometry => new Feature(geometry, new AttributesTable()));
 
-                wavefrontAlgorithm = new WavefrontAlgorithm(obstacles);
+                _hybridGeometricRouter = new HybridGeometricRouter(obstacles);
             }
 
             [Test]
@@ -1025,7 +1025,7 @@ namespace Wavefront.Tests
                 var sourceVertex = Position.CreateGeoPosition(0.8, -0.8);
                 var targetVertex = Position.CreateGeoPosition(0.8, 0.5);
 
-                var routingResult = wavefrontAlgorithm.Route(sourceVertex, targetVertex);
+                var routingResult = _hybridGeometricRouter.Route(sourceVertex, targetVertex);
                 var routeCoordinates = routingResult.OptimalRoute.Map(w => w.Position.ToCoordinate());
 
                 var expectedRoute = new List<Coordinate>()
@@ -1042,12 +1042,12 @@ namespace Wavefront.Tests
 
         public class RouteWithoutObstacles
         {
-            static WavefrontAlgorithm wavefrontAlgorithm;
+            static HybridGeometricRouter _hybridGeometricRouter;
 
             [SetUp]
             public void Setup()
             {
-                wavefrontAlgorithm = new WavefrontAlgorithm(new List<Feature>());
+                _hybridGeometricRouter = new HybridGeometricRouter(new List<Feature>());
             }
 
             [Test]
@@ -1056,7 +1056,7 @@ namespace Wavefront.Tests
                 var sourceVertex = Position.CreateGeoPosition(3.5, 1.5);
                 var targetVertex = Position.CreateGeoPosition(1.5, 1.5);
 
-                var routingResult = wavefrontAlgorithm.Route(sourceVertex, targetVertex);
+                var routingResult = _hybridGeometricRouter.Route(sourceVertex, targetVertex);
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.Contains(sourceVertex, waypoints);
@@ -1069,7 +1069,7 @@ namespace Wavefront.Tests
         {
             // Real world problem: Route was not shortest when going around building
 
-            static WavefrontAlgorithm wavefrontAlgorithm;
+            static HybridGeometricRouter _hybridGeometricRouter;
 
             [SetUp]
             public void Setup()
@@ -1096,13 +1096,13 @@ namespace Wavefront.Tests
 
                 var obstacles = obstacleGeometries.Map(geometry => new Feature(geometry, new AttributesTable()));
 
-                wavefrontAlgorithm = new WavefrontAlgorithm(obstacles);
+                _hybridGeometricRouter = new HybridGeometricRouter(obstacles);
             }
 
             [Test]
             public void Routing()
             {
-                var routingResult = wavefrontAlgorithm.Route(Position.CreateGeoPosition(2, 1),
+                var routingResult = _hybridGeometricRouter.Route(Position.CreateGeoPosition(2, 1),
                     Position.CreateGeoPosition(3.5, 4.5));
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
@@ -1119,7 +1119,7 @@ namespace Wavefront.Tests
         {
             // Real world problem: Route was going through barriers
 
-            private WavefrontAlgorithm wavefrontAlgorithm;
+            private HybridGeometricRouter _hybridGeometricRouter;
 
             [SetUp]
             public void Setup()
@@ -1142,7 +1142,7 @@ namespace Wavefront.Tests
 
                 var obstacles = obstacleGeometries.Map(geometry => new Feature(geometry, new AttributesTable()));
 
-                wavefrontAlgorithm = new WavefrontAlgorithm(obstacles);
+                _hybridGeometricRouter = new HybridGeometricRouter(obstacles);
             }
 
             [Test]
@@ -1150,7 +1150,7 @@ namespace Wavefront.Tests
             {
                 var source = Position.CreateGeoPosition(1, 2);
                 var target = Position.CreateGeoPosition(2, 0.25);
-                var routingResult = wavefrontAlgorithm.Route(source, target);
+                var routingResult = _hybridGeometricRouter.Route(source, target);
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.AreEqual(0, waypoints.Count);
@@ -1161,7 +1161,7 @@ namespace Wavefront.Tests
         {
             // Real world problem: Route was going through the vertex where two lines touched
 
-            private WavefrontAlgorithm wavefrontAlgorithm;
+            private HybridGeometricRouter _hybridGeometricRouter;
             private LineString line1;
             private LineString line2;
             private LineString line3;
@@ -1193,7 +1193,7 @@ namespace Wavefront.Tests
 
                 var obstacles = obstacleGeometries.Map(geometry => new Feature(geometry, new AttributesTable()));
 
-                wavefrontAlgorithm = new WavefrontAlgorithm(obstacles);
+                _hybridGeometricRouter = new HybridGeometricRouter(obstacles);
             }
 
             [Test]
@@ -1201,7 +1201,7 @@ namespace Wavefront.Tests
             {
                 var source = Position.CreateGeoPosition(0.2, 2.25);
                 var target = Position.CreateGeoPosition(0.2, 0.5);
-                var routingResult = wavefrontAlgorithm.Route(source, target);
+                var routingResult = _hybridGeometricRouter.Route(source, target);
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.AreEqual(5, waypoints.Count);
@@ -1223,12 +1223,12 @@ namespace Wavefront.Tests
 
                 var rootVertex = new Vertex(line1[2].ToPosition(), line1[1].ToPosition(), line1[3].ToPosition());
                 var wavelet = Wavelet.New(180, 270, rootVertex, relevantVertices, 1, false)!;
-                wavefrontAlgorithm.AddWavelet(wavelet);
+                _hybridGeometricRouter.AddWavelet(wavelet);
 
-                wavefrontAlgorithm.ProcessNextEvent(new Position(-1, 0), new Stopwatch());
+                _hybridGeometricRouter.ProcessNextEvent(new Position(-1, 0), new Stopwatch());
 
                 Assert.AreEqual(0, wavelet.RelevantVertices.Count);
-                var wavelets = ToList(wavefrontAlgorithm.Wavelets);
+                var wavelets = ToList(_hybridGeometricRouter.Wavelets);
                 Assert.IsFalse(wavelets.Contains(wavelet));
 
                 Assert.AreEqual(1, wavelets.Count);
@@ -1244,7 +1244,7 @@ namespace Wavefront.Tests
             {
                 var source = Position.CreateGeoPosition(0.2, 2.25);
                 var target = Position.CreateGeoPosition(0.2, 1.5);
-                var routingResult = wavefrontAlgorithm.Route(source, target);
+                var routingResult = _hybridGeometricRouter.Route(source, target);
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.AreEqual(0, waypoints.Count);
@@ -1254,7 +1254,7 @@ namespace Wavefront.Tests
         public class OverlappingObstacles_PolygonSharingEdge
         {
             private List<Feature> obstacles;
-            private WavefrontAlgorithm wavefrontAlgorithm;
+            private HybridGeometricRouter _hybridGeometricRouter;
             private Position start;
             private Position target;
             private LineString obstacle1;
@@ -1282,7 +1282,7 @@ namespace Wavefront.Tests
                 obstacles.Add(new Feature(obstacle1, new AttributesTable()));
                 obstacles.Add(new Feature(obstacle2, new AttributesTable()));
 
-                wavefrontAlgorithm = new WavefrontAlgorithm(obstacles);
+                _hybridGeometricRouter = new HybridGeometricRouter(obstacles);
 
                 start = Position.CreateGeoPosition(3, 5);
                 target = Position.CreateGeoPosition(0, 3);
@@ -1291,7 +1291,7 @@ namespace Wavefront.Tests
             [Test]
             public void ShouldNotRouteAlongTouchingEdge()
             {
-                var result = wavefrontAlgorithm.Route(start, target);
+                var result = _hybridGeometricRouter.Route(start, target);
                 var waypoints = result.OptimalRoute.Map(w => w.Position);
 
                 Assert.AreEqual(start, waypoints[0]);
@@ -1308,7 +1308,7 @@ namespace Wavefront.Tests
         {
             // Real world problem: Route was going through the vertex where two lines touched
 
-            private WavefrontAlgorithm wavefrontAlgorithm;
+            private HybridGeometricRouter _hybridGeometricRouter;
             private LineString line1;
             private LineString line2;
 
@@ -1332,7 +1332,7 @@ namespace Wavefront.Tests
 
                 var obstacles = obstacleGeometries.Map(geometry => new Feature(geometry, new AttributesTable()));
 
-                wavefrontAlgorithm = new WavefrontAlgorithm(obstacles);
+                _hybridGeometricRouter = new HybridGeometricRouter(obstacles);
             }
 
             [Test]
@@ -1340,7 +1340,7 @@ namespace Wavefront.Tests
             {
                 var source = Position.CreateGeoPosition(0.1, 1.2);
                 var target = Position.CreateGeoPosition(0.1, -0.1);
-                var routingResult = wavefrontAlgorithm.Route(source, target);
+                var routingResult = _hybridGeometricRouter.Route(source, target);
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.AreEqual(source, waypoints[0]);
@@ -1355,7 +1355,7 @@ namespace Wavefront.Tests
             {
                 var source = Position.CreateGeoPosition(0.1, 1.2);
                 var target = Position.CreateGeoPosition(0.1, 0.1);
-                var routingResult = wavefrontAlgorithm.Route(source, target);
+                var routingResult = _hybridGeometricRouter.Route(source, target);
                 var waypoints = routingResult.OptimalRoute.Map(w => w.Position);
 
                 Assert.AreEqual(source, waypoints[0]);

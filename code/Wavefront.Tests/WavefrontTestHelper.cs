@@ -14,7 +14,7 @@ public class WavefrontTestHelper
 {
     public class WithWavefrontAlgorithm
     {
-        protected static WavefrontAlgorithm wavefrontAlgorithm;
+        protected static HybridGeometricRouter HybridGeometricRouter;
         protected static Vertex rootVertex;
         protected static LineString multiVertexLineObstacle;
         protected static LineString simpleLineObstacle;
@@ -63,7 +63,7 @@ public class WavefrontTestHelper
 
             obstacleFeatures = obstacleGeometries.Map(geometry => new Feature(geometry, new AttributesTable()));
 
-            wavefrontAlgorithm = new WavefrontAlgorithm(obstacleFeatures);
+            HybridGeometricRouter = new HybridGeometricRouter(obstacleFeatures);
             rootVertex = new Vertex(Position.CreateGeoPosition(5, 2));
         }
     }

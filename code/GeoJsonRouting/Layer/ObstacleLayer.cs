@@ -16,7 +16,7 @@ namespace GeoJsonRouting.Layer
 
         private readonly Random _random = new(DateTime.Now.ToString().GetHashCode());
 
-        public WavefrontAlgorithm WavefrontAlgorithm { get; private set; }
+        public HybridGeometricRouter HybridGeometricRouter { get; private set; }
 
         public ObstacleLayer()
         {
@@ -39,7 +39,7 @@ namespace GeoJsonRouting.Layer
             _targetPositions = FindLocationsByKey("target");
 
             var watch = Stopwatch.StartNew();
-            WavefrontAlgorithm = new WavefrontAlgorithm(Features.Map(f=>f.VectorStructured), true);
+            HybridGeometricRouter = new HybridGeometricRouter(Features.Map(f=>f.VectorStructured), true);
             Console.WriteLine($"Algorithm creation: {watch.ElapsedMilliseconds}ms");
 
             return true;

@@ -8,7 +8,7 @@ namespace HikerModel.Model
 {
     public class ObstacleLayer : VectorLayer
     {
-        public WavefrontAlgorithm WavefrontAlgorithm { get; private set; }
+        public HybridGeometricRouter HybridGeometricRouter { get; private set; }
 
         public override bool InitLayer(LayerInitData layerInitData, RegisterAgent registerAgentHandle = null,
             UnregisterAgent unregisterAgent = null)
@@ -31,7 +31,7 @@ namespace HikerModel.Model
                     {
                         // Deactivate measurement within constructor:
                         PerformanceMeasurement.IS_ACTIVE = false;
-                        new WavefrontAlgorithm(Features.Map(f => f.VectorStructured));
+                        new HybridGeometricRouter(Features.Map(f => f.VectorStructured));
                     },
                     "WavefrontAlgorithmCreation");
                 result.Print();
@@ -40,7 +40,7 @@ namespace HikerModel.Model
                 PerformanceMeasurement.IS_ACTIVE = true;
             }
 
-            WavefrontAlgorithm = new WavefrontAlgorithm(Features.Map(f => f.VectorStructured), true);
+            HybridGeometricRouter = new HybridGeometricRouter(Features.Map(f => f.VectorStructured), true);
 
             return true;
         }

@@ -121,7 +121,7 @@ namespace GeoJsonRouting.Model
             try
             {
                 var watch = Stopwatch.StartNew();
-                var routingResult = ObstacleLayer.WavefrontAlgorithm.Route(Position, _targetPosition);
+                var routingResult = ObstacleLayer.HybridGeometricRouter.Route(Position, _targetPosition);
                 watch.Stop();
                 Console.WriteLine($"Routing duration: {watch.ElapsedMilliseconds}ms");
 

@@ -114,7 +114,7 @@ namespace HikerModel.Model
                 RoutingResult routingResult = null;
 
                 var performanceMeasurementResult = PerformanceMeasurement.ForFunction(
-                    () => { routingResult = ObstacleLayer.WavefrontAlgorithm.Route(from, to); },
+                    () => { routingResult = ObstacleLayer.HybridGeometricRouter.Route(from, to); },
                     "CalculateRoute",
                     PerformanceMeasurement.DEFAULT_ITERATION_COUNT*10,
                     PerformanceMeasurement.DEFAULT_WARMUP_COUNT*3);

@@ -10,7 +10,7 @@ using Position = Mars.Interfaces.Environments.Position;
 
 namespace Wavefront
 {
-    public class WavefrontAlgorithm
+    public class HybridGeometricRouter
     {
         private QuadTree<Obstacle> _obstacles;
 
@@ -38,7 +38,7 @@ namespace Wavefront
         private readonly int _knnSearchNeighborBins;
         private readonly int _knnSearchNeighborsPerBin;
 
-        public WavefrontAlgorithm(IEnumerable<IFeature> obstacles, bool debugModeActive = false,
+        public HybridGeometricRouter(IEnumerable<IFeature> obstacles, bool debugModeActive = false,
             int knnSearchNeighborBins = 36, int knnSearchNeighborsPerBin = 10)
         {
             _debugModeActive = debugModeActive;
