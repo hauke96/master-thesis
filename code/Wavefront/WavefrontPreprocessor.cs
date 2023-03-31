@@ -18,29 +18,6 @@ namespace Wavefront;
 public class WavefrontPreprocessor
 {
     /// <summary>
-    /// Helper class modeling an angle area starting at a certain distance. Think of a piece of pizza that doesn't start
-    /// at the center of the pizza but somewhat further out.
-    /// </summary>
-    private class AngleArea
-    {
-        public double From { get; }
-        public double To { get; }
-        public double Distance { get; }
-
-        public AngleArea(double from, double to, double distance)
-        {
-            From = from;
-            To = to;
-            Distance = distance;
-        }
-
-        public override int GetHashCode()
-        {
-            return (int)(Distance * 7919);
-        }
-    }
-
-    /// <summary>
     /// Splits each obstacle into smaller obstacles with the given amount of edges. This enhances the performance of
     /// further preprocessing, because collision checks are now performed on smaller objects.
     /// </summary>
@@ -120,7 +97,8 @@ public class WavefrontPreprocessor
     /// one of the given obstacles from v to its neighboring positions.
     /// </summary>
     /// <returns>A dict from position to a duplicate free list of all neighbors found.</returns>
-    public static Dictionary<Position, List<Position>> GetObstacleNeighborsFromObstacleVertices(IList<Obstacle> obstacles,
+    public static Dictionary<Position, List<Position>> GetObstacleNeighborsFromObstacleVertices(
+        IList<Obstacle> obstacles,
         Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles, bool debugModeActive = false)
     {
         // A function that determines if any obstacles is between the two given coordinates.
@@ -134,7 +112,10 @@ public class WavefrontPreprocessor
                 ));
 
         var positionToObstacleNeighbors = new Dictionary<Position, HashSet<Position>>();
-        obstacles.Each(obstacle => { AddObstacleNeighborsForObstacle(obstacle, positionToObstacleNeighbors, isCoordinateHidden); });
+        obstacles.Each(obstacle =>
+        {
+            AddObstacleNeighborsForObstacle(obstacle, positionToObstacleNeighbors, isCoordinateHidden);
+        });
 
         if (!PerformanceMeasurement.IS_ACTIVE && debugModeActive)
         {
@@ -298,7 +279,8 @@ public class WavefrontPreprocessor
 
             i++;
 
-            result[vertex] = GetVisibilityNeighborsForVertex(obstacles, new List<Vertex>(vertices), coordinateToObstacles,
+            result[vertex] = GetVisibilityNeighborsForVertex(obstacles, new List<Vertex>(vertices),
+                coordinateToObstacles,
                 vertex, neighborBinCount, neighborsPerBin);
         }
 
@@ -320,10 +302,12 @@ public class WavefrontPreprocessor
         return result;
     }
 
-    public static List<List<Vertex>> GetVisibilityNeighborsForVertex(QuadTree<Obstacle> obstacles, List<Vertex> vertices,
+    public static List<List<Vertex>> GetVisibilityNeighborsForVertex(QuadTree<Obstacle> obstacles,
+        List<Vertex> vertices,
         Vertex vertex, int neighborBinCount, int neighborsPerBin = 10)
     {
-        return GetVisibilityNeighborsForVertex(obstacles, vertices, new Dictionary<Coordinate, List<Obstacle>>(), vertex,
+        return GetVisibilityNeighborsForVertex(obstacles, vertices, new Dictionary<Coordinate, List<Obstacle>>(),
+            vertex,
             neighborBinCount, neighborsPerBin);
     }
 
@@ -331,7 +315,8 @@ public class WavefrontPreprocessor
     /// Determines all visibility neighbors with respect to the limits given by the maximum of "neighborsPerBin" many
     /// neighbors per bin for each of the "neighborBinCount" many bins.
     /// </summary>
-    private static List<List<Vertex>> GetVisibilityNeighborsForVertex(QuadTree<Obstacle> obstacles, List<Vertex> vertices,
+    private static List<List<Vertex>> GetVisibilityNeighborsForVertex(QuadTree<Obstacle> obstacles,
+        List<Vertex> vertices,
         Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles, Vertex vertex, int neighborBinCount,
         int neighborsPerBin = 10)
     {
@@ -345,7 +330,7 @@ public class WavefrontPreprocessor
          * Keeping track of these shadow areas and their distances reduces the amount of expensive collision checks
          * significantly (i.e. by a factor of 20 for a ~250 obstacles large dataset).
          */
-        var shadowAreas = new BinIndex<AngleArea>(360);
+        var shadowAreas = new BinIndex<ShadowArea>(360);
         var obstaclesCastingShadow = new HashSet<Obstacle>();
 
         var degreePerBin = 360.0 / neighborBinCount;
@@ -403,11 +388,11 @@ public class WavefrontPreprocessor
                 // consider new obstacles, since a shadow test with existing obstacles was already performed earlier.
                 if (!vertexIsOnThisObstacle && !obstacleIsAlreadyCastingShadow)
                 {
-                    var (angleFrom, angleTo, distance) = obstacle.GetAngleAreaOfObstacle(vertex);
+                    var shadowArea = obstacle.GetShadowAreaOfObstacle(vertex);
 
-                    if (!Double.IsNaN(angleFrom) && !Double.IsNaN(angleTo) && !Double.IsNaN(distance))
+                    if (shadowArea.IsValid)
                     {
-                        shadowAreas.Add(angleFrom, angleTo, new AngleArea(angleFrom, angleTo, distance));
+                        shadowAreas.Add(shadowArea.From, shadowArea.To, shadowArea);
                         obstaclesCastingShadow.Add(obstacle);
 
                         if (IsInShadowArea(shadowAreas, angle, distanceToOtherVertex))
@@ -515,14 +500,18 @@ public class WavefrontPreprocessor
         // Collect all visibility neighbors with angles between two obstacle neighbors. We go all the way through the
         // obstacle neighbors of the vertex and always process the angle area between the current obstacle neighbor and
         // the next. For the last obstacle neighbor, the index of the next one is 0 (hence the modulo).
-        for (var obstacleNeighborIndex = 0; obstacleNeighborIndex < vertex.ObstacleNeighbors.Count; obstacleNeighborIndex++)
+        for (var obstacleNeighborIndex = 0;
+             obstacleNeighborIndex < vertex.ObstacleNeighbors.Count;
+             obstacleNeighborIndex++)
         {
             var thisObstacleNeighbor = vertex.ObstacleNeighbors[obstacleNeighborIndex];
-            var nextObstacleNeighbor = vertex.ObstacleNeighbors[(obstacleNeighborIndex + 1) % vertex.ObstacleNeighbors.Count];
+            var nextObstacleNeighbor =
+                vertex.ObstacleNeighbors[(obstacleNeighborIndex + 1) % vertex.ObstacleNeighbors.Count];
 
             // Due to the bins, it can happen that this obstacle neighbor is not within the list of visibility
             // neighbors, even though it's obviously visible. Therefore this obstacle neighbor might not be added here.
-            var thisVisibilityNeighbor = allVisibilityNeighbors.Where(v => v.Position.Equals(thisObstacleNeighbor)).ToList();
+            var thisVisibilityNeighbor =
+                allVisibilityNeighbors.Where(v => v.Position.Equals(thisObstacleNeighbor)).ToList();
             if (!thisVisibilityNeighbor.IsEmpty())
             {
                 bin.Add(thisVisibilityNeighbor[0]);
@@ -540,7 +529,8 @@ public class WavefrontPreprocessor
 
             // Due to the bins, it can happen that this obstacle neighbor is not within the list of visibility
             // neighbors, even though it's obviously visible. Therefore this obstacle neighbor might not be added here.
-            var nextVisibilityNeighbor = allVisibilityNeighbors.Where(v => v.Position.Equals(nextObstacleNeighbor)).ToList();
+            var nextVisibilityNeighbor =
+                allVisibilityNeighbors.Where(v => v.Position.Equals(nextObstacleNeighbor)).ToList();
             if (!nextVisibilityNeighbor.IsEmpty())
             {
                 bin.Add(nextVisibilityNeighbor[0]);
@@ -568,7 +558,7 @@ public class WavefrontPreprocessor
         return coordinateToObstacles;
     }
 
-    private static bool IsInShadowArea(BinIndex<AngleArea> shadowAreas, double angle, double distance)
+    private static bool IsInShadowArea(BinIndex<ShadowArea> shadowAreas, double angle, double distance)
     {
         foreach (var area in shadowAreas.Query(angle))
         {

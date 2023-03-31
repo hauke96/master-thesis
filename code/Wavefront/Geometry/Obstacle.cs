@@ -232,7 +232,7 @@ namespace Wavefront.Geometry
         /// <summary>
         /// Calculates the shadow area seen from a given vertex.
         /// </summary>
-        public (double, double, double) GetAngleAreaOfObstacle(Vertex vertex)
+        public ShadowArea GetShadowAreaOfObstacle(Vertex vertex)
         {
             var angleFrom = double.NaN;
             var angleTo = double.NaN;
@@ -305,7 +305,7 @@ namespace Wavefront.Geometry
                 new[] { coordinateTo[0], coordinateTo[1] });
             var maxDistance = Math.Max(distanceToFromCoordinate, distanceToToCoordinate);
 
-            return (angleFrom, angleTo, maxDistance);
+            return new ShadowArea(angleFrom, angleTo, maxDistance);
         }
 
         public override int GetHashCode()
