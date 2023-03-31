@@ -42,7 +42,7 @@ namespace Wavefront
         private readonly int _knnSearchNeighborBins;
         private readonly int _knnSearchNeighborsPerBin;
 
-        private readonly SpatialGraph _graph;
+        private readonly HybridVisibilityGraph _graph;
 
         [Obsolete]
         public HybridGeometricRouter(IEnumerable<IFeature> obstacles, bool debugModeActive = false,
@@ -79,13 +79,7 @@ namespace Wavefront
 
         public IList<EdgeData> Route(Position source, Position target)
         {
-            // TODO Add source and target to graph, determine visibility neighbors, create edges and clean up graph afterwards
-            
-            var sourceNode = 0;
-            var targetNode = 0;
-
-            return _graph.AStarAlgorithm(sourceNode, targetNode,
-                (edge, _) => edge.Length * (edge.Data.IsEmpty() ? 1 : 0.1));
+            return _graph.ShortestPath(source, target);
         }
 
         /// <summary>

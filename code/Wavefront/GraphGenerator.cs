@@ -17,14 +17,14 @@ namespace Wavefront;
 
 public class GraphGenerator
 {
-    public static SpatialGraph Generate(ICollection<IVectorFeature> features)
+    public static HybridVisibilityGraph Generate(ICollection<IVectorFeature> features)
     {
         var graph = new SpatialGraph();
 
         var vertexNeighbors = GetObstacleNeighbors(features);
 
-        var nodeNeighbors = AddVisibilityVerticesAndEdges(vertexNeighbors, graph, features);
-        
+        var hybridVisibilityGraph = AddVisibilityVerticesAndEdges(vertexNeighbors, graph);
+
         MergeRoadsIntoGraph(features, graph);
 
         features.Where(f => f.VectorStructured.Attributes.Exists("poi"))
@@ -38,9 +38,9 @@ public class GraphGenerator
                 }
             });
 
-        WriteGraphToFile(graph, nodeNeighbors);
+        WriteGraphToFile(graph);
 
-        return graph;
+        return hybridVisibilityGraph;
     }
 
     /// <summary>
@@ -71,14 +71,14 @@ public class GraphGenerator
         return vertexNeighbors;
     }
 
-    private static Dictionary<int, List<int>> AddVisibilityVerticesAndEdges(
+    private static HybridVisibilityGraph AddVisibilityVerticesAndEdges(
         Dictionary<Vertex, List<List<Vertex>>> vertexNeighbors,
-        SpatialGraph graph,
-        ICollection<IVectorFeature> features)
+        SpatialGraph graph)
     {
         var watch = Stopwatch.StartNew();
         var vertexToNode = new Dictionary<Vertex, int[]>();
         var nodeToBinVertices = new Dictionary<int, List<Vertex>>();
+        var nodeToAngleArea = new Dictionary<int, (double, double)>();
         var allVertices = vertexNeighbors.Keys;
 
         // Create a node for every vertex in the dataset. Also store the mapping between node keys and vertices.
@@ -100,6 +100,17 @@ public class GraphGenerator
                 }).Key;
                 vertexToNode[vertex][i] = nodeKey;
                 nodeToBinVertices[nodeKey] = bin;
+
+                // Determine covered angle area of the current bin
+                double binFromAngle = 0;
+                double binToAngle = 360;
+                if (vertex.ObstacleNeighbors.Any())
+                {
+                    binFromAngle = Angle.GetBearing(vertex.Coordinate, vertex.ObstacleNeighbors[i].ToCoordinate());
+                    binToAngle = Angle.GetBearing(vertex.Coordinate,
+                        vertex.ObstacleNeighbors[(i + 1) % vertex.ObstacleNeighbors.Count].ToCoordinate());
+                }
+                nodeToAngleArea[nodeKey] = (binFromAngle, binToAngle);
             });
         });
 
@@ -143,13 +154,13 @@ public class GraphGenerator
         Console.WriteLine($"  Number of nodes: {graph.NodesMap.Count}");
         Console.WriteLine($"  Number of edges: {graph.EdgesMap.Count}");
 
-        return nodeNeighbors;
+        return new HybridVisibilityGraph(graph, vertexToNode, nodeToAngleArea);
     }
 
     private static void MergeRoadsIntoGraph(ICollection<IVectorFeature> features, SpatialGraph graph)
     {
         var watch = Stopwatch.StartNew();
-        
+
         AddRoadsToGraph(graph, features);
 
         Console.WriteLine($"Merging road network into graph done after {watch.ElapsedMilliseconds}ms");
@@ -353,7 +364,7 @@ public class GraphGenerator
         return new Envelope(minX, maxX, minY, maxY);
     }
 
-    private static void WriteGraphToFile(SpatialGraph graph, Dictionary<int, List<int>> nodeNeighbors)
+    private static void WriteGraphToFile(SpatialGraph graph)
     {
         Console.WriteLine($"Store layer as GeoJSON");
 
