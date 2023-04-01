@@ -3,94 +3,17 @@ using Mars.Common;
 using Mars.Common.Collections;
 using Mars.Common.Core.Collections;
 using Mars.Numerics;
-using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
-using NetTopologySuite.Triangulate.Polygon;
 using ServiceStack;
 using Wavefront.Geometry;
 using Wavefront.Index;
 using Wavefront.IO;
-using Feature = NetTopologySuite.Features.Feature;
 using Position = Mars.Interfaces.Environments.Position;
 
 namespace Wavefront;
 
 public class VisibilityGraphGenerator
 {
-    /// <summary>
-    /// Splits each obstacle into smaller obstacles with the given amount of edges. This enhances the performance of
-    /// further preprocessing, because collision checks are now performed on smaller objects.
-    /// </summary>
-    public static QuadTree<Obstacle> SplitObstacles(IEnumerable<IFeature> features, bool debugModeActive = false)
-    {
-        var featureList = features.ToList();
-        var vertexCount = featureList.Sum(o => o.Geometry.Coordinates.Length);
-        PerformanceMeasurement.TOTAL_VERTICES = vertexCount;
-        Log.D($"Amount of obstacles before splitting: {featureList.Count}");
-        Log.D($"Amount of vertices before splitting: {vertexCount}");
-
-        var geometryList = featureList.Map(g => Obstacle.UnwrapMultiGeometries(g.Geometry)).SelectMany(x => x).ToList();
-
-        var obstacles = geometryList.Map(geometry =>
-            {
-                if (geometry is not Polygon && geometry is not MultiPolygon)
-                {
-                    if (geometry.Coordinates.Length == 1)
-                    {
-                        return Obstacle.Create(geometry);
-                    }
-
-                    if (geometry.Coordinates[0].Equals(geometry.Coordinates[^1]))
-                    {
-                        // Non-polygonal geometries (like a closed LineString or LinearRing) can easily be converted
-                        // into a valid polygon for triangulation below.
-                        geometry = new Polygon(new LinearRing(geometry.Coordinates));
-                    }
-                    else
-                    {
-                        return Obstacle.Create(geometry);
-                    }
-                }
-
-                var newObstacles = new List<Obstacle>();
-
-                // Perform a triangulation of each polygon. This makes it much easier to perform visibility checks.
-                try
-                {
-                    var geometryCollection = (GeometryCollection)PolygonTriangulator.Triangulate(geometry);
-                    geometryCollection.Each(triangle =>
-                    {
-                        Obstacle.Create(triangle).Each(newObstacle => newObstacles.Add(newObstacle));
-                    });
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                    throw;
-                }
-
-                return newObstacles;
-            })
-            .SelectMany(x => x)
-            .ToList();
-
-        vertexCount = obstacles.Sum(o => o.Coordinates.Count);
-        PerformanceMeasurement.TOTAL_VERTICES_AFTER_PREPROCESSING = vertexCount;
-        Log.D($"Amount of obstacles after splitting: {obstacles.Count}");
-        Log.D($"Amount of vertices after splitting: {vertexCount}");
-
-        if (debugModeActive)
-        {
-            var featureCollection = new FeatureCollection();
-            obstacles.Each(o => featureCollection.Add(new Feature(o.Geometry, new AttributesTable())));
-            Exporter.WriteFeaturesToFile(featureCollection, "obstacles-splitted.geojson").Wait();
-        }
-
-        var obstacleIndex = new QuadTree<Obstacle>();
-        obstacles.Each(obstacle => obstacleIndex.Insert(obstacle.Envelope, obstacle));
-        return obstacleIndex;
-    }
-
     /// <summary>
     /// Calculates the neighbor relationship for each vertex v in the given obstacles. The term "neighbor" here means
     /// neighboring positions on multiple obstacles but not across open spaces. This means there is an edge on at least

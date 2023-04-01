@@ -5,6 +5,7 @@ using Mars.Common.Collections.Graph;
 using Mars.Common.Core.Collections;
 using Mars.Interfaces.Environments;
 using Mars.Interfaces.Layers;
+using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.Index.Quadtree;
 using ServiceStack;
@@ -51,14 +52,18 @@ public class HybridVisibilityGraphGenerator
                            lowerName.Contains("natural") || lowerName.Contains("poi");
                 });
             })
-            .Map(f => f.VectorStructured);
+            .Map(f => f.VectorStructured as IFeature);
 
         var watch = Stopwatch.StartNew();
 
-        var obstacles = VisibilityGraphGenerator.SplitObstacles(importedObstacles, true);
+        var obstacles = GeometryHelper.UnwrapAndTriangulate(importedObstacles, true);
 
-        Console.WriteLine($"{nameof(HybridVisibilityGraphGenerator)}: Splitting obstacles done after {watch.ElapsedMilliseconds}ms");
-        return obstacles;
+        var obstacleIndex = new QuadTree<Obstacle>();
+        obstacles.Each(obstacle => obstacleIndex.Insert(obstacle.EnvelopeInternal, new Obstacle(obstacle)));
+
+        Console.WriteLine(
+            $"{nameof(HybridVisibilityGraphGenerator)}: Splitting obstacles done after {watch.ElapsedMilliseconds}ms");
+        return obstacleIndex;
     }
 
     private static Dictionary<Vertex, List<List<Vertex>>> DetermineVisibilityNeighbors(QuadTree<Obstacle> obstacles)
@@ -67,7 +72,8 @@ public class HybridVisibilityGraphGenerator
 
         var vertexNeighbors = VisibilityGraphGenerator.CalculateVisibleKnn(obstacles, 36, 10, true);
 
-        Console.WriteLine($"{nameof(HybridVisibilityGraphGenerator)}: CalculateVisibleKnn done after {watch.ElapsedMilliseconds}ms");
+        Console.WriteLine(
+            $"{nameof(HybridVisibilityGraphGenerator)}: CalculateVisibleKnn done after {watch.ElapsedMilliseconds}ms");
         return vertexNeighbors;
     }
 
@@ -152,7 +158,8 @@ public class HybridVisibilityGraphGenerator
             });
         });
 
-        Console.WriteLine($"{nameof(HybridVisibilityGraphGenerator)}: Graph creation done after {watch.ElapsedMilliseconds}ms");
+        Console.WriteLine(
+            $"{nameof(HybridVisibilityGraphGenerator)}: Graph creation done after {watch.ElapsedMilliseconds}ms");
         Console.WriteLine($"  Number of nodes: {graph.NodesMap.Count}");
         Console.WriteLine($"  Number of edges: {graph.EdgesMap.Count}");
 

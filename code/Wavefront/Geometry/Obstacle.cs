@@ -7,37 +7,12 @@ namespace Wavefront.Geometry
     public class Obstacle
     {
         public readonly List<Coordinate> Coordinates;
-        public List<Vertex> Vertices;
         public readonly Envelope Envelope;
         public readonly bool IsClosed;
-        public readonly int Hash;
-        public readonly NetTopologySuite.Geometries.Geometry Geometry;
 
-        public static List<Obstacle> Create(NetTopologySuite.Geometries.Geometry geometry)
-        {
-            var geometries = UnwrapMultiGeometries(geometry);
-            return geometries.Map(g => new Obstacle(g));
-        }
+        public List<Vertex> Vertices;
 
-        public static List<NetTopologySuite.Geometries.Geometry> UnwrapMultiGeometries(
-            NetTopologySuite.Geometries.Geometry geometry)
-        {
-            var geometries = new List<NetTopologySuite.Geometries.Geometry>();
-            if (geometry is MultiPolygon multiPolygon)
-            {
-                multiPolygon.Each(polygon =>
-                {
-                    var simplePolygon = new Polygon((LinearRing)((Polygon)polygon.GetGeometryN(0)).ExteriorRing);
-                    geometries.Add(simplePolygon);
-                });
-            }
-            else
-            {
-                geometries.Add(geometry);
-            }
-
-            return geometries;
-        }
+        private readonly int _hash;
 
         public Obstacle(NetTopologySuite.Geometries.Geometry geometry) : this(geometry,
             geometry.Coordinates.Map(c => new Vertex(c.X, c.Y)))
@@ -60,11 +35,8 @@ namespace Wavefront.Geometry
             }
 
             Vertices = vertices;
-            Hash = (int)geometry.Coordinates.Sum(coordinate => coordinate.X * 7919 + coordinate.Y * 4813);
+            _hash = (int)geometry.Coordinates.Sum(coordinate => coordinate.X * 7919 + coordinate.Y * 4813);
             Envelope = geometry.EnvelopeInternal;
-
-            // Ensure it's a polygon when closed.
-            Geometry = IsClosed ? new Polygon(new LinearRing(geometry.Coordinates)) : geometry;
         }
 
         public static bool IsGeometryClosed(NetTopologySuite.Geometries.Geometry geometry)
@@ -310,7 +282,7 @@ namespace Wavefront.Geometry
 
         public override int GetHashCode()
         {
-            return Hash;
+            return _hash;
         }
     }
 }
