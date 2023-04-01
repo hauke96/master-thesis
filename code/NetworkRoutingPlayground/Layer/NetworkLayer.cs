@@ -19,7 +19,7 @@ public class NetworkLayer : VectorLayer
     {
         base.InitLayer(layerInitData, registerAgentHandle, unregisterAgent);
 
-        Graph = GraphGenerator.Generate(Features);
+        Graph = HybridVisibilityGraphGenerator.Generate(Features);
 
         return true;
     }

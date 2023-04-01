@@ -87,7 +87,7 @@ public class HybridVisibilityGraph
 
         // TODO If performance too bad: Pass multiple positions to not calculate certain things twice.
         var sourceVisibilityNeighborVertices =
-            WavefrontPreprocessor.GetVisibilityNeighborsForPosition(_obstacles, source)[0];
+            VisibilityGraphGenerator.GetVisibilityNeighborsForPosition(_obstacles, source)[0];
         var sourceVisibilityNeighborNodes = sourceVisibilityNeighborVertices
             .Map(v => _vertexToNodes[v])
             .Map(nodeCandidates =>

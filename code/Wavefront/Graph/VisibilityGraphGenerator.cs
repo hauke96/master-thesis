@@ -15,7 +15,7 @@ using Position = Mars.Interfaces.Environments.Position;
 
 namespace Wavefront;
 
-public class WavefrontPreprocessor
+public class VisibilityGraphGenerator
 {
     /// <summary>
     /// Splits each obstacle into smaller obstacles with the given amount of edges. This enhances the performance of

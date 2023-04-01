@@ -41,7 +41,7 @@ public class WavefrontPreprocessorTest
             var obstacles = obstacleGeometries.Map(geometry => new Obstacle(geometry));
 
             positionToNeighbors =
-                WavefrontPreprocessor.GetObstacleNeighborsFromObstacleVertices(obstacles,
+                VisibilityGraphGenerator.GetObstacleNeighborsFromObstacleVertices(obstacles,
                     new Dictionary<Coordinate, List<Obstacle>>());
 
             obstacleQuadTree = new QuadTree<Obstacle>();
@@ -100,7 +100,7 @@ public class WavefrontPreprocessorTest
         [Test]
         public void CalculateVisibleKnn()
         {
-            var visibleKnn = WavefrontPreprocessor.CalculateVisibleKnn(obstacleQuadTree, 100);
+            var visibleKnn = VisibilityGraphGenerator.CalculateVisibleKnn(obstacleQuadTree, 100);
             vertices = visibleKnn.Keys.OrderBy(v => v.Id).ToList();
 
             var bin = visibleKnn[vertices[0]];
@@ -171,7 +171,7 @@ public class WavefrontPreprocessorTest
         [Test]
         public void CalculateVisibleKnn_onlyNearest()
         {
-            var visibleKnn = WavefrontPreprocessor.CalculateVisibleKnn(obstacleQuadTree, 1);
+            var visibleKnn = VisibilityGraphGenerator.CalculateVisibleKnn(obstacleQuadTree, 1);
 
             // vertices[0] = vertex at (2, 2)
             var actualCoordinates = visibleKnn[vertices[0]].SelectMany(x => x).Map(v => v.Coordinate).Distinct();
@@ -194,7 +194,7 @@ public class WavefrontPreprocessorTest
         [Test]
         public void CalculateVisibleKnn_someWithSameDistance()
         {
-            var visibleKnn = WavefrontPreprocessor.CalculateVisibleKnn(obstacleQuadTree, 1);
+            var visibleKnn = VisibilityGraphGenerator.CalculateVisibleKnn(obstacleQuadTree, 1);
 
             // vertices[0] = vertex at (2, 0.5)
             var actualCoordinates = visibleKnn[vertices[1]].SelectMany(x => x).Map(v => v.Coordinate).Distinct();
@@ -266,7 +266,7 @@ public class WavefrontPreprocessorTest
         [Test]
         public void CalculateVisibleKnn()
         {
-            var visibleKnn = WavefrontPreprocessor.CalculateVisibleKnn(obstacleQuadTree, 100);
+            var visibleKnn = VisibilityGraphGenerator.CalculateVisibleKnn(obstacleQuadTree, 100);
 
             // vertices[0] = lower left of square (=lower left of left triangle) 
             var actualCoordinates = visibleKnn[vertices[0]].SelectMany(x => x).Map(v => v.Coordinate).Distinct();
@@ -320,7 +320,7 @@ public class WavefrontPreprocessorTest
             new Coordinate(2, 10)
         });
         var positionToNeighbors =
-            WavefrontPreprocessor.GetObstacleNeighborsFromObstacleVertices(new List<Obstacle> { new(obstacle) },
+            VisibilityGraphGenerator.GetObstacleNeighborsFromObstacleVertices(new List<Obstacle> { new(obstacle) },
                 new Dictionary<Coordinate, List<Obstacle>>());
 
         Assert.AreEqual(2, positionToNeighbors.Count);
@@ -342,7 +342,7 @@ public class WavefrontPreprocessorTest
             new Coordinate(7, 4),
         });
         var positionToNeighbors =
-            WavefrontPreprocessor.GetObstacleNeighborsFromObstacleVertices(new List<Obstacle> { new(obstacle) },
+            VisibilityGraphGenerator.GetObstacleNeighborsFromObstacleVertices(new List<Obstacle> { new(obstacle) },
                 new Dictionary<Coordinate, List<Obstacle>>());
 
         Assert.AreEqual(3, positionToNeighbors.Count);
@@ -370,9 +370,9 @@ public class WavefrontPreprocessorTest
         });
 
         var coordinateToObstacles =
-            WavefrontPreprocessor.GetCoordinateToObstaclesMapping(new List<Obstacle> { new(obstacle) });
+            VisibilityGraphGenerator.GetCoordinateToObstaclesMapping(new List<Obstacle> { new(obstacle) });
         var positionToNeighbors =
-            WavefrontPreprocessor.GetObstacleNeighborsFromObstacleVertices(new List<Obstacle> { new(obstacle) },
+            VisibilityGraphGenerator.GetObstacleNeighborsFromObstacleVertices(new List<Obstacle> { new(obstacle) },
                 coordinateToObstacles);
 
         Assert.AreEqual(3, positionToNeighbors.Count);
@@ -411,9 +411,9 @@ public class WavefrontPreprocessorTest
         var list = new List<Obstacle> { new(obstacle1), new(obstacle2) };
 
         var coordinateToObstacles =
-            WavefrontPreprocessor.GetCoordinateToObstaclesMapping(new List<Obstacle>
+            VisibilityGraphGenerator.GetCoordinateToObstaclesMapping(new List<Obstacle>
                 { new(obstacle1), new(obstacle2) });
-        var positionToNeighbors = WavefrontPreprocessor.GetObstacleNeighborsFromObstacleVertices(list, coordinateToObstacles);
+        var positionToNeighbors = VisibilityGraphGenerator.GetObstacleNeighborsFromObstacleVertices(list, coordinateToObstacles);
 
         Assert.AreEqual(4, positionToNeighbors.Count);
 
@@ -464,7 +464,7 @@ public class WavefrontPreprocessorTest
         var list = new List<Obstacle> { new(obstacle1), new(obstacle2) };
 
         var positionToNeighbors =
-            WavefrontPreprocessor.GetObstacleNeighborsFromObstacleVertices(list, new Dictionary<Coordinate, List<Obstacle>>());
+            VisibilityGraphGenerator.GetObstacleNeighborsFromObstacleVertices(list, new Dictionary<Coordinate, List<Obstacle>>());
 
         Assert.AreEqual(5, positionToNeighbors.Count);
 
@@ -522,7 +522,7 @@ public class WavefrontPreprocessorTest
 
         var allNeighbors = neighborVertices.CreateCopy();
         allNeighbors.AddRange(neighbors.Map(n => new Vertex(n)));
-        var bins = WavefrontPreprocessor.SortVisibilityNeighborsIntoBins(vertex, allNeighbors);
+        var bins = VisibilityGraphGenerator.SortVisibilityNeighborsIntoBins(vertex, allNeighbors);
 
         Assert.Contains(neighborVertices[0], bins[2]);
         Assert.Contains(neighborVertices[1], bins[0]);

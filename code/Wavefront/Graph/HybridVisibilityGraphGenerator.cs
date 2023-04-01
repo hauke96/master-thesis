@@ -15,7 +15,7 @@ using Position = Mars.Interfaces.Environments.Position;
 
 namespace Wavefront;
 
-public class GraphGenerator
+public class HybridVisibilityGraphGenerator
 {
     /// <summary>
     /// Generates the complete hybrid visibility graph based on the obstacles in the given feature collection. This
@@ -55,9 +55,9 @@ public class GraphGenerator
 
         var watch = Stopwatch.StartNew();
 
-        var obstacles = WavefrontPreprocessor.SplitObstacles(importedObstacles, true);
+        var obstacles = VisibilityGraphGenerator.SplitObstacles(importedObstacles, true);
 
-        Console.WriteLine($"{nameof(GraphGenerator)}: Splitting obstacles done after {watch.ElapsedMilliseconds}ms");
+        Console.WriteLine($"{nameof(HybridVisibilityGraphGenerator)}: Splitting obstacles done after {watch.ElapsedMilliseconds}ms");
         return obstacles;
     }
 
@@ -65,9 +65,9 @@ public class GraphGenerator
     {
         var watch = Stopwatch.StartNew();
 
-        var vertexNeighbors = WavefrontPreprocessor.CalculateVisibleKnn(obstacles, 36, 10, true);
+        var vertexNeighbors = VisibilityGraphGenerator.CalculateVisibleKnn(obstacles, 36, 10, true);
 
-        Console.WriteLine($"{nameof(GraphGenerator)}: CalculateVisibleKnn done after {watch.ElapsedMilliseconds}ms");
+        Console.WriteLine($"{nameof(HybridVisibilityGraphGenerator)}: CalculateVisibleKnn done after {watch.ElapsedMilliseconds}ms");
         return vertexNeighbors;
     }
 
@@ -152,7 +152,7 @@ public class GraphGenerator
             });
         });
 
-        Console.WriteLine($"{nameof(GraphGenerator)}: Graph creation done after {watch.ElapsedMilliseconds}ms");
+        Console.WriteLine($"{nameof(HybridVisibilityGraphGenerator)}: Graph creation done after {watch.ElapsedMilliseconds}ms");
         Console.WriteLine($"  Number of nodes: {graph.NodesMap.Count}");
         Console.WriteLine($"  Number of edges: {graph.EdgesMap.Count}");
 
@@ -166,7 +166,7 @@ public class GraphGenerator
         AddRoadsToGraph(graph, features);
 
         Console.WriteLine(
-            $"{nameof(GraphGenerator)}: Merging road network into graph done after {watch.ElapsedMilliseconds}ms");
+            $"{nameof(HybridVisibilityGraphGenerator)}: Merging road network into graph done after {watch.ElapsedMilliseconds}ms");
         Console.WriteLine($"  Number of nodes: {graph.NodesMap.Count}");
         Console.WriteLine($"  Number of edges: {graph.EdgesMap.Count}");
     }

@@ -141,7 +141,7 @@ public class ObstacleTest
         };
         var obstacle = new Obstacle(new LineString(coordinates));
         var coordinateToObstacles =
-            WavefrontPreprocessor.GetCoordinateToObstaclesMapping(new List<Obstacle> { obstacle });
+            VisibilityGraphGenerator.GetCoordinateToObstaclesMapping(new List<Obstacle> { obstacle });
 
         // Edges on outside of polygon == Edges between corners of polygon
         Assert.IsFalse(obstacle.IntersectsWithLine(coordinates[0], coordinates[1], coordinateToObstacles));
@@ -193,7 +193,7 @@ public class ObstacleTest
         var obstacle1 = new Obstacle(new LineString(triangle1));
         var obstacle2 = new Obstacle(new LineString(triangle2));
         var coordinateToObstacles =
-            WavefrontPreprocessor.GetCoordinateToObstaclesMapping(new List<Obstacle> { obstacle1, obstacle2 });
+            VisibilityGraphGenerator.GetCoordinateToObstaclesMapping(new List<Obstacle> { obstacle1, obstacle2 });
 
         // Edges on outside of triangle 1
         Assert.IsFalse(obstacle1.IntersectsWithLine(triangle1[0], triangle1[1], coordinateToObstacles));
@@ -246,7 +246,7 @@ public class ObstacleTest
         };
         var obstacle = new Obstacle(new LineString(coordinates));
         var coordinateToObstacles =
-            WavefrontPreprocessor.GetCoordinateToObstaclesMapping(new List<Obstacle> { obstacle });
+            VisibilityGraphGenerator.GetCoordinateToObstaclesMapping(new List<Obstacle> { obstacle });
 
         Assert.IsFalse(obstacle.IntersectsWithLine(coordinates[0], coordinates[1], coordinateToObstacles));
         Assert.IsFalse(obstacle.IntersectsWithLine(coordinates[0], coordinates[2], coordinateToObstacles));
