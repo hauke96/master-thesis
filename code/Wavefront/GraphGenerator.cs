@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Mars.Common;
+using Mars.Common.Collections;
 using Mars.Common.Collections.Graph;
 using Mars.Common.Core.Collections;
 using Mars.Interfaces.Environments;
@@ -21,23 +22,12 @@ public class GraphGenerator
     {
         var graph = new SpatialGraph();
 
-        var vertexNeighbors = GetObstacleNeighbors(features);
-
-        var hybridVisibilityGraph = AddVisibilityVerticesAndEdges(vertexNeighbors, graph);
+        var obstacles = GetObstacleNeighbors(features);
+        var vertexNeighbors = DetermineVisibilityNeighbors(obstacles);
+        var hybridVisibilityGraph = AddVisibilityVerticesAndEdges(vertexNeighbors, graph, obstacles);
 
         MergeRoadsIntoGraph(features, graph);
-
-        features.Where(f => f.VectorStructured.Attributes.Exists("poi"))
-            .Each(f =>
-            {
-                var nearestNodes = graph.NodesMap.Values.Where(n =>
-                    n.Position.DistanceInMTo(f.VectorStructured.Geometry.Coordinates[0].ToPosition()) < 0.1).ToList();
-                if (!nearestNodes.IsEmpty())
-                {
-                    nearestNodes[0].Data.AddRange(f.VectorStructured.Attributes.ToObjectDictionary());
-                }
-            });
-
+        AddAttributesToPOIs(features, graph);
         WriteGraphToFile(graph);
 
         return hybridVisibilityGraph;
@@ -47,7 +37,7 @@ public class GraphGenerator
     /// Takes all obstacle features and calculates for each vertex the visibility neighbors.
     /// </summary>
     /// <returns>A map from each vertex to the bins of visibility neighbors.</returns>
-    private static Dictionary<Vertex, List<List<Vertex>>> GetObstacleNeighbors(ICollection<IVectorFeature> features)
+    private static QuadTree<Obstacle> GetObstacleNeighbors(ICollection<IVectorFeature> features)
     {
         var importedObstacles = features.Where(f =>
             {
@@ -61,19 +51,27 @@ public class GraphGenerator
             .Map(f => f.VectorStructured);
 
         var watch = Stopwatch.StartNew();
+
         var obstacles = WavefrontPreprocessor.SplitObstacles(importedObstacles, true);
-        Console.WriteLine($"WavefrontPreprocessor: Splitting obstacles done after {watch.ElapsedMilliseconds}ms");
 
-        watch.Restart();
+        Console.WriteLine($"{nameof(GraphGenerator)}: Splitting obstacles done after {watch.ElapsedMilliseconds}ms");
+        return obstacles;
+    }
+
+    private static Dictionary<Vertex, List<List<Vertex>>> DetermineVisibilityNeighbors(QuadTree<Obstacle> obstacles)
+    {
+        var watch = Stopwatch.StartNew();
+
         var vertexNeighbors = WavefrontPreprocessor.CalculateVisibleKnn(obstacles, 36, 10, true);
-        Console.WriteLine($"WavefrontPreprocessor: CalculateVisibleKnn done after {watch.ElapsedMilliseconds}ms");
 
+        Console.WriteLine($"{nameof(GraphGenerator)}: CalculateVisibleKnn done after {watch.ElapsedMilliseconds}ms");
         return vertexNeighbors;
     }
 
     private static HybridVisibilityGraph AddVisibilityVerticesAndEdges(
         Dictionary<Vertex, List<List<Vertex>>> vertexNeighbors,
-        SpatialGraph graph)
+        SpatialGraph graph,
+        QuadTree<Obstacle> obstacles)
     {
         var watch = Stopwatch.StartNew();
         var vertexToNode = new Dictionary<Vertex, int[]>();
@@ -110,6 +108,7 @@ public class GraphGenerator
                     binToAngle = Angle.GetBearing(vertex.Coordinate,
                         vertex.ObstacleNeighbors[(i + 1) % vertex.ObstacleNeighbors.Count].ToCoordinate());
                 }
+
                 nodeToAngleArea[nodeKey] = (binFromAngle, binToAngle);
             });
         });
@@ -150,11 +149,11 @@ public class GraphGenerator
             });
         });
 
-        Console.WriteLine($"Graph creation done after {watch.ElapsedMilliseconds}ms");
+        Console.WriteLine($"{nameof(GraphGenerator)}: Graph creation done after {watch.ElapsedMilliseconds}ms");
         Console.WriteLine($"  Number of nodes: {graph.NodesMap.Count}");
         Console.WriteLine($"  Number of edges: {graph.EdgesMap.Count}");
 
-        return new HybridVisibilityGraph(graph, vertexToNode, nodeToAngleArea);
+        return new HybridVisibilityGraph(graph, obstacles, vertexToNode, nodeToAngleArea);
     }
 
     private static void MergeRoadsIntoGraph(ICollection<IVectorFeature> features, SpatialGraph graph)
@@ -163,9 +162,34 @@ public class GraphGenerator
 
         AddRoadsToGraph(graph, features);
 
-        Console.WriteLine($"Merging road network into graph done after {watch.ElapsedMilliseconds}ms");
+        Console.WriteLine(
+            $"{nameof(GraphGenerator)}: Merging road network into graph done after {watch.ElapsedMilliseconds}ms");
         Console.WriteLine($"  Number of nodes: {graph.NodesMap.Count}");
         Console.WriteLine($"  Number of edges: {graph.EdgesMap.Count}");
+    }
+
+    /// <summary>
+    /// Searches for each feature with an attribute name "poi" and adds all attributes of this feature to the according
+    /// node in the given graph.
+    /// </summary>
+    private static void AddAttributesToPOIs(IEnumerable<IVectorFeature> features, ISpatialGraph graph,
+        double nodeDistanceTolerance = 0.1)
+    {
+        features.Where(f => f.VectorStructured.Attributes.Exists("poi"))
+            .Each(f =>
+            {
+                var featurePosition = f.VectorStructured.Geometry.Coordinates[0].ToPosition();
+                var nearestNodes = graph
+                    .NodesMap
+                    .Values
+                    .Where(n => n.Position.DistanceInMTo(featurePosition) < nodeDistanceTolerance)
+                    .ToList();
+
+                if (!nearestNodes.IsEmpty())
+                {
+                    nearestNodes[0].Data.AddRange(f.VectorStructured.Attributes.ToObjectDictionary());
+                }
+            });
     }
 
     /// <summary>
@@ -366,8 +390,6 @@ public class GraphGenerator
 
     private static void WriteGraphToFile(SpatialGraph graph)
     {
-        Console.WriteLine($"Store layer as GeoJSON");
-
         var watch = Stopwatch.StartNew();
 
         try
@@ -400,7 +422,7 @@ public class GraphGenerator
             throw;
         }
 
-        Console.WriteLine($"Store layer as GeoJSON done after {watch.ElapsedMilliseconds}ms");
+        Console.WriteLine($"{nameof(GraphGenerator)}: Store layer as GeoJSON done after {watch.ElapsedMilliseconds}ms");
     }
 
     private static void WriteFeatures(FeatureCollection vectorFeatures)
