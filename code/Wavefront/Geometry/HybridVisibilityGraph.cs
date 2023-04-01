@@ -9,8 +9,10 @@ namespace Wavefront.Geometry;
 
 public class HybridVisibilityGraph
 {
-    public readonly Func<EdgeData, NodeData, double> WeightedHeuristic =
-        (edge, _) => edge.Length * (edge.Data.IsEmpty() ? 1 : 0.1);
+    public static readonly Func<EdgeData, NodeData, double> WeightedHeuristic =
+        (edge, _) => edge.Length * (edge.Data.IsEmpty() ? 1 : 0.5);
+
+    public static readonly Func<EdgeData, NodeData, double> ShortestHeuristic = (edge, _) => edge.Length;
 
     private readonly SpatialGraph _graph;
     private readonly QuadTree<Obstacle> _obstacles;
@@ -30,15 +32,26 @@ public class HybridVisibilityGraph
         _nodeToAngleArea = nodeToAngleArea;
     }
 
+    public List<Position> WeightedShortestPath(Position source, Position target)
+    {
+        return OptimalPath(source, target, WeightedHeuristic);
+    }
+
     public List<Position> ShortestPath(Position source, Position target)
+    {
+        return OptimalPath(source, target, ShortestHeuristic);
+    }
+
+    public List<Position> OptimalPath(Position source, Position target, Func<EdgeData, NodeData, double> heuristic)
     {
         var (sourceNode, isSourceNodeTemporary) = AddPositionToGraph(source);
         var (targetNode, isTargetNodeTemporary) = AddPositionToGraph(target);
         Exporter.WriteGraphToFile(_graph, "graph-with-source-target.geojson");
 
-        var routingResult = _graph.AStarAlgorithm(sourceNode, targetNode, WeightedHeuristic);
+        var routingResult = _graph.AStarAlgorithm(sourceNode, targetNode, heuristic);
 
-        // Remove nodes (which automatically removes the edges too) to have a clean graph for further routing requests.
+        // Remove temporarily created nodes (which automatically removes the edges too) to have a clean graph for
+        // further routing requests.
         if (isSourceNodeTemporary)
         {
             _graph.RemoveNode(_graph.NodesMap[sourceNode]);

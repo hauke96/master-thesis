@@ -44,7 +44,7 @@ namespace NetworkRoutingPlayground.Model
             // var startNode = allNodes.First(node => node.Index == 9);
             // var destinationNode = allNodes.First(node => node.Index == 37);
 
-            _waypoints = NetworkLayer.Graph.ShortestPath(startNode.Position, destinationNode.Position);
+            _waypoints = NetworkLayer.Graph.WeightedShortestPath(startNode.Position, destinationNode.Position);
 
             Position = _waypoints[0];
             _waypoints.RemoveAt(0);
