@@ -302,13 +302,6 @@ public class WavefrontPreprocessor
         return result;
     }
 
-    public static List<List<Vertex>> GetVisibilityNeighborsForVertex(QuadTree<Obstacle> obstacles,
-        List<Vertex> vertices, Vertex vertex, int neighborBinCount = 36, int neighborsPerBin = 10)
-    {
-        return GetVisibilityNeighborsForVertex(obstacles, vertices, new Dictionary<Coordinate, List<Obstacle>>(),
-            vertex, neighborBinCount, neighborsPerBin);
-    }
-
     public static List<List<Vertex>> GetVisibilityNeighborsForPosition(QuadTree<Obstacle> obstacles, Position position,
         int neighborBinCount = 36, int neighborsPerBin = 10)
     {
@@ -551,11 +544,6 @@ public class WavefrontPreprocessor
         }
 
         return result;
-    }
-
-    public static Dictionary<Coordinate, List<Obstacle>> GetCoordinateToObstaclesMapping(QuadTree<Obstacle> obstacles)
-    {
-        return GetCoordinateToObstaclesMapping(obstacles.QueryAll());
     }
 
     public static Dictionary<Coordinate, List<Obstacle>> GetCoordinateToObstaclesMapping(
