@@ -303,21 +303,31 @@ public class WavefrontPreprocessor
     }
 
     public static List<List<Vertex>> GetVisibilityNeighborsForVertex(QuadTree<Obstacle> obstacles,
-        List<Vertex> vertices,
-        Vertex vertex, int neighborBinCount, int neighborsPerBin = 10)
+        List<Vertex> vertices, Vertex vertex, int neighborBinCount = 36, int neighborsPerBin = 10)
     {
         return GetVisibilityNeighborsForVertex(obstacles, vertices, new Dictionary<Coordinate, List<Obstacle>>(),
-            vertex,
-            neighborBinCount, neighborsPerBin);
+            vertex, neighborBinCount, neighborsPerBin);
+    }
+
+    public static List<List<Vertex>> GetVisibilityNeighborsForPosition(QuadTree<Obstacle> obstacles, Position position,
+        int neighborBinCount = 36, int neighborsPerBin = 10)
+    {
+        var allVertices = obstacles.QueryAll().Map(o => o.Vertices).SelectMany(x => x).Distinct().ToList();
+        var vertex = new Vertex(position);
+
+        return GetVisibilityNeighborsForVertex(obstacles, allVertices, new Dictionary<Coordinate, List<Obstacle>>(),
+            vertex, neighborBinCount, neighborsPerBin);
     }
 
     /// <summary>
     /// Determines all visibility neighbors with respect to the limits given by the maximum of "neighborsPerBin" many
     /// neighbors per bin for each of the "neighborBinCount" many bins.
     /// </summary>
-    private static List<List<Vertex>> GetVisibilityNeighborsForVertex(QuadTree<Obstacle> obstacles,
+    public static List<List<Vertex>> GetVisibilityNeighborsForVertex(QuadTree<Obstacle> obstacles,
         List<Vertex> vertices,
-        Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles, Vertex vertex, int neighborBinCount,
+        Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles,
+        Vertex vertex,
+        int neighborBinCount = 36,
         int neighborsPerBin = 10)
     {
         /*
@@ -543,7 +553,13 @@ public class WavefrontPreprocessor
         return result;
     }
 
-    public static Dictionary<Coordinate, List<Obstacle>> GetCoordinateToObstaclesMapping(IList<Obstacle> allObstacles)
+    public static Dictionary<Coordinate, List<Obstacle>> GetCoordinateToObstaclesMapping(QuadTree<Obstacle> obstacles)
+    {
+        return GetCoordinateToObstaclesMapping(obstacles.QueryAll());
+    }
+
+    public static Dictionary<Coordinate, List<Obstacle>> GetCoordinateToObstaclesMapping(
+        IEnumerable<Obstacle> allObstacles)
     {
         Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles = new();
         allObstacles.Each(o => o.Vertices.Each(v =>

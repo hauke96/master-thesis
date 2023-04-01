@@ -11,6 +11,7 @@ using NetTopologySuite.Index.Quadtree;
 using NetTopologySuite.IO;
 using ServiceStack;
 using Wavefront.Geometry;
+using Wavefront.IO;
 using Feature = NetTopologySuite.Features.Feature;
 using Position = Mars.Interfaces.Environments.Position;
 
@@ -28,7 +29,7 @@ public class GraphGenerator
 
         MergeRoadsIntoGraph(features, graph);
         AddAttributesToPOIs(features, graph);
-        WriteGraphToFile(graph);
+        Exporter.WriteGraphToFile(graph);
 
         return hybridVisibilityGraph;
     }
@@ -386,62 +387,5 @@ public class GraphGenerator
         var maxY = Math.Max(coordinates[0].Y, coordinates[1].Y);
 
         return new Envelope(minX, maxX, minY, maxY);
-    }
-
-    private static void WriteGraphToFile(SpatialGraph graph)
-    {
-        var watch = Stopwatch.StartNew();
-
-        try
-        {
-            var graphFeatures = new FeatureCollection();
-            graph.NodesMap.Each((key, nodeData) =>
-            {
-                graphFeatures.Add(new Feature(new Point(nodeData.Position.X, nodeData.Position.Y),
-                    new AttributesTable(new Dictionary<string, object>()
-                    {
-                        { "node_id", key },
-                        // nodeNeighbors are not up to date anymore due to splitting of the graph
-                        // { "neighbors", nodeNeighbors[key] }
-                    })));
-            });
-            graph.Edges.Values.Each((key, edgeData) =>
-            {
-                graphFeatures.Add(new Feature(
-                    new LineString(edgeData.Geometry.Map(p => p.ToCoordinate()).ToArray()),
-                    new AttributesTable(new Dictionary<string, object>()
-                    {
-                        { "edge_id", key }
-                    })));
-            });
-            WriteFeatures(graphFeatures);
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            throw;
-        }
-
-        Console.WriteLine($"{nameof(GraphGenerator)}: Store layer as GeoJSON done after {watch.ElapsedMilliseconds}ms");
-    }
-
-    private static void WriteFeatures(FeatureCollection vectorFeatures)
-    {
-        var fileName = "./NetworkLayer.geojson";
-
-        if (File.Exists(fileName))
-        {
-            File.Delete(fileName);
-        }
-
-        var file = File.Open(fileName, FileMode.Append, FileAccess.Write);
-        var streamWriter = new StreamWriter(file);
-        var geoJsonWriter = new GeoJsonWriter();
-
-        streamWriter.Write(@"{""type"":""FeatureCollection"",""features"":[");
-        streamWriter.Write(string.Join(",", vectorFeatures.Select(feature => geoJsonWriter.Write(feature))));
-        streamWriter.Write("]}");
-        streamWriter.Close();
-        streamWriter.Dispose();
     }
 }

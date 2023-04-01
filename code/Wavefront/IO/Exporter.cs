@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using Mars.Common;
+using Mars.Common.Collections.Graph;
 using Mars.Numerics;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
@@ -75,14 +77,14 @@ public static class Exporter
         var unixZero = new DateTime(1970, 1, 1);
         var distanceFromStart = 0d;
         var waypoints = new List<Waypoint>();
-        
+
         route.Each((i, position) =>
         {
             distanceFromStart += Distance.Euclidean(route[Math.Max(i - 1, 0)].PositionArray, position.PositionArray);
             waypoints.Add(new Waypoint(position, i, baseDate.AddSeconds(i).Subtract(unixZero).TotalSeconds,
                 distanceFromStart));
         });
-        
+
         return RoutesToGeometryCollection(new List<List<Waypoint>> { waypoints });
     }
 
@@ -149,5 +151,60 @@ public static class Exporter
         var geoJson = stringWriter.ToString();
 
         await File.WriteAllTextAsync(filename, geoJson);
+    }
+
+    public static void WriteGraphToFile(SpatialGraph graph, string fileName = "./NetworkLayer.geojson")
+    {
+        var watch = Stopwatch.StartNew();
+
+        try
+        {
+            var graphFeatures = new FeatureCollection();
+            graph.NodesMap.Each((key, nodeData) =>
+            {
+                graphFeatures.Add(new Feature(new Point(nodeData.Position.X, nodeData.Position.Y),
+                    new AttributesTable(new Dictionary<string, object>()
+                    {
+                        { "node_id", key },
+                        // nodeNeighbors are not up to date anymore due to splitting of the graph
+                        // { "neighbors", nodeNeighbors[key] }
+                    })));
+            });
+            graph.Edges.Values.Each((key, edgeData) =>
+            {
+                graphFeatures.Add(new Feature(
+                    new LineString(edgeData.Geometry.Map(p => p.ToCoordinate()).ToArray()),
+                    new AttributesTable(new Dictionary<string, object>()
+                    {
+                        { "edge_id", key }
+                    })));
+            });
+            WriteFeatures(graphFeatures, fileName);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+
+        Console.WriteLine($"WriteGraphToFile: Store layer as GeoJSON done after {watch.ElapsedMilliseconds}ms");
+    }
+
+    public static void WriteFeatures(FeatureCollection vectorFeatures, string fileName = "./NetworkLayer.geojson")
+    {
+        if (File.Exists(fileName))
+        {
+            File.Delete(fileName);
+        }
+
+        var file = File.Open(fileName, FileMode.Append, FileAccess.Write);
+        var streamWriter = new StreamWriter(file);
+        var geoJsonWriter = new GeoJsonWriter();
+
+        streamWriter.Write(@"{""type"":""FeatureCollection"",""features"":[");
+        streamWriter.Write(string.Join(",", vectorFeatures.Select(feature => geoJsonWriter.Write(feature))));
+        streamWriter.Write("]}");
+        streamWriter.Close();
+        streamWriter.Dispose();
     }
 }
