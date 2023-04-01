@@ -1,6 +1,4 @@
 using Mars.Common.Collections.Graph;
-using Mars.Components.Environments;
-using Mars.Components.Layers;
 using Mars.Interfaces.Agents;
 using Mars.Interfaces.Annotations;
 using Mars.Interfaces.Environments;
@@ -8,8 +6,6 @@ using Mars.Interfaces.Layers;
 using NetworkRoutingPlayground.Layer;
 using ServiceStack;
 using ServiceStack.Text;
-using Wavefront.Geometry;
-using Wavefront.IO;
 
 namespace NetworkRoutingPlayground.Model
 {
@@ -25,17 +21,7 @@ namespace NetworkRoutingPlayground.Model
         public Guid ID { get; set; } = Guid.NewGuid();
 
         private AgentLayer _agentLayer;
-
-        private IList<EdgeData> _shortestPath;
         private List<Position> _waypoints;
-
-        // Spatial entity stuff:
-        public double Length => 0.0;
-        public ISpatialEdge CurrentEdge { get; set; }
-        public double PositionOnCurrentEdge { get; set; }
-        public int LaneOnCurrentEdge { get; set; }
-        public SpatialModalityType ModalityType => SpatialModalityType.Walking;
-        public bool IsCollidingEntity => false;
 
         public void Init(AgentLayer layer)
         {
@@ -58,13 +44,10 @@ namespace NetworkRoutingPlayground.Model
             // var startNode = allNodes.First(node => node.Index == 9);
             // var destinationNode = allNodes.First(node => node.Index == 37);
 
-            _waypoints = NetworkLayer.Graph.ShortestPath(new Position(9.9932553, 53.5536623), destinationNode.Position)
-                .Map(e => e.Geometry).SelectMany(x => x).ToList();
+            _waypoints = NetworkLayer.Graph.ShortestPath(startNode.Position, destinationNode.Position);
 
             Position = _waypoints[0];
             _waypoints.RemoveAt(0);
-
-            // Exporter.WriteRouteToFile(_route.SelectMany(edgeStop => edgeStop.Edge.Geometry).ToList());
         }
 
         public void Tick()

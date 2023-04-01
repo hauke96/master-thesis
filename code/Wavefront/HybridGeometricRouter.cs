@@ -1,9 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Text.Json.Serialization;
 using Mars.Common.Collections;
-using Mars.Common.Collections.Graph;
-using Mars.Common.Collections.Graph.Algorithms;
 using Mars.Common.Core.Collections;
 using Mars.Interfaces.Layers;
 using NetTopologySuite.Features;
@@ -77,7 +74,7 @@ namespace Wavefront
             Wavelets = new FibonacciHeap<Wavelet, double>(0);
         }
 
-        public IList<EdgeData> Route(Position source, Position target)
+        public List<Position> Route(Position source, Position target)
         {
             return _graph.ShortestPath(source, target);
         }

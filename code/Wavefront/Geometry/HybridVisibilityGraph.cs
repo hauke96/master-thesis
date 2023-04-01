@@ -9,13 +9,13 @@ namespace Wavefront.Geometry;
 
 public class HybridVisibilityGraph
 {
+    public readonly Func<EdgeData, NodeData, double> WeightedHeuristic =
+        (edge, _) => edge.Length * (edge.Data.IsEmpty() ? 1 : 0.1);
+
     private readonly SpatialGraph _graph;
     private readonly QuadTree<Obstacle> _obstacles;
     private readonly Dictionary<Vertex, int[]> _vertexToNodes;
     private readonly Dictionary<int, (double, double)> _nodeToAngleArea;
-
-    private readonly Func<EdgeData, NodeData, double> WeightedHeuristic =
-        (edge, _) => edge.Length * (edge.Data.IsEmpty() ? 1 : 0.1);
 
     public BoundingBox BoundingBox => _graph.BoundingBox;
 
@@ -30,24 +30,42 @@ public class HybridVisibilityGraph
         _nodeToAngleArea = nodeToAngleArea;
     }
 
-    public IList<EdgeData> ShortestPath(Position source, Position target)
+    public List<Position> ShortestPath(Position source, Position target)
     {
-        var sourceNode = AddPositionToGraph(source);
-        var targetNode = AddPositionToGraph(target);
+        var (sourceNode, isSourceNodeTemporary) = AddPositionToGraph(source);
+        var (targetNode, isTargetNodeTemporary) = AddPositionToGraph(target);
         Exporter.WriteGraphToFile(_graph, "graph-with-source-target.geojson");
 
-        var routingResult = _graph.AStarAlgorithm(0, 0, WeightedHeuristic);
+        var routingResult = _graph.AStarAlgorithm(sourceNode, targetNode, WeightedHeuristic);
 
         // Remove nodes (which automatically removes the edges too) to have a clean graph for further routing requests.
-        _graph.RemoveNode(_graph.NodesMap[sourceNode]);
-        _graph.RemoveNode(_graph.NodesMap[targetNode]);
+        if (isSourceNodeTemporary)
+        {
+            _graph.RemoveNode(_graph.NodesMap[sourceNode]);
+        }
+
+        if (isTargetNodeTemporary)
+        {
+            _graph.RemoveNode(_graph.NodesMap[targetNode]);
+        }
+
         Exporter.WriteGraphToFile(_graph, "graph-restored.geojson");
 
-        return routingResult;
+        return routingResult.Map(e => e.Geometry).SelectMany(x => x).ToList();
     }
 
-    private int AddPositionToGraph(Position source)
+    private (int, bool) AddPositionToGraph(Position source)
     {
+        var sourceNodeCandidates = _graph
+            .NodesMap
+            .Values
+            .Where(n => n.Position.DistanceInMTo(source) < 0.1)
+            .ToList();
+        if (sourceNodeCandidates.Any())
+        {
+            return (sourceNodeCandidates[0].Key, false);
+        }
+
         var sourceNode = _graph.AddNode(new Dictionary<string, object>
         {
             { "x", source.X },
@@ -82,7 +100,7 @@ public class HybridVisibilityGraph
             .SelectMany(x => x)
             .ToList();
 
-        return sourceNode;
+        return (sourceNode, true);
     }
 
     public List<NodeData> GetNodesByAttribute(string attributeName)
