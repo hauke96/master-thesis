@@ -17,6 +17,10 @@ namespace Wavefront;
 
 public class GraphGenerator
 {
+    /// <summary>
+    /// Generates the complete hybrid visibility graph based on the obstacles in the given feature collection. This
+    /// method also merges the road and ways within the features correctly with the visibility edges.
+    /// </summary>
     public static HybridVisibilityGraph Generate(ICollection<IVectorFeature> features)
     {
         var graph = new SpatialGraph();

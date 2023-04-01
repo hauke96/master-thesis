@@ -14,14 +14,11 @@ public class WavefrontTestHelper
 {
     public class WithWavefrontAlgorithm
     {
-        protected static HybridGeometricRouter HybridGeometricRouter;
-        protected static Vertex rootVertex;
         protected static LineString multiVertexLineObstacle;
         protected static LineString simpleLineObstacle;
         protected static List<Vertex> vertices;
         protected static List<Vertex> multiVertexLineVertices;
         protected static List<Vertex> simpleLineVertices;
-        protected static List<Feature> obstacleFeatures;
 
         [SetUp]
         public void Setup()
@@ -56,15 +53,6 @@ public class WavefrontTestHelper
             vertices = new List<Vertex>();
             vertices.AddRange(multiVertexLineVertices);
             vertices.AddRange(simpleLineVertices);
-
-            var obstacleGeometries = new List<NetTopologySuite.Geometries.Geometry>();
-            obstacleGeometries.Add(multiVertexLineObstacle);
-            obstacleGeometries.Add(simpleLineObstacle);
-
-            obstacleFeatures = obstacleGeometries.Map(geometry => new Feature(geometry, new AttributesTable()));
-
-            HybridGeometricRouter = new HybridGeometricRouter(obstacleFeatures);
-            rootVertex = new Vertex(Position.CreateGeoPosition(5, 2));
         }
     }
 }

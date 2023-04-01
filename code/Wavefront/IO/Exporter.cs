@@ -16,39 +16,6 @@ namespace Wavefront.IO;
 
 public static class Exporter
 {
-    public static async void WriteRoutesToFile(List<List<Waypoint>> routes)
-    {
-        var features = RoutesToGeometryCollection(routes);
-        await WriteFeaturesToFile(features, "agent-routes.geojson");
-    }
-
-    public static async void WriteRouteToFile(List<Position> route)
-    {
-        var features = PositionsToGeometryCollection(route);
-        await WriteFeaturesToFile(features, "agent-route.geojson");
-    }
-
-    public static async void WriteVisitedPositionsToFile(List<List<Waypoint>> routes)
-    {
-        var waypoints = routes.SelectMany(l => l) // Flatten list of lists
-            .GroupBy(w => w.Position) // Waypoint may have been visited multiple times
-            .Map(g => g.OrderBy(w => w.Order).First()) // Get the first visited waypoint
-            .ToList();
-        var features = new FeatureCollection();
-        waypoints.Each(w =>
-        {
-            var pointGeometry = (NetTopologySuite.Geometries.Geometry)new Point(w.Position.ToCoordinate());
-            var attributes = new AttributesTable
-            {
-                { "order", w.Order },
-                { "time", w.Time }
-            };
-            features.Add(new Feature(pointGeometry, attributes));
-        });
-
-        await WriteFeaturesToFile(features, "agent-points.geojson");
-    }
-
     public static async Task WriteFeaturesToFile(FeatureCollection features, string filename)
     {
         var serializer = GeoJsonSerializer.Create();
@@ -69,54 +36,6 @@ public static class Exporter
         var geoJson = stringWriter.ToString();
 
         await File.WriteAllTextAsync(filename, geoJson);
-    }
-
-    private static FeatureCollection PositionsToGeometryCollection(List<Position> route)
-    {
-        var baseDate = new DateTime(2010, 1, 1);
-        var unixZero = new DateTime(1970, 1, 1);
-        var distanceFromStart = 0d;
-        var waypoints = new List<Waypoint>();
-
-        route.Each((i, position) =>
-        {
-            distanceFromStart += Distance.Euclidean(route[Math.Max(i - 1, 0)].PositionArray, position.PositionArray);
-            waypoints.Add(new Waypoint(position, i, baseDate.AddSeconds(i).Subtract(unixZero).TotalSeconds,
-                distanceFromStart));
-        });
-
-        return RoutesToGeometryCollection(new List<List<Waypoint>> { waypoints });
-    }
-
-    private static FeatureCollection RoutesToGeometryCollection(List<List<Waypoint>> routes)
-    {
-        var featureCollection = new FeatureCollection();
-        routes.Each((i, r) => featureCollection.Add(
-            new Feature(RouteToLineString(r),
-                new AttributesTable(
-                    new Dictionary<string, object>
-                    {
-                        { "id", i }
-                    }
-                )
-            )
-        ));
-        return featureCollection;
-    }
-
-    private static LineString RouteToLineString(List<Waypoint> route)
-    {
-        var baseDate = new DateTime(2010, 1, 1);
-        var unixZero = new DateTime(1970, 1, 1);
-        var coordinateSequence = CoordinateArraySequenceFactory.Instance.Create(route.Count, 3, 1);
-        route.Each((i, w) =>
-        {
-            coordinateSequence.SetX(i, w.Position.X);
-            coordinateSequence.SetY(i, w.Position.Y);
-            coordinateSequence.SetM(i, baseDate.AddSeconds(w.Time).Subtract(unixZero).TotalSeconds);
-        });
-        var geometryFactory = new GeometryFactory(CoordinateArraySequenceFactory.Instance);
-        return new LineString(coordinateSequence, geometryFactory);
     }
 
     public static async void WriteVertexNeighborsToFile(Dictionary<Position, HashSet<Position>> positionToNeighbors,
