@@ -1,22 +1,32 @@
+using Mars.Components.Environments;
 using Mars.Components.Layers;
 using Mars.Core.Data;
 using Mars.Interfaces.Data;
 using Mars.Interfaces.Layers;
 using NetworkRoutingPlayground.Model;
+using Wavefront;
+using Wavefront.Geometry;
 
 namespace NetworkRoutingPlayground.Layer
 {
-    public class AgentLayer : VectorLayer
+    public class AgentLayer : AbstractLayer
     {
+        public GeoHashEnvironment<Agent> Environment { get; private set; }
+
         public override bool InitLayer(LayerInitData layerInitData, RegisterAgent registerAgentHandle = null,
             UnregisterAgent unregisterAgent = null)
         {
             var layerInitialized = base.InitLayer(layerInitData, registerAgentHandle, unregisterAgent);
 
             var agentManager = layerInitData.Container.Resolve<IAgentManager>();
-            var agents = agentManager.Spawn<Agent, AgentLayer>().ToList();
-            
+            agentManager.Spawn<Agent, AgentLayer>().ToList();
+
             return layerInitialized;
+        }
+
+        public void InitEnvironment(HybridVisibilityGraph graph)
+        {
+            Environment = GeoHashEnvironment<Agent>.BuildByBBox(graph.BoundingBox, 1);
         }
     }
 }
