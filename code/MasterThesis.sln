@@ -4,7 +4,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeoJsonRouting", "GeoJsonRo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HybridVisibilityGraphRouting", "HybridVisibilityGraphRouting\HybridVisibilityGraphRouting.csproj", "{F0395CC8-91BD-47C7-B043-EF65EF245176}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HybridVisibilityGraph.Tests", "HybridVisibilityGraph.Tests\HybridVisibilityGraph.Tests.csproj", "{82C32211-C5C0-4125-9529-DA003651273B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HybridVisibilityGraphRouting.Tests", "HybridVisibilityGraphRouting.Tests\HybridVisibilityGraphRouting.Tests.csproj", "{82C32211-C5C0-4125-9529-DA003651273B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HikerModel", "HikerModel\HikerModel.csproj", "{800A9A25-522C-4FC2-8A0E-20EA72F5F502}"
 EndProject
