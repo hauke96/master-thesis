@@ -10,7 +10,7 @@ using Position = Mars.Interfaces.Environments.Position;
 
 namespace Wavefront.Tests;
 
-public class WavefrontPreprocessorTest
+public class VisibilityGraphGeneratorTest
 {
     public class WithMultipleObstacles
     {
