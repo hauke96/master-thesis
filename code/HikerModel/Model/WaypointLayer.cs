@@ -7,8 +7,8 @@ using Mars.Components.Layers;
 using Mars.Interfaces.Data;
 using Mars.Interfaces.Layers;
 using NetTopologySuite.Geometries;
-using Wavefront;
-using Wavefront.Geometry;
+using HybridVisibilityGraphRouting;
+using HybridVisibilityGraphRouting.Geometry;
 
 namespace HikerModel.Model
 {

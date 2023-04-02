@@ -4,8 +4,8 @@ using Mars.Core.Data;
 using Mars.Interfaces.Data;
 using Mars.Interfaces.Layers;
 using NetworkRoutingPlayground.Model;
-using Wavefront;
-using Wavefront.Geometry;
+using HybridVisibilityGraphRouting;
+using HybridVisibilityGraphRouting.Geometry;
 
 namespace NetworkRoutingPlayground.Layer
 {
@@ -24,7 +24,7 @@ namespace NetworkRoutingPlayground.Layer
             return layerInitialized;
         }
 
-        public void InitEnvironment(HybridVisibilityGraph graph)
+        public void InitEnvironment(HybridVisibilityGraphRouting graph)
         {
             Environment = GeoHashEnvironment<Agent>.BuildByBBox(graph.BoundingBox, 1);
         }

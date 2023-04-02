@@ -3,7 +3,7 @@ using System.IO;
 using HikerModel.Model;
 using Mars.Components.Starter;
 using Mars.Interfaces.Model;
-using Wavefront;
+using HybridVisibilityGraphRouting;
 
 namespace HikerModel
 {

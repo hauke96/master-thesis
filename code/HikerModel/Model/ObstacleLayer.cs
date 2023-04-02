@@ -2,7 +2,7 @@ using Mars.Components.Layers;
 using Mars.Interfaces.Data;
 using Mars.Interfaces.Layers;
 using ServiceStack;
-using Wavefront;
+using HybridVisibilityGraphRouting;
 
 namespace HikerModel.Model
 {

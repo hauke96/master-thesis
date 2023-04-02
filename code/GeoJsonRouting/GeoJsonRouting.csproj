@@ -24,7 +24,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Wavefront\Wavefront.csproj" />
+      <ProjectReference Include="..\HybridVisibilityGraphRouting\HybridVisibilityGraphRouting.csproj" />
     </ItemGroup>
 
 </Project>

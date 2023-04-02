@@ -8,8 +8,8 @@ using Mars.Interfaces.Environments;
 using Mars.Interfaces.Layers;
 using Mars.Numerics;
 using NetTopologySuite.Geometries;
-using Wavefront;
-using Wavefront.IO;
+using HybridVisibilityGraphRouting;
+using HybridVisibilityGraphRouting.IO;
 using Position = Mars.Interfaces.Environments.Position;
 
 namespace HikerModel.Model

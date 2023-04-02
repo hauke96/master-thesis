@@ -5,14 +5,14 @@ using Mars.Interfaces.Environments;
 using Mars.Interfaces.Layers;
 using NetworkRoutingPlayground.Model;
 using ServiceStack.Text;
-using Wavefront;
-using Wavefront.Geometry;
+using HybridVisibilityGraphRouting;
+using HybridVisibilityGraphRouting.Geometry;
 
 namespace NetworkRoutingPlayground.Layer;
 
 public class NetworkLayer : VectorLayer
 {
-    public HybridVisibilityGraph Graph { get; set; }
+    public HybridVisibilityGraphRouting Graph { get; set; }
 
     public override bool InitLayer(LayerInitData layerInitData, RegisterAgent registerAgentHandle = null,
         UnregisterAgent unregisterAgent = null)

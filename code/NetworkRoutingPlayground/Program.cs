@@ -3,7 +3,7 @@ using Mars.Components.Starter;
 using Mars.Interfaces.Model;
 using NetworkRoutingPlayground.Layer;
 using NetworkRoutingPlayground.Model;
-using Wavefront;
+using HybridVisibilityGraphRouting;
 
 namespace NetworkRoutingPlayground
 {

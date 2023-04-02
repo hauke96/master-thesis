@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <TargetFramework>net7.0</TargetFramework>
+        <RootNamespace>Wavefront</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Mars.Life.Simulations" Version="4.5.2" />
+      <PackageReference Include="NetTopologySuite" Version="2.5.0" />
+    </ItemGroup>
+
+</Project>
