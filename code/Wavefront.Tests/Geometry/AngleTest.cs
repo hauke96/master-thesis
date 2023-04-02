@@ -6,20 +6,6 @@ namespace Wavefront.Tests.Geometry;
 public class AngleTest
 {
     [Test]
-    public void IsBetween_noZeroDegreeOverlap()
-    {
-        Assert.True(Angle.IsBetweenWithNormalize(0, 40, 90));
-        Assert.True(Angle.IsBetweenWithNormalize(10, 180, 200));
-        Assert.True(Angle.IsBetweenWithNormalize(0, 90, 360));
-
-        Assert.False(Angle.IsBetweenWithNormalize(10, 180, 180));
-        Assert.False(Angle.IsBetweenWithNormalize(180, 180, 200));
-        Assert.False(Angle.IsBetweenWithNormalize(0, 90, 361));
-        Assert.False(Angle.IsBetweenWithNormalize(-1, 90, 360));
-        Assert.False(Angle.IsBetweenWithNormalize(0, 90, 45));
-    }
-
-    [Test]
     public void IsBetweenEqual()
     {
         Assert.True(Angle.IsBetweenEqual(0, 40, 90));
@@ -41,34 +27,6 @@ public class AngleTest
         Assert.False(Angle.IsBetweenEqual(10, 339, 10));
         Assert.False(Angle.IsBetweenEqual(100, 0, 360));
         Assert.False(Angle.IsBetweenEqual(180, 90, 0));
-    }
-
-    [Test]
-    public void IsBetween_noZeroDegreeOverlap_outside360DegreeArea()
-    {
-        // 0, 40, 90
-        Assert.True(Angle.IsBetweenWithNormalize(0, 40, 450));
-        // 180, 200, 250
-        Assert.True(Angle.IsBetweenWithNormalize(-180, 200, 250));
-        // 10, 60, 160
-        Assert.True(Angle.IsBetweenWithNormalize(-350, -300, -200));
-
-        // 60, 10, 160
-        Assert.False(Angle.IsBetweenWithNormalize(60 - 360, -350, -200));
-    }
-
-    [Test]
-    public void IsBetween_withZeroDegreeOverlap()
-    {
-        Assert.True(Angle.IsBetweenWithNormalize(300, 40, 90));
-        Assert.True(Angle.IsBetweenWithNormalize(-60, 40, 90));
-        Assert.True(Angle.IsBetweenWithNormalize(300, 350, 20));
-
-        Assert.False(Angle.IsBetweenWithNormalize(300, 20, 20));
-        Assert.False(Angle.IsBetweenWithNormalize(300, 300, 20));
-        Assert.False(Angle.IsBetweenWithNormalize(300, 180, 90));
-        // 10, 180, 90
-        Assert.False(Angle.IsBetweenWithNormalize(-300, 180, 90));
     }
 
     [Test]
@@ -151,22 +109,6 @@ public class AngleTest
         Assert.False(Angle.AreEqual(359, 0));
         Assert.False(Angle.AreEqual(720, 10));
         Assert.False(Angle.AreEqual(10, 720));
-    }
-
-    [Test]
-    public void GreaterEqual()
-    {
-        Assert.True(Angle.GreaterEqual(1, 0));
-        Assert.True(Angle.GreaterEqual(1, 0.9899999999));
-        Assert.True(Angle.GreaterEqual(1, 1.0001));
-        Assert.True(Angle.GreaterEqual(360, 0));
-        Assert.True(Angle.GreaterEqual(0, 360));
-        Assert.True(Angle.GreaterEqual(1, 360.1));
-
-        Assert.False(Angle.GreaterEqual(1, 1.01000001));
-        Assert.False(Angle.GreaterEqual(1, 359.9));
-        Assert.False(Angle.GreaterEqual(1, 360));
-        Assert.False(Angle.GreaterEqual(359.9, 360));
     }
 
     [Test]

@@ -25,40 +25,6 @@ public class Angle
     }
 
     /// <summary>
-    /// Checks if the angle "angle" is between a and b.
-    /// </summary>
-    public static bool IsBetweenWithNormalize(double a, double angle, double b)
-    {
-        a = Normalize(a);
-        b = Normalize(b);
-        angle = Normalize(angle);
-
-        // 0° is NOT between a and b -> normal check
-        if (a < b || AreEqual(a, b))
-        {
-            return a < angle && angle < b;
-        }
-
-        return b > angle || angle > a;
-    }
-
-    /// <summary>
-    /// Checks if the angle "angle" is between a and b.
-    /// This method assumes that all angles are correctly normalized.
-    /// </summary>
-    public static bool IsBetween(double a, double angle, double b)
-    {
-        if (a > b)
-        {
-            // a to b exceeds to 0° border
-            angle = angle < b ? angle + 360.0 : angle;
-            b += 360.0;
-        }
-
-        return a < angle && angle < b;
-    }
-
-    /// <summary>
     /// Checks if the angle "angle" is between a and b including being equal to a or b.
     /// This method assumes that all angles are correctly normalized.
     /// </summary>
@@ -146,22 +112,6 @@ public class Angle
         a = StrictNormalize(a);
         b = StrictNormalize(b);
         return Difference(a, b) < FLOAT_TOLERANCE || Difference(b, a) < FLOAT_TOLERANCE;
-    }
-
-    /// <summary>
-    /// Returns a >= b. Both angles will be normalized before checking the greater-equal-relation. The equality check is
-    /// made with a little bit of tolerance to compensate floating point inaccuracy.
-    /// </summary>
-    public static bool GreaterEqual(double a, double b)
-    {
-        if (AreEqual(a, b))
-        {
-            return true;
-        }
-
-        a = Normalize(a);
-        b = Normalize(b);
-        return a > b;
     }
 
     /// <summary>
