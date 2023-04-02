@@ -12,7 +12,7 @@ using Position = Mars.Interfaces.Environments.Position;
 
 namespace HybridVisibilityGraphRouting;
 
-public class VisibilityGraphGenerator
+public static class VisibilityGraphGenerator
 {
     /// <summary>
     /// Calculates the neighbor relationship for each vertex v in the given obstacles. The term "neighbor" here means
@@ -22,10 +22,11 @@ public class VisibilityGraphGenerator
     /// <returns>A dict from position to a duplicate free list of all neighbors found.</returns>
     public static Dictionary<Position, List<Position>> GetObstacleNeighborsFromObstacleVertices(
         IList<Obstacle> obstacles,
-        Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles, bool debugModeActive = false)
+        Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles,
+        bool debugModeActive = false)
     {
         // A function that determines if any obstacles is between the two given coordinates.
-        var isCoordinateHidden = (Coordinate coordinate, Coordinate otherCoordinate, Obstacle obstacleOfCoordinate) =>
+        bool IsCoordinateHidden(Coordinate coordinate, Coordinate otherCoordinate, Obstacle obstacleOfCoordinate) =>
             obstacles.Any(o =>
                 o.IsClosed &&
                 (
@@ -37,7 +38,7 @@ public class VisibilityGraphGenerator
         var positionToObstacleNeighbors = new Dictionary<Position, HashSet<Position>>();
         obstacles.Each(obstacle =>
         {
-            AddObstacleNeighborsForObstacle(obstacle, positionToObstacleNeighbors, isCoordinateHidden);
+            AddObstacleNeighborsForObstacle(obstacle, positionToObstacleNeighbors, IsCoordinateHidden);
         });
 
         if (!PerformanceMeasurement.IS_ACTIVE && debugModeActive)
@@ -57,7 +58,8 @@ public class VisibilityGraphGenerator
     /// map.
     /// </summary>
     /// <param name="isCoordinateHidden">A function that determines if the obstacle is between the two given coordinates , in other words, if the two coordinates see each other.</param>
-    private static void AddObstacleNeighborsForObstacle(Obstacle obstacle,
+    private static void AddObstacleNeighborsForObstacle(
+        Obstacle obstacle,
         Dictionary<Position, HashSet<Position>> positionToObstacleNeighbors,
         Func<Coordinate, Coordinate, Obstacle, bool> isCoordinateHidden)
     {
@@ -176,9 +178,13 @@ public class VisibilityGraphGenerator
     /// <param name="coordinateToObstacles">
     /// A map from coordinate to all obstacles that include this geometry somewhere in their geometry.
     /// </param>
-    private static Dictionary<Vertex, List<List<Vertex>>> CalculateVisibleKnnInternal(QuadTree<Obstacle> obstacles,
-        Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles, List<Vertex> vertices, int neighborBinCount,
-        int neighborsPerBin = 10, bool debugModeActive = false)
+    private static Dictionary<Vertex, List<List<Vertex>>> CalculateVisibleKnnInternal(
+        QuadTree<Obstacle> obstacles,
+        Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles,
+        List<Vertex> vertices,
+        int neighborBinCount,
+        int neighborsPerBin = 10,
+        bool debugModeActive = false)
     {
         var result = new Dictionary<Vertex, List<List<Vertex>>>();
         Log.D(
@@ -239,7 +245,8 @@ public class VisibilityGraphGenerator
     /// Determines all visibility neighbors with respect to the limits given by the maximum of "neighborsPerBin" many
     /// neighbors per bin for each of the "neighborBinCount" many bins.
     /// </summary>
-    public static List<List<Vertex>> GetVisibilityNeighborsForVertex(QuadTree<Obstacle> obstacles,
+    public static List<List<Vertex>> GetVisibilityNeighborsForVertex(
+        QuadTree<Obstacle> obstacles,
         List<Vertex> vertices,
         Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles,
         Vertex vertex,
@@ -334,56 +341,60 @@ public class VisibilityGraphGenerator
                     obstacle.IntersectsWithLine(vertex.Coordinate, otherVertex.Coordinate, coordinateToObstacles);
             }));
 
-            if (!intersectsWithObstacle)
+            if (intersectsWithObstacle)
             {
-                // For simplicity, only the neighbor list is used for null checks. However, the maxDistance list is
-                // null if and only if the neighbor list is null.
-                // TODO Find a better solution for this two-list-situation
+                // The line between "vertex" and "otherVertex" intersects with an obstacle -> "otherVertex" not visible
+                // so we can check the next other vertex.
+                continue;
+            }
 
-                if (visibilityNeighbors[binKey] == null)
+            // For simplicity, only the neighbor list is used for null checks. However, the maxDistance list is
+            // null if and only if the neighbor list is null.
+            // TODO Find a better solution for this two-list-situation
+
+            if (visibilityNeighbors[binKey] == null)
+            {
+                visibilityNeighbors[binKey] = new LinkedList<Vertex>();
+                maxDistances[binKey] = new LinkedList<double>();
+            }
+
+            var visibilityNeighborList = visibilityNeighbors[binKey]!;
+            var maxDistanceList = maxDistances[binKey]!;
+
+            var visibilityNeighborNode = visibilityNeighborList.Last;
+            var distanceNode = maxDistanceList.Last;
+
+            // Find the first element in the list with a distance lower than the calculated  "distanceToOtherVertex"
+            while (visibilityNeighborNode != null)
+            {
+                var distance = distanceNode!.Value;
+
+                if (distance > distanceToOtherVertex)
                 {
-                    visibilityNeighbors[binKey] = new LinkedList<Vertex>();
-                    maxDistances[binKey] = new LinkedList<double>();
-                }
-
-                var visibilityNeighborList = visibilityNeighbors[binKey]!;
-                var maxDistanceList = maxDistances[binKey]!;
-
-                var visibilityNeighborNode = visibilityNeighborList.Last;
-                var distanceNode = maxDistanceList.Last;
-
-                // Find the first element in the list with a distance lower than the calculated  "distanceToOtherVertex"
-                while (visibilityNeighborNode != null)
-                {
-                    var distance = distanceNode!.Value;
-
-                    if (distance > distanceToOtherVertex)
-                    {
-                        visibilityNeighborNode = visibilityNeighborNode.Previous;
-                        distanceNode = distanceNode.Previous;
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-
-                if (visibilityNeighborNode == null)
-                {
-                    visibilityNeighborList.AddLast(otherVertex);
-                    maxDistanceList.AddLast(distanceToOtherVertex);
+                    visibilityNeighborNode = visibilityNeighborNode.Previous;
+                    distanceNode = distanceNode.Previous;
                 }
                 else
                 {
-                    visibilityNeighborList.AddAfter(visibilityNeighborNode, otherVertex);
-                    maxDistanceList.AddAfter(distanceNode, distanceToOtherVertex);
+                    break;
                 }
+            }
 
-                if (visibilityNeighborList.Count > neighborsPerBin)
-                {
-                    visibilityNeighborList.RemoveLast();
-                    maxDistanceList.RemoveLast();
-                }
+            if (visibilityNeighborNode == null)
+            {
+                visibilityNeighborList.AddLast(otherVertex);
+                maxDistanceList.AddLast(distanceToOtherVertex);
+            }
+            else
+            {
+                visibilityNeighborList.AddAfter(visibilityNeighborNode, otherVertex);
+                maxDistanceList.AddAfter(distanceNode, distanceToOtherVertex);
+            }
+
+            if (visibilityNeighborList.Count > neighborsPerBin)
+            {
+                visibilityNeighborList.RemoveLast();
+                maxDistanceList.RemoveLast();
             }
         }
 
@@ -443,9 +454,8 @@ public class VisibilityGraphGenerator
                 bin.Add(thisVisibilityNeighbor[0]);
             }
 
-            for (var i = 0; i < allVisibilityNeighbors.Count; i++)
+            foreach (var visibilityNeighbor in allVisibilityNeighbors)
             {
-                var visibilityNeighbor = allVisibilityNeighbors[i];
                 if (Angle.IsBetweenEqual(thisObstacleNeighbor.Bearing,
                         Angle.GetBearing(vertex.Position, visibilityNeighbor.Position), nextObstacleNeighbor.Bearing))
                 {
