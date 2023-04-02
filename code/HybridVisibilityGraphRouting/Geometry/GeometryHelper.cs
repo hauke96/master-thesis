@@ -1,4 +1,5 @@
 using HybridVisibilityGraphRouting.IO;
+using Mars.Common.Core.Collections;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.Triangulate.Polygon;
@@ -19,43 +20,49 @@ public class GeometryHelper
     public static List<NetTopologySuite.Geometries.Geometry> UnwrapAndTriangulate(List<IFeature> features,
         bool debugModeActive = false)
     {
-        var vertexCount = features.Sum(o => o.Geometry.Coordinates.Length);
-        PerformanceMeasurement.TOTAL_VERTICES = vertexCount;
-        Log.D($"Amount of features before splitting: {features.Count}");
-        Log.D($"Amount of vertices before splitting: {vertexCount}");
+        var geometriesToTriangulate = new LinkedList<NetTopologySuite.Geometries.Geometry>();
+        var geometriesToIgnore = new LinkedList<NetTopologySuite.Geometries.Geometry>();
 
-        var geometries = features.Map(g => UnwrapMultiGeometries(g.Geometry)).SelectMany(x => x).ToList();
-
-        var triangulatedGeometries = geometries.Map(geometry =>
+        // Unwrap geometries and sort them into a list of geometries to triangulate and into a list of geometries to
+        // keep unchanged.
+        features
+            .Map(g => UnwrapMultiGeometries(g.Geometry))
+            .SelectMany(x => x)
+            .Each(geometry =>
             {
-                if (geometry is not Polygon && geometry is not MultiPolygon)
+                if (geometry is not Polygon)
                 {
-                    if (geometry.Coordinates.Length == 1)
+                    if (geometry.Coordinates.Length == 1 || !IsGeometryClosed(geometry))
                     {
-                        return new[] { geometry };
+                        // Ignore point and non-closed geometries for triangulation and just keep them as they are.
+                        geometriesToIgnore.AddLast(geometry);
+                        return;
                     }
 
-                    if (geometry.Coordinates[0].Equals(geometry.Coordinates[^1]))
-                    {
-                        // Non-polygonal geometries (like a closed LineString or LinearRing) can easily be converted
-                        // into a valid polygon for triangulation below.
-                        geometry = new Polygon(new LinearRing(geometry.Coordinates));
-                    }
-                    else
-                    {
-                        return new[] { geometry };
-                    }
+                    // Non-polygonal but closed geometries (like a closed LineString or LinearRing) can easily be
+                    // converted into a valid polygon for triangulation below.
+                    geometry = new Polygon(new LinearRing(geometry.Coordinates));
                 }
 
-                return ((GeometryCollection)PolygonTriangulator.Triangulate(geometry)).Geometries;
-            })
+                geometriesToTriangulate.AddLast(geometry);
+            });
+
+        var vertexCount = geometriesToTriangulate.Sum(o => o.Coordinates.Length) +
+                          geometriesToIgnore.Sum(o => o.Coordinates.Length);
+        PerformanceMeasurement.TOTAL_VERTICES = vertexCount;
+        Log.D($"Amount of features before triangulating: {geometriesToTriangulate.Count + geometriesToIgnore.Count}");
+        Log.D($"Amount of vertices before triangulating: {vertexCount}");
+
+        var triangulatedGeometries = geometriesToTriangulate
+            .Map(geometry => ((GeometryCollection)PolygonTriangulator.Triangulate(geometry)).Geometries)
             .SelectMany(x => x)
             .ToList();
 
-        vertexCount = triangulatedGeometries.Sum(o => o.Coordinates.Length);
+        vertexCount = triangulatedGeometries.Sum(o => o.Coordinates.Length) +
+                      geometriesToIgnore.Sum(o => o.Coordinates.Length);
         PerformanceMeasurement.TOTAL_VERTICES_AFTER_PREPROCESSING = vertexCount;
-        Log.D($"Amount of features after splitting: {triangulatedGeometries.Count}");
-        Log.D($"Amount of vertices after splitting: {vertexCount}");
+        Log.D($"Amount of features after triangulating: {triangulatedGeometries.Count + geometriesToIgnore.Count}");
+        Log.D($"Amount of vertices after triangulating: {vertexCount}");
 
         if (debugModeActive)
         {
@@ -64,14 +71,14 @@ public class GeometryHelper
             Exporter.WriteFeaturesToFile(featureCollection, "features-splitted.geojson").Wait();
         }
 
-        return triangulatedGeometries;
+        return geometriesToIgnore.Concat(triangulatedGeometries).ToList();
     }
 
     /// <summary>
     /// Unwraps the given geometry, which means resolving multi-geometry relations.
     ///
-    /// However, only MultiPolygon geometries are actually unwrapped. For each polygon in a multi-polygon, their
-    /// exterior rings are collected and returned.
+    /// However, only MultiPolygon and MultiLineString geometries are currently unwrapped. For each polygon in a
+    /// multi-polygon, their exterior rings are collected and returned.
     ///
     /// All other geometry types will be returned unchanged.
     /// </summary>
@@ -87,6 +94,10 @@ public class GeometryHelper
                 var simplePolygon = new Polygon((LinearRing)((Polygon)polygon.GetGeometryN(0)).ExteriorRing);
                 unwrappedGeometries.Add(simplePolygon);
             });
+        }
+        else if (geometry is MultiLineString multiLineString)
+        {
+            multiLineString.Each(lineString => { unwrappedGeometries.Add(lineString); });
         }
         else
         {
