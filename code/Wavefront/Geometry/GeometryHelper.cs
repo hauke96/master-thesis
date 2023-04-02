@@ -95,4 +95,9 @@ public class GeometryHelper
 
         return unwrappedGeometries;
     }
+
+    public static bool IsGeometryClosed(NetTopologySuite.Geometries.Geometry geometry)
+    {
+        return geometry.Coordinates.Length > 2 && Equals(geometry.Coordinates.First(), geometry.Coordinates.Last());
+    }
 }

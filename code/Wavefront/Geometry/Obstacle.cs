@@ -27,7 +27,7 @@ namespace Wavefront.Geometry
             }
 
             Coordinates = geometry.Coordinates.ToList();
-            IsClosed = IsGeometryClosed(geometry);
+            IsClosed = GeometryHelper.IsGeometryClosed(geometry);
             if (IsClosed && Coordinates.Count > 4 && (geometry is Polygon || geometry is MultiPolygon))
             {
                 throw new Exception(
@@ -37,11 +37,6 @@ namespace Wavefront.Geometry
             Vertices = vertices;
             _hash = (int)geometry.Coordinates.Sum(coordinate => coordinate.X * 7919 + coordinate.Y * 4813);
             Envelope = geometry.EnvelopeInternal;
-        }
-
-        public static bool IsGeometryClosed(NetTopologySuite.Geometries.Geometry geometry)
-        {
-            return geometry.Coordinates.Length > 2 && Equals(geometry.Coordinates.First(), geometry.Coordinates.Last());
         }
 
         public bool CanIntersect(Envelope envelope)
