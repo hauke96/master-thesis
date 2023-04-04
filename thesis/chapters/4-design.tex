@@ -7,6 +7,33 @@
 	The primary goal of the hybrid routing algorithm is to provide a more accurate path planning for agent based simulations than normal graph based routing, which is integrated into the MARS framework.
 	Such major goal implies several constrains on the architecture and design of the software.
 	
+	\subsection{Requirements}
+	
+		Functional requirements of the resulting software can be formulated quite easily, since this is not a large commercial product.
+		The hybrid routing algorithm should determine an optimal path between two locations following ways and traversing open spaces based on a configurable weight function.
+		Therefore, the geospatial data basis may contain a road network data and obstacles, which are features that should be avoided on paths through open spaces.
+		
+		More complex and time consuming are the quality requirements.
+		Because this is not part of a commercial software development, these requirements were not officially and formulated.
+		Nonetheless, they exist and consist of the following aspects.
+	
+		The largest quality requirement in terms of effort is performance.
+		It affects large parts of the software architecture since the resulting algorithm, dispite its complexity, should ideally have a negligible impact on the overall performance of a simulation.
+		Routing algorithms and engines often consist of two steps, a preprocessing and query answering step.
+		In order to create fluent and fast simulations, the performance of answering numerous routing requests must be as good as possible.
+		The time needed for preprocessing is of less relevance.
+		
+		A rather obvious requirement is the correctness of resulting routes.
+		The answer of a routing query must return the shortest route according to a given weight function for the underlying edges.
+		Even when using an approximation algorithm to determine shortest paths, the results can be checked against all other possible paths to verify the optimality of the resulting path.
+		
+		Another quality requirement is the closeness of the resulting routes to real pedestrian behavior.
+		Unfortunately, this can hardly be measured without having extensive data of real world pedestrians in real world locations.
+		However, the overall trajectory of a calculated route should ideally be identical to a real world pedestrian trajectory and should at least make sense to an observer without additional knowledge of the real world location.
+		Furthermore, real pedestrian behavior is not part of the shortest path calculations but is instead a task for realistic agent modeling.
+
+		Next to the software specific requirement, the overall code itself should of course be well documented and tested.
+	
 	\subsection{Constrains}
 		
 		% Well integrated into MARS and NTS, no new dependencies
@@ -17,11 +44,6 @@
 		On the one hand, the amount dependencies which are not already part of the target code base should be kept to a minimum.
 		On the other hand, using only libraries, on which the target code base depends as well, is not always possible due to version mismatches.
 		However, the latter case can be avoided or treated in a way that the mismatch disappears or doesn't lead to compatibility problems.
-		
-		Another constraint affecting parts of the software architecture are performance requirements.
-		Routing algorithms and engines often consist of two separate runtime components, a preprocessing step and answering the actual routing query.
-		In order to create fluent and fast simulations, the performance of answering routing requests must be as good as possible.
-		The time needed for preprocessing is of less relevance.
 	
 	% Diagram with MARS Agent using my hybrid algorithm
 	
