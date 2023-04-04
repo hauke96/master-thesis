@@ -3,10 +3,38 @@
 
 \section{Overview and Context}
 
+	% Used by agents for wayfinding
+	The primary goal of the hybrid routing algorithm is to provide a more accurate path planning for agent based simulations than normal graph based routing, which is integrated into the MARS framework.
+	Such major goal implies several constrains on the architecture and design of the software.
+	
+	\subsection{Constrains}
+		
+		% Well integrated into MARS and NTS, no new dependencies
+		One major constraint is the integration of the hybrid routing algorithm into the MARS framework to make the use as easy as possible and to centralize the code base for better maintenance.
+		MARS uses the NetTopologySuite as basis for all major geospatial operations, which has a huge influence on the choice of geospatial frameworks.
+		
+		The planned integration into another code base affects the management of dependencies.
+		On the one hand, the amount dependencies which are not already part of the target code base should be kept to a minimum.
+		On the other hand, using only libraries, on which the target code base depends as well, is not always possible due to version mismatches.
+		However, the latter case can be avoided or treated in a way that the mismatch disappears or doesn't lead to compatibility problems.
+		
+		Another constraint affecting parts of the software architecture are performance requirements.
+		Routing algorithms and engines often consist of two separate runtime components, a preprocessing step and answering the actual routing query.
+		In order to create fluent and fast simulations, the performance of answering routing requests must be as good as possible.
+		The time needed for preprocessing is of less relevance.
+	
+	% Diagram with MARS Agent using my hybrid algorithm
+	
+\section{Components}
+
+\section{Deployment view}
+
+	% published in MARS
+
 \section{Combination of routing algorithms}
 
 	This section describes the core aspect of this thesis:
-	The combination of graph and geometric based routing algorithms.
+	The decision of a strategy to combine graph and geometric based routing algorithms.
 	
 	In the following subsections, four approaches are discussed of which the last one seemed to be the most promising.
 	The first three are using any normal graph based routing algorithm, like A* or Dijkstra, in combination with the geometric continuous Dijkstra paradigm.
@@ -110,11 +138,3 @@
 		
 		However, the advantages are more important.
 		As already mentioned, this strategy is simple and fast, compared to the time complexities above, only makes one routing query and enabled the use of speed up methods.
-
-\section{Components}
-
-\section{Runtime and implementation details}
-
-\section{Deployment view}
-
-% published in MARS
