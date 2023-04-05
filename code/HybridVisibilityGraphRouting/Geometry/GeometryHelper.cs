@@ -18,7 +18,7 @@ public class GeometryHelper
     /// <param name="features">The features whose geometries should be triangulated</param>
     /// <param name="debugModeActive">Set to true to write the result to disk.</param>
     /// <returns>A list of simple triangulated geometries.</returns>
-    public static List<NetTopologySuite.Geometries.Geometry> UnwrapAndTriangulate(List<IFeature> features,
+    public static List<NetTopologySuite.Geometries.Geometry> UnwrapAndTriangulate(IEnumerable<IFeature> features,
         bool debugModeActive = false)
     {
         var geometriesToTriangulate = new LinkedList<NetTopologySuite.Geometries.Geometry>();

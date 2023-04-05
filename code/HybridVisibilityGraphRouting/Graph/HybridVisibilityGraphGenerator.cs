@@ -43,16 +43,8 @@ public static class HybridVisibilityGraphGenerator
     /// <returns>A map from each vertex to the bins of visibility neighbors.</returns>
     private static QuadTree<Obstacle> GetObstacleNeighbors(ICollection<IVectorFeature> features)
     {
-        var importedObstacles = features.Where(f =>
-            {
-                return f.VectorStructured.Attributes.GetNames().Any(name =>
-                {
-                    var lowerName = name.ToLower();
-                    return lowerName.Contains("building") || lowerName.Contains("barrier") ||
-                           lowerName.Contains("natural") || lowerName.Contains("poi");
-                });
-            })
-            .Map(f => f.VectorStructured as IFeature);
+        var wantedKeys = new[] { "building", "barrier", "natural", "poi" };
+        var importedObstacles = FilterFeaturesByKeys(features, wantedKeys);
 
         var watch = Stopwatch.StartNew();
 
@@ -216,7 +208,7 @@ public static class HybridVisibilityGraphGenerator
             edgeIndex.Insert(envelope, i);
         });
 
-        var roadFeatures = GetAllRoadFeatures(features);
+        var roadFeatures = FilterFeaturesByKeys(features, new[] { "highway" });
         var roadSegments = SplitFeaturesToSegments(roadFeatures);
 
         roadSegments.Each(roadSegment => { MergeSegmentIntoGraph(graph, edgeIndex, roadSegment); });
@@ -348,7 +340,7 @@ public static class HybridVisibilityGraphGenerator
     /// Determines a list of all segments from the given features. That means, each of the returned line strings has
     /// exactly two coordinates.
     /// </summary>
-    private static List<Feature> SplitFeaturesToSegments(IEnumerable<IVectorFeature> roadFeatures)
+    private static List<Feature> SplitFeaturesToSegments(IEnumerable<IFeature> roadFeatures)
     {
         return roadFeatures
             // Turn each highway edge into a list of line strings with only two coordinates. This makes it easier to
@@ -356,11 +348,11 @@ public static class HybridVisibilityGraphGenerator
             .Map(f =>
             {
                 var features = new List<Feature>();
-                var coordinates = f.VectorStructured.Geometry.Coordinates;
-                for (int i = 0; i < coordinates.Length - 1; i++)
+                var coordinates = f.Geometry.Coordinates;
+                for (var i = 0; i < coordinates.Length - 1; i++)
                 {
                     features.Add(new Feature(new LineString(new[] { coordinates[i], coordinates[i + 1] }),
-                        f.VectorStructured.Attributes));
+                        f.Attributes));
                 }
 
                 return features;
@@ -369,7 +361,8 @@ public static class HybridVisibilityGraphGenerator
             .ToList();
     }
 
-    private static IEnumerable<IVectorFeature> GetAllRoadFeatures(ICollection<IVectorFeature> features)
+    private static IEnumerable<IFeature> FilterFeaturesByKeys(IEnumerable<IVectorFeature> features,
+        IEnumerable<string> wantedKeys)
     {
         return features
             .Where(f =>
@@ -377,9 +370,9 @@ public static class HybridVisibilityGraphGenerator
                 return f.VectorStructured.Attributes.GetNames().Any(name =>
                 {
                     var lowerName = name.ToLower();
-                    return f.VectorStructured.Geometry is LineString ||
-                           lowerName.Contains("highway");
+                    return wantedKeys.Any(key => key.Equals(lowerName));
                 });
-            });
+            })
+            .Map(f => f.VectorStructured as IFeature);
     }
 }
