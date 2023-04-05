@@ -16,13 +16,13 @@ using Position = Mars.Interfaces.Environments.Position;
 
 namespace HybridVisibilityGraphRouting;
 
-public class HybridVisibilityGraphGenerator
+public static class HybridVisibilityGraphGenerator
 {
     /// <summary>
     /// Generates the complete hybrid visibility graph based on the obstacles in the given feature collection. This
     /// method also merges the road and ways within the features correctly with the visibility edges.
     /// </summary>
-    public static Geometry.HybridVisibilityGraph Generate(ICollection<IVectorFeature> features)
+    public static HybridVisibilityGraph Generate(ICollection<IVectorFeature> features)
     {
         var graph = new SpatialGraph();
 
@@ -212,7 +212,7 @@ public class HybridVisibilityGraphGenerator
         var edgeIndex = new Quadtree<int>();
         graph.Edges.Values.Each((i, e) =>
         {
-            var envelope = GetEnvelopeOfEdge(e);
+            var envelope = GeometryHelper.GetEnvelopeOfEdge(e);
             edgeIndex.Insert(envelope, i);
         });
 
@@ -285,15 +285,15 @@ public class HybridVisibilityGraphGenerator
                 }
 
                 // 2. Remove old visibility edge
-                edgeIndex.Remove(GetEnvelopeOfEdge(graph.Edges[visibilityEdgeId]), visibilityEdgeId);
+                edgeIndex.Remove(GeometryHelper.GetEnvelopeOfEdge(graph.Edges[visibilityEdgeId]), visibilityEdgeId);
                 graph.RemoveEdge(visibilityEdgeId);
 
                 // 3. Add two new edges
                 var newEdge = graph.AddEdge(visibilityEdge.From, intersectionNode);
-                edgeIndex.Insert(GetEnvelopeOfEdge(newEdge), newEdge.Key);
+                edgeIndex.Insert(GeometryHelper.GetEnvelopeOfEdge(newEdge), newEdge.Key);
 
                 newEdge = graph.AddEdge(intersectionNode, visibilityEdge.To);
-                edgeIndex.Insert(GetEnvelopeOfEdge(newEdge), newEdge.Key);
+                edgeIndex.Insert(GeometryHelper.GetEnvelopeOfEdge(newEdge), newEdge.Key);
             });
 
             // 4. Add new line segments for our whole road segment
@@ -381,20 +381,5 @@ public class HybridVisibilityGraphGenerator
                            lowerName.Contains("highway");
                 });
             });
-    }
-
-    /// <summary>
-    /// This assumes that the edge only consists of two coordinates.
-    /// </summary>
-    private static Envelope GetEnvelopeOfEdge(EdgeData e)
-    {
-        var coordinates = e.Geometry;
-
-        var minX = Math.Min(coordinates[0].X, coordinates[1].X);
-        var maxX = Math.Max(coordinates[0].X, coordinates[1].X);
-        var minY = Math.Min(coordinates[0].Y, coordinates[1].Y);
-        var maxY = Math.Max(coordinates[0].Y, coordinates[1].Y);
-
-        return new Envelope(minX, maxX, minY, maxY);
     }
 }

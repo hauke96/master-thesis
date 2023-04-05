@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using HybridVisibilityGraphRouting.Geometry;
+using Mars.Common.Collections.Graph;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NUnit.Framework;
+using Position = Mars.Interfaces.Environments.Position;
 
 namespace HybridVisibilityGraphRouting.Tests.Geometry;
 
@@ -152,5 +154,17 @@ public class GeometryHelperTest
             CollectionAssert.IsSupersetOf(featureInner.Coordinates.Distinct(), result[2].Coordinates.Distinct());
             CollectionAssert.IsSupersetOf(featureInner.Coordinates.Distinct(), result[3].Coordinates.Distinct());
         }
+    }
+
+    [Test]
+    public void GetEnvelopeOfEdge()
+    {
+        var edgeData = new EdgeData(0, new Dictionary<string, object>(),
+            new[] { new Position(0, 0), new Position(1, 2) }, new[] { 1, 2 }, 1, 2, 3);
+        Assert.AreEqual(new Envelope(0, 1, 0, 2), GeometryHelper.GetEnvelopeOfEdge(edgeData));
+
+        edgeData = new EdgeData(0, new Dictionary<string, object>(),
+            new[] { new Position(0, 0), new Position(1, 2), new Position(5, 0) }, new[] { 1, 2, 3 }, 1, 2, 3);
+        Assert.AreEqual(new Envelope(0, 5, 0, 2), GeometryHelper.GetEnvelopeOfEdge(edgeData));
     }
 }

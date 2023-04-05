@@ -15,8 +15,7 @@ public class GeometryZMConverter : GeometryConverter
             return;
         }
 
-
-        bool writeCoordinateData = serializer.NullValueHandling == NullValueHandling.Include || !geom.IsEmpty;
+        var writeCoordinateData = serializer.NullValueHandling == NullValueHandling.Include || !geom.IsEmpty;
 
         switch (geom)
         {

@@ -1,4 +1,5 @@
 using HybridVisibilityGraphRouting.IO;
+using Mars.Common.Collections.Graph;
 using Mars.Common.Core.Collections;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
@@ -110,5 +111,20 @@ public class GeometryHelper
     public static bool IsGeometryClosed(NetTopologySuite.Geometries.Geometry geometry)
     {
         return geometry.Coordinates.Length > 2 && Equals(geometry.Coordinates.First(), geometry.Coordinates.Last());
+    }
+
+    /// <summary>
+    /// This assumes that the edge only consists of two coordinates.
+    /// </summary>
+    public static Envelope GetEnvelopeOfEdge(EdgeData e)
+    {
+        var coordinates = e.Geometry;
+
+        var minX = coordinates.Min(c => c.X);
+        var maxX = coordinates.Max(c => c.X);
+        var minY = coordinates.Min(c => c.Y);
+        var maxY = coordinates.Max(c => c.Y);
+
+        return new Envelope(minX, maxX, minY, maxY);
     }
 }
