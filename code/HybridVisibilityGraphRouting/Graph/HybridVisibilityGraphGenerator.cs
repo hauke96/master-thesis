@@ -26,7 +26,7 @@ public static class HybridVisibilityGraphGenerator
     {
         var graph = new SpatialGraph();
 
-        var obstacles = GetObstacleNeighbors(features);
+        var obstacles = GetObstacles(features);
         var vertexNeighbors = DetermineVisibilityNeighbors(obstacles);
         var hybridVisibilityGraph = AddVisibilityVerticesAndEdges(vertexNeighbors, graph, obstacles);
 
@@ -41,7 +41,7 @@ public static class HybridVisibilityGraphGenerator
     /// Takes all obstacle features and calculates for each vertex the visibility neighbors.
     /// </summary>
     /// <returns>A map from each vertex to the bins of visibility neighbors.</returns>
-    private static QuadTree<Obstacle> GetObstacleNeighbors(ICollection<IVectorFeature> features)
+    public static QuadTree<Obstacle> GetObstacles(IEnumerable<IVectorFeature> features)
     {
         var wantedKeys = new[] { "building", "barrier", "natural", "poi" };
         var importedObstacles = FilterFeaturesByKeys(features, wantedKeys);
@@ -58,7 +58,7 @@ public static class HybridVisibilityGraphGenerator
         return obstacleIndex;
     }
 
-    private static Dictionary<Vertex, List<List<Vertex>>> DetermineVisibilityNeighbors(QuadTree<Obstacle> obstacles)
+    public static Dictionary<Vertex, List<List<Vertex>>> DetermineVisibilityNeighbors(QuadTree<Obstacle> obstacles)
     {
         var watch = Stopwatch.StartNew();
 
@@ -69,7 +69,7 @@ public static class HybridVisibilityGraphGenerator
         return vertexNeighbors;
     }
 
-    private static Geometry.HybridVisibilityGraph AddVisibilityVerticesAndEdges(
+    private static HybridVisibilityGraph AddVisibilityVerticesAndEdges(
         Dictionary<Vertex, List<List<Vertex>>> vertexNeighbors,
         SpatialGraph graph,
         QuadTree<Obstacle> obstacles)
@@ -155,7 +155,7 @@ public static class HybridVisibilityGraphGenerator
         Console.WriteLine($"  Number of nodes: {graph.NodesMap.Count}");
         Console.WriteLine($"  Number of edges: {graph.EdgesMap.Count}");
 
-        return new Geometry.HybridVisibilityGraph(graph, obstacles, vertexToNode, nodeToAngleArea);
+        return new HybridVisibilityGraph(graph, obstacles, vertexToNode, nodeToAngleArea);
     }
 
     private static void MergeRoadsIntoGraph(ICollection<IVectorFeature> features, SpatialGraph graph)
