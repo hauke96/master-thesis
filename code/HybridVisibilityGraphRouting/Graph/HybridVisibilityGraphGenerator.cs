@@ -9,7 +9,6 @@ using Mars.Interfaces.Environments;
 using Mars.Interfaces.Layers;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
-using NetTopologySuite.Index.Quadtree;
 using ServiceStack;
 using Feature = NetTopologySuite.Features.Feature;
 using Position = Mars.Interfaces.Environments.Position;
@@ -201,7 +200,7 @@ public static class HybridVisibilityGraphGenerator
     private static void AddRoadsToGraph(SpatialGraph graph, ICollection<IVectorFeature> features)
     {
         // Create and fill a spatial index with all edges of the graph
-        var edgeIndex = new Quadtree<int>();
+        var edgeIndex = new QuadTree<int>();
         graph.Edges.Values.Each((i, e) =>
         {
             var envelope = GeometryHelper.GetEnvelopeOfEdge(e);
@@ -220,7 +219,7 @@ public static class HybridVisibilityGraphGenerator
     /// <param name="graph">The graph with other edges this road segment might intersect. New nodes and edges might be added.</param>
     /// <param name="edgeIndex">An index to quickly get the edge keys in a certain bounding box.</param>
     /// <param name="roadSegment">The road segment to add. This must be a real segment, meaning a line string with exactly two coordinates. Any further coordinates will be ignored.</param>
-    private static void MergeSegmentIntoGraph(SpatialGraph graph, Quadtree<int> edgeIndex, Feature roadSegment)
+    private static void MergeSegmentIntoGraph(SpatialGraph graph, QuadTree<int> edgeIndex, Feature roadSegment)
     {
         var roadFeatureFrom = roadSegment.Geometry.Coordinates[0];
         var roadFeatureTo = roadSegment.Geometry.Coordinates[1];

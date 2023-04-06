@@ -35,10 +35,11 @@
 		Next to the software specific requirement, the overall code itself should of course be well documented and tested.
 	
 	\subsection{Constrains}
+	\label{subsec:constrains}
 		
 		% Well integrated into MARS and NTS, no new dependencies
-		One major constraint is the integration of the hybrid routing algorithm into the MARS framework to make the use as easy as possible and to centralize the code base for better maintenance.
-		MARS uses the NetTopologySuite as basis for all major geospatial operations, which has a huge influence on the choice of geospatial frameworks.
+		One major constraint is the integration of the hybrid routing algorithm into the \term*{MARS} framework to make the use as easy as possible and to centralize the code base for better maintenance.
+		This means the programming language will be C\# and because MARS uses the \term{NetTopologySuite} (\term*{NTS}) as basis for all major geospatial operations, this algorithm will be based on this library as well.
 		
 		The planned integration into another code base affects the management of dependencies.
 		On the one hand, the amount dependencies which are not already part of the target code base should be kept to a minimum.
@@ -54,6 +55,7 @@
 	% published in MARS
 
 \section{Combination of routing algorithms}
+\label{sec:combining-routing-algorithms}
 
 	This section describes the core aspect of this thesis:
 	The decision of a strategy to combine graph and geometric based routing algorithms.

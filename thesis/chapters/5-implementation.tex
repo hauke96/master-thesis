@@ -1,10 +1,35 @@
 % !TEX root = ../thesis.tex
 % !TeX spellcheck = en_US
 
-\section{Frameworks}
+\section{Frameworks and technology}
 
-% Why what framework? Only if interesting
+	As mentioned in \cref{subsec:constrains} about the constrains, the used programming language is C\# due to the dependency to the MARS framework.
+	The MARS framework is based on the widely used C\# library \term{NetTopologySuite} (\term*{NTS}), which contains numerous data structures, algorithms and helper function to handle and process geospatial data.
+	
+	The NTS was primarily used for basic data structures like features and geometries.
+	Writing data to files is also done using NTS functions to serialize the geospatial data into GeoJSON files.
+	
+	The \term*{MARS} framework was also used for basic data structures, like the \texttt{Position} class.
+	However, higher level structures like quadtrees and mathematical calculations were used as well.
+	
+	Not all data structures and algorithms already existed to create the hybrid routing graph.
+	Most notably, a fast line intersection check was implemented as well as a bin based index structure.
+	Several other helper functions and simpler structures, like a separate class for vertices, were added as well.
 
 \section{Visibility Graph}
 
-% Any special features of .NET used? What features used from MARS?
+	\subsection{Early implementation based on the continuous dijkstra paradigm}
+	
+		An early implementation was not creating a visibility graph but instead it was based on the \term*{continuous dijkstra} paradigm with wavelets propagating through open spaces.
+		However, there were two reasons why this first approach was replaced by a visibility graph based algorithm.
+		
+		The first reason was a bad performance.
+		Early stages of the continuous dijsktra approach used a very naive and simple implementation without optimizations mentioned in recent literature on this topic.
+		Before investing larger efforts into the implementation of a more complex approach, like the one presented by Hershberger and Suri\cite{hershberger-suri}, a simple preprocessing was introduced and lead to a major performance enhancement.
+		This perprocessing determined the visibility between all vertices, which was later used to create events for the collision between wavelets and vertices.
+		Such predetermined visibilities are the core of a visibility graph, thus moving to an actual visibility graph based approach was not a big step.
+		
+		The second reason to actually move towards a visibility graph was the difficulty and the disadvantages of combining the network based routing with the continuous dijkstra algorithm implemented so far, as described in \cref{sec:combining-routing-algorithms}.
+		Therefore, the decision fell in favor of implementing and optimizing the creation of a routable visibility graph.
+	
+\section{Graph merging}
