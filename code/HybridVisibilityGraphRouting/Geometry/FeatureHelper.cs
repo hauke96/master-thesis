@@ -33,17 +33,16 @@ public class FeatureHelper
             .ToList();
     }
 
-    public static IEnumerable<IFeature> FilterFeaturesByKeys(IEnumerable<IVectorFeature> features, params string[] wantedKeys)
+    public static IEnumerable<IFeature> FilterFeaturesByKeys(IEnumerable<IFeature> features, params string[] wantedKeys)
     {
         return features
             .Where(f =>
             {
-                return f.VectorStructured.Attributes.GetNames().Any(name =>
+                return f.Attributes.GetNames().Any(name =>
                 {
                     var lowerName = name.ToLower();
                     return wantedKeys.Any(key => key.Equals(lowerName));
                 });
-            })
-            .Map(f => f.VectorStructured as IFeature);
+            });
     }
 }

@@ -7,9 +7,11 @@ using Mars.Common.Collections.Graph;
 using Mars.Components.Layers;
 using Mars.Interfaces.Data;
 using Mars.Interfaces.Environments;
+using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NUnit.Framework;
 using ServiceStack;
+using Feature = NetTopologySuite.Features.Feature;
 using Position = Mars.Interfaces.Environments.Position;
 
 namespace HybridVisibilityGraphRouting.Tests.Graph;
@@ -19,29 +21,25 @@ public class HybridVisibilityGraphGeneratorTest
     [Test]
     public void GetObstacles()
     {
-        var featureObstacle = new VectorFeature
-        {
-            VectorStructured = new VectorStructuredData
-            {
-                Geometry = new LineString(new[] { new Coordinate(0, 0), new Coordinate(1, 1) }),
-                Data = new Dictionary<string, object> { { "building", "yes" } },
-            }
-        };
-        var featureNonObstacle = new VectorFeature
-        {
-            VectorStructured = new VectorStructuredData
-            {
-                Geometry = new LineString(new[] { new Coordinate(0, 2), new Coordinate(1, 3) }),
-                Data = new Dictionary<string, object> { { "foo", "bar" } },
-            }
-        };
+        var featureObstacle = new Feature(
+            new LineString(new[] { new Coordinate(0, 0), new Coordinate(1, 1) }),
+            new AttributesTable(
+                new Dictionary<string, object> { { "building", "yes" } }
+            )
+        );
+        var featureNonObstacle = new Feature(
+            new LineString(new[] { new Coordinate(0, 2), new Coordinate(1, 3) }),
+            new AttributesTable(
+                new Dictionary<string, object> { { "foo", "bar" } }
+            )
+        );
 
         var obstacles = HybridVisibilityGraphGenerator.GetObstacles(new[] { featureObstacle, featureNonObstacle })
             .QueryAll();
 
         Assert.AreEqual(1, obstacles.Count);
         var obstacle = obstacles[0];
-        CollectionAssert.AreEqual(featureObstacle.VectorStructured.Geometry.Coordinates, obstacle.Coordinates);
+        CollectionAssert.AreEqual(featureObstacle.Geometry.Coordinates, obstacle.Coordinates);
         Assert.AreEqual(2, obstacle.Vertices.Count);
         Assert.AreEqual(obstacle.Coordinates[0].ToPosition(), obstacle.Vertices[0].Position);
         Assert.AreEqual(obstacle.Coordinates[1].ToPosition(), obstacle.Vertices[1].Position);
@@ -50,23 +48,21 @@ public class HybridVisibilityGraphGeneratorTest
     [Test]
     public void GetObstacles_usesTriangulation()
     {
-        var featureObstacle = new VectorFeature
-        {
-            VectorStructured = new VectorStructuredData
-            {
-                Geometry = new Polygon(
-                    new LinearRing(new[]
-                    {
-                        new Coordinate(0, 0),
-                        new Coordinate(1, 0),
-                        new Coordinate(1, 1),
-                        new Coordinate(0, 1),
-                        new Coordinate(0, 0)
-                    })
-                ),
-                Data = new Dictionary<string, object> { { "building", "yes" } },
-            }
-        };
+        var featureObstacle = new Feature(
+            new Polygon(
+                new LinearRing(new[]
+                {
+                    new Coordinate(0, 0),
+                    new Coordinate(1, 0),
+                    new Coordinate(1, 1),
+                    new Coordinate(0, 1),
+                    new Coordinate(0, 0)
+                })
+            ),
+            new AttributesTable(
+                new Dictionary<string, object> { { "building", "yes" } }
+            )
+        );
 
         var obstacles = HybridVisibilityGraphGenerator.GetObstacles(new[] { featureObstacle }).QueryAll();
 
@@ -74,12 +70,12 @@ public class HybridVisibilityGraphGeneratorTest
 
         var obstacle = obstacles[0];
         Assert.AreEqual(4, obstacle.Coordinates.Count);
-        CollectionAssert.IsSupersetOf(featureObstacle.VectorStructured.Geometry.Coordinates.Distinct(),
+        CollectionAssert.IsSupersetOf(featureObstacle.Geometry.Coordinates.Distinct(),
             obstacle.Coordinates.Distinct());
 
         obstacle = obstacles[1];
         Assert.AreEqual(4, obstacle.Coordinates.Count);
-        CollectionAssert.IsSupersetOf(featureObstacle.VectorStructured.Geometry.Coordinates.Distinct(),
+        CollectionAssert.IsSupersetOf(featureObstacle.Geometry.Coordinates.Distinct(),
             obstacle.Coordinates.Distinct());
     }
 
@@ -215,13 +211,13 @@ public class HybridVisibilityGraphGeneratorTest
         node = nodes[0];
         edges = spatialGraph.Edges.Values.Where(edge => edge.From == node || edge.To == node).ToList();
         Assert.AreEqual(6, edges.Count);
-        
+
         Assert.True(spatialGraph.EdgesMap.ContainsKey((node, vertexToNode[middleVertex0][0])));
         Assert.True(spatialGraph.EdgesMap.ContainsKey((vertexToNode[middleVertex0][0], node)));
-        
+
         Assert.True(spatialGraph.EdgesMap.ContainsKey((node, middleVertex1NodeBottom)));
         Assert.True(spatialGraph.EdgesMap.ContainsKey((middleVertex1NodeBottom, node)));
-        
+
         Assert.True(spatialGraph.EdgesMap.ContainsKey((node, vertexToNode[middleVertex2][0])));
         Assert.True(spatialGraph.EdgesMap.ContainsKey((vertexToNode[middleVertex2][0], node)));
 
@@ -231,41 +227,41 @@ public class HybridVisibilityGraphGeneratorTest
         node = nodes[0];
         edges = spatialGraph.Edges.Values.Where(edge => edge.From == node || edge.To == node).ToList();
         Assert.AreEqual(10, edges.Count);
-        
+
         Assert.True(spatialGraph.EdgesMap.ContainsKey((node, vertexToNode[bottomVertex][0])));
         Assert.True(spatialGraph.EdgesMap.ContainsKey((vertexToNode[bottomVertex][0], node)));
-        
+
         Assert.True(spatialGraph.EdgesMap.ContainsKey((node, middleVertex1NodeTop)));
         Assert.True(spatialGraph.EdgesMap.ContainsKey((middleVertex1NodeTop, node)));
-        
+
         Assert.True(spatialGraph.EdgesMap.ContainsKey((node, middleVertex1NodeBottom)));
         Assert.True(spatialGraph.EdgesMap.ContainsKey((middleVertex1NodeBottom, node)));
-        
+
         Assert.True(spatialGraph.EdgesMap.ContainsKey((node, vertexToNode[topVertex1][0])));
         Assert.True(spatialGraph.EdgesMap.ContainsKey((vertexToNode[topVertex1][0], node)));
-        
+
         Assert.True(spatialGraph.EdgesMap.ContainsKey((node, vertexToNode[topVertex0][0])));
         Assert.True(spatialGraph.EdgesMap.ContainsKey((vertexToNode[topVertex0][0], node)));
 
         // middleVertex1
         nodes = vertexToNode[middleVertex1];
         Assert.AreEqual(2, nodes.Count);
-        
+
         // middleVertex1 - top node
         node = middleVertex1NodeTop;
         edges = spatialGraph.Edges.Values
             .Where(edge => edge.From == node || edge.To == node).ToList();
         Assert.AreEqual(8, edges.Count);
-        
+
         Assert.True(spatialGraph.EdgesMap.ContainsKey((node, vertexToNode[middleVertex0][0])));
         Assert.True(spatialGraph.EdgesMap.ContainsKey((vertexToNode[middleVertex0][0], node)));
-        
+
         Assert.True(spatialGraph.EdgesMap.ContainsKey((node, vertexToNode[topVertex0][0])));
         Assert.True(spatialGraph.EdgesMap.ContainsKey((vertexToNode[topVertex0][0], node)));
-        
+
         Assert.True(spatialGraph.EdgesMap.ContainsKey((node, vertexToNode[topVertex1][0])));
         Assert.True(spatialGraph.EdgesMap.ContainsKey((vertexToNode[topVertex1][0], node)));
-        
+
         Assert.True(spatialGraph.EdgesMap.ContainsKey((node, vertexToNode[middleVertex2][0])));
         Assert.True(spatialGraph.EdgesMap.ContainsKey((vertexToNode[middleVertex2][0], node)));
 
@@ -274,13 +270,13 @@ public class HybridVisibilityGraphGeneratorTest
         edges = spatialGraph.Edges.Values
             .Where(edge => edge.From == node || edge.To == node).ToList();
         Assert.AreEqual(6, edges.Count);
-        
+
         Assert.True(spatialGraph.EdgesMap.ContainsKey((node, vertexToNode[middleVertex0][0])));
         Assert.True(spatialGraph.EdgesMap.ContainsKey((vertexToNode[middleVertex0][0], node)));
-        
+
         Assert.True(spatialGraph.EdgesMap.ContainsKey((node, vertexToNode[bottomVertex][0])));
         Assert.True(spatialGraph.EdgesMap.ContainsKey((vertexToNode[bottomVertex][0], node)));
-        
+
         Assert.True(spatialGraph.EdgesMap.ContainsKey((node, vertexToNode[middleVertex2][0])));
         Assert.True(spatialGraph.EdgesMap.ContainsKey((vertexToNode[middleVertex2][0], node)));
 
@@ -290,19 +286,19 @@ public class HybridVisibilityGraphGeneratorTest
         node = nodes[0];
         edges = spatialGraph.Edges.Values.Where(edge => edge.From == node || edge.To == node).ToList();
         Assert.AreEqual(10, edges.Count);
-        
+
         Assert.True(spatialGraph.EdgesMap.ContainsKey((node, vertexToNode[bottomVertex][0])));
         Assert.True(spatialGraph.EdgesMap.ContainsKey((vertexToNode[bottomVertex][0], node)));
-        
+
         Assert.True(spatialGraph.EdgesMap.ContainsKey((node, middleVertex1NodeTop)));
         Assert.True(spatialGraph.EdgesMap.ContainsKey((middleVertex1NodeTop, node)));
-        
+
         Assert.True(spatialGraph.EdgesMap.ContainsKey((node, middleVertex1NodeBottom)));
         Assert.True(spatialGraph.EdgesMap.ContainsKey((middleVertex1NodeBottom, node)));
-        
+
         Assert.True(spatialGraph.EdgesMap.ContainsKey((node, vertexToNode[topVertex1][0])));
         Assert.True(spatialGraph.EdgesMap.ContainsKey((vertexToNode[topVertex1][0], node)));
-        
+
         Assert.True(spatialGraph.EdgesMap.ContainsKey((node, vertexToNode[topVertex0][0])));
         Assert.True(spatialGraph.EdgesMap.ContainsKey((vertexToNode[topVertex0][0], node)));
 
@@ -312,13 +308,13 @@ public class HybridVisibilityGraphGeneratorTest
         node = nodes[0];
         edges = spatialGraph.Edges.Values.Where(edge => edge.From == node || edge.To == node).ToList();
         Assert.AreEqual(8, edges.Count);
-        
+
         Assert.True(spatialGraph.EdgesMap.ContainsKey((node, vertexToNode[middleVertex0][0])));
         Assert.True(spatialGraph.EdgesMap.ContainsKey((vertexToNode[middleVertex0][0], node)));
-        
+
         Assert.True(spatialGraph.EdgesMap.ContainsKey((node, middleVertex1NodeTop)));
         Assert.True(spatialGraph.EdgesMap.ContainsKey((middleVertex1NodeTop, node)));
-        
+
         Assert.True(spatialGraph.EdgesMap.ContainsKey((node, vertexToNode[middleVertex2][0])));
         Assert.True(spatialGraph.EdgesMap.ContainsKey((vertexToNode[middleVertex2][0], node)));
 
@@ -328,13 +324,13 @@ public class HybridVisibilityGraphGeneratorTest
         node = nodes[0];
         edges = spatialGraph.Edges.Values.Where(edge => edge.From == node || edge.To == node).ToList();
         Assert.AreEqual(8, edges.Count);
-        
+
         Assert.True(spatialGraph.EdgesMap.ContainsKey((node, vertexToNode[middleVertex0][0])));
         Assert.True(spatialGraph.EdgesMap.ContainsKey((vertexToNode[middleVertex0][0], node)));
-        
+
         Assert.True(spatialGraph.EdgesMap.ContainsKey((node, middleVertex1NodeTop)));
         Assert.True(spatialGraph.EdgesMap.ContainsKey((middleVertex1NodeTop, node)));
-        
+
         Assert.True(spatialGraph.EdgesMap.ContainsKey((node, vertexToNode[middleVertex2][0])));
         Assert.True(spatialGraph.EdgesMap.ContainsKey((vertexToNode[middleVertex2][0], node)));
     }

@@ -20,8 +20,9 @@ public static class HybridVisibilityGraphGenerator
     /// Generates the complete hybrid visibility graph based on the obstacles in the given feature collection. This
     /// method also merges the road and ways within the features correctly with the visibility edges.
     /// </summary>
-    public static HybridVisibilityGraph Generate(ICollection<IVectorFeature> features)
+    public static HybridVisibilityGraph Generate(ICollection<IVectorFeature> vectorFeatures)
     {
+        var features = vectorFeatures.Map(f => f.VectorStructured);
         var obstacles = GetObstacles(features);
         var vertexNeighbors = DetermineVisibilityNeighbors(obstacles);
         var (hybridVisibilityGraph, spatialGraph) = AddVisibilityVerticesAndEdges(vertexNeighbors, obstacles);
@@ -37,7 +38,7 @@ public static class HybridVisibilityGraphGenerator
     /// Takes all obstacle features and calculates for each vertex the visibility neighbors.
     /// </summary>
     /// <returns>A map from each vertex to the bins of visibility neighbors.</returns>
-    public static QuadTree<Obstacle> GetObstacles(IEnumerable<IVectorFeature> features)
+    public static QuadTree<Obstacle> GetObstacles(IEnumerable<IFeature> features)
     {
         var wantedKeys = new[] { "building", "barrier", "natural", "poi" };
         var importedObstacles = FeatureHelper.FilterFeaturesByKeys(features, wantedKeys);
@@ -161,7 +162,7 @@ public static class HybridVisibilityGraphGenerator
     /// This merges all features with a "highway=*" attribute into the given graph. Whenever a road-edge intersects
     /// an existing edge, both edges will be split at the intersection point where a new node is added.
     /// </summary>
-    private static void MergeRoadsIntoGraph(IEnumerable<IVectorFeature> features, SpatialGraph graph)
+    private static void MergeRoadsIntoGraph(IEnumerable<IFeature> features, SpatialGraph graph)
     {
         var watch = Stopwatch.StartNew();
 
@@ -188,13 +189,13 @@ public static class HybridVisibilityGraphGenerator
     /// Searches for each feature with an attribute name "poi" and adds all attributes of this feature to the according
     /// node in the given graph.
     /// </summary>
-    private static void AddAttributesToPOIs(IEnumerable<IVectorFeature> features, ISpatialGraph graph,
+    private static void AddAttributesToPOIs(IEnumerable<IFeature> features, ISpatialGraph graph,
         double nodeDistanceTolerance = 0.1)
     {
-        features.Where(f => f.VectorStructured.Attributes.Exists("poi"))
+        features.Where(f => f.Attributes.Exists("poi"))
             .Each(f =>
             {
-                var featurePosition = f.VectorStructured.Geometry.Coordinates[0].ToPosition();
+                var featurePosition = f.Geometry.Coordinates[0].ToPosition();
                 var nearestNodes = graph
                     .NodesMap
                     .Values
@@ -203,7 +204,7 @@ public static class HybridVisibilityGraphGenerator
 
                 if (!nearestNodes.IsEmpty())
                 {
-                    nearestNodes[0].Data.AddRange(f.VectorStructured.Attributes.ToObjectDictionary());
+                    nearestNodes[0].Data.AddRange(f.Attributes.ToObjectDictionary());
                 }
             });
     }
