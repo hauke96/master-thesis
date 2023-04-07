@@ -23,15 +23,13 @@ public static class HybridVisibilityGraphGenerator
     /// </summary>
     public static HybridVisibilityGraph Generate(ICollection<IVectorFeature> features)
     {
-        var graph = new SpatialGraph();
-
         var obstacles = GetObstacles(features);
         var vertexNeighbors = DetermineVisibilityNeighbors(obstacles);
-        var hybridVisibilityGraph = AddVisibilityVerticesAndEdges(vertexNeighbors, graph, obstacles);
+        var (hybridVisibilityGraph, spatialGraph) = AddVisibilityVerticesAndEdges(vertexNeighbors, obstacles);
 
-        MergeRoadsIntoGraph(features, graph);
-        AddAttributesToPOIs(features, graph);
-        Exporter.WriteGraphToFile(graph);
+        MergeRoadsIntoGraph(features, spatialGraph);
+        AddAttributesToPOIs(features, spatialGraph);
+        Exporter.WriteGraphToFile(spatialGraph);
 
         return hybridVisibilityGraph;
     }
@@ -68,11 +66,11 @@ public static class HybridVisibilityGraphGenerator
         return vertexNeighbors;
     }
 
-    private static HybridVisibilityGraph AddVisibilityVerticesAndEdges(
+    public static (HybridVisibilityGraph, SpatialGraph) AddVisibilityVerticesAndEdges(
         Dictionary<Vertex, List<List<Vertex>>> vertexNeighbors,
-        SpatialGraph graph,
         QuadTree<Obstacle> obstacles)
     {
+        var graph = new SpatialGraph();
         var watch = Stopwatch.StartNew();
         var vertexToNode = new Dictionary<Vertex, int[]>();
         var nodeToBinVertices = new Dictionary<int, List<Vertex>>();
@@ -142,9 +140,11 @@ public static class HybridVisibilityGraphGenerator
                         return;
                     }
 
-                    var otherVertexNode = otherVertexNodes[0];
-                    nodeNeighbors[vertexNode].Add(otherVertexNode);
-                    graph.AddEdge(vertexNode, otherVertexNode);
+                    otherVertexNodes.Each(otherVertexNode =>
+                    {
+                        nodeNeighbors[vertexNode].Add(otherVertexNode);
+                        graph.AddEdge(vertexNode, otherVertexNode);
+                    });
                 });
             });
         });
@@ -154,7 +154,8 @@ public static class HybridVisibilityGraphGenerator
         Console.WriteLine($"  Number of nodes: {graph.NodesMap.Count}");
         Console.WriteLine($"  Number of edges: {graph.EdgesMap.Count}");
 
-        return new HybridVisibilityGraph(graph, obstacles, vertexToNode, nodeToAngleArea);
+        var hybridVisibilityGraph = new HybridVisibilityGraph(graph, obstacles, vertexToNode, nodeToAngleArea);
+        return (hybridVisibilityGraph, graph);
     }
 
     private static void MergeRoadsIntoGraph(ICollection<IVectorFeature> features, SpatialGraph graph)
