@@ -158,11 +158,26 @@ public static class HybridVisibilityGraphGenerator
         return (hybridVisibilityGraph, graph);
     }
 
-    private static void MergeRoadsIntoGraph(ICollection<IVectorFeature> features, SpatialGraph graph)
+    /// <summary>
+    /// This merges all features with a "highway=*" attribute into the given graph. Whenever a road-edge intersects
+    /// an existing edge, both edges will be split at the intersection point where a new node is added.
+    /// </summary>
+    private static void MergeRoadsIntoGraph(IEnumerable<IVectorFeature> features, SpatialGraph graph)
     {
         var watch = Stopwatch.StartNew();
 
-        AddRoadsToGraph(graph, features);
+        // Create and fill a spatial index with all edges of the graph
+        var edgeIndex = new QuadTree<int>();
+        graph.Edges.Values.Each((i, e) =>
+        {
+            var envelope = GeometryHelper.GetEnvelopeOfEdge(e);
+            edgeIndex.Insert(envelope, i);
+        });
+
+        var roadFeatures = FilterFeaturesByKeys(features, new[] { "highway" });
+        var roadSegments = SplitFeaturesToSegments(roadFeatures);
+
+        roadSegments.Each(roadSegment => { MergeSegmentIntoGraph(graph, edgeIndex, roadSegment); });
 
         Console.WriteLine(
             $"{nameof(HybridVisibilityGraphGenerator)}: Merging road network into graph done after {watch.ElapsedMilliseconds}ms");
@@ -195,32 +210,12 @@ public static class HybridVisibilityGraphGenerator
     }
 
     /// <summary>
-    /// Adds the road and way features to the graph. In fact they are merges into existing visibility edges, which means
-    /// that edges are cut at intersection points and new nodes are added and connected.
-    /// </summary>
-    private static void AddRoadsToGraph(SpatialGraph graph, ICollection<IVectorFeature> features)
-    {
-        // Create and fill a spatial index with all edges of the graph
-        var edgeIndex = new QuadTree<int>();
-        graph.Edges.Values.Each((i, e) =>
-        {
-            var envelope = GeometryHelper.GetEnvelopeOfEdge(e);
-            edgeIndex.Insert(envelope, i);
-        });
-
-        var roadFeatures = FilterFeaturesByKeys(features, new[] { "highway" });
-        var roadSegments = SplitFeaturesToSegments(roadFeatures);
-
-        roadSegments.Each(roadSegment => { MergeSegmentIntoGraph(graph, edgeIndex, roadSegment); });
-    }
-
-    /// <summary>
     /// Merges the given road segment into the graph.
     /// </summary>
     /// <param name="graph">The graph with other edges this road segment might intersect. New nodes and edges might be added.</param>
     /// <param name="edgeIndex">An index to quickly get the edge keys in a certain bounding box.</param>
     /// <param name="roadSegment">The road segment to add. This must be a real segment, meaning a line string with exactly two coordinates. Any further coordinates will be ignored.</param>
-    private static void MergeSegmentIntoGraph(SpatialGraph graph, QuadTree<int> edgeIndex, Feature roadSegment)
+    private static void MergeSegmentIntoGraph(SpatialGraph graph, QuadTree<int> edgeIndex, IFeature roadSegment)
     {
         var roadFeatureFrom = roadSegment.Geometry.Coordinates[0];
         var roadFeatureTo = roadSegment.Geometry.Coordinates[1];
