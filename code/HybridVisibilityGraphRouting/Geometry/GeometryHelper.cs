@@ -1,6 +1,5 @@
 using HybridVisibilityGraphRouting.IO;
 using Mars.Common.Collections.Graph;
-using Mars.Common.Core.Collections;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.Triangulate.Polygon;
@@ -84,25 +83,29 @@ public class GeometryHelper
     /// All other geometry types will be returned unchanged.
     /// </summary>
     public static List<NetTopologySuite.Geometries.Geometry> UnwrapMultiGeometries(
-        NetTopologySuite.Geometries.Geometry geometry)
+        NetTopologySuite.Geometries.Geometry inputGeometry)
     {
-        var unwrappedGeometries = new List<NetTopologySuite.Geometries.Geometry>();
+        var unwrappedGeometries = new List<NetTopologySuite.Geometries.Geometry> { inputGeometry };
 
-        if (geometry is MultiPolygon multiPolygon)
+        // Unwrap all geometry collections, which also includes multi-geometries, and also all polygon with interior
+        // ring, which are very similar to multi-polygons.
+        while (unwrappedGeometries.Any(g => g is GeometryCollection || g is Polygon p && !p.InteriorRings.IsEmpty()))
         {
-            multiPolygon.Each(polygon =>
-            {
-                var simplePolygon = new Polygon((LinearRing)((Polygon)polygon.GetGeometryN(0)).ExteriorRing);
-                unwrappedGeometries.Add(simplePolygon);
-            });
-        }
-        else if (geometry is MultiLineString multiLineString)
-        {
-            multiLineString.Each(lineString => { unwrappedGeometries.Add(lineString); });
-        }
-        else
-        {
-            unwrappedGeometries.Add(geometry);
+            unwrappedGeometries = unwrappedGeometries
+                .Map(geometry =>
+                {
+                    switch (geometry)
+                    {
+                        case GeometryCollection geometryCollection:
+                            return geometryCollection.Geometries;
+                        case Polygon polygon when !polygon.InteriorRings.IsEmpty():
+                            return new[] { new Polygon((LinearRing)polygon.ExteriorRing) };
+                        default:
+                            return new[] { geometry };
+                    }
+                })
+                .SelectMany(x => x)
+                .ToList();
         }
 
         return unwrappedGeometries;

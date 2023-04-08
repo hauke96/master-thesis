@@ -154,6 +154,78 @@ public class GeometryHelperTest
             CollectionAssert.IsSupersetOf(featureInner.Coordinates.Distinct(), result[2].Coordinates.Distinct());
             CollectionAssert.IsSupersetOf(featureInner.Coordinates.Distinct(), result[3].Coordinates.Distinct());
         }
+
+        [Test]
+        public void TestUnwrapAndTriangulate_PolygonWithInnerRing()
+        {
+            var feature = new Feature(
+                new Polygon(
+                    new LinearRing(new[]
+                    {
+                        new Coordinate(0, 0),
+                        new Coordinate(10, 0),
+                        new Coordinate(10, 10),
+                        new Coordinate(0, 0)
+                    }),
+                    new[]
+                    {
+                        new LinearRing(new[]
+                        {
+                            new Coordinate(5, 5),
+                            new Coordinate(6, 5),
+                            new Coordinate(6, 6),
+                            new Coordinate(5, 6),
+                            new Coordinate(5, 5)
+                        })
+                    }
+                ),
+                new AttributesTable()
+            );
+
+            var result = GeometryHelper.UnwrapAndTriangulate(new List<IFeature> { feature });
+
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual(4, result[0].Coordinates.Length);
+        }
+
+        [Test]
+        public void TestUnwrapAndTriangulate_NestedMultiGeometries()
+        {
+            var lineString =
+                new LineString(new[]
+                {
+                    new Coordinate(0, 0),
+                    new Coordinate(1, 0),
+                    new Coordinate(1, 1),
+                });
+            var polygon = new Polygon(
+                new LinearRing(new[]
+                {
+                    new Coordinate(0, 0),
+                    new Coordinate(1, 0),
+                    new Coordinate(1, 1),
+                    new Coordinate(0, 0),
+                })
+            );
+
+            var multiLineString = new MultiLineString(new[] { lineString });
+            var multiPolygon = new MultiPolygon(new[] { polygon });
+            var geometryCollection = new GeometryCollection(new NetTopologySuite.Geometries.Geometry[]
+                { multiLineString, multiPolygon, lineString, polygon });
+
+            var feature = new Feature(
+                geometryCollection,
+                new AttributesTable()
+            );
+
+            var result = GeometryHelper.UnwrapAndTriangulate(new List<IFeature> { feature });
+
+            Assert.AreEqual(4, result.Count);
+            Assert.AreEqual(lineString.Coordinates.Length, result[0].Coordinates.Length);
+            Assert.AreEqual(lineString.Coordinates.Length, result[1].Coordinates.Length);
+            Assert.AreEqual(polygon.Coordinates.Length, result[2].Coordinates.Length);
+            Assert.AreEqual(polygon.Coordinates.Length, result[3].Coordinates.Length);
+        }
     }
 
     [Test]
