@@ -52,6 +52,7 @@ After that, the main sections of this chapter show details of each algorithmic s
 \section{Visibility graph creation}
 		
 	\subsection{Step 1: Obstacle filtering and feature preprocessing}
+	\label{subsubsec:step-1-preprocessing}
 			
 			First the features are filtered to get all relevant obstacle features, which are of arbitrary shape.
 			For performance reasons, multi-geometries, like \texttt{MultiPolygon} are split up into their separate geometries.
@@ -109,7 +110,38 @@ After that, the main sections of this chapter show details of each algorithmic s
 				
 			\subsubsection{Shadow areas}
 			
+				Shadow areas are a simple method to quickly determine vertices that are definitely not visible to each other.
+				The idea of shadow areas is the following:
+				Let $v$ be the currently processed vertex and think of it as a light bulb illuminating its surroundings.
+				An obstacle $o$ casts a shadow outwards and everything within this shadow is definitely not visible from $v$.
+				
+				In the implementation of this idea specified the furthest vertex of $o$ the distance until everything within the angle area of the shadow is definitely not visible from $v$.
+				Keeping track of these shadow areas for each vertex significantly improves performance.
+				\todo[inline]{conrete numbers?}\todo[inline]{Reference to BinIndex below or other used data structure (s. TODO below)}
+				% NetworkRoutingPlayground->Jungfernstieg dataset with 7916 vertices: ~7.3s with and 67s without shadow areas -> speed up of factor ~9
+				% Hamburg inner city dataset with 67819 vertices: 382s with and ~31000s without shadow areas -> speed up of factor ~81
+				
+			\subsubsection{BinIndex data structure}
+			
+				The \texttt{BinIndex} class implements a simple index structure to store and access intervals.
+				It contains $n$ many bins of which each covers a certain range and consists of a linked list.
+				When an item is added, it is added to each bin intersecting with the range of the item.
+				Due to the list as underlying data structure for the bins, queries can be answered in $\bigo{m}$ time for $m$ many items in the index.
+				\todo[inline]{Add remarks on alternative NTS interval trees after tested their implementation.}
+			
 			\subsubsection{Intersection check}
+			
+				All intersections are checked using own implementations no not rely on the generalized and therefore slower intersection checks of the NetTopologySuite.
+				In fact, there are two types of intersection checks implemented:
+				One check for intersection between two arbitrary line segments and one checks if a point lies within a triangle.
+				This triangle check is used for closed obstacles, which got triangulated during \hyperref[subsubsec:step-1-preprocessing]{preprocessing}.
+				
+				The line segment intersection check uses a cross product based approach described in \emph{Introduction to algorithms} by Thomas H Cormen et al \cite[1018]{cormen-introduction-to-alg}.
+				
+				Checking if a point lies inside a triangle is done by a barycentric collision check.
+				This method creates a barycentric coordinate system where each coordinate consists of three values $\lambda_1$, $\lambda_2$ and $\lambda_3$ for each corner vertex of the triangle.
+				Due to the properties of this coordinate system, a point $p$ is inside the triangle when the condition $0 < \lambda_i < 1$ hold for each of the three values.
+				Even though it sounds complex to create a whole coordinate system for a single collision check, this method only uses a few basic arithmetic operations and is therefore very fast.
 			
 			\subsubsection{Sort resulting visibility neighbors into bins}
 			
