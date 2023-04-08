@@ -30,8 +30,12 @@ public static class VisibilityGraphGenerator
             obstacles.Any(o =>
                 o.IsClosed &&
                 (
+                    // Either we have a different obstacle than "obstacleOfCoordinate" which also has the line segment
+                    // between the two coordinates ...
                     !obstacleOfCoordinate.Equals(o) &&
                     o.HasLineSegment(coordinate, otherCoordinate) ||
+                    // ... or we have something else (same obstacle of the above check returned false), so we check for
+                    // true line intersection.
                     o.IntersectsWithLine(coordinate, otherCoordinate, coordinateToObstacles)
                 ));
 

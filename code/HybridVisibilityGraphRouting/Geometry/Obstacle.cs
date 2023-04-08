@@ -45,7 +45,7 @@ namespace HybridVisibilityGraphRouting.Geometry
         }
 
         /// <summary>
-        /// Check is this obstacle intersects with the given line, specified by the two coordinate parameters.
+        /// Check if this obstacle intersects with the given line, specified by the two coordinate parameters.
         ///
         /// A few remarks and edge cases on what's considered an intersection:
         /// <ul>

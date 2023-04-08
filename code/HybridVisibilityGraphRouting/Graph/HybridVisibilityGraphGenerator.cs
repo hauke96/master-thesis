@@ -22,6 +22,8 @@ public static class HybridVisibilityGraphGenerator
     /// </summary>
     public static HybridVisibilityGraph Generate(ICollection<IVectorFeature> vectorFeatures)
     {
+        var watch = Stopwatch.StartNew();
+        
         var features = vectorFeatures.Map(f => f.VectorStructured);
         var obstacles = GetObstacles(features);
         var vertexNeighbors = DetermineVisibilityNeighbors(obstacles);
@@ -31,6 +33,8 @@ public static class HybridVisibilityGraphGenerator
         AddAttributesToPOIs(features, spatialGraph);
         Exporter.WriteGraphToFile(spatialGraph);
 
+        Console.WriteLine(
+            $"{nameof(HybridVisibilityGraphGenerator)}: Done after {watch.ElapsedMilliseconds}ms");
         return hybridVisibilityGraph;
     }
 
