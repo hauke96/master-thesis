@@ -12,7 +12,7 @@ namespace NetworkRoutingPlayground.Layer;
 
 public class NetworkLayer : VectorLayer
 {
-    public HybridVisibilityGraphRouting Graph { get; set; }
+    public HybridVisibilityGraph Graph { get; set; }
 
     public override bool InitLayer(LayerInitData layerInitData, RegisterAgent registerAgentHandle = null,
         UnregisterAgent unregisterAgent = null)

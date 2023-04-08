@@ -24,7 +24,7 @@ namespace NetworkRoutingPlayground.Layer
             return layerInitialized;
         }
 
-        public void InitEnvironment(HybridVisibilityGraphRouting graph)
+        public void InitEnvironment(HybridVisibilityGraph graph)
         {
             Environment = GeoHashEnvironment<Agent>.BuildByBBox(graph.BoundingBox, 1);
         }
