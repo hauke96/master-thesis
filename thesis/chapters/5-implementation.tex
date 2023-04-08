@@ -127,9 +127,12 @@ After that, the main sections of this chapter show details of each algorithmic s
 				It contains $n$ many bins of which each covers a certain range and consists of a linked list.
 				When an item is added, it is added to each bin intersecting with the range of the item.
 				Due to the list as underlying data structure for the bins, queries can be answered in $\bigo{m}$ time for $m$ many items in the index.
-				\todo[inline]{Add remarks on alternative NTS interval trees after tested their implementation.}
+				
+				The NetTopologySuite offers several indices specifically made for intervals, namely the \texttt{BinTree} and \texttt{SIRtree}, of which the latter one is static and does not allow insertions after the first query was made.
+				Even though these two structures are tree based and theoretically offer a logarithmic query complexity compared to the linear complexity of the \texttt{BinIndex}, the simple and list based \texttt{BinIndex} is significantly faster even for larger datasets with tens of thousands of vertices.
+				It is thinkable that the logarithmic complexity is useful for huge datasets with millions of vertices, but that has not been tested.
 			
-			\subsubsection{Intersection check}
+			\subsubsection{Intersection checks}
 			
 				All intersections are checked using own implementations no not rely on the generalized and therefore slower intersection checks of the NetTopologySuite.
 				In fact, there are two types of intersection checks implemented:
@@ -145,7 +148,17 @@ After that, the main sections of this chapter show details of each algorithmic s
 			
 			\subsubsection{Sort resulting visibility neighbors into bins}
 			
+				A naive approach to create a visibility graph would be to create edges between vertices that see each other.
+				This would make routing through line based obstacles possible, which is of course not correct.
+				It must therefore be known which visibility relations are between which obstacle neighbors.
+				Knowing this enables the graph generation to distinguish between all the edges and results in correct routing results.
+				More on this in the \cref{subsec:step-3-graph-creation} below.
+				
+				Each of the resulting bins of a vertex $v$ covers the area between two adjacent obstacle neighbors.
+				All visibility neighbors are sorted into these bins, which is a simple and easy process.
+			
 	\subsection{Step 3: Graph creation with visibility edges}
+	\label{subsec:step-3-graph-creation}
 		
 	\subsection{Step 4: Merging a road network into the visibility graph}
 
