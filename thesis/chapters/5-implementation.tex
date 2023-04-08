@@ -1,22 +1,26 @@
 % !TEX root = ../thesis.tex
 % !TeX spellcheck = en_US
 
-\section{Frameworks and technology}
+This section describes more implementation details of the previously described approach.
+First, an overview of the algorithm with a short description of used frameworks and technologies is given.
+After that, the main sections of this chapter show details of each algorithmic step.
 
-	As mentioned in \cref{subsec:constrains} about the constrains, the used programming language is C\# due to the dependency to the MARS framework.
-	The MARS framework is based on the widely used C\# library \term{NetTopologySuite} (\term*{NTS}), which contains numerous data structures, algorithms and helper function to handle and process geospatial data.
-	
-	The NTS was primarily used for basic data structures like features and geometries.
-	Writing data to files is also done using NTS functions to serialize the geospatial data into GeoJSON files.
-	
-	The \term*{MARS} framework was also used for basic data structures, like the \texttt{Position} class.
-	However, higher level structures like quadtrees and mathematical calculations were used as well.
-	
-	Not all data structures and algorithms already existed to create the hybrid routing graph.
-	Most notably, a fast line intersection check was implemented as well as a bin based index structure.
-	Several other helper functions and simpler structures, like a separate class for vertices, were added as well.
+\section{Algorithm overview}
 
-\section{Visibility Graph}
+	\subsection{Frameworks and technology}
+	
+		As mentioned in \cref{subsec:constrains} about the constrains, the used programming language is C\# due to the dependency to the MARS framework.
+		The MARS framework is based on the widely used C\# library \term{NetTopologySuite} (\term*{NTS}), which contains numerous data structures, algorithms and helper function to handle and process geospatial data.
+		
+		The NTS was primarily used for basic data structures like features and geometries.
+		Writing data to files is also done using NTS functions to serialize the geospatial data into GeoJSON files.
+		
+		The \term*{MARS} framework was also used for basic data structures, like the \texttt{Position} class.
+		However, higher level structures like quadtrees and mathematical calculations were used as well.
+		
+		Not all data structures and algorithms already existed to create the hybrid routing graph.
+		Most notably, a fast line intersection check was implemented as well as a bin based index structure.
+		Several other helper functions and simpler structures, like a separate class for vertices, were added as well.
 
 	\subsection{Early implementation based on the continuous dijkstra paradigm}
 	
@@ -32,4 +36,85 @@
 		The second reason to actually move towards a visibility graph was the difficulty and the disadvantages of combining the network based routing with the continuous dijkstra algorithm implemented so far, as described in \cref{sec:combining-routing-algorithms}.
 		Therefore, the decision fell in favor of implementing and optimizing the creation of a routable visibility graph.
 	
-\section{Graph merging}
+	\subsection{Chosen approach and potentially faster known algorithms}
+
+		% Maybe this whole subsection is part of a later discussion?
+		Due to the step by step development by turning the former continuous dijkstra preprocessing into a visibility graph generator, the implemented approach does not follow algorithms described in the literature.
+		The performance of this implementation, as shown in \todo[inline]{link to chapter}, is still enough for practical use, but a well designed and fast algorithm, like the one presented by Overmars and Welzl \cite{overmars-weizl-visibility-graph} or the one by Ghosh and Mount \cite{ghosh-output-sensitive-vgraph}, would clearly increase performance.
+		However, this performance enhancement would only affect the generation of a visibility graph and not the performance of the routing queries.
+			
+	\subsection{Algorithm steps}
+		
+		As describes in \cref{sec:components}, the \texttt{HybridVisibilityGraphGenerator} class provides a factory method to create a \texttt{HybridVisibilityGraph} from a given collection of features.
+		This factory method consists of the following top level steps.
+		\todo[inline]{more?}
+		
+\section{Visibility graph creation}
+		
+	\subsection{Step 1: Obstacle filtering and feature preprocessing}
+			
+			First the features are filtered to get all relevant obstacle features, which are of arbitrary shape.
+			For performance reasons, multi-geometries, like \texttt{MultiPolygon} are split up into their separate geometries.
+			This is not only unproblematic for \texttt{MultiLineString} but also for \texttt{MultiPolygon} features, since holes in a polygon are not reachable in the first place and unwrapping the \texttt{MultiPolygon} will not change this.
+			% TODO Better formulation?
+			Another task within this first step is the triangulation of all polygonal shapes.
+			The main reason is a better performance for intersection checks, which is an important task of creating a visibility graph.
+			
+	\subsection{Step 2: Determining $k$ nearest visible neighbors}
+			
+			After having all preprocessed obstacles, the main task of the visibility graph creation is performed, namely determining all $k$ many visible neighbors.
+			Determining all visible neighbors would also be possible, but this parameter is an easy way to increase performance with the downside of not having all possible edges in the final routing graph.
+			
+			\subsubsection{Overview and terminology}
+			
+				Before describing the details on determining the $k$ nearest neighbors, there are some terms that need to be defined.
+				
+				\begin{description}
+					\item[\term*{visibility neighbor}] Sometimes also just \emph{visible neighbor} is a vertex $u$ that is visible from the currently processed vertex $v$.
+					\item[\term*{obstacle neighbor}] This is a vertex $u$ with an existing edge to or from the currently processed vertex $v$. In other words, $u$ is visible from $v$ but via an existing obstacle edge.
+					\item[\term*{shadow area}] This is an angle area that starts at a certain distance, for example \enquote{10° to 20° with a minimum distance of 30 meter}.
+				\end{description}
+			
+				\noindent The performed steps of determining the visible neighbors are the following, more details are given in the section below.
+				\begin{enumerate}
+					\item Get the obstacle neighbors for each vertex.
+					\item For each vertex $v$, determine its visibility neighbors as follows.
+					\begin{enumerate}
+						\item For each other vertex $u$, do the following:
+						\begin{enumerate}
+							\item Is $u$ in any shadow area? If so, which means $u$ is not visible, move to the next other vertex. Continue otherwise.
+							\item Query all obstacles between $v$ and $u$.
+							\item Create and store the shadow area of each such obstacle $o$.
+							\item Mark $u$ as visibility neighbors if $u$ is still not in any shadow area and a line segment from $v$ to $u$ intersects with none of the above queries obstacles.
+						\end{enumerate}
+						\item Sort visibility neighbors into bins based on the obstacle neighbors.
+					\end{enumerate}
+				\end{enumerate}
+			
+			\subsubsection{Parameter $k$}
+			
+				The $k$, however, is not just a single parameter, but rather consists of two separate values:
+				The number of bins and the number of maximum neighbors per bin.
+				Each bin covers a certain angle area of each vertex, for example for a bin count of 36, each bin would cover a 10° area.
+				Without this subdivision of the neighbors, it is possible to only have edges to complex and close objects but no edges to obstacles further away.
+				
+				An example for this would be a large and open park where the $k$ nearest neighbors are probably all at the side of the park where the currently processed vertex is, even though the far away other side of the park is clearly visibly.
+				This subdivision into bins ensure that there will definitely be connections to the other side of the park.
+			
+			\subsubsection{Determining obstacle neighbors}
+				
+				Determining the obstacle neighbors is relatively simple and straight forward.
+				Each coordinate $c$ of an obstacle $o$ is processed by looking at the previous and next coordinates $c_p$ and $c_n$ on that obstacle, which are the potential neighbors.
+				If the line segment $(c, c_p)$, for $c_n$ respectively, does not intersect with any obstacle, it is considered an obstacle neighbor.
+				
+			\subsubsection{Shadow areas}
+			
+			\subsubsection{Intersection check}
+			
+			\subsubsection{Sort resulting visibility neighbors into bins}
+			
+	\subsection{Step 3: Graph creation with visibility edges}
+		
+	\subsection{Step 4: Merging a road network into the visibility graph}
+
+\section{Answering shortest path queries}

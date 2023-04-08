@@ -25,8 +25,8 @@ This section gives an overview about closely related work from these areas.
 		Their new algorithms are based on Welzls earlier paper and implement the idea of a rotational sweep through neighboring vertices.
 		
 		The time complexity of Overmars and Welzls approach was already output sensitive by the number of edges in the output graph \cite{ghosh-output-sensitive-vgraph}.
-		Ghosh and Mount presented another output sensitive algorithm but with $\bigo{E + n \log n}$, which is a significant improvement, since $E$ is in $\bigo{n^2}$.
-		However, their approach uses $\bigo{E + n}$ space compared to $\bigo{n}$ from the earlier algorithm.
+		Ghosh and Mount presented another algorithm with an output sensitive complexity of $\bigo{E + n \log n}$, which is a significant improvement, since $E$ is in $\bigo{n^2}$.
+		However, their approach needs $\bigo{E + n}$ space compared to $\bigo{n}$ from the earlier algorithm.
 		Ghosh and Mount use plain-sweeps to create a triangulation of the free space and introduced so called \emph{funnel sequences}, which are sets of vertices visible to parts of an edge.
 		To avoid numerous edge cases, their approach assumes no collinear vertices and unique x-coordinates.
 		
