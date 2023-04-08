@@ -114,10 +114,9 @@ namespace HybridVisibilityGraphRouting.Geometry
         private bool IntersectsWithNonObstacleLine(Coordinate coordinateStart, Coordinate coordinateEnd)
         {
             // The IntersectsWithLineString method is used due to its speed. However, a line string could also be fully
-            // within a polygon, which also counts as an intersection. Therefore, the Geometry.Contains methods are
+            // within a polygon, which also counts as an intersection. Therefore, the IsInTriangle method is
             // additionally used.
             return
-                IntersectsWithLineString(coordinateStart, coordinateEnd) ||
                 IsClosed &&
                 (
                     IsInTriangle(coordinateStart.X, coordinateStart.Y,
@@ -130,7 +129,8 @@ namespace HybridVisibilityGraphRouting.Geometry
                         Coordinates[1].X, Coordinates[1].Y,
                         Coordinates[2].X, Coordinates[2].Y
                     )
-                );
+                ) ||
+                IntersectsWithLineString(coordinateStart, coordinateEnd);
         }
 
         /// <summary>

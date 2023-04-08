@@ -3,7 +3,6 @@ using HybridVisibilityGraphRouting.Geometry;
 using Mars.Common;
 using NetTopologySuite.Geometries;
 using NUnit.Framework;
-using ServiceStack;
 
 namespace HybridVisibilityGraphRouting.Tests.Geometry;
 
