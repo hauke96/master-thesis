@@ -166,7 +166,7 @@ public static class HybridVisibilityGraphGenerator
     /// This merges all features with a "highway=*" attribute into the given graph. Whenever a road-edge intersects
     /// an existing edge, both edges will be split at the intersection point where a new node is added.
     /// </summary>
-    private static void MergeRoadsIntoGraph(IEnumerable<IFeature> features, SpatialGraph graph)
+    public static void MergeRoadsIntoGraph(IEnumerable<IFeature> features, SpatialGraph graph)
     {
         var watch = Stopwatch.StartNew();
 

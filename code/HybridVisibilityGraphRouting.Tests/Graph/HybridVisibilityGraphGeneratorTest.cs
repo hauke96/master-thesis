@@ -332,4 +332,95 @@ public class HybridVisibilityGraphGeneratorTest
         Assert.True(spatialGraph.EdgesMap.ContainsKey((node, vertexToNode[middleVertex2][0])));
         Assert.True(spatialGraph.EdgesMap.ContainsKey((vertexToNode[middleVertex2][0], node)));
     }
+
+    [Test]
+    public void MergeRoadsIntoGraph()
+    {
+        var graph = new SpatialGraph();
+
+        var node00 = graph.AddNode(0, 0);
+        var node01 = graph.AddNode(0, 1);
+        var node10 = graph.AddNode(1, 0);
+        var node11 = graph.AddNode(1, 1);
+
+        // Directional edge
+        graph.AddEdge(node00, node01);
+        // Bi-directional edge
+        graph.AddEdge(node10, node11);
+        graph.AddEdge(node11, node10);
+
+        var features = new[]
+        {
+            // non-road feature
+            new Feature(
+                new LineString(new[]
+                {
+                    new Coordinate(-2, 0.25),
+                    new Coordinate(2, 0.25)
+                }),
+                new AttributesTable(
+                    new Dictionary<string, object> { { "foo", "bar" } }
+                )
+            ),
+            // road feature
+            new Feature(
+                new LineString(new[]
+                {
+                    new Coordinate(-2, 0.5),
+                    new Coordinate(2, 0.5)
+                }),
+                new AttributesTable(
+                    new Dictionary<string, object> { { "highway", "road" } }
+                )
+            )
+        };
+
+        // Act
+        HybridVisibilityGraphGenerator.MergeRoadsIntoGraph(features, graph);
+
+        // Assert
+        Assert.AreEqual(8, graph.NodesMap.Count);
+        var nodePositions = graph.NodesMap.Map(pair => pair.Value.Position);
+        
+        // Left vertical line
+        CollectionAssert.Contains(nodePositions, new Position(0, 0));
+        CollectionAssert.Contains(nodePositions, new Position(0, 1));
+        
+        // Right vertical line
+        CollectionAssert.Contains(nodePositions, new Position(1, 0));
+        CollectionAssert.Contains(nodePositions, new Position(1, 1));
+        
+        // Road segment
+        CollectionAssert.Contains(nodePositions, new Position(-2, 0.5));
+        CollectionAssert.Contains(nodePositions, new Position(0, 0.5));
+        CollectionAssert.Contains(nodePositions, new Position(1, 0.5));
+        CollectionAssert.Contains(nodePositions, new Position(2, 0.5));
+
+        Assert.AreEqual(12, graph.Edges.Count);
+        var edges = graph.Edges.Map(pair => pair.Value.Geometry);
+        // New bi-directional edges for the added road
+        CollectionAssert.Contains(edges, new[] { new Position(-2, 0.5), new Position(0, 0.5) });
+        CollectionAssert.Contains(edges, new[] { new Position(0, 0.5), new Position(-2, 0.5) });
+        
+        CollectionAssert.Contains(edges, new[] { new Position(0, 0.5), new Position(1, 0.5) });
+        CollectionAssert.Contains(edges, new[] { new Position(1, 0.5), new Position(0, 0.5) });
+        
+        CollectionAssert.Contains(edges, new[] { new Position(1, 0.5), new Position(2, 0.5) });
+        CollectionAssert.Contains(edges, new[] { new Position(2, 0.5), new Position(1, 0.5) });
+        
+        // New edges for the former left edge
+        CollectionAssert.Contains(edges, new[] { new Position(0, 0), new Position(0, 0.5) });
+        CollectionAssert.Contains(edges, new[] { new Position(0, 0.5), new Position(0, 1) });
+        
+        // New edges for the former right edges
+        CollectionAssert.Contains(edges, new[] { new Position(1, 0), new Position(1, 0.5) });
+        CollectionAssert.Contains(edges, new[] { new Position(1, 0.5), new Position(1, 1) });
+        CollectionAssert.Contains(edges, new[] { new Position(1, 1), new Position(1, 0.5) });
+        CollectionAssert.Contains(edges, new[] { new Position(1, 0.5), new Position(1, 0) });
+        
+        // Original edges should not exist anymore
+        CollectionAssert.DoesNotContain(edges, new[] { new Position(0, 0), new Position(0, 1) });
+        CollectionAssert.DoesNotContain(edges, new[] { new Position(1, 0), new Position(1, 1) });
+        CollectionAssert.DoesNotContain(edges, new[] { new Position(1, 1), new Position(1, 0) });
+    }
 }
