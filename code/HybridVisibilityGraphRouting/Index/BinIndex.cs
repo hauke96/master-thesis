@@ -28,10 +28,23 @@ public class BinIndex<T>
             throw new ArgumentException($"To-Key must be >=0 and <={_maxKey} but was {to}");
         }
 
+        if (from <= to)
+        {
+            AddWithinRange(from, to, value);
+        }
+        else
+        {
+            AddWithinRange(from, _maxKey, value);
+            AddWithinRange(0, to, value);
+        }
+    }
+
+    private void AddWithinRange(double from, double to, T value)
+    {
         var fromIndex = GetIndexFromKey(from);
         var toIndex = GetIndexFromKey(to);
 
-        for (var i = fromIndex; i != (toIndex + 1) % _index.Length; i = (i + 1) % _index.Length)
+        for (var i = fromIndex; i <= toIndex; i++)
         {
             _index[i].AddLast(value);
         }
@@ -43,12 +56,8 @@ public class BinIndex<T>
         {
             throw new ArgumentException($"Key must be >=0 and <={_maxKey} but was {key}");
         }
-        
+
         var index = GetIndexFromKey(key);
-        if (index >= _index.Length)
-        {
-            Console.WriteLine($"OK {key} -> {index}");
-        }
 
         return _index[index];
     }
