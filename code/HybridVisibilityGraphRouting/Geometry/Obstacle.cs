@@ -15,7 +15,7 @@ namespace HybridVisibilityGraphRouting.Geometry
         private readonly int _hash;
 
         public Obstacle(NetTopologySuite.Geometries.Geometry geometry) : this(geometry,
-            geometry.Coordinates.Map(c => new Vertex(c.X, c.Y)))
+            geometry.Coordinates.Map(c => new Vertex(c)))
         {
         }
 
@@ -220,7 +220,7 @@ namespace HybridVisibilityGraphRouting.Geometry
                 }
 
                 var angleToNewCoordinate =
-                    Angle.GetBearing(vertex.Position.X, vertex.Position.Y, coordinate.X, coordinate.Y);
+                    Angle.GetBearing(vertex.Coordinate.X, vertex.Coordinate.Y, coordinate.X, coordinate.Y);
 
                 if (Double.IsNaN(previousAngle))
                 {
@@ -266,10 +266,8 @@ namespace HybridVisibilityGraphRouting.Geometry
                 previousAngle = angleToNewCoordinate;
             }
 
-            var distanceToFromCoordinate = Distance.Euclidean(vertex.Position.PositionArray,
-                new[] { coordinateFrom[0], coordinateFrom[1] });
-            var distanceToToCoordinate = Distance.Euclidean(vertex.Position.PositionArray,
-                new[] { coordinateTo[0], coordinateTo[1] });
+            var distanceToFromCoordinate = vertex.Coordinate.Distance(coordinateFrom);
+            var distanceToToCoordinate = vertex.Coordinate.Distance(coordinateTo);
             var maxDistance = Math.Max(distanceToFromCoordinate, distanceToToCoordinate);
 
             return new ShadowArea(angleFrom, angleTo, maxDistance);

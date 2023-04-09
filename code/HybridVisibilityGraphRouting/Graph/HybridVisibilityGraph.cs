@@ -1,4 +1,5 @@
 using HybridVisibilityGraphRouting.IO;
+using Mars.Common;
 using Mars.Common.Collections;
 using Mars.Common.Collections.Graph;
 using Mars.Common.Collections.Graph.Algorithms;
@@ -89,7 +90,7 @@ public class HybridVisibilityGraph
 
         // TODO If performance too bad: Pass multiple positions to not calculate certain things twice.
         var allVertices = _obstacles.QueryAll().Map(o => o.Vertices).SelectMany(x => x).Distinct().ToList();
-        var vertex = new Vertex(source);
+        var vertex = new Vertex(source.ToCoordinate());
         var sourceVisibilityNeighborVertices =
             VisibilityGraphGenerator.GetVisibilityNeighborsForVertex(_obstacles, allVertices,
                 new Dictionary<Coordinate, List<Obstacle>>(),

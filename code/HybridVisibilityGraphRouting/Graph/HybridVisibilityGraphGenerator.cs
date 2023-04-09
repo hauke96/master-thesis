@@ -23,7 +23,7 @@ public static class HybridVisibilityGraphGenerator
     public static HybridVisibilityGraph Generate(ICollection<IVectorFeature> vectorFeatures)
     {
         var watch = Stopwatch.StartNew();
-        
+
         var features = vectorFeatures.Map(f => f.VectorStructured);
         var obstacles = GetObstacles(features);
         var vertexNeighbors = DetermineVisibilityNeighbors(obstacles);
@@ -91,12 +91,11 @@ public static class HybridVisibilityGraphGenerator
                 // For debug porposes to see the different nodes in the GeoJSON file.
                 // var nodePosition = PositionHelper.CalculatePositionByBearing(vertex.Position.X, vertex.Position.Y,
                 //     360 / vertexNeighborBin.Count * i, 0.000005);
-                var nodePosition = vertex.Position;
 
                 var nodeKey = graph.AddNode(new Dictionary<string, object>
                 {
-                    { "x", nodePosition.X },
-                    { "y", nodePosition.Y },
+                    { "x", vertex.Coordinate.X },
+                    { "y", vertex.Coordinate.Y },
                 }).Key;
                 vertexToNode[vertex][i] = nodeKey;
                 nodeToBinVertices[nodeKey] = bin;

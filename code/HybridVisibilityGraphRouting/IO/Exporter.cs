@@ -38,7 +38,7 @@ public static class Exporter
         await File.WriteAllTextAsync(filename, geoJson);
     }
 
-    public static async void WriteVertexNeighborsToFile(Dictionary<Position, HashSet<Position>> positionToNeighbors,
+    public static async void WriteVertexNeighborsToFile(Dictionary<Coordinate, HashSet<Position>> positionToNeighbors,
         string filename = "vertex-neighbors.geojson")
     {
         var geometries = new List<NetTopologySuite.Geometries.Geometry>();
@@ -50,11 +50,11 @@ public static class Exporter
             }
 
             var coordinates = new List<Coordinate>();
-            coordinates.Add(pair.Key.ToCoordinate());
+            coordinates.Add(pair.Key);
             foreach (var position in pair.Value)
             {
                 coordinates.Add(position.ToCoordinate());
-                coordinates.Add(pair.Key.ToCoordinate());
+                coordinates.Add(pair.Key);
             }
 
             geometries.Add(new LineString(coordinates.ToArray()));

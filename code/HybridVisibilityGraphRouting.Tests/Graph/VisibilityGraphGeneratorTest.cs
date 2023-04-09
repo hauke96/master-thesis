@@ -3,6 +3,7 @@ using System.Linq;
 using HybridVisibilityGraphRouting.Geometry;
 using Mars.Common;
 using Mars.Common.Collections;
+using Mars.Common.Core.Collections;
 using NetTopologySuite.Geometries;
 using NUnit.Framework;
 using ServiceStack;
@@ -17,7 +18,7 @@ public class VisibilityGraphGeneratorTest
         private QuadTree<Obstacle> obstacleQuadTree;
         private LineString multiVertexLineObstacle;
         private LineString rotatedLineObstacle;
-        private Dictionary<Position, List<Position>> positionToNeighbors;
+        private Dictionary<Coordinate, List<Coordinate>> positionToNeighbors;
 
         [SetUp]
         public void Setup()
@@ -41,8 +42,11 @@ public class VisibilityGraphGeneratorTest
             var obstacles = obstacleGeometries.Map(geometry => new Obstacle(geometry));
 
             positionToNeighbors =
-                VisibilityGraphGenerator.GetObstacleNeighborsFromObstacleVertices(obstacles,
-                    new Dictionary<Coordinate, List<Obstacle>>());
+                VisibilityGraphGenerator
+                    .GetObstacleNeighborsFromObstacleVertices(obstacles, new Dictionary<Coordinate, List<Obstacle>>())
+                    .ToDictionary(pair =>
+                        new KeyValuePair<Coordinate, List<Coordinate>>(pair.Key,
+                            pair.Value.Map(v => v.ToCoordinate())));
 
             obstacleQuadTree = new QuadTree<Obstacle>();
             obstacles.Each(obstacle => obstacleQuadTree.Insert(obstacle.Envelope, obstacle));
@@ -62,16 +66,16 @@ public class VisibilityGraphGeneratorTest
 
         private void AssertPositionToNeighbors(LineString obstacle)
         {
-            var expected = new List<Position> { obstacle[1].ToPosition() };
-            var actual = positionToNeighbors[obstacle[0].ToPosition()];
+            var expected = new List<Coordinate> { obstacle[1] };
+            var actual = positionToNeighbors[obstacle[0]];
             Assert.AreEqual(expected, actual);
 
-            expected = new List<Position> { obstacle[0].ToPosition(), obstacle[2].ToPosition() };
-            actual = positionToNeighbors[obstacle[1].ToPosition()];
+            expected = new List<Coordinate> { obstacle[0], obstacle[2] };
+            actual = positionToNeighbors[obstacle[1]];
             CollectionAssert.AreEquivalent(expected, actual);
 
-            expected = new List<Position> { obstacle[1].ToPosition() };
-            actual = positionToNeighbors[obstacle[2].ToPosition()];
+            expected = new List<Coordinate> { obstacle[1] };
+            actual = positionToNeighbors[obstacle[2]];
             Assert.AreEqual(expected, actual);
         }
     }
@@ -91,7 +95,7 @@ public class VisibilityGraphGeneratorTest
                 new Coordinate(1, 2),
                 new Coordinate(2, 3)
             }));
-            vertices = obstacle.Coordinates.Map(c => new Vertex(c.ToPosition()));
+            vertices = obstacle.Coordinates.Map(c => new Vertex(c));
 
             obstacleQuadTree = new QuadTree<Obstacle>();
             obstacleQuadTree.Insert(obstacle.Envelope, obstacle);
@@ -101,7 +105,7 @@ public class VisibilityGraphGeneratorTest
         public void CalculateVisibleKnn()
         {
             var visibleKnn = VisibilityGraphGenerator.CalculateVisibleKnn(obstacleQuadTree, 100);
-            vertices = visibleKnn.Keys.OrderBy(v => v.Id).ToList();
+            vertices = visibleKnn.Keys.OrderBy(v => v.ToString()).ToList();
 
             var bin = visibleKnn[vertices[0]];
             Assert.AreEqual(1, bin.Count);
@@ -159,7 +163,7 @@ public class VisibilityGraphGeneratorTest
 
             obstacles = obstacleGeometries.Map(geometry => new Obstacle(geometry));
             vertices = obstacles.SelectMany(o => o.Coordinates)
-                .Map(c => new Vertex(c.ToPosition()))
+                .Map(c => new Vertex(c))
                 .Distinct()
                 .ToList();
             ;
@@ -255,7 +259,7 @@ public class VisibilityGraphGeneratorTest
 
             obstacles = obstacleGeometries.Map(geometry => new Obstacle(geometry));
             vertices = obstacles.SelectMany(o => o.Coordinates)
-                .Map(c => new Vertex(c.ToPosition()))
+                .Map(c => new Vertex(c))
                 .Distinct()
                 .ToList();
 
@@ -310,7 +314,7 @@ public class VisibilityGraphGeneratorTest
             CollectionAssert.AreEquivalent(expectedCoordinates, actualCoordinates);
         }
     }
-    
+
     class GetVisibilityNeighborsForVertex : VisibilityGraphGeneratorTest
     {
         Obstacle obstacle;
@@ -342,7 +346,7 @@ public class VisibilityGraphGeneratorTest
         [Test]
         public void GetVisibilityNeighborsForVertex_correctlyDeterminesNeighbors()
         {
-            var vertex = new Vertex(1, 0);
+            var vertex = new Vertex(new Coordinate(1, 0));
 
             var visibilityNeighbors = VisibilityGraphGenerator.GetVisibilityNeighborsForVertex(obstacleIndex, vertices,
                 coordinateToObstacles, vertex);
@@ -370,7 +374,7 @@ public class VisibilityGraphGeneratorTest
         public void GetVisibilityNeighborsForVertex_180DegreeBinsOfSizeOne()
         {
             // Obstacle vertex 0 is one the left and the two other on the right -> only one of the right vertices should be taken
-            var vertex = new Vertex(0.5, 0);
+            var vertex = new Vertex(new Coordinate(0.5, 0));
 
             var visibilityNeighbors = VisibilityGraphGenerator.GetVisibilityNeighborsForVertex(obstacleIndex, vertices,
                 coordinateToObstacles, vertex, 2, 1);
@@ -391,16 +395,20 @@ public class VisibilityGraphGeneratorTest
             new Coordinate(2, 10)
         });
         var positionToNeighbors =
-            VisibilityGraphGenerator.GetObstacleNeighborsFromObstacleVertices(new List<Obstacle> { new(obstacle) },
-                new Dictionary<Coordinate, List<Obstacle>>());
+            VisibilityGraphGenerator
+                .GetObstacleNeighborsFromObstacleVertices(new List<Obstacle> { new(obstacle) },
+                    new Dictionary<Coordinate, List<Obstacle>>())
+                .ToDictionary(pair =>
+                    new KeyValuePair<Coordinate, List<Coordinate>>(pair.Key,
+                        pair.Value.Map(v => v.ToCoordinate())));
 
         Assert.AreEqual(2, positionToNeighbors.Count);
 
-        Assert.AreEqual(1, positionToNeighbors[obstacle[0].ToPosition()].Count);
-        Assert.Contains(obstacle[1].ToPosition(), positionToNeighbors[obstacle[0].ToPosition()]);
+        Assert.AreEqual(1, positionToNeighbors[obstacle[0]].Count);
+        Assert.Contains(obstacle[1], positionToNeighbors[obstacle[0]]);
 
-        Assert.AreEqual(1, positionToNeighbors[obstacle[1].ToPosition()].Count);
-        Assert.Contains(obstacle[0].ToPosition(), positionToNeighbors[obstacle[1].ToPosition()]);
+        Assert.AreEqual(1, positionToNeighbors[obstacle[1]].Count);
+        Assert.Contains(obstacle[0], positionToNeighbors[obstacle[1]]);
     }
 
     [Test]
@@ -413,20 +421,24 @@ public class VisibilityGraphGeneratorTest
             new Coordinate(7, 4),
         });
         var positionToNeighbors =
-            VisibilityGraphGenerator.GetObstacleNeighborsFromObstacleVertices(new List<Obstacle> { new(obstacle) },
-                new Dictionary<Coordinate, List<Obstacle>>());
+            VisibilityGraphGenerator
+                .GetObstacleNeighborsFromObstacleVertices(new List<Obstacle> { new(obstacle) },
+                    new Dictionary<Coordinate, List<Obstacle>>())
+                .ToDictionary(pair =>
+                    new KeyValuePair<Coordinate, List<Coordinate>>(pair.Key,
+                        pair.Value.Map(v => v.ToCoordinate())));
 
         Assert.AreEqual(3, positionToNeighbors.Count);
 
-        Assert.AreEqual(1, positionToNeighbors[obstacle[0].ToPosition()].Count);
-        Assert.Contains(obstacle[1].ToPosition(), positionToNeighbors[obstacle[0].ToPosition()]);
+        Assert.AreEqual(1, positionToNeighbors[obstacle[0]].Count);
+        Assert.Contains(obstacle[1], positionToNeighbors[obstacle[0]]);
 
-        Assert.AreEqual(2, positionToNeighbors[obstacle[1].ToPosition()].Count);
-        Assert.Contains(obstacle[2].ToPosition(), positionToNeighbors[obstacle[1].ToPosition()]);
-        Assert.Contains(obstacle[0].ToPosition(), positionToNeighbors[obstacle[1].ToPosition()]);
+        Assert.AreEqual(2, positionToNeighbors[obstacle[1]].Count);
+        Assert.Contains(obstacle[2], positionToNeighbors[obstacle[1]]);
+        Assert.Contains(obstacle[0], positionToNeighbors[obstacle[1]]);
 
-        Assert.AreEqual(1, positionToNeighbors[obstacle[2].ToPosition()].Count);
-        Assert.Contains(obstacle[1].ToPosition(), positionToNeighbors[obstacle[2].ToPosition()]);
+        Assert.AreEqual(1, positionToNeighbors[obstacle[2]].Count);
+        Assert.Contains(obstacle[1], positionToNeighbors[obstacle[2]]);
     }
 
     [Test]
@@ -434,31 +446,34 @@ public class VisibilityGraphGeneratorTest
     {
         var obstacle = new LineString(new[]
         {
-            new Coordinate(0,0),
-            new Coordinate(1,0),
-            new Coordinate(1,1),
-            new Coordinate(0,0)
+            new Coordinate(0, 0),
+            new Coordinate(1, 0),
+            new Coordinate(1, 1),
+            new Coordinate(0, 0)
         });
 
         var coordinateToObstacles =
             VisibilityGraphGenerator.GetCoordinateToObstaclesMapping(new List<Obstacle> { new(obstacle) });
         var positionToNeighbors =
-            VisibilityGraphGenerator.GetObstacleNeighborsFromObstacleVertices(new List<Obstacle> { new(obstacle) },
-                coordinateToObstacles);
+            VisibilityGraphGenerator
+                .GetObstacleNeighborsFromObstacleVertices(new List<Obstacle> { new(obstacle) }, coordinateToObstacles)
+                .ToDictionary(pair =>
+                    new KeyValuePair<Coordinate, List<Coordinate>>(pair.Key,
+                        pair.Value.Map(v => v.ToCoordinate())));
 
         Assert.AreEqual(3, positionToNeighbors.Count);
 
-        Assert.AreEqual(2, positionToNeighbors[obstacle[0].ToPosition()].Count);
-        Assert.Contains(obstacle[1].ToPosition(), positionToNeighbors[obstacle[0].ToPosition()]);
-        Assert.Contains(obstacle[2].ToPosition(), positionToNeighbors[obstacle[0].ToPosition()]);
+        Assert.AreEqual(2, positionToNeighbors[obstacle[0]].Count);
+        Assert.Contains(obstacle[1], positionToNeighbors[obstacle[0]]);
+        Assert.Contains(obstacle[2], positionToNeighbors[obstacle[0]]);
 
-        Assert.AreEqual(2, positionToNeighbors[obstacle[1].ToPosition()].Count);
-        Assert.Contains(obstacle[0].ToPosition(), positionToNeighbors[obstacle[1].ToPosition()]);
-        Assert.Contains(obstacle[2].ToPosition(), positionToNeighbors[obstacle[1].ToPosition()]);
+        Assert.AreEqual(2, positionToNeighbors[obstacle[1]].Count);
+        Assert.Contains(obstacle[0], positionToNeighbors[obstacle[1]]);
+        Assert.Contains(obstacle[2], positionToNeighbors[obstacle[1]]);
 
-        Assert.AreEqual(2, positionToNeighbors[obstacle[2].ToPosition()].Count);
-        Assert.Contains(obstacle[0].ToPosition(), positionToNeighbors[obstacle[2].ToPosition()]);
-        Assert.Contains(obstacle[1].ToPosition(), positionToNeighbors[obstacle[2].ToPosition()]);
+        Assert.AreEqual(2, positionToNeighbors[obstacle[2]].Count);
+        Assert.Contains(obstacle[0], positionToNeighbors[obstacle[2]]);
+        Assert.Contains(obstacle[1], positionToNeighbors[obstacle[2]]);
     }
 
     [Test]
@@ -484,35 +499,40 @@ public class VisibilityGraphGeneratorTest
         var coordinateToObstacles =
             VisibilityGraphGenerator.GetCoordinateToObstaclesMapping(new List<Obstacle>
                 { new(obstacle1), new(obstacle2) });
-        var positionToNeighbors = VisibilityGraphGenerator.GetObstacleNeighborsFromObstacleVertices(list, coordinateToObstacles);
+        var positionToNeighbors =
+            VisibilityGraphGenerator
+                .GetObstacleNeighborsFromObstacleVertices(list, coordinateToObstacles)
+                .ToDictionary(pair =>
+                    new KeyValuePair<Coordinate, List<Coordinate>>(pair.Key,
+                        pair.Value.Map(v => v.ToCoordinate())));
 
         Assert.AreEqual(4, positionToNeighbors.Count);
 
         // Neighbors of obstacle1
-        Assert.AreEqual(2, positionToNeighbors[obstacle1[0].ToPosition()].Count);
-        Assert.Contains(obstacle1[1].ToPosition(), positionToNeighbors[obstacle1[0].ToPosition()]);
-        Assert.Contains(obstacle1[2].ToPosition(), positionToNeighbors[obstacle1[0].ToPosition()]);
+        Assert.AreEqual(2, positionToNeighbors[obstacle1[0]].Count);
+        Assert.Contains(obstacle1[1], positionToNeighbors[obstacle1[0]]);
+        Assert.Contains(obstacle1[2], positionToNeighbors[obstacle1[0]]);
 
-        Assert.AreEqual(2, positionToNeighbors[obstacle1[1].ToPosition()].Count);
-        Assert.Contains(obstacle1[0].ToPosition(), positionToNeighbors[obstacle1[1].ToPosition()]);
-        Assert.Contains(obstacle2[1].ToPosition(), positionToNeighbors[obstacle1[1].ToPosition()]);
+        Assert.AreEqual(2, positionToNeighbors[obstacle1[1]].Count);
+        Assert.Contains(obstacle1[0], positionToNeighbors[obstacle1[1]]);
+        Assert.Contains(obstacle2[1], positionToNeighbors[obstacle1[1]]);
 
-        Assert.AreEqual(2, positionToNeighbors[obstacle1[2].ToPosition()].Count);
-        Assert.Contains(obstacle2[1].ToPosition(), positionToNeighbors[obstacle1[2].ToPosition()]);
-        Assert.Contains(obstacle1[0].ToPosition(), positionToNeighbors[obstacle1[2].ToPosition()]);
+        Assert.AreEqual(2, positionToNeighbors[obstacle1[2]].Count);
+        Assert.Contains(obstacle2[1], positionToNeighbors[obstacle1[2]]);
+        Assert.Contains(obstacle1[0], positionToNeighbors[obstacle1[2]]);
 
         // Neighbors of obstacle2
-        Assert.AreEqual(2, positionToNeighbors[obstacle2[0].ToPosition()].Count);
-        Assert.Contains(obstacle1[0].ToPosition(), positionToNeighbors[obstacle2[0].ToPosition()]);
-        Assert.Contains(obstacle2[1].ToPosition(), positionToNeighbors[obstacle2[0].ToPosition()]);
+        Assert.AreEqual(2, positionToNeighbors[obstacle2[0]].Count);
+        Assert.Contains(obstacle1[0], positionToNeighbors[obstacle2[0]]);
+        Assert.Contains(obstacle2[1], positionToNeighbors[obstacle2[0]]);
 
-        Assert.AreEqual(2, positionToNeighbors[obstacle2[1].ToPosition()].Count);
-        Assert.Contains(obstacle2[0].ToPosition(), positionToNeighbors[obstacle2[1].ToPosition()]);
-        Assert.Contains(obstacle2[2].ToPosition(), positionToNeighbors[obstacle2[1].ToPosition()]);
+        Assert.AreEqual(2, positionToNeighbors[obstacle2[1]].Count);
+        Assert.Contains(obstacle2[0], positionToNeighbors[obstacle2[1]]);
+        Assert.Contains(obstacle2[2], positionToNeighbors[obstacle2[1]]);
 
-        Assert.AreEqual(2, positionToNeighbors[obstacle2[2].ToPosition()].Count);
-        Assert.Contains(obstacle1[0].ToPosition(), positionToNeighbors[obstacle2[2].ToPosition()]);
-        Assert.Contains(obstacle2[1].ToPosition(), positionToNeighbors[obstacle2[2].ToPosition()]);
+        Assert.AreEqual(2, positionToNeighbors[obstacle2[2]].Count);
+        Assert.Contains(obstacle1[0], positionToNeighbors[obstacle2[2]]);
+        Assert.Contains(obstacle2[1], positionToNeighbors[obstacle2[2]]);
     }
 
     [Test]
@@ -535,38 +555,42 @@ public class VisibilityGraphGeneratorTest
         var list = new List<Obstacle> { new(obstacle1), new(obstacle2) };
 
         var positionToNeighbors =
-            VisibilityGraphGenerator.GetObstacleNeighborsFromObstacleVertices(list, new Dictionary<Coordinate, List<Obstacle>>());
+            VisibilityGraphGenerator
+                .GetObstacleNeighborsFromObstacleVertices(list, new Dictionary<Coordinate, List<Obstacle>>())
+                .ToDictionary(pair =>
+                    new KeyValuePair<Coordinate, List<Coordinate>>(pair.Key,
+                        pair.Value.Map(v => v.ToCoordinate())));
 
         Assert.AreEqual(5, positionToNeighbors.Count);
 
         // Neighbors of obstacle1
-        Assert.AreEqual(1, positionToNeighbors[obstacle1[0].ToPosition()].Count);
-        Assert.Contains(obstacle1[1].ToPosition(), positionToNeighbors[obstacle1[0].ToPosition()]);
+        Assert.AreEqual(1, positionToNeighbors[obstacle1[0]].Count);
+        Assert.Contains(obstacle1[1], positionToNeighbors[obstacle1[0]]);
 
-        Assert.AreEqual(2, positionToNeighbors[obstacle1[1].ToPosition()].Count);
-        Assert.Contains(obstacle1[0].ToPosition(), positionToNeighbors[obstacle1[1].ToPosition()]);
-        Assert.Contains(obstacle1[2].ToPosition(), positionToNeighbors[obstacle1[1].ToPosition()]);
+        Assert.AreEqual(2, positionToNeighbors[obstacle1[1]].Count);
+        Assert.Contains(obstacle1[0], positionToNeighbors[obstacle1[1]]);
+        Assert.Contains(obstacle1[2], positionToNeighbors[obstacle1[1]]);
 
-        Assert.AreEqual(3, positionToNeighbors[obstacle1[2].ToPosition()].Count);
-        Assert.Contains(obstacle1[1].ToPosition(), positionToNeighbors[obstacle1[2].ToPosition()]);
-        Assert.Contains(obstacle1[3].ToPosition(), positionToNeighbors[obstacle1[2].ToPosition()]);
-        Assert.Contains(obstacle2[2].ToPosition(), positionToNeighbors[obstacle1[2].ToPosition()]);
+        Assert.AreEqual(3, positionToNeighbors[obstacle1[2]].Count);
+        Assert.Contains(obstacle1[1], positionToNeighbors[obstacle1[2]]);
+        Assert.Contains(obstacle1[3], positionToNeighbors[obstacle1[2]]);
+        Assert.Contains(obstacle2[2], positionToNeighbors[obstacle1[2]]);
 
-        Assert.AreEqual(1, positionToNeighbors[obstacle1[3].ToPosition()].Count);
-        Assert.Contains(obstacle1[2].ToPosition(), positionToNeighbors[obstacle1[3].ToPosition()]);
+        Assert.AreEqual(1, positionToNeighbors[obstacle1[3]].Count);
+        Assert.Contains(obstacle1[2], positionToNeighbors[obstacle1[3]]);
 
         // Neighbors of obstacle2
-        Assert.AreEqual(2, positionToNeighbors[obstacle2[0].ToPosition()].Count);
-        Assert.Contains(obstacle1[0].ToPosition(), positionToNeighbors[obstacle2[0].ToPosition()]);
-        Assert.Contains(obstacle2[1].ToPosition(), positionToNeighbors[obstacle2[0].ToPosition()]);
+        Assert.AreEqual(2, positionToNeighbors[obstacle2[0]].Count);
+        Assert.Contains(obstacle1[0], positionToNeighbors[obstacle2[0]]);
+        Assert.Contains(obstacle2[1], positionToNeighbors[obstacle2[0]]);
 
-        Assert.AreEqual(3, positionToNeighbors[obstacle2[1].ToPosition()].Count);
-        Assert.Contains(obstacle1[3].ToPosition(), positionToNeighbors[obstacle2[1].ToPosition()]);
-        Assert.Contains(obstacle2[2].ToPosition(), positionToNeighbors[obstacle2[1].ToPosition()]);
-        Assert.Contains(obstacle2[0].ToPosition(), positionToNeighbors[obstacle2[1].ToPosition()]);
+        Assert.AreEqual(3, positionToNeighbors[obstacle2[1]].Count);
+        Assert.Contains(obstacle1[3], positionToNeighbors[obstacle2[1]]);
+        Assert.Contains(obstacle2[2], positionToNeighbors[obstacle2[1]]);
+        Assert.Contains(obstacle2[0], positionToNeighbors[obstacle2[1]]);
 
-        Assert.AreEqual(1, positionToNeighbors[obstacle2[2].ToPosition()].Count);
-        Assert.Contains(obstacle2[1].ToPosition(), positionToNeighbors[obstacle2[2].ToPosition()]);
+        Assert.AreEqual(1, positionToNeighbors[obstacle2[2]].Count);
+        Assert.Contains(obstacle2[1], positionToNeighbors[obstacle2[2]]);
     }
 
     [Test]
@@ -574,25 +598,23 @@ public class VisibilityGraphGeneratorTest
     {
         var neighbors = new List<Position>
         {
-            new Position(1.1, 2), // Little >0°
-            new Position(2.0, 1), // 90°
-            new Position(0.0, 1), // 270°
+            new(1.1, 2), // Little >0°
+            new(2.0, 1), // 90°
+            new(0.0, 1), // 270°
         };
         var neighborVertices = new List<Position>
         {
-            new Position(1, 2), // 0°
-            new Position(2, 2), // 45°
-            new Position(3, 1), // 90°
-            new Position(1, 0), // 180°
-            new Position(0, 2), // 315°
-        }.Map(n => new Vertex(n));
+            new(1, 2), // 0°
+            new(2, 2), // 45°
+            new(3, 1), // 90°
+            new(1, 0), // 180°
+            new(0, 2), // 315°
+        }.Map(n => new Vertex(n.ToCoordinate()));
 
-        var vertex = new Vertex(new Position(1, 1), neighbors);
-
-        var obstacleQuadTree = new QuadTree<Obstacle>();
+        var vertex = new Vertex(new Coordinate(1, 1), neighbors);
 
         var allNeighbors = neighborVertices.CreateCopy();
-        allNeighbors.AddRange(neighbors.Map(n => new Vertex(n)));
+        allNeighbors.AddRange(neighbors.Map(n => new Vertex(n.ToCoordinate())));
         var bins = VisibilityGraphGenerator.SortVisibilityNeighborsIntoBins(vertex, allNeighbors);
 
         Assert.Contains(neighborVertices[0], bins[2]);

@@ -18,20 +18,20 @@ public class ObstacleTest
         }));
 
         // From below the obstacle
-        var shadowArea = obstacle.GetShadowAreaOfObstacle(new Vertex(0, 0));
+        var shadowArea = obstacle.GetShadowAreaOfObstacle(new Vertex(new Coordinate(0, 0)));
         Assert.AreEqual(18.434, shadowArea.From, 0.001);
         Assert.AreEqual(45, shadowArea.To, 0.001);
         Assert.AreEqual(3.1622, shadowArea.Distance, 0.001);
 
         // From above the obstacle
-        shadowArea = obstacle.GetShadowAreaOfObstacle(new Vertex(0, 4));
+        shadowArea = obstacle.GetShadowAreaOfObstacle(new Vertex(new Coordinate(0, 4)));
         Assert.AreEqual(135, shadowArea.From, 0.001);
         Assert.AreEqual(161.566, shadowArea.To, 0.001);
         Assert.AreEqual(3.1622, shadowArea.Distance, 0.001);
 
         // From lower coordinate of the obstacle
         shadowArea =
-            obstacle.GetShadowAreaOfObstacle(new Vertex(obstacle.Coordinates[0].ToPosition()));
+            obstacle.GetShadowAreaOfObstacle(new Vertex(obstacle.Coordinates[0]));
         Assert.AreEqual(0, shadowArea.From, 0.001);
         Assert.AreEqual(0, shadowArea.To, 0.001);
         Assert.AreEqual(2, shadowArea.Distance, 0.001);
@@ -47,19 +47,19 @@ public class ObstacleTest
         }));
 
         // From below the obstacle
-        var shadowArea = obstacle.GetShadowAreaOfObstacle(new Vertex(0, 0));
+        var shadowArea = obstacle.GetShadowAreaOfObstacle(new Vertex(new Coordinate(0, 0)));
         Assert.AreEqual(45, shadowArea.From, 0.001);
         Assert.AreEqual(71.565, shadowArea.To, 0.001);
         Assert.AreEqual(3.1622, shadowArea.Distance, 0.001);
 
         // From above the obstacle
-        shadowArea = obstacle.GetShadowAreaOfObstacle(new Vertex(4, 0));
+        shadowArea = obstacle.GetShadowAreaOfObstacle(new Vertex(new Coordinate(4, 0)));
         Assert.AreEqual(288.434, shadowArea.From, 0.001);
         Assert.AreEqual(315, shadowArea.To, 0.001);
         Assert.AreEqual(3.1622, shadowArea.Distance, 0.001);
 
         // From above the obstacle
-        shadowArea = obstacle.GetShadowAreaOfObstacle(new Vertex(2, 0));
+        shadowArea = obstacle.GetShadowAreaOfObstacle(new Vertex(new Coordinate(2, 0)));
         Assert.AreEqual(315, shadowArea.From, 0.001);
         Assert.AreEqual(45, shadowArea.To, 0.001);
         Assert.AreEqual(1.414, shadowArea.Distance, 0.001);
@@ -78,7 +78,7 @@ public class ObstacleTest
 
         // Get angle area of the tip of the "V".
         var shadowArea =
-            obstacle.GetShadowAreaOfObstacle(new Vertex(obstacle.Coordinates[1].ToPosition()));
+            obstacle.GetShadowAreaOfObstacle(new Vertex(obstacle.Coordinates[1]));
 
         Assert.AreEqual(315, shadowArea.From, 0.001);
         Assert.AreEqual(45, shadowArea.To, 0.001);
@@ -96,32 +96,32 @@ public class ObstacleTest
             new Coordinate(1, 1),
         }));
 
-        var shadowArea = obstacle.GetShadowAreaOfObstacle(new Vertex(0, 0));
+        var shadowArea = obstacle.GetShadowAreaOfObstacle(new Vertex(new Coordinate(0, 0)));
         Assert.AreEqual(26.565, shadowArea.From, 0.001);
         Assert.AreEqual(63.434, shadowArea.To, 0.001);
         Assert.AreEqual(2.236, shadowArea.Distance, 0.001);
 
-        shadowArea = obstacle.GetShadowAreaOfObstacle(new Vertex(1.5, 0));
+        shadowArea = obstacle.GetShadowAreaOfObstacle(new Vertex(new Coordinate(1.5, 0)));
         Assert.AreEqual(333.434, shadowArea.From, 0.001);
         Assert.AreEqual(26.565, shadowArea.To, 0.001);
         Assert.AreEqual(1.118, shadowArea.Distance, 0.001);
 
-        shadowArea = obstacle.GetShadowAreaOfObstacle(new Vertex(1, 1));
+        shadowArea = obstacle.GetShadowAreaOfObstacle(new Vertex(new Coordinate(1, 1)));
         Assert.AreEqual(0, shadowArea.From, 0.001);
         Assert.AreEqual(90, shadowArea.To, 0.001);
         Assert.AreEqual(1, shadowArea.Distance, 0.001);
 
-        shadowArea = obstacle.GetShadowAreaOfObstacle(new Vertex(2, 1));
+        shadowArea = obstacle.GetShadowAreaOfObstacle(new Vertex(new Coordinate(2, 1)));
         Assert.AreEqual(270, shadowArea.From, 0.001);
         Assert.AreEqual(315, shadowArea.To, 0.001);
         Assert.AreEqual(1.4142, shadowArea.Distance, 0.001);
 
-        shadowArea = obstacle.GetShadowAreaOfObstacle(new Vertex(2, 2));
+        shadowArea = obstacle.GetShadowAreaOfObstacle(new Vertex(new Coordinate(2, 2)));
         Assert.AreEqual(180, shadowArea.From, 0.001);
         Assert.AreEqual(270, shadowArea.To, 0.001);
         Assert.AreEqual(1, shadowArea.Distance, 0.001);
 
-        shadowArea = obstacle.GetShadowAreaOfObstacle(new Vertex(1, 2));
+        shadowArea = obstacle.GetShadowAreaOfObstacle(new Vertex(new Coordinate(1, 2)));
         Assert.AreEqual(135, shadowArea.From, 0.001);
         Assert.AreEqual(180, shadowArea.To, 0.001);
         Assert.AreEqual(1.4142, shadowArea.Distance, 0.001);

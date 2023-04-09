@@ -20,7 +20,7 @@ public static class VisibilityGraphGenerator
     /// one of the given obstacles from v to its neighboring positions.
     /// </summary>
     /// <returns>A dict from position to a duplicate free list of all neighbors found.</returns>
-    public static Dictionary<Position, List<Position>> GetObstacleNeighborsFromObstacleVertices(
+    public static Dictionary<Coordinate, List<Position>> GetObstacleNeighborsFromObstacleVertices(
         IList<Obstacle> obstacles,
         Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles,
         bool debugModeActive = false)
@@ -39,7 +39,7 @@ public static class VisibilityGraphGenerator
                     o.IntersectsWithLine(coordinate, otherCoordinate, coordinateToObstacles)
                 ));
 
-        var positionToObstacleNeighbors = new Dictionary<Position, HashSet<Position>>();
+        var positionToObstacleNeighbors = new Dictionary<Coordinate, HashSet<Position>>();
         obstacles.Each(obstacle =>
         {
             AddObstacleNeighborsForObstacle(obstacle, positionToObstacleNeighbors, IsCoordinateHidden);
@@ -52,7 +52,7 @@ public static class VisibilityGraphGenerator
 
         // Use a list for easier handling later on (Vertices will eventually receive these neighbors and must be able to
         // sort them).
-        var result = new Dictionary<Position, List<Position>>();
+        var result = new Dictionary<Coordinate, List<Position>>();
         positionToObstacleNeighbors.Each(pair => result.Add(pair.Key, pair.Value.ToList()));
         return result;
     }
@@ -64,7 +64,7 @@ public static class VisibilityGraphGenerator
     /// <param name="isCoordinateHidden">A function that determines if the obstacle is between the two given coordinates , in other words, if the two coordinates see each other.</param>
     private static void AddObstacleNeighborsForObstacle(
         Obstacle obstacle,
-        Dictionary<Position, HashSet<Position>> positionToObstacleNeighbors,
+        Dictionary<Coordinate, HashSet<Position>> positionToObstacleNeighbors,
         Func<Coordinate, Coordinate, Obstacle, bool> isCoordinateHidden)
     {
         // TODO Change the return value to Dictionary<Position, HashSet<Position>> and add its entries to the overall dict in the callers method. This will remove the current side effect.
@@ -73,16 +73,15 @@ public static class VisibilityGraphGenerator
 
         if (coordinates.Count == 1)
         {
-            positionToObstacleNeighbors[coordinates[0].ToPosition()] = new HashSet<Position>();
+            positionToObstacleNeighbors[coordinates[0]] = new HashSet<Position>();
             return;
         }
 
         coordinates.Each((index, coordinate) =>
         {
-            var position = coordinate.ToPosition();
-            if (!positionToObstacleNeighbors.ContainsKey(position))
+            if (!positionToObstacleNeighbors.ContainsKey(coordinate))
             {
-                positionToObstacleNeighbors[position] = new HashSet<Position>();
+                positionToObstacleNeighbors[coordinate] = new HashSet<Position>();
             }
 
             Coordinate? nextCoordinate =
@@ -119,7 +118,7 @@ public static class VisibilityGraphGenerator
                 }
             }
 
-            positionToObstacleNeighbors[position].AddRange(neighbors);
+            positionToObstacleNeighbors[coordinate].AddRange(neighbors);
         });
     }
 
@@ -142,7 +141,7 @@ public static class VisibilityGraphGenerator
 
         var coordinateToObstacles = GetCoordinateToObstaclesMapping(allObstacles);
 
-        Dictionary<Position, List<Position>> positionToNeighbors = new();
+        var positionToNeighbors = new Dictionary<Coordinate, List<Position>>();
         var result = PerformanceMeasurement.ForFunction(
             () =>
             {
@@ -154,7 +153,7 @@ public static class VisibilityGraphGenerator
         result.WriteToFile();
 
         Log.I("Create all unique vertices");
-        var allVertices = positionToNeighbors.Keys.Map(position => new Vertex(position, positionToNeighbors[position]));
+        var allVertices = positionToNeighbors.Map(pair => new Vertex(pair.Key, pair.Value));
 
         Log.I("Add vertices with neighbor information to obstacles");
         allObstacles.Each(o =>
@@ -223,12 +222,12 @@ public static class VisibilityGraphGenerator
 
         if (!PerformanceMeasurement.IS_ACTIVE && debugModeActive)
         {
-            var vertexPositionDict = new Dictionary<Position, HashSet<Position>>();
+            var vertexPositionDict = new Dictionary<Coordinate, HashSet<Position>>();
             result.Keys.Each(vertex =>
             {
                 var visibilityNeighbors = result[vertex];
-                var visibilityNeighborPositions = visibilityNeighbors.SelectMany(x => x).Map(v => v.Position);
-                vertexPositionDict[vertex.Position] = new HashSet<Position>(visibilityNeighborPositions);
+                var visibilityNeighborPositions = visibilityNeighbors.SelectMany(x => x).Map(v => v.Coordinate.ToPosition());
+                vertexPositionDict[vertex.Coordinate] = new HashSet<Position>(visibilityNeighborPositions);
             });
 
             Exporter.WriteVertexNeighborsToFile(vertexPositionDict, "vertex-visibility.geojson");
@@ -287,8 +286,7 @@ public static class VisibilityGraphGenerator
                 binKey = 0;
             }
 
-            var distanceToOtherVertex =
-                Distance.Euclidean(vertex.Position.PositionArray, otherVertex.Position.PositionArray);
+            var distanceToOtherVertex = vertex.Coordinate.Distance(otherVertex.Coordinate);
             if (maxDistances[binKey]?.Count == neighborsPerBin &&
                 distanceToOtherVertex >= maxDistances[binKey]?.Last?.Value)
             {
@@ -421,7 +419,7 @@ public static class VisibilityGraphGenerator
         }
 
         allVisibilityNeighbors.Sort((p1, p2) =>
-            (int)(Angle.GetBearing(vertex.Position, p1.Position) - Angle.GetBearing(vertex.Position, p2.Position)));
+            (int)(Angle.GetBearing(vertex.Coordinate, p1.Coordinate) - Angle.GetBearing(vertex.Coordinate, p2.Coordinate)));
 
         /*
          * This following routing collects all visibility neighbors we just determined above and puts them into bins.
@@ -444,7 +442,7 @@ public static class VisibilityGraphGenerator
             // Due to the bins, it can happen that this obstacle neighbor is not within the list of visibility
             // neighbors, even though it's obviously visible. Therefore this obstacle neighbor might not be added here.
             var thisVisibilityNeighbor =
-                allVisibilityNeighbors.Where(v => v.Position.Equals(thisObstacleNeighbor)).ToList();
+                allVisibilityNeighbors.Where(v => v.Coordinate.X == thisObstacleNeighbor.X && v.Coordinate.Y == thisObstacleNeighbor.Y).ToList();
             if (!thisVisibilityNeighbor.IsEmpty())
             {
                 bin.Add(thisVisibilityNeighbor[0]);
@@ -453,7 +451,7 @@ public static class VisibilityGraphGenerator
             foreach (var visibilityNeighbor in allVisibilityNeighbors)
             {
                 if (Angle.IsBetweenEqual(thisObstacleNeighbor.Bearing,
-                        Angle.GetBearing(vertex.Position, visibilityNeighbor.Position), nextObstacleNeighbor.Bearing))
+                        Angle.GetBearing(vertex.Coordinate, visibilityNeighbor.Coordinate), nextObstacleNeighbor.Bearing))
                 {
                     bin.Add(visibilityNeighbor);
                 }
@@ -462,7 +460,7 @@ public static class VisibilityGraphGenerator
             // Due to the bins, it can happen that this obstacle neighbor is not within the list of visibility
             // neighbors, even though it's obviously visible. Therefore this obstacle neighbor might not be added here.
             var nextVisibilityNeighbor =
-                allVisibilityNeighbors.Where(v => v.Position.Equals(nextObstacleNeighbor)).ToList();
+                allVisibilityNeighbors.Where(v => v.Coordinate.X == nextObstacleNeighbor.X && v.Coordinate.Y == nextObstacleNeighbor.Y).ToList();
             if (!nextVisibilityNeighbor.IsEmpty())
             {
                 bin.Add(nextVisibilityNeighbor[0]);

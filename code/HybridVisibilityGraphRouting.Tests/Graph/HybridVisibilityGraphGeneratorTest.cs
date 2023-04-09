@@ -39,8 +39,8 @@ public class HybridVisibilityGraphGeneratorTest
         var obstacle = obstacles[0];
         CollectionAssert.AreEqual(featureObstacle.Geometry.Coordinates, obstacle.Coordinates);
         Assert.AreEqual(2, obstacle.Vertices.Count);
-        Assert.AreEqual(obstacle.Coordinates[0].ToPosition(), obstacle.Vertices[0].Position);
-        Assert.AreEqual(obstacle.Coordinates[1].ToPosition(), obstacle.Vertices[1].Position);
+        Assert.AreEqual(obstacle.Coordinates[0], obstacle.Vertices[0].Coordinate);
+        Assert.AreEqual(obstacle.Coordinates[1], obstacle.Vertices[1].Coordinate);
     }
 
     [Test]
@@ -127,14 +127,14 @@ public class HybridVisibilityGraphGeneratorTest
 
         // Vertices:
         // Vertex at bottom
-        var bottomVertex = new Vertex(new Position(1, 0));
+        var bottomVertex = new Vertex(new Coordinate(1, 0));
         // Middle line with tree vertices
-        var middleVertex0 = new Vertex(new Position(0, 1), new Position(1, 1));
-        var middleVertex1 = new Vertex(new Position(1, 1), new Position(0, 1), new Position(2, 1));
-        var middleVertex2 = new Vertex(new Position(2, 1), new Position(1, 1));
+        var middleVertex0 = new Vertex(new Coordinate(0, 1), new[] { new Position(1, 1) });
+        var middleVertex1 = new Vertex(new Coordinate(1, 1), new[] { new Position(0, 1), new Position(2, 1) });
+        var middleVertex2 = new Vertex(new Coordinate(2, 1), new[] { new Position(1, 1) });
         // Top line with two vertices
-        var topVertex0 = new Vertex(new Position(0, 2), new Position(1, 2));
-        var topVertex1 = new Vertex(new Position(1, 2), new Position(0, 2));
+        var topVertex0 = new Vertex(new Coordinate(0, 2), new[] { new Position(1, 2) });
+        var topVertex1 = new Vertex(new Coordinate(1, 2), new[] { new Position(0, 2) });
 
         // Create visibility relations without the use of additional function to make sure the setup is always correct.
         var vertexNeighbors = new Dictionary<Vertex, List<List<Vertex>>>();
@@ -171,7 +171,7 @@ public class HybridVisibilityGraphGeneratorTest
             vertexToNode.Add(vertex, new List<int>());
             foreach (var (key, nodeData) in spatialGraph.NodesMap)
             {
-                if (nodeData.Position.DistanceInMTo(vertex.Position) < 0.001)
+                if (nodeData.Position.DistanceInMTo(vertex.Coordinate.ToPosition()) < 0.001)
                 {
                     vertexToNode[vertex].Add(key);
                 }
@@ -381,15 +381,15 @@ public class HybridVisibilityGraphGeneratorTest
         // Assert
         Assert.AreEqual(8, graph.NodesMap.Count);
         var nodePositions = graph.NodesMap.Map(pair => pair.Value.Position);
-        
+
         // Left vertical line
         CollectionAssert.Contains(nodePositions, new Position(0, 0));
         CollectionAssert.Contains(nodePositions, new Position(0, 1));
-        
+
         // Right vertical line
         CollectionAssert.Contains(nodePositions, new Position(1, 0));
         CollectionAssert.Contains(nodePositions, new Position(1, 1));
-        
+
         // Road segment
         CollectionAssert.Contains(nodePositions, new Position(-2, 0.5));
         CollectionAssert.Contains(nodePositions, new Position(0, 0.5));
@@ -401,23 +401,23 @@ public class HybridVisibilityGraphGeneratorTest
         // New bi-directional edges for the added road
         CollectionAssert.Contains(edges, new[] { new Position(-2, 0.5), new Position(0, 0.5) });
         CollectionAssert.Contains(edges, new[] { new Position(0, 0.5), new Position(-2, 0.5) });
-        
+
         CollectionAssert.Contains(edges, new[] { new Position(0, 0.5), new Position(1, 0.5) });
         CollectionAssert.Contains(edges, new[] { new Position(1, 0.5), new Position(0, 0.5) });
-        
+
         CollectionAssert.Contains(edges, new[] { new Position(1, 0.5), new Position(2, 0.5) });
         CollectionAssert.Contains(edges, new[] { new Position(2, 0.5), new Position(1, 0.5) });
-        
+
         // New edges for the former left edge
         CollectionAssert.Contains(edges, new[] { new Position(0, 0), new Position(0, 0.5) });
         CollectionAssert.Contains(edges, new[] { new Position(0, 0.5), new Position(0, 1) });
-        
+
         // New edges for the former right edges
         CollectionAssert.Contains(edges, new[] { new Position(1, 0), new Position(1, 0.5) });
         CollectionAssert.Contains(edges, new[] { new Position(1, 0.5), new Position(1, 1) });
         CollectionAssert.Contains(edges, new[] { new Position(1, 1), new Position(1, 0.5) });
         CollectionAssert.Contains(edges, new[] { new Position(1, 0.5), new Position(1, 0) });
-        
+
         // Original edges should not exist anymore
         CollectionAssert.DoesNotContain(edges, new[] { new Position(0, 0), new Position(0, 1) });
         CollectionAssert.DoesNotContain(edges, new[] { new Position(1, 0), new Position(1, 1) });
