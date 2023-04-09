@@ -4,8 +4,6 @@ using HybridVisibilityGraphRouting.Geometry;
 using Mars.Common;
 using Mars.Common.Collections;
 using Mars.Common.Collections.Graph;
-using Mars.Components.Layers;
-using Mars.Interfaces.Data;
 using Mars.Interfaces.Environments;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;

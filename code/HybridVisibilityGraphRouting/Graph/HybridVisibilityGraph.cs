@@ -3,7 +3,9 @@ using Mars.Common.Collections;
 using Mars.Common.Collections.Graph;
 using Mars.Common.Collections.Graph.Algorithms;
 using Mars.Interfaces.Environments;
+using NetTopologySuite.Geometries;
 using ServiceStack;
+using Position = Mars.Interfaces.Environments.Position;
 
 namespace HybridVisibilityGraphRouting.Geometry;
 
@@ -86,9 +88,14 @@ public class HybridVisibilityGraph
         }).Key;
 
         // TODO If performance too bad: Pass multiple positions to not calculate certain things twice.
+        var allVertices = _obstacles.QueryAll().Map(o => o.Vertices).SelectMany(x => x).Distinct().ToList();
+        var vertex = new Vertex(source);
         var sourceVisibilityNeighborVertices =
-            VisibilityGraphGenerator.GetVisibilityNeighborsForPosition(_obstacles, source)[0];
-        var sourceVisibilityNeighborNodes = sourceVisibilityNeighborVertices
+            VisibilityGraphGenerator.GetVisibilityNeighborsForVertex(_obstacles, allVertices,
+                new Dictionary<Coordinate, List<Obstacle>>(),
+                vertex, 36, 10)[0];
+
+        sourceVisibilityNeighborVertices
             .Map(v => _vertexToNodes[v])
             .Map(nodeCandidates =>
             {
@@ -101,17 +108,12 @@ public class HybridVisibilityGraph
                             _nodeToAngleArea[nodeCandidate].Item2
                         ));
             })
-            .Map(node =>
+            .Each(node =>
             {
                 // Create the bi-directional edge between source node and this visibility node and collect its IDs.
-                return new[]
-                {
-                    _graph.AddEdge(sourceNode, node),
-                    _graph.AddEdge(node, sourceNode)
-                };
-            })
-            .SelectMany(x => x)
-            .ToList();
+                _graph.AddEdge(sourceNode, node);
+                _graph.AddEdge(node, sourceNode);
+            });
 
         return (sourceNode, true);
     }

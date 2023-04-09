@@ -67,6 +67,8 @@ public static class VisibilityGraphGenerator
         Dictionary<Position, HashSet<Position>> positionToObstacleNeighbors,
         Func<Coordinate, Coordinate, Obstacle, bool> isCoordinateHidden)
     {
+        // TODO Change the return value to Dictionary<Position, HashSet<Position>> and add its entries to the overall dict in the callers method. This will remove the current side effect.
+
         var coordinates = obstacle.Coordinates.CreateCopy().Distinct().ToList();
 
         if (coordinates.Count == 1)
@@ -233,16 +235,6 @@ public static class VisibilityGraphGenerator
         }
 
         return result;
-    }
-
-    public static List<List<Vertex>> GetVisibilityNeighborsForPosition(QuadTree<Obstacle> obstacles, Position position,
-        int neighborBinCount = 36, int neighborsPerBin = 10)
-    {
-        var allVertices = obstacles.QueryAll().Map(o => o.Vertices).SelectMany(x => x).Distinct().ToList();
-        var vertex = new Vertex(position);
-
-        return GetVisibilityNeighborsForVertex(obstacles, allVertices, new Dictionary<Coordinate, List<Obstacle>>(),
-            vertex, neighborBinCount, neighborsPerBin);
     }
 
     /// <summary>
