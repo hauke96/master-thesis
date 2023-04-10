@@ -121,6 +121,37 @@ After that, the main sections of this chapter show details of each algorithmic s
 				% NetworkRoutingPlayground->Jungfernstieg dataset with 7916 vertices: ~7.3s with and 67s without shadow areas -> speed up of factor ~9
 				% Hamburg inner city dataset with 67819 vertices: 382s with and ~31000s without shadow areas -> speed up of factor ~81
 				
+				\begin{figure}[h]
+					\begin{center}
+						\begin{tikzpicture}
+							\filldraw[lightgray] (3.25,0.6875) -- (3.25,2.3125) -- (6,3) -- (6,0) -- cycle;
+							\filldraw[draw=none,lightgray,path fading=east] (7,3.25) -- (6,3) -- (6,0) -- (7,-0.25) -- cycle;
+							\draw[gray] (6,3) -- (3.25,2.3125) -- (3.25,0.6875) -- (6,0);
+							\draw[gray,path fading=east] (6,3) -- (7,3.25);
+							\draw[gray,path fading=east] (6,0) -- (7,-0.25);
+							
+							\tikzLabeledDot{0,1.5}{v}{$v$}
+							
+							\tikzDot{2,1}{o10}
+							\tikzDot{3.25,1.5}{o11}
+							\tikzDot{2,2}{o12}
+							\node[above right = 0.15 and 0.15 of o10] {$o_1$};
+							
+							\tikzLabeledDot{4.25,1.75}{o20}{$v'$}
+							\tikzDot{3.5,0}{o21}
+							
+							\node at (5.25,1.5) {$S$};
+							
+							\draw (o10) -- (o11) -- (o12) -- (o10);
+							\draw (o20) -- node[right] {$o_2$} (o21);
+							
+							\draw[dotted] (v) -- (3.25,2.3125);
+							\draw[dotted] (v) -- (3.25,0.6875);
+						\end{tikzpicture}
+					\end{center}
+					\caption{Shadow area $S$ cast by obstacle $o_1$ for vertexy $v$. The vertex $v'$ of obstacle $o_2$ is not visible from $v$ since it lies inside the shadow area.}
+				\end{figure}
+				
 			\subsubsection{BinIndex data structure}
 			
 				The \texttt{BinIndex} class implements a simple index structure to store and access intervals.

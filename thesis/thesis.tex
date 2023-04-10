@@ -56,6 +56,9 @@
 % TODO remove this when done
 \usepackage[textwidth=2cm,colorinlistoftodos]{todonotes}
 \newcommand{\citationNeeded}{\todo[backgroundcolor=red,textcolor=white,linecolor=red]{citation needed}}
+\makeatletter
+\renewcommand{\todo}[2][]{\tikzexternaldisable\@todo[#1]{#2}\tikzexternalenable}
+\makeatother
 
 % Must be placed ehre before BibTeX and URL/ref related packages:
 \PassOptionsToPackage{obeyspaces}{url} % Allow spaces in URLs
@@ -87,6 +90,13 @@
 }
 
 %
+% Continuous figure and table numbering
+%
+\usepackage{chngcntr}
+\counterwithout{figure}{chapter}
+\counterwithout{table}{chapter}
+
+%
 % Commands
 %
 \newcommand{\bigo}[1]{\mathcal{O}(#1)}
@@ -109,6 +119,27 @@
 	{%
 		#2\index{#1}%
 	}%
+}
+
+%
+% TikZ
+%
+\usepackage{tikz}
+\usetikzlibrary{arrows}
+\usetikzlibrary{calc}
+\usetikzlibrary{external}
+\usetikzlibrary{fadings}
+\usetikzlibrary{positioning}
+
+\tikzexternalize[prefix=tikz-cache/]
+
+\newcommand{\tikzLabeledDot}[4][]{\node (#3) at (#2) [circle,fill,inner sep=0.5mm,label=#4,#1]{};}
+\newcommand{\tikzDot}[3][]{\tikzLabeledDot[#1]{#2}{#3}{};}
+
+\tikzset{
+	between/.style args={#1 and #2}{
+		at = ($(#1)!0.5!(#2)$)
+	}
 }
 
 %
