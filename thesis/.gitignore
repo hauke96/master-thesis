@@ -10,11 +10,10 @@
 *.synctex.gz
 *.bcf
 *.tdo
-
+*.dpth
+*.md5
 *.idx
 *.ilg
 *.ind
-
 *.bib.sav
-
 *.pdf
