@@ -43,7 +43,7 @@
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 
-\usepackage{xcolor}
+\usepackage[dvipsnames]{xcolor}
 \usepackage{graphicx}
 \usepackage{tabularx}
 \usepackage{enumerate}
@@ -125,7 +125,7 @@
 % TikZ
 %
 \usepackage{tikz}
-\usetikzlibrary{arrows}
+\usetikzlibrary{arrows.meta}
 \usetikzlibrary{calc}
 \usetikzlibrary{external}
 \usetikzlibrary{fadings}
@@ -136,6 +136,7 @@
 \newcommand{\tikzDot}[3][]{\node (#3) at #2 [circle,fill,inner sep=0.4mm,outer sep=0.25mm,#1]{};}
 
 \tikzset{every path/.append style={line width=0.5pt}}
+\tikzset{every path/.append style={>=stealth}}
 \tikzset{
 	between/.style args={#1 and #2}{
 		at = ($(#1)!0.5!(#2)$)
