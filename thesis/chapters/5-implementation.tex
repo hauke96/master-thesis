@@ -126,39 +126,63 @@ After that, the main sections of this chapter show details of each algorithmic s
 				\begin{figure}[h]
 					\begin{center}
 						\begin{tikzpicture}
-							\def\angle{14.036}
+							\def\angle{20}
+							\def\boundingVertexDistance{3}
 							
-							\tikzLabeledDot{(0,1.5)}{v}{$v$}
-							\coordinate (shadow-arc-top)	at ($(v) +( \angle:2.5)$);
-							\coordinate (shadow-arc-bottom)	at ($(v) +(-\angle:2.5)$);
+							\tikzDot[label=$v$]{(0,1.5)}{v}
+							\coordinate (shadow-arc-top)				at ($(v) +( \angle:\boundingVertexDistance)$);
+							\coordinate (shadow-arc-bottom)				at ($(v) +(-\angle:\boundingVertexDistance)$);
+							\coordinate (shadow-arc-top-end)			at ($(v) +( \angle:5.75)$);
+							\coordinate (shadow-arc-bottom-end)			at ($(v) +(-\angle:5.75)$);
+							\coordinate (shadow-arc-top-faded-end)		at ($(v) +( \angle:6.5)$);
+							\coordinate (shadow-arc-bottom-faded-end)	at ($(v) +(-\angle:6.5)$);
 							
 							% Gray area
-							\filldraw[lightgray] (shadow-arc-bottom) arc [start angle=-\angle, delta angle=28.072, radius=2.5] -- (6,3) -- (6,0) -- cycle;
-							\draw[gray] (6,0) -- (shadow-arc-bottom) arc [start angle=-\angle, delta angle=28.072, radius=2.5] -- (6,3);
+							\filldraw[lightgray] 
+								(shadow-arc-bottom) arc [start angle=-\angle, delta angle=2*\angle, radius=\boundingVertexDistance] --
+								(shadow-arc-top-end) --
+								(shadow-arc-bottom-end) --
+								cycle;
+							\draw[gray]
+								(shadow-arc-bottom-end) --
+								(shadow-arc-bottom) arc [start angle=-\angle, delta angle=2*\angle, radius=\boundingVertexDistance] --
+								(shadow-arc-top-end);
 							
 							\draw[dotted] (v) -- (shadow-arc-top);
 							\draw[dotted] (v) -- (shadow-arc-bottom);
 							
 							% Faded gray area
-							\filldraw[draw=none,lightgray,path fading=east] (7,3.25) -- (6,3) -- (6,0) -- (7,-0.25) -- cycle;
-							\draw[gray,path fading=east] (6,3) -- (7,3.25);
-							\draw[gray,path fading=east] (6,0) -- (7,-0.25);
+							\filldraw[draw=none,lightgray,path fading=east]
+								(shadow-arc-top-faded-end) --
+								(shadow-arc-top-end) --
+								(shadow-arc-bottom-end) --
+								(shadow-arc-bottom-faded-end) --
+								cycle;
+							\draw[gray,path fading=east] (shadow-arc-top-end) -- (shadow-arc-top-faded-end);
+							\draw[gray,path fading=east] (shadow-arc-bottom-end) -- (shadow-arc-bottom-faded-end);
 							
+							% Obstacle 1
 							\tikzDot[red]{(shadow-arc-top)}{o10}
-							\tikzDot{(3.25,1.5)}{o11}
-							\tikzDot[red]{($(v) +(-\angle:1.75)$)}{o12}
-							\node[above right = 0.2 and 0.5 of o12] {$o_1$};
+							\tikzDot{(3.5,2)}{o11}
+							\tikzDot[red]{($(v) +(-\angle:1.2)$)}{o12}
+							\node[above right = 0.5 and 1 of o12] {$o_1$};
 							
-							\tikzLabeledDot{(4.25,1.75)}{o20}{$v'$}
-							\tikzDot{(3.5,0)}{o21}
+							% Obstacle 2
+							\tikzDot[label=right:$v'$]{(3.5,1.35)}{o20}
+							\tikzDot{(3.5,-0.25)}{o21}
 							
-							\node[darkgray] at (5.25,1.5) {\huge$S$};
+							% Obstacle 3
+							\tikzDot[label=right:$v''$]{(2.1,1.1)}{o30}
+							\tikzDot{(2.1,-0.5)}{o31}
+							
+							\node[darkgray] at (4.65,1.5) {\huge$S$};
 							
 							\draw (o10) -- (o11) -- (o12) -- (o10);
 							\draw (o20) -- node[right] {$o_2$} (o21);
+							\draw (o30) -- node[left] {$o_3$} (o31);
 						\end{tikzpicture}
 					\end{center}
-					\caption{Shadow area $S$ cast by obstacle $o_1$ seen from vertex $v$. The vertex $v'$ of obstacle $o_2$ is not visible from $v$ since it lies inside the shadow area. The two red vertices of obstacle $o_1$ are the bounding vertices determining angle range and distance of $S$.}
+					\caption{Shadow area $S$ cast by obstacle $o_1$ seen from vertex $v$. The vertex $v'$ of obstacle $o_2$ is not visible from $v$ since it lies inside the shadow area. The two red vertices of obstacle $o_1$ are the bounding vertices determining angle range and distance of $S$. Not that $v''$ is not visible from $v$ as well even though it is not inside the shadow area.}
 					\label{fig:shadow-area}
 				\end{figure}
 				
