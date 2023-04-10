@@ -124,13 +124,21 @@ After that, the main sections of this chapter show details of each algorithmic s
 				\begin{figure}[h]
 					\begin{center}
 						\begin{tikzpicture}
-							\filldraw[lightgray] (3.25,0.6875) -- (3.25,2.3125) -- (6,3) -- (6,0) -- cycle;
+							\tikzLabeledDot{0,1.5}{v}{$v$}
+							\coordinate (shadow-arc-top)	at ($(v) +( 14.036:3.25)$);
+							\coordinate (shadow-arc-bottom)	at ($(v) +(-14.036:3.25)$);
+							
+							% Gray area
+							\filldraw[lightgray] (shadow-arc-bottom) arc [start angle=-14.036, delta angle=28.072, radius=3.25] -- (6,3) -- (6,0) -- cycle;
+							\draw[gray] (6,0) -- (shadow-arc-bottom) arc [start angle=-14.036, delta angle=28.072, radius=3.25] -- (6,3);
+							
+							\draw[dotted] (v) -- (shadow-arc-top);
+							\draw[dotted] (v) -- (shadow-arc-bottom);
+							
+							% Faded gray area
 							\filldraw[draw=none,lightgray,path fading=east] (7,3.25) -- (6,3) -- (6,0) -- (7,-0.25) -- cycle;
-							\draw[gray] (6,3) -- (3.25,2.3125) -- (3.25,0.6875) -- (6,0);
 							\draw[gray,path fading=east] (6,3) -- (7,3.25);
 							\draw[gray,path fading=east] (6,0) -- (7,-0.25);
-							
-							\tikzLabeledDot{0,1.5}{v}{$v$}
 							
 							\tikzDot{2,1}{o10}
 							\tikzDot{3.25,1.5}{o11}
@@ -140,16 +148,13 @@ After that, the main sections of this chapter show details of each algorithmic s
 							\tikzLabeledDot{4.25,1.75}{o20}{$v'$}
 							\tikzDot{3.5,0}{o21}
 							
-							\node at (5.25,1.5) {$S$};
+							\node[darkgray] at (5.25,1.5) {\huge$S$};
 							
 							\draw (o10) -- (o11) -- (o12) -- (o10);
 							\draw (o20) -- node[right] {$o_2$} (o21);
-							
-							\draw[dotted] (v) -- (3.25,2.3125);
-							\draw[dotted] (v) -- (3.25,0.6875);
 						\end{tikzpicture}
 					\end{center}
-					\caption{Shadow area $S$ cast by obstacle $o_1$ for vertexy $v$. The vertex $v'$ of obstacle $o_2$ is not visible from $v$ since it lies inside the shadow area.}
+					\caption{Shadow area $S$ cast by obstacle $o_1$ seen from vertex $v$. The vertex $v'$ of obstacle $o_2$ is not visible from $v$ since it lies inside the shadow area.}
 				\end{figure}
 				
 			\subsubsection{BinIndex data structure}
