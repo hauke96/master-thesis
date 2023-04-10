@@ -115,7 +115,9 @@ After that, the main sections of this chapter show details of each algorithmic s
 				Let $v$ be the currently processed vertex and think of it as a light bulb illuminating its surroundings.
 				An obstacle $o$ casts a shadow outwards and everything within this shadow is definitely not visible from $v$.
 				
-				In the implementation of this idea specified the furthest vertex of $o$ the distance until everything within the angle area of the shadow is definitely not visible from $v$.
+				The distance from which everything within the angle area of the shadow is definitely not visible from $v$, is determined by the two bounding vertices (marked in red in \cref{fig:shadow-area}).
+				These bounding vertices determine the angular range and the furthest of these two determines the minimum distance of the shadow area.
+				
 				Keeping track of these shadow areas for each vertex significantly improves performance.
 				\todo[inline]{conrete numbers?}\todo[inline]{Reference to BinIndex below or other used data structure (s. TODO below)}
 				% NetworkRoutingPlayground->Jungfernstieg dataset with 7916 vertices: ~7.3s with and 67s without shadow areas -> speed up of factor ~9
@@ -124,13 +126,15 @@ After that, the main sections of this chapter show details of each algorithmic s
 				\begin{figure}[h]
 					\begin{center}
 						\begin{tikzpicture}
-							\tikzLabeledDot{0,1.5}{v}{$v$}
-							\coordinate (shadow-arc-top)	at ($(v) +( 14.036:3.25)$);
-							\coordinate (shadow-arc-bottom)	at ($(v) +(-14.036:3.25)$);
+							\def\angle{14.036}
+							
+							\tikzLabeledDot{(0,1.5)}{v}{$v$}
+							\coordinate (shadow-arc-top)	at ($(v) +( \angle:2.5)$);
+							\coordinate (shadow-arc-bottom)	at ($(v) +(-\angle:2.5)$);
 							
 							% Gray area
-							\filldraw[lightgray] (shadow-arc-bottom) arc [start angle=-14.036, delta angle=28.072, radius=3.25] -- (6,3) -- (6,0) -- cycle;
-							\draw[gray] (6,0) -- (shadow-arc-bottom) arc [start angle=-14.036, delta angle=28.072, radius=3.25] -- (6,3);
+							\filldraw[lightgray] (shadow-arc-bottom) arc [start angle=-\angle, delta angle=28.072, radius=2.5] -- (6,3) -- (6,0) -- cycle;
+							\draw[gray] (6,0) -- (shadow-arc-bottom) arc [start angle=-\angle, delta angle=28.072, radius=2.5] -- (6,3);
 							
 							\draw[dotted] (v) -- (shadow-arc-top);
 							\draw[dotted] (v) -- (shadow-arc-bottom);
@@ -140,13 +144,13 @@ After that, the main sections of this chapter show details of each algorithmic s
 							\draw[gray,path fading=east] (6,3) -- (7,3.25);
 							\draw[gray,path fading=east] (6,0) -- (7,-0.25);
 							
-							\tikzDot{2,1}{o10}
-							\tikzDot{3.25,1.5}{o11}
-							\tikzDot{2,2}{o12}
-							\node[above right = 0.15 and 0.15 of o10] {$o_1$};
+							\tikzDot[red]{(shadow-arc-top)}{o10}
+							\tikzDot{(3.25,1.5)}{o11}
+							\tikzDot[red]{($(v) +(-\angle:1.75)$)}{o12}
+							\node[above right = 0.2 and 0.5 of o12] {$o_1$};
 							
-							\tikzLabeledDot{4.25,1.75}{o20}{$v'$}
-							\tikzDot{3.5,0}{o21}
+							\tikzLabeledDot{(4.25,1.75)}{o20}{$v'$}
+							\tikzDot{(3.5,0)}{o21}
 							
 							\node[darkgray] at (5.25,1.5) {\huge$S$};
 							
@@ -154,7 +158,8 @@ After that, the main sections of this chapter show details of each algorithmic s
 							\draw (o20) -- node[right] {$o_2$} (o21);
 						\end{tikzpicture}
 					\end{center}
-					\caption{Shadow area $S$ cast by obstacle $o_1$ seen from vertex $v$. The vertex $v'$ of obstacle $o_2$ is not visible from $v$ since it lies inside the shadow area.}
+					\caption{Shadow area $S$ cast by obstacle $o_1$ seen from vertex $v$. The vertex $v'$ of obstacle $o_2$ is not visible from $v$ since it lies inside the shadow area. The two red vertices of obstacle $o_1$ are the bounding vertices determining angle range and distance of $S$.}
+					\label{fig:shadow-area}
 				\end{figure}
 				
 			\subsubsection{BinIndex data structure}

@@ -133,7 +133,7 @@
 
 \tikzexternalize[prefix=tikz-cache/]
 
-\newcommand{\tikzLabeledDot}[4][]{\node (#3) at (#2) [circle,fill,inner sep=0.5mm,outer sep=0.25mm,label=#4,#1]{};}
+\newcommand{\tikzLabeledDot}[4][]{\node (#3) at #2 [circle,fill,inner sep=0.5mm,outer sep=0.25mm,label=#4,#1]{};}
 \newcommand{\tikzDot}[3][]{\tikzLabeledDot[#1]{#2}{#3}{};}
 
 \tikzset{
