@@ -86,7 +86,7 @@ public class ObstacleTest
     }
 
     [Test]
-    public void GetAngleAreaOfObstacle_ClosedObstacle()
+    public void GetAngleAreaOfObstacle_ClosedLineStringObstacle()
     {
         var obstacle = new Obstacle(new LineString(new[]
         {
@@ -124,6 +124,45 @@ public class ObstacleTest
         shadowArea = obstacle.GetShadowAreaOfObstacle(new Vertex(new Coordinate(1, 2)));
         Assert.AreEqual(135, shadowArea.From, 0.001);
         Assert.AreEqual(180, shadowArea.To, 0.001);
+        Assert.AreEqual(1.4142, shadowArea.Distance, 0.001);
+    }
+
+    [Test]
+    public void GetAngleAreaOfObstacle_PolygonObstacle()
+    {
+        var obstacle = new Obstacle(new Polygon(new LinearRing(new[]
+        {
+            new Coordinate(0, 0),
+            new Coordinate(1, 0),
+            new Coordinate(1, 1),
+            new Coordinate(0, 0)
+        })));
+
+        ShadowArea shadowArea;
+        
+        shadowArea = obstacle.GetShadowAreaOfObstacle(new Vertex(new Coordinate(0, 0)));
+        Assert.AreEqual(45, shadowArea.From, 0.001);
+        Assert.AreEqual(90, shadowArea.To, 0.001);
+        Assert.AreEqual(1.4142, shadowArea.Distance, 0.001);
+
+        shadowArea = obstacle.GetShadowAreaOfObstacle(new Vertex(new Coordinate(1, 0)));
+        Assert.AreEqual(270, shadowArea.From, 0.001);
+        Assert.AreEqual(0, shadowArea.To, 0.001);
+        Assert.AreEqual(1, shadowArea.Distance, 0.001);
+
+        shadowArea = obstacle.GetShadowAreaOfObstacle(new Vertex(new Coordinate(1, 1)));
+        Assert.AreEqual(180, shadowArea.From, 0.001);
+        Assert.AreEqual(225, shadowArea.To, 0.001);
+        Assert.AreEqual(1.4142, shadowArea.Distance, 0.001);
+
+        shadowArea = obstacle.GetShadowAreaOfObstacle(new Vertex(new Coordinate(2, 0)));
+        Assert.AreEqual(270, shadowArea.From, 0.001);
+        Assert.AreEqual(315, shadowArea.To, 0.001);
+        Assert.AreEqual(1.4142, shadowArea.Distance, 0.001);
+
+        shadowArea = obstacle.GetShadowAreaOfObstacle(new Vertex(new Coordinate(0, 0)));
+        Assert.AreEqual(45, shadowArea.From, 0.001);
+        Assert.AreEqual(90, shadowArea.To, 0.001);
         Assert.AreEqual(1.4142, shadowArea.Distance, 0.001);
     }
 

@@ -210,8 +210,11 @@ namespace HybridVisibilityGraphRouting.Geometry
             Coordinate coordinateFrom = null;
             Coordinate coordinateTo = null;
 
+            double distanceToFromCoordinate = double.PositiveInfinity;
+            double distanceToToCoordinate = double.PositiveInfinity;
+
             // We have to manually go through all coordinates to build the shadow area. This is because the shadow might
-            // exceed the 0° border and therefore simple min and max values cannot be used.
+            // exceed the 0° border and therefore simple min and max values on angles cannot be used.
             foreach (var coordinate in Coordinates)
             {
                 if (Equals(coordinate, vertex.Coordinate))
@@ -219,8 +222,7 @@ namespace HybridVisibilityGraphRouting.Geometry
                     continue;
                 }
 
-                var angleToNewCoordinate =
-                    Angle.GetBearing(vertex.Coordinate.X, vertex.Coordinate.Y, coordinate.X, coordinate.Y);
+                var angleToNewCoordinate = Angle.GetBearing(vertex.Coordinate, coordinate);
 
                 if (Double.IsNaN(previousAngle))
                 {
@@ -228,6 +230,7 @@ namespace HybridVisibilityGraphRouting.Geometry
                     previousAngle = angleToNewCoordinate;
                 }
 
+                // Ignore coordinates with an angle that is within the already found angle area.
                 if (!Angle.IsBetweenEqual(angleFrom, angleToNewCoordinate, angleTo))
                 {
                     // Make sure the two angles are in the right order
@@ -251,23 +254,49 @@ namespace HybridVisibilityGraphRouting.Geometry
                         if (mergedAngleFrom == newSegmentAngleFrom && mergedAngleFrom != angleFrom)
                         {
                             coordinateFrom = coordinate;
+                            distanceToFromCoordinate = vertex.Coordinate.Distance(coordinateFrom);
                         }
 
                         if (mergedAngleTo == newSegmentAngleTo && mergedAngleTo != angleTo)
                         {
                             coordinateTo = coordinate;
+                            distanceToToCoordinate = vertex.Coordinate.Distance(coordinateTo);
                         }
 
                         angleFrom = mergedAngleFrom;
                         angleTo = mergedAngleTo;
                     }
                 }
+                else if (Angle.AreEqual(angleFrom, angleToNewCoordinate))
+                {
+                    // If a coordinate was found at the edge of the current angle area, then check its distance. If the
+                    // distance to this coordinate is lower than the current distance, then store the coordinate. This
+                    // ensures the resulting shadow area to be as close as possible to the given vertex.
+                    var distance = vertex.Coordinate.Distance(coordinate);
+                    if (distance < distanceToFromCoordinate)
+                    {
+                        distanceToFromCoordinate = distance;
+                        coordinateFrom = coordinate;
+                    }
+                }
+                else if (Angle.AreEqual(angleTo, angleToNewCoordinate))
+                {
+                    // If a coordinate was found at the edge of the current angle area, then check its distance. If the
+                    // distance to this coordinate is lower than the current distance, then store the coordinate. This
+                    // ensures the resulting shadow area to be as close as possible to the given vertex.
+                    var distance = vertex.Coordinate.Distance(coordinate);
+                    if (distance < distanceToToCoordinate)
+                    {
+                        distanceToToCoordinate = distance;
+                        coordinateTo = coordinate;
+                    }
+                }
 
                 previousAngle = angleToNewCoordinate;
             }
 
-            var distanceToFromCoordinate = vertex.Coordinate.Distance(coordinateFrom);
-            var distanceToToCoordinate = vertex.Coordinate.Distance(coordinateTo);
+            distanceToFromCoordinate = vertex.Coordinate.Distance(coordinateFrom);
+            distanceToToCoordinate = vertex.Coordinate.Distance(coordinateTo);
             var maxDistance = Math.Max(distanceToFromCoordinate, distanceToToCoordinate);
 
             return new ShadowArea(angleFrom, angleTo, maxDistance);
