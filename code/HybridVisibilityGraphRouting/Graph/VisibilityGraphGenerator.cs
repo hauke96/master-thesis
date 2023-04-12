@@ -5,7 +5,6 @@ using HybridVisibilityGraphRouting.IO;
 using Mars.Common;
 using Mars.Common.Collections;
 using Mars.Common.Core.Collections;
-using Mars.Numerics;
 using NetTopologySuite.Geometries;
 using ServiceStack;
 using Position = Mars.Interfaces.Environments.Position;
@@ -259,7 +258,9 @@ public static class VisibilityGraphGenerator
          * significantly (i.e. by a factor of 20 for a ~250 obstacles large dataset).
          */
         var shadowAreas = new BinIndex<ShadowArea>(360);
-        var obstaclesCastingShadow = new HashSet<Obstacle>();
+
+        // Store the shadow areas for each obstacle, to no add them twice and to prevent unnecessary intersection checks.
+        var obstacleToShadowArea = new Dictionary<Obstacle, ShadowArea>();
 
         var degreePerBin = 360.0 / neighborBinCount;
 
@@ -309,18 +310,28 @@ public static class VisibilityGraphGenerator
                 }
 
                 var vertexIsOnThisObstacle = obstacle.Vertices.Contains(vertex);
-                var obstacleIsAlreadyCastingShadow = obstaclesCastingShadow.Contains(obstacle);
+
+                ShadowArea? shadowArea;
+                bool obstacleIsAlreadyCastingShadow;
+                if (obstacleToShadowArea.TryGetValue(obstacle, out var value))
+                {
+                    shadowArea = value;
+                    obstacleIsAlreadyCastingShadow = true;
+                }
+                else
+                {
+                    shadowArea = obstacle.GetShadowAreaOfObstacle(vertex);
+                    obstacleToShadowArea[obstacle] = shadowArea;
+                    obstacleIsAlreadyCastingShadow = false;
+                }
 
                 // Only consider obstacles not belonging to this vertex (could lead to false shadows) and also just
                 // consider new obstacles, since a shadow test with existing obstacles was already performed earlier.
                 if (!vertexIsOnThisObstacle && !obstacleIsAlreadyCastingShadow)
                 {
-                    var shadowArea = obstacle.GetShadowAreaOfObstacle(vertex);
-
                     if (shadowArea.IsValid)
                     {
                         shadowAreas.Add(shadowArea.From, shadowArea.To, shadowArea);
-                        obstaclesCastingShadow.Add(obstacle);
 
                         if (IsInShadowArea(shadowAreas, angle, distanceToOtherVertex))
                         {
@@ -329,6 +340,14 @@ public static class VisibilityGraphGenerator
                             return;
                         }
                     }
+                }
+
+                var otherVertexIsInObstacleAngleArea = Angle.IsBetweenEqual(shadowArea.From, angle, shadowArea.To);
+                if (!otherVertexIsInObstacleAngleArea)
+                {
+                    // If "otherVertex" is NOT within the angle area of the obstacle, then there's no chance they
+                    // intersect. Therefore, a subsequent intersection check can be skipped.
+                    return;
                 }
 
                 intersectsWithObstacle |=
