@@ -40,19 +40,45 @@ After that, the main sections of this chapter show details of each algorithmic s
 
 		% Maybe this whole subsection is part of a later discussion?
 		Due to the step by step development by turning the former continuous dijkstra preprocessing into a visibility graph generator, the implemented approach does not follow algorithms described in the literature.
-		The performance of this implementation, as shown in \todo[inline]{link to chapter}, is still enough for practical use, but a well designed and fast algorithm, like the one presented by Overmars and Welzl \cite{overmars-weizl-visibility-graph} or the one by Ghosh and Mount \cite{ghosh-output-sensitive-vgraph}, would clearly increase performance.
+		The performance of this implementation, as shown in \todo[inline]{link to evaluation chapter}, is still enough for practical use, but a well designed and fast algorithm, like the one presented by Overmars and Welzl \cite{overmars-weizl-visibility-graph} or the one by Ghosh and Mount \cite{ghosh-output-sensitive-vgraph}, would clearly increase performance.
 		However, this performance enhancement would only affect the generation of a visibility graph and not the performance of the routing queries.
 			
 	\subsection{Algorithm steps}
 		
 		As describes in \cref{sec:components}, the \texttt{HybridVisibilityGraphGenerator} class provides a factory method to create a \texttt{HybridVisibilityGraph} from a given collection of features.
-		This factory method consists of the following top level steps.
-		\todo[inline]{more?}
+		This factory method consists of the following top level steps, which are all described in \cref{sec:visibility-graph-creation} in more detail:
+		
+		\begin{enumerate}
+			\item Filter the given features for obstacles
+			\item Determine the visibility neighbors
+			\item Use this visibility relation to create a visibility graph
+			\item Merge the existing road network into this graph
+		\end{enumerate}
+	
+		The graph then allows to route between existing nodes.
+		So far, routing queries between arbitrary locations cannot be answered, since this graph based approach only allows routing between existing nodes.
+		To enable answering routing requests between arbitrary locations the resulting graph needs to be extended with edges from and to the given start and end locations.
+		These edges are themselves visibility edges and can therefore be created just like the visibility edges before. The process is further described in \cref{sec:answering-queries} and contains the following steps:
+		
+		\begin{enumerate}
+			\item Connect the source coordinate to the graph:
+			\begin{enumerate}
+				\item Add a node to the graph at the source coordinate
+				\item Determine the visibility edges to and from the source coordinate
+			\end{enumerate}
+			\item Repeat the steps for the destination coordinate
+			\item Route along the resulting graph
+			\item Restore the original graph by removing all added nodes and edges
+		\end{enumerate}
+	
+		The last step ensures that subsequent routing queries are answered based on the original graph and not on a previously altered version.
+		It also prevents an uncontrolled growth of the graph.
 		
 \section{Visibility graph creation}
+\label{sec:visibility-graph-creation}
 		
 	\subsection{Step 1: Obstacle filtering and feature preprocessing}
-	\label{subsubsec:step-1-preprocessing}
+	\label{subsec:step-1-preprocessing}
 			
 			First the features are filtered to get all relevant obstacle features, which are of arbitrary shape.
 			For performance reasons, multi-geometries, like \texttt{MultiPolygon} are split up into their separate geometries.
@@ -66,7 +92,7 @@ After that, the main sections of this chapter show details of each algorithmic s
 			After having all preprocessed obstacles, the main task of the visibility graph creation is performed, namely determining all $k$ many visible neighbors.
 			Determining all visible neighbors would also be possible, but this parameter is an easy way to increase performance with the downside of not having all possible edges in the final routing graph.
 			
-			\subsubsection{Overview and terminology}
+			\subsubsection{Terminology}
 			
 				Before describing the details on determining the $k$ nearest neighbors, there are some terms that need to be defined.
 				
@@ -76,7 +102,9 @@ After that, the main sections of this chapter show details of each algorithmic s
 					\item[\term*{shadow area}] This is an angle area that starts at a certain distance, for example \enquote{10° to 20° with a minimum distance of 30 meter}.
 				\end{description}
 			
-				\noindent The performed steps of determining the visible neighbors are the following, more details are given in the section below.
+			\subsubsection{Algorithm overview}
+			
+				The performed steps of determining the visible neighbors are the following, more details are given in the section below.
 				\begin{enumerate}
 					\item Get the obstacle neighbors for each vertex.
 					\item For each vertex $v$, determine its visibility neighbors as follows.
@@ -104,6 +132,7 @@ After that, the main sections of this chapter show details of each algorithmic s
 			
 			\subsubsection{Determining obstacle neighbors}
 				
+				% TODO Revise this and maybe add more details
 				Determining the obstacle neighbors is relatively simple and straight forward.
 				Each coordinate $c$ of an obstacle $o$ is processed by looking at the previous and next coordinates $c_p$ and $c_n$ on that obstacle, which are the potential neighbors.
 				If the line segment $(c, c_p)$, for $c_n$ respectively, does not intersect with any obstacle, it is considered an obstacle neighbor.
@@ -198,18 +227,48 @@ After that, the main sections of this chapter show details of each algorithmic s
 				It is thinkable that the logarithmic complexity is useful for huge datasets with millions of vertices, but that has not been tested.
 			
 			\subsubsection{Intersection checks}
+			\label{subsubsec:intersection-checks}
 			
 				All intersections are checked using own implementations no not rely on the generalized and therefore slower intersection checks of the NetTopologySuite.
 				In fact, there are two types of intersection checks implemented:
 				One check for intersection between two arbitrary line segments and one checks if a point lies within a triangle.
-				This triangle check is used for closed obstacles, which got triangulated during \hyperref[subsubsec:step-1-preprocessing]{preprocessing}.
+				This triangle check is used for closed obstacles, which got triangulated during \hyperref[subsec:step-1-preprocessing]{preprocessing}.
 				
 				The line segment intersection check uses a cross product based approach described in \emph{Introduction to algorithms} by Thomas H Cormen et al \cite[1018]{cormen-introduction-to-alg}.
+				Even though this method only works on single line segments, it is significantly faster than general purpose checks provided by the NetTopologySuite.
 				
 				Checking if a point lies inside a triangle is done by a barycentric collision check.
 				This method creates a barycentric coordinate system where each coordinate consists of three values $\lambda_1$, $\lambda_2$ and $\lambda_3$ for each corner vertex of the triangle.
 				Due to the properties of this coordinate system, a point $p$ is inside the triangle when the condition $0 < \lambda_i < 1$ hold for each of the three values.
 				Even though it sounds complex to create a whole coordinate system for a single collision check, this method only uses a few basic arithmetic operations and is therefore very fast.
+				
+			\subsubsection{Determining visibility neighbors}
+			
+				The \texttt{VisibilityGraphGenerator} class contains the above described method and structures to determine the visibility neighbors for every vertex.
+				Essential to this process is the \texttt{GetVisibilityNeighborsForVertex} method determining the visibility neighbors for a single vertex.
+				
+				This method uses the concept of shadow areas stored in a BinIndex structure with a bin count of 360, each for a 1° area.
+				Additionally, all obstacles casting a shadow are stored, simply to not add shadows twice.
+				
+				For the given vertex $v$, each other vertices vertex $v'$ is checked for visibility by executing the following steps:
+				
+				\begin{enumerate}
+					\item Check is $v'$ is in a shadow area and continue with the next vertex if this is the case.
+					\item Determine the extent between $v$ and $v'$ and query all obstacles within this region. For each obstacle $o$ the following steps are performed:
+					\begin{enumerate}
+						\item Get the cached shadow area for $o$ of create a new shadow area if there is no cached one.
+						\item If $v'$ is not part of $o$ and a new shadow area $S$ was just created, check if $v'$ is in $S$:
+						\begin{enumerate}
+							\item If so, mark $v'$ as hidden and skip all subsequent checks and obstacles.
+							\item If not, perform an intersection check (with the methods described above in \emph{\nameref{subsubsec:intersection-checks}}) if $v'$ is within the angle area of the obstacle.
+						\end{enumerate}
+					\end{enumerate}
+					\item If $v'$ has been marked as hidden, continue with the next vertex.
+					\item If $V'$ is visible, store it in a bin for its angle and continue with the next vertex
+				\end{enumerate}
+			
+				Having all visibility neighbors according to the amount and size of the bins, they are sorted in new bins based on the obstacle neighbors.
+				This procedure is described in the following section and its result is stored for the graph creation, which is described below in \cref{subsec:step-3-graph-creation}.
 			
 			\subsubsection{Sort resulting visibility neighbors into bins}
 			
@@ -271,3 +330,4 @@ After that, the main sections of this chapter show details of each algorithmic s
 	\subsection{Step 4: Merging a road network into the visibility graph}
 
 \section{Answering shortest path queries}
+\label{sec:answering-queries}
