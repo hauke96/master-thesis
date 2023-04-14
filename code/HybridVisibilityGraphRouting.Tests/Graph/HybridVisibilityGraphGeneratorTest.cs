@@ -160,6 +160,10 @@ public class HybridVisibilityGraphGeneratorTest
                 shortestPath
             );
         }
+        
+        // TODO Route on visibility edges
+        
+        // TODO Route from/to arbitrary location 
     }
 
     [Test]
