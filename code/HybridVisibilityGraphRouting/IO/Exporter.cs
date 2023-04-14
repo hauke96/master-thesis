@@ -72,7 +72,7 @@ public static class Exporter
         await File.WriteAllTextAsync(filename, geoJson);
     }
 
-    public static void WriteGraphToFile(SpatialGraph graph, string fileName = "./NetworkLayer.geojson")
+    public static void WriteGraphToFile(SpatialGraph graph, string fileName = "./graph.geojson")
     {
         var watch = Stopwatch.StartNew();
 
