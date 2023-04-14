@@ -21,14 +21,14 @@ public class IntersectTest
     [Test]
     public void IsOnSegment()
     {
-        Assert.True(Intersect.IsOnSegment(new Coordinate(0, 0), new Coordinate(2, 0), new Coordinate(1, 0)));
-        Assert.True(Intersect.IsOnSegment(new Coordinate(0, 0), new Coordinate(0, 2), new Coordinate(0, 1)));
-        Assert.True(Intersect.IsOnSegment(new Coordinate(0, 0), new Coordinate(2, 2), new Coordinate(1, 1)));
-        Assert.True(Intersect.IsOnSegment(new Coordinate(0, 0), new Coordinate(2, 2), new Coordinate(2, 2)));
-        Assert.True(Intersect.IsOnSegment(new Coordinate(0, 0), new Coordinate(2, 2), new Coordinate(0, 0)));
+        Assert.True(Intersect.IsOnSegment(new Coordinate(0, 0), new Coordinate(2, 0), new Coordinate(1, 0), 0));
+        Assert.True(Intersect.IsOnSegment(new Coordinate(0, 0), new Coordinate(0, 2), new Coordinate(0, 1), 0));
+        Assert.True(Intersect.IsOnSegment(new Coordinate(0, 0), new Coordinate(2, 2), new Coordinate(1, 1), 0));
+        Assert.True(Intersect.IsOnSegment(new Coordinate(0, 0), new Coordinate(2, 2), new Coordinate(2, 2), 0));
+        Assert.True(Intersect.IsOnSegment(new Coordinate(0, 0), new Coordinate(2, 2), new Coordinate(0, 0), 0));
 
-        Assert.False(Intersect.IsOnSegment(new Coordinate(0, 0), new Coordinate(1, 1), new Coordinate(2, 2)));
-        Assert.False(Intersect.IsOnSegment(new Coordinate(0, 0), new Coordinate(1, 1), new Coordinate(-1, -1)));
+        Assert.False(Intersect.IsOnSegment(new Coordinate(0, 0), new Coordinate(1, 1), new Coordinate(2, 2), 0));
+        Assert.False(Intersect.IsOnSegment(new Coordinate(0, 0), new Coordinate(1, 1), new Coordinate(-1, -1), 0));
     }
 
     [Test]

@@ -16,7 +16,20 @@ namespace HybridVisibilityGraphRouting.Geometry
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsOnSegment(Coordinate start, Coordinate end, Coordinate p)
         {
-            return Math.Min(start.X, end.X) <= p.X && p.X <= Math.Max(start.X, end.X) &&
+            return IsOnSegment(start, end, p, Orientation(start, end, p));
+        }
+
+        /// <summary>
+        /// Precondition: The segments p, q and r are collinear (-> Orientation(p, q, r) should return 0).
+        ///
+        /// <param name="orientation">The orientation of p to the other coordinates. Only a collinear p (with means
+        /// orientation == 0) can be on the line segment.</param>
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsOnSegment(Coordinate start, Coordinate end, Coordinate p, int orientation)
+        {
+            return orientation == 0 &&
+                   Math.Min(start.X, end.X) <= p.X && p.X <= Math.Max(start.X, end.X) &&
                    Math.Min(start.Y, end.Y) <= p.Y && p.Y <= Math.Max(start.Y, end.Y);
         }
 
@@ -65,10 +78,10 @@ namespace HybridVisibilityGraphRouting.Geometry
                 return false;
             }
 
-            return !(orientation1 == 0 && IsOnSegment(start2, end2, start1) ||
-                     orientation2 == 0 && IsOnSegment(start2, end2, end1) ||
-                     orientation3 == 0 && IsOnSegment(start1, end1, start2) ||
-                     orientation4 == 0 && IsOnSegment(start1, end1, end2));
+            return !(IsOnSegment(start2, end2, start1, orientation1) ||
+                     IsOnSegment(start2, end2, end1, orientation2) ||
+                     IsOnSegment(start1, end1, start2, orientation3) ||
+                     IsOnSegment(start1, end1, end2, orientation4));
         }
     }
 }
