@@ -229,7 +229,11 @@ public static class HybridVisibilityGraphGenerator
         var edgeIds = edgeIndex.Query(roadSegment.Geometry.EnvelopeInternal).Where(id =>
         {
             var edgePositions = graph.Edges[id].Geometry.Map(p => p.ToCoordinate());
-            return Intersect.DoIntersect(roadFeatureFrom, roadFeatureTo, edgePositions[0], edgePositions[1]);
+            return Intersect.DoIntersect(roadFeatureFrom, roadFeatureTo, edgePositions[0], edgePositions[1]) ||
+                   Intersect.IsOnSegment(roadFeatureFrom, roadFeatureTo, edgePositions[0]) ||
+                   Intersect.IsOnSegment(roadFeatureFrom, roadFeatureTo, edgePositions[1]) ||
+                   Intersect.IsOnSegment(edgePositions[0], edgePositions[1], roadFeatureFrom) ||
+                   Intersect.IsOnSegment(edgePositions[0], edgePositions[1], roadFeatureTo);
         }).ToList();
 
         if (edgeIds.Any())
@@ -258,7 +262,7 @@ public static class HybridVisibilityGraphGenerator
 
                 var intersectionCoordinate = roadEdgeLineSegment.Intersection(visibilityEdgeLineSegment);
 
-                // 1. Add intersection node
+                // 1. Add intersection node. A new node is only added when there's no other node at the position.
                 var intersectionNode = -1;
                 if (intersectionNodeMap.ContainsKey(intersectionCoordinate))
                 {
@@ -266,11 +270,22 @@ public static class HybridVisibilityGraphGenerator
                 }
                 else
                 {
-                    intersectionNode = graph.AddNode(new Dictionary<string, object>
+                    var existingNodes = graph.NodesMap.Values
+                        .Where(n => n.Position.DistanceInMTo(intersectionCoordinate.ToPosition()) < 0.0001).ToList();
+
+                    if (existingNodes.Any())
                     {
-                        { "x", intersectionCoordinate.X },
-                        { "y", intersectionCoordinate.Y },
-                    }).Key;
+                        intersectionNode = existingNodes.First().Key;
+                    }
+                    else
+                    {
+                        intersectionNode = graph.AddNode(new Dictionary<string, object>
+                        {
+                            { "x", intersectionCoordinate.X },
+                            { "y", intersectionCoordinate.Y },
+                        }).Key;
+                    }
+
                     intersectionNodeMap.Add(intersectionCoordinate, intersectionNode);
                 }
 
