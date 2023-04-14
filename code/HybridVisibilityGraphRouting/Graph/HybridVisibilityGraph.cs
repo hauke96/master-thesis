@@ -67,7 +67,22 @@ public class HybridVisibilityGraph
 
         Exporter.WriteGraphToFile(Graph, "graph-restored.geojson");
 
-        return routingResult.Map(e => e.Geometry).SelectMany(x => x).ToList();
+        return routingResult
+            .Aggregate(new List<Position>(), (list, edge) =>
+            {
+                var positions = edge.Geometry;
+
+                if (list.Any() && list.Last().Equals(positions[0]))
+                {
+                    // Skip the first position if the last position of the list equals the first position to avoid duplicates. 
+                    positions = positions.Skip(1).ToArray();
+                }
+
+                list.AddRange(positions);
+
+                return list;
+            })
+            .ToList();
     }
 
     private (int, bool) AddPositionToGraph(Position source)
