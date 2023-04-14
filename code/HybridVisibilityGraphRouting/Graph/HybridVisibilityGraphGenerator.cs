@@ -1,12 +1,10 @@
 using System.Diagnostics;
 using HybridVisibilityGraphRouting.Geometry;
-using HybridVisibilityGraphRouting.IO;
 using Mars.Common;
 using Mars.Common.Collections;
 using Mars.Common.Collections.Graph;
 using Mars.Common.Core.Collections;
 using Mars.Interfaces.Environments;
-using Mars.Interfaces.Layers;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using ServiceStack;
@@ -20,18 +18,19 @@ public static class HybridVisibilityGraphGenerator
     /// Generates the complete hybrid visibility graph based on the obstacles in the given feature collection. This
     /// method also merges the road and ways within the features correctly with the visibility edges.
     /// </summary>
-    public static HybridVisibilityGraph Generate(ICollection<IVectorFeature> vectorFeatures)
+    public static HybridVisibilityGraph Generate(IEnumerable<IFeature> features)
     {
         var watch = Stopwatch.StartNew();
 
-        var features = vectorFeatures.Map(f => f.VectorStructured);
+        // Prevent multiple enumerations
+        features = features.ToList();
+
         var obstacles = GetObstacles(features);
         var vertexNeighbors = DetermineVisibilityNeighbors(obstacles);
         var (hybridVisibilityGraph, spatialGraph) = AddVisibilityVerticesAndEdges(vertexNeighbors, obstacles);
 
         MergeRoadsIntoGraph(features, spatialGraph);
         AddAttributesToPOIs(features, spatialGraph);
-        Exporter.WriteGraphToFile(spatialGraph);
 
         Console.WriteLine(
             $"{nameof(HybridVisibilityGraphGenerator)}: Done after {watch.ElapsedMilliseconds}ms");

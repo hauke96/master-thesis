@@ -7,6 +7,7 @@ using NetworkRoutingPlayground.Model;
 using ServiceStack.Text;
 using HybridVisibilityGraphRouting;
 using HybridVisibilityGraphRouting.Geometry;
+using ServiceStack;
 
 namespace NetworkRoutingPlayground.Layer;
 
@@ -19,7 +20,7 @@ public class NetworkLayer : VectorLayer
     {
         base.InitLayer(layerInitData, registerAgentHandle, unregisterAgent);
 
-        Graph = HybridVisibilityGraphGenerator.Generate(Features);
+        Graph = HybridVisibilityGraphGenerator.Generate(Features.Map(f => f.VectorStructured));
 
         return true;
     }
