@@ -17,19 +17,19 @@ public class HybridVisibilityGraph
 
     public static readonly Func<EdgeData, NodeData, double> ShortestHeuristic = (edge, _) => edge.Length;
 
-    private readonly SpatialGraph _graph;
     private readonly QuadTree<Obstacle> _obstacles;
     private readonly Dictionary<Vertex, int[]> _vertexToNodes;
     private readonly Dictionary<int, (double, double)> _nodeToAngleArea;
 
-    public BoundingBox BoundingBox => _graph.BoundingBox;
+    public readonly SpatialGraph Graph;
+    public BoundingBox BoundingBox => Graph.BoundingBox;
 
     public HybridVisibilityGraph(SpatialGraph graph,
         QuadTree<Obstacle> obstacles,
         Dictionary<Vertex, int[]> vertexToNodes,
         Dictionary<int, (double, double)> nodeToAngleArea)
     {
-        _graph = graph;
+        Graph = graph;
         _obstacles = obstacles;
         _vertexToNodes = vertexToNodes;
         _nodeToAngleArea = nodeToAngleArea;
@@ -49,30 +49,30 @@ public class HybridVisibilityGraph
     {
         var (sourceNode, isSourceNodeTemporary) = AddPositionToGraph(source);
         var (targetNode, isTargetNodeTemporary) = AddPositionToGraph(target);
-        Exporter.WriteGraphToFile(_graph, "graph-with-source-target.geojson");
+        Exporter.WriteGraphToFile(Graph, "graph-with-source-target.geojson");
 
-        var routingResult = _graph.AStarAlgorithm(sourceNode, targetNode, heuristic);
+        var routingResult = Graph.AStarAlgorithm(sourceNode, targetNode, heuristic);
 
         // Remove temporarily created nodes (which automatically removes the edges too) to have a clean graph for
         // further routing requests.
         if (isSourceNodeTemporary)
         {
-            _graph.RemoveNode(_graph.NodesMap[sourceNode]);
+            Graph.RemoveNode(Graph.NodesMap[sourceNode]);
         }
 
         if (isTargetNodeTemporary)
         {
-            _graph.RemoveNode(_graph.NodesMap[targetNode]);
+            Graph.RemoveNode(Graph.NodesMap[targetNode]);
         }
 
-        Exporter.WriteGraphToFile(_graph, "graph-restored.geojson");
+        Exporter.WriteGraphToFile(Graph, "graph-restored.geojson");
 
         return routingResult.Map(e => e.Geometry).SelectMany(x => x).ToList();
     }
 
     private (int, bool) AddPositionToGraph(Position source)
     {
-        var sourceNodeCandidates = _graph
+        var sourceNodeCandidates = Graph
             .NodesMap
             .Values
             .Where(n => n.Position.DistanceInMTo(source) < 0.1)
@@ -82,7 +82,7 @@ public class HybridVisibilityGraph
             return (sourceNodeCandidates[0].Key, false);
         }
 
-        var sourceNode = _graph.AddNode(new Dictionary<string, object>
+        var sourceNode = Graph.AddNode(new Dictionary<string, object>
         {
             { "x", source.X },
             { "y", source.Y },
@@ -105,15 +105,15 @@ public class HybridVisibilityGraph
                     .First(nodeCandidate =>
                         Angle.IsBetweenEqual(
                             _nodeToAngleArea[nodeCandidate].Item1,
-                            Angle.GetBearing(_graph.NodesMap[nodeCandidate].Position, source),
+                            Angle.GetBearing(Graph.NodesMap[nodeCandidate].Position, source),
                             _nodeToAngleArea[nodeCandidate].Item2
                         ));
             })
             .Each(node =>
             {
                 // Create the bi-directional edge between source node and this visibility node and collect its IDs.
-                _graph.AddEdge(sourceNode, node);
-                _graph.AddEdge(node, sourceNode);
+                Graph.AddEdge(sourceNode, node);
+                Graph.AddEdge(node, sourceNode);
             });
 
         return (sourceNode, true);
@@ -121,7 +121,7 @@ public class HybridVisibilityGraph
 
     public List<NodeData> GetNodesByAttribute(string attributeName)
     {
-        return _graph.NodesMap
+        return Graph.NodesMap
             .Values
             .Where(node => node.Data.ContainsKey(attributeName))
             .ToList();
