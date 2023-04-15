@@ -269,6 +269,78 @@ After that, the main sections of this chapter show details of each algorithmic s
 				When an item is added, it is added to each bin intersecting with the range of the item.
 				Due to the list as underlying data structure for the bins, queries can be answered in $\bigo{m}$ time for $m$ many items in the index.
 				
+				\begin{figure}[h]
+					\begin{center}
+						\begin{tikzpicture}
+							\def\l{0.5}
+							\def\countX{9} % One more is added due to start at x=0
+							\def\countY{1} % One more is added due to start at x=0
+							
+							% TODO switch item A and B so that A is the large lower one.
+							\def\itemAStartX{1}
+							\def\itemALength{5}
+							
+							\def\itemBStartX{4}
+							\def\itemBLength{8}
+							
+							% Bins 1-5
+							\filldraw[pattern=north west lines,pattern color=red]
+								(\itemAStartX*\l,\countY+4*\l) -- 
+								++(\itemALength*\l,0) -- 
+								++(0,0.5*\l) -- node[above]{Item A: \itemAStartX\ - 5} 
+								++(-\itemALength*\l,0) -- 
+								++(0,-0.5*\l);
+							
+							% Bins 4-11(2)
+							\filldraw[pattern=crosshatch dots,pattern color=blue]
+								(\itemBStartX*\l,\countY+3*\l) -- 
+								++(\itemBLength*\l,0) -- 
+								++(0,0.5*\l) -- node[above right=0 and -0.5]{Item B: \itemBStartX\ - 11} 
+								++(-\itemBLength*\l,0) -- 
+								++(0,-0.5*\l);
+							
+							\draw[->] (0.5*\countX*\l,\countY+2.25*\l) -- +(0,-1.5*\l);
+							
+							% Draw pattern to bins
+							\fill[pattern=north west lines,pattern color=red] (\itemAStartX*\l,1*\l) -- ++(1*\l,0) -- ++(0,\l) -- ++(-1*\l,0) -- ++(0,-\l);
+							\fill[pattern=north west lines,pattern color=red] (\itemAStartX*\l+\l,0) -- ++(2*\l,0) -- ++(0,\l) -- ++(-2*\l,0) -- ++(0,-\l);
+							\fill[pattern=north west lines,pattern color=red] (\itemAStartX*\l+3*\l,1*\l) -- ++(2*\l,0) -- ++(0,\l) -- ++(-2*\l,0) -- ++(0,-\l);
+							
+							\fill[pattern=crosshatch dots,pattern color=blue] (\itemBStartX*\l,0) -- ++(6*\l,0) -- ++(0,\l) -- ++(-6*\l,0) -- ++(0,-\l);
+							\fill[pattern=crosshatch dots,pattern color=blue] (0,0) -- ++(2*\l,0) -- ++(0,\l) -- ++(-2*\l,0) -- ++(0,-\l);
+						
+							% TODO this looks like a fixed sized array. Change this to a linked list kind of representation.
+							% Draw outlines of bins
+							\foreach \y in {0,...,\countY}
+							{
+								\foreach \x in {0,...,\countX}
+								{
+									% Draw a "C" shape
+									\draw (\l*\x,\l*\y) -- +(\l,0);
+									\draw (\l*\x,\l*\y) -- +(0,\l);
+									\draw (\l*\x,\l*\y+\l) -- +(\l,0);
+								}
+								% Close the last "C"
+								\draw (\l*\countX+\l,\l*\y) -- +(0,\l);
+							}
+						
+							% Label
+							\foreach \x in {0,...,\countX}
+							{
+								\node at (\l*\x+0.5*\l,-0.5) {$\x$};
+							}
+							\foreach \y in {0,...,\countY}
+							{
+								\node at (-0.5,\l*\y+0.5*\l) {$\y$};
+							}
+						
+							\node at (0.5*\countX*\l,-1) {bins};
+							\node[align=center] at (-1.5,0.5*\countY*\l+0.5*\l) {index\\in bin};
+						\end{tikzpicture}
+					\end{center}
+					\caption{Bin index filled with two items A and B. Item A was added first, which puts item B's entries to the position 1 in the list of each bin with two items.}
+				\end{figure}
+				
 				The NetTopologySuite offers several indices specifically made for intervals, namely the \texttt{BinTree} and \texttt{SIRtree}, of which the latter one is static and does not allow insertions after the first query was made.
 				Even though these two structures are tree based and theoretically offer a logarithmic query complexity compared to the linear complexity of the \texttt{BinIndex}, the simple and list based \texttt{BinIndex} is significantly faster even for larger datasets with tens of thousands of vertices.
 				It is thinkable that the logarithmic complexity is useful for huge datasets with millions of vertices, but that has not been tested.
