@@ -135,7 +135,54 @@ After that, the main sections of this chapter show details of each algorithmic s
 				% TODO Revise this and maybe add more details
 				Determining the obstacle neighbors is relatively simple and straight forward.
 				Each coordinate $c$ of an obstacle $o$ is processed by looking at the previous and next coordinates $c_p$ and $c_n$ on that obstacle, which are the potential neighbors.
-				If the line segment $(c, c_p)$, for $c_n$ respectively, does not intersect with any obstacle, it is considered an obstacle neighbor.
+				If the line segment $(c, c_p)$ to the previous coordinate, for $c_n$ respectively, does not intersect with any obstacle, it is considered an obstacle neighbor.
+				
+				\begin{figure}[h]
+					\begin{minipage}[t]{0.45\textwidth}
+						\begin{center}
+							\begin{tikzpicture}
+								\tikzDot[label={[text=gray]below:$v_0$},gray]{(0,0)}{v0}
+								\tikzDot[label=above:$v_1$]{(1,1.5)}{v1}
+								\tikzDot[label=below:$v_2$]{(2,0)}{v2}
+								\tikzDot[label=above:$v_3$]{(3,1.5)}{v3}
+								\tikzDot[label={[text=gray]below:$v_4$},gray]{(4,0)}{v4}
+								
+								\draw[gray] (v0) -- (v1);
+								\draw[->] (v2) -- (v1);
+								\draw[->] (v2) -- (v3);
+								\draw[gray] (v3) -- (v4);
+							\end{tikzpicture}
+						\end{center}
+						\caption{The black lines show the obstacle neighbors of $v_2$, which are $v_1$ and $v_3$.}
+					\end{minipage}
+					\hfill
+					\begin{minipage}[t]{0.45\textwidth}
+						\begin{center}
+							\begin{tikzpicture}
+								\def\d{1.5}
+								
+								\tikzDot[gray]{(0,0)}{c00}
+								\tikzDot[label=above:$v_0$]{(0,\d)}{v0}
+								\tikzDot[label=above:$v_1$]{(\d,\d)}{v1}
+								\tikzDot[label=above:$v_2$]{(2*\d,\d)}{v2}
+								\tikzDot[label={[text=gray]below:$v_3$},gray]{(\d,0)}{v3}
+								\tikzDot[gray]{(2*\d,0)}{c20}
+								
+								\node at (0.5*\d,0.5*\d) {$o_1$};
+								\node at (0.5*\d,0.5*\d) {$o_2$};
+								
+								\draw[gray] (c00) -- (v0);
+								\draw[gray] (c00) -- (v3);
+								\draw[->] (v1) -- (v0);
+								\draw[->] (v1) -- (v2);
+								\draw[->,gray] (v1) -- (v3);
+								\draw[gray] (c20) -- (v3);
+								\draw[gray] (c20) -- (v2);
+							\end{tikzpicture}
+						\end{center}
+						\caption{The black lines show the obstacle neighbors of $v_1$, which are $v_0$ and $v_2$. The vertex $v_3$ is a neighbor as well, but hidden due to the touching obstacles $o_1$ and $o_2$.}
+					\end{minipage}
+				\end{figure}
 				
 			\subsubsection{Shadow areas}
 			
