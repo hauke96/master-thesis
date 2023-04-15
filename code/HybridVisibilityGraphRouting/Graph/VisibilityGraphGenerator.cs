@@ -30,7 +30,8 @@ public static class VisibilityGraphGenerator
                 o.IsClosed &&
                 (
                     // Either we have a different obstacle than "obstacleOfCoordinate" which also has the line segment
-                    // between the two coordinates ...
+                    // between the two coordinates, which means "o" and "obstacleOfCoordinate" touch each other on
+                    // this segment, ...
                     !obstacleOfCoordinate.Equals(o) &&
                     o.HasLineSegment(coordinate, otherCoordinate) ||
                     // ... or we have something else (same obstacle of the above check returned false), so we check for
