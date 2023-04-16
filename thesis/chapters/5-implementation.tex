@@ -138,8 +138,8 @@ After that, the main sections of this chapter show details of each algorithmic s
 				If the line segment $(c, c_p)$ to the previous coordinate, for $c_n$ respectively, does not intersect with any obstacle, it is considered an obstacle neighbor.
 				
 				\begin{figure}[h]
-					\begin{minipage}[t]{0.45\textwidth}
-						\begin{center}
+					\begin{minipage}[t]{0.475\textwidth}
+						\begin{figcenter}
 							\begin{tikzpicture}
 								\tikzDot[label={[text=gray]below:$v_0$},gray]{(0,0)}{v0}
 								\tikzDot[label=above:$v_1$]{(1,1.5)}{v1}
@@ -152,12 +152,12 @@ After that, the main sections of this chapter show details of each algorithmic s
 								\draw[->] (v2) -- (v3);
 								\draw[gray] (v3) -- (v4);
 							\end{tikzpicture}
-						\end{center}
+						\end{figcenter}
 						\caption{The black lines show the obstacle neighbors of $v_2$, which are $v_1$ and $v_3$.}
 					\end{minipage}
 					\hfill
-					\begin{minipage}[t]{0.45\textwidth}
-						\begin{center}
+					\begin{minipage}[t]{0.475\textwidth}
+						\begin{figcenter}
 							\begin{tikzpicture}
 								\def\d{1.5}
 								
@@ -169,7 +169,7 @@ After that, the main sections of this chapter show details of each algorithmic s
 								\tikzDot[gray]{(2*\d,0)}{c20}
 								
 								\node at (0.5*\d,0.5*\d) {$o_1$};
-								\node at (0.5*\d,0.5*\d) {$o_2$};
+								\node at (1.5*\d,0.5*\d) {$o_2$};
 								
 								\draw[gray] (c00) -- (v0);
 								\draw[gray] (c00) -- (v3);
@@ -179,7 +179,7 @@ After that, the main sections of this chapter show details of each algorithmic s
 								\draw[gray] (c20) -- (v3);
 								\draw[gray] (c20) -- (v2);
 							\end{tikzpicture}
-						\end{center}
+						\end{figcenter}
 						\caption{The black lines show the obstacle neighbors of $v_1$, which are $v_0$ and $v_2$. The vertex $v_3$ is a neighbor as well, but hidden due to the touching obstacles $o_1$ and $o_2$.}
 					\end{minipage}
 				\end{figure}
@@ -200,7 +200,7 @@ After that, the main sections of this chapter show details of each algorithmic s
 				% Hamburg inner city dataset with 67819 vertices: 382s with and ~31000s without shadow areas -> speed up of factor ~81
 				
 				\begin{figure}[h]
-					\begin{center}
+					\begin{figcenter}
 						\begin{tikzpicture}
 							\def\angle{20}
 							\def\boundingVertexDistance{3}
@@ -257,8 +257,8 @@ After that, the main sections of this chapter show details of each algorithmic s
 							\draw (o20) -- node[right] {$o_2$} (o21);
 							\draw (o30) -- node[left] {$o_3$} (o31);
 						\end{tikzpicture}
-					\end{center}
-					\caption{Shadow area $S$ cast by obstacle $o_1$ seen from vertex $v$. The vertex $v'$ of obstacle $o_2$ is not visible from $v$ since it lies inside the shadow area. The two red vertices of obstacle $o_1$ are the bounding vertices determining angle range and distance of $S$. Not that $v''$ is not visible from $v$ as well even though it is not inside the shadow area.}
+					\end{figcenter}
+					\caption{Shadow area $S$ cast by obstacle $o_1$ seen from vertex $v$. The vertex $v'$ of obstacle $o_2$ is not visible from $v$ since it lies inside the shadow area. The two red vertices of obstacle $o_1$ are the bounding vertices determining angle range and distance of $S$. Note that $v''$ is not visible from $v$ even though it is not inside the shadow area.}
 					\label{fig:shadow-area}
 				\end{figure}
 				
@@ -267,78 +267,68 @@ After that, the main sections of this chapter show details of each algorithmic s
 				The \texttt{BinIndex} class implements a simple index structure to store and access intervals.
 				It contains $n$ many bins of which each covers a certain range and consists of a linked list.
 				When an item is added, it is added to each bin intersecting with the range of the item.
-				Due to the list as underlying data structure for the bins, queries can be answered in $\bigo{m}$ time for $m$ many items in the index.
+				Due to the linked list as the underlying data structure for the bins, queries can be answered in $\bigo{m}$ time for $m$ many items in the index.
+				\Cref{fig:bin-index} illustrates this data structure with a simple example.
 				
 				\begin{figure}[h]
-					\begin{center}
+					\begin{figcenter}
 						\begin{tikzpicture}
 							\def\l{0.5}
 							\def\countX{9} % One more is added due to start at x=0
 							\def\countY{1} % One more is added due to start at x=0
 							
-							% TODO switch item A and B so that A is the large lower one.
-							\def\itemAStartX{1}
-							\def\itemALength{5}
+							\def\itemBStartX{1.5}
+							\def\itemBIndexStart{1}
+							\def\itemBLength{4.2}
 							
-							\def\itemBStartX{4}
-							\def\itemBLength{8}
+							\def\itemAStartX{4}
+							\def\itemAIndexStart{4}
+							\def\itemALength{7.8}
 							
-							% Bins 1-5
-							\filldraw[pattern=north west lines,pattern color=red]
-								(\itemAStartX*\l,\countY+4*\l) -- 
-								++(\itemALength*\l,0) -- 
-								++(0,0.5*\l) -- node[above]{Item A: \itemAStartX\ - 5} 
-								++(-\itemALength*\l,0) -- 
-								++(0,-0.5*\l);
+							% Item A: Bins 1-5
+							\filldraw[pattern=north west lines,pattern color=red] (\itemBStartX*\l,\countY+4*\l) rectangle node[above right=0.125 and -0.5]{Item B: \itemBStartX\ - 5.7} ++(\itemBLength*\l,0.5*\l);
 							
-							% Bins 4-11(2)
-							\filldraw[pattern=crosshatch dots,pattern color=blue]
-								(\itemBStartX*\l,\countY+3*\l) -- 
-								++(\itemBLength*\l,0) -- 
-								++(0,0.5*\l) -- node[above right=0 and -0.5]{Item B: \itemBStartX\ - 11} 
-								++(-\itemBLength*\l,0) -- 
-								++(0,-0.5*\l);
+							% Item B: Bins 4-11(2)
+							\filldraw[pattern=crosshatch dots,pattern color=blue] (\itemAStartX*\l,\countY+3*\l) rectangle node[above right=0.125 and -0.5]{Item A: \itemAStartX\ - 10.8} ++(\itemALength*\l,0.5*\l);
 							
-							\draw[->] (0.5*\countX*\l,\countY+2.25*\l) -- +(0,-1.5*\l);
+							\draw[->] (0.5*\countX*\l,\countY+2.25*\l) -- +(0,-1*\l);
 							
 							% Draw pattern to bins
-							\fill[pattern=north west lines,pattern color=red] (\itemAStartX*\l,1*\l) -- ++(1*\l,0) -- ++(0,\l) -- ++(-1*\l,0) -- ++(0,-\l);
-							\fill[pattern=north west lines,pattern color=red] (\itemAStartX*\l+\l,0) -- ++(2*\l,0) -- ++(0,\l) -- ++(-2*\l,0) -- ++(0,-\l);
-							\fill[pattern=north west lines,pattern color=red] (\itemAStartX*\l+3*\l,1*\l) -- ++(2*\l,0) -- ++(0,\l) -- ++(-2*\l,0) -- ++(0,-\l);
+							\fill[pattern=north west lines,pattern color=red] (\itemBIndexStart*\l,1.5*\l) rectangle ++(\l,\l);
+							\fill[pattern=north west lines,pattern color=red] (\itemBIndexStart*\l+1*\l,0) rectangle ++(2*\l,\l);
+							\fill[pattern=north west lines,pattern color=red] (\itemBIndexStart*\l+3*\l,1.5*\l) rectangle ++(\l,\l);
+							\fill[pattern=north west lines,pattern color=red] (\itemBIndexStart*\l+4*\l,1.5*\l) rectangle ++(\l,\l);
 							
-							\fill[pattern=crosshatch dots,pattern color=blue] (\itemBStartX*\l,0) -- ++(6*\l,0) -- ++(0,\l) -- ++(-6*\l,0) -- ++(0,-\l);
-							\fill[pattern=crosshatch dots,pattern color=blue] (0,0) -- ++(2*\l,0) -- ++(0,\l) -- ++(-2*\l,0) -- ++(0,-\l);
+							\fill[pattern=crosshatch dots,pattern color=blue] (\itemAIndexStart*\l,0) rectangle ++(6*\l,\l);
+							\fill[pattern=crosshatch dots,pattern color=blue] (0,0) rectangle ++(2*\l,\l);
 						
-							% TODO this looks like a fixed sized array. Change this to a linked list kind of representation.
 							% Draw outlines of bins
-							\foreach \y in {0,...,\countY}
+							\foreach \x in {0,...,\countX}
 							{
-								\foreach \x in {0,...,\countX}
-								{
-									% Draw a "C" shape
-									\draw (\l*\x,\l*\y) -- +(\l,0);
-									\draw (\l*\x,\l*\y) -- +(0,\l);
-									\draw (\l*\x,\l*\y+\l) -- +(\l,0);
-								}
-								% Close the last "C"
-								\draw (\l*\countX+\l,\l*\y) -- +(0,\l);
+								\draw (\l*\x,0) rectangle ++(\l,\l);
 							}
+							
+							\draw (\itemBIndexStart*\l,1.5*\l) rectangle ++(\l,\l);
+							\draw[->] (\itemBIndexStart*\l+0.5*\l,\l) -- ++(0,0.5*\l);
+							
+							\draw (\itemBIndexStart*\l+3*\l,1.5*\l) rectangle ++(\l,\l);
+							\draw[->] (\itemBIndexStart*\l+3.5*\l,\l) -- ++(0,0.5*\l);
+							
+							\draw (\itemBIndexStart*\l+4*\l,1.5*\l) rectangle ++(\l,\l);
+							\draw[->] (\itemBIndexStart*\l+4.5*\l,\l) -- ++(0,0.5*\l);
 						
 							% Label
 							\foreach \x in {0,...,\countX}
 							{
-								\node at (\l*\x+0.5*\l,-0.5) {$\x$};
-							}
-							\foreach \y in {0,...,\countY}
-							{
-								\node at (-0.5,\l*\y+0.5*\l) {$\y$};
+								\node at (\l*\x+0.5*\l,-0.35) {$\x$};
 							}
 						
-							\node at (0.5*\countX*\l,-1) {bins};
-							\node[align=center] at (-1.5,0.5*\countY*\l+0.5*\l) {index\\in bin};
+							\node at (0.5*\countX*\l,-0.875) {bins};
+							\node[align=right] at (-1.25,0.5*\countY*\l+\l) {Linked list\\of bins};
 						\end{tikzpicture}
-					\end{center}
-					\caption{Bin index filled with two items A and B. Item A was added first, which puts item B's entries to the position 1 in the list of each bin with two items.}
+					\end{figcenter}
+					\caption{Bin index filled with two items A and B. Since item A was added first, B's entries in, which fall into a bin where en entry for item A already exists, are moved to a next item in the linked list of the bin. Each bin covers a range, which means non integer value are rounded down (for from-values) or up (for to-values).}
+					\label{fig:bin-index}
 				\end{figure}
 				
 				The NetTopologySuite offers several indices specifically made for intervals, namely the \texttt{BinTree} and \texttt{SIRtree}, of which the latter one is static and does not allow insertions after the first query was made.
@@ -391,8 +381,82 @@ After that, the main sections of this chapter show details of each algorithmic s
 			
 			\subsubsection{Sort resulting visibility neighbors into bins}
 			
-				A naive approach to create a visibility graph would be to create edges between vertices that see each other.
-				This would make routing through line based obstacles possible, which is of course not correct.
+				A naive approach to create a visibility graph would be to create edges between vertices that are visible to each other.
+				This would make routing through line based obstacles possible as \cref{fig:routing-through-line-obstacle} illustrates.
+				Such routing behavior is of course not correct.
+				
+				\begin{figure}[h]
+					\begin{figcenter}
+						\begin{tikzpicture}
+							\tikzDot{(2,0)}{vo0};
+							\tikzDot[label={[label distance=-1mm]above right:$v$}]{(2,1)}{vo1};
+							\tikzDot{(2,2)}{vo2};
+							
+							\draw (vo0) -- (vo1);
+							\draw (vo1) -- (vo2);
+							
+							\tikzDot[label=left:$v_a$,outer sep=0.5mm]{(0.5,1.3)}{v1};
+							\tikzDot[label=right:$v_b$,outer sep=0.5mm]{(3.5,1)}{v2};
+							
+							\draw[dotted] (v1) -- (vo1);
+							\draw[dotted] (vo1) -- (v2);
+							
+							\draw[dotted] (v1) -- (vo0);
+							\draw[dotted] (v1) -- (vo2);
+							\draw[dotted] (v2) -- (vo0);
+							\draw[dotted] (v2) -- (vo2);
+						\end{tikzpicture}
+						\hspace{2cm}
+						\begin{tikzpicture}
+							\def\r{0.85mm}
+							\def\rMargin{1.1mm} % = r + 0.25mm
+							\def\gap{0.1875mm}
+							
+							\tikzDot{(2,0)}{vo0};
+							\node[label={[label distance=-1.25mm]above right:$v$}] (vo1) at (2,1) {};
+							\coordinate (vo11) at ($(vo1)+(180:\rMargin)$);
+							\coordinate (vo12) at ($(vo1)+(0:\rMargin)$);
+							\tikzDot{(2,2)}{vo2};
+							
+							\filldraw (vo1)++(-\gap,0)++(90:\r) arc (90:270:\r);
+							\filldraw (vo1)++( \gap,0)++(90:\r) arc (90:-90:\r);
+							
+%							\draw (vo1)++(270:\rMargin) -- (vo0);
+							\draw ($(vo1)+(270:\r)+(-0.275mm,0)$) -- ($(vo0)+(-0.275mm,2mm)$) -- (vo0.north);
+							\draw ($(vo1)+(270:\r)+( 0.275mm,0)$) -- ($(vo0)+( 0.275mm,2mm)$) -- (vo0.north);
+%							\draw (vo1)++(90:\rMargin) -- (vo2);
+							\draw ($(vo1)+(90:\r)+(-0.275mm,0)$) -- ($(vo2)+(-0.275mm,-2mm)$) -- (vo2.south);
+							\draw ($(vo1)+(90:\r)+( 0.275mm,0)$) -- ($(vo2)+( 0.275mm,-2mm)$) -- (vo2.south);
+							
+							\tikzDot[label=left:$v_a$,outer sep=0.5mm]{(0.5,1.3)}{v1};
+							\tikzDot[label=right:$v_b$,outer sep=0.5mm]{(3.5,1)}{v2};
+							
+							\draw[dotted] (v1) -- (vo11);
+							\draw[dotted] (vo12) -- (v2);
+							
+							\draw[dotted] (v1) -- (vo0);
+							\draw[dotted] (v1) -- (vo2);
+							\draw[dotted] (v2) -- (vo0);
+							\draw[dotted] (v2) -- (vo2);
+						\end{tikzpicture}
+					\end{figcenter}
+					\caption{
+						Both illustrations show a vertical obstacle with vertex $v$ in the middle.
+						The dotted edges are visibility edges added during graph generation.
+						\\
+						Left:
+						Visibility graph with naive connections.
+						The two dotted visibility edges $(v_a, v)$ and $(v, v_b)$ allow a routing through the obstacle from $v_a$ vis $v$ to $v_b$.
+						\\
+						Right:
+						The visibility graph with connection respecting the obstacles. For vertex $v$ two nodes are created.
+						All gabs are for illustrational purposes only, the two nodes for $v$ and the vertical edges have the exact locations.
+						One of $v$'s nodes is connected to $v_a$, the other one to $v_b$.
+						This ensures that the shortest path from $v_a$ to $v_b$ does not lead through $v$ anymore.
+					}
+					\label{fig:routing-through-line-obstacle}
+				\end{figure}
+				
 				It must therefore be known which visibility relations are between which obstacle neighbors.
 				Knowing this enables the graph generation to distinguish between all the edges and results in correct routing results.
 				More on this in the \cref{subsec:step-3-graph-creation} below.
@@ -401,7 +465,7 @@ After that, the main sections of this chapter show details of each algorithmic s
 				All visibility neighbors are sorted into these bins, which is a simple and easy process.
 				
 				\begin{figure}[h]
-					\begin{center}
+					\begin{figcenter}
 						\begin{tikzpicture}
 							\def\d{0.03}
 							
@@ -439,8 +503,9 @@ After that, the main sections of this chapter show details of each algorithmic s
 %							\draw[Green,dashdotted,->] ($(v)+(-\d,0.075)$) -- ($(n3)+(-\d,-0.075)$);
 %							\draw[Green,dashdotted,->] ($(v)+(-0.075,\d)$) -- ($(n1)+(0.075,\d)$);
 						\end{tikzpicture}
-					\end{center}
+					\end{figcenter}
 					\caption{All visible neighbors of $v$ colored by their resulting bin. The neighbors $n_1$, $n_2$ and $n_3$ are also connected with two edges each, one for each adjacent bin.}
+					\label{fig:visibility-bin-sorting}
 				\end{figure}
 			
 	\subsection{Step 3: Graph creation with visibility edges}

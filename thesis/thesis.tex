@@ -60,13 +60,14 @@
 \renewcommand{\todo}[2][]{\tikzexternaldisable\@todo[#1]{#2}\tikzexternalenable}
 \makeatother
 
-% Must be placed ehre before BibTeX and URL/ref related packages:
-\PassOptionsToPackage{obeyspaces}{url} % Allow spaces in URLs
-\PassOptionsToPackage{spaces}{url}     % Enable line breaks in URLs
-
 %
 % BibTex, Index, etc.
 %
+
+% Must be placed here before BibTeX and URL/ref related packages:
+\PassOptionsToPackage{obeyspaces}{url} % Allow spaces in URLs
+\PassOptionsToPackage{spaces}{url}     % Enable line breaks in URLs
+
 \usepackage[toc, page]{appendix}
 \usepackage[
 	backend=bibtex8,
@@ -99,7 +100,10 @@
 %
 % Commands
 %
+
 \newcommand{\bigo}[1]{\mathcal{O}(#1)}
+
+% Command to add terms to the glossary but with some formatting and aliases if wanted.
 \newcommand{\term}[2][]
 {%
 	\ifthenelse{\isempty{#1}}%
@@ -119,6 +123,20 @@
 	{%
 		#2\index{#1}%
 	}%
+}
+
+% Environment to center content of a figure without adding extra spacing before the caption
+\newenvironment{figcenter}
+{%
+	\parskip=0pt%
+	\par%
+	\nopagebreak%
+	\centering%
+}%
+{%
+	\par%
+	\noindent%
+	\ignorespacesafterend%
 }
 
 %
