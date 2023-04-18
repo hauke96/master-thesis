@@ -36,8 +36,8 @@ public class HybridVisibilityGraphGeneratorTest
              *  x - - - - x - - - x (road)
              *            '
              *   x---x    '
-             *   |   |    ' (road)
-             *   x---x    '
+             *       |    ' (road)
+             *       x    '
              * (obst.)    x
              */
             featureObstacle1 = new Feature(
@@ -161,9 +161,73 @@ public class HybridVisibilityGraphGeneratorTest
             );
         }
 
-        // TODO Route on visibility edges
+        [Test]
+        public void RouteOnVisibilityEdges()
+        {
+            var shortestPath = hybridVisibilityGraph.ShortestPath(new Position(0.5, 2), new Position(1, 0));
 
-        // TODO Route from/to arbitrary location 
+            CollectionAssert.AreEqual(
+                new List<Position>
+                {
+                    new(0.5, 2),
+                    new(0.75, 1.5),
+                    new(1, 1),
+                    new(1, 0)
+                },
+                shortestPath
+            );
+        }
+
+        [Test]
+        public void RouteOnRoadEndVisibilityEdges()
+        {
+            var shortestPath = hybridVisibilityGraph.ShortestPath(new Position(-1, 1.5), new Position(1, 0));
+
+            CollectionAssert.AreEqual(
+                new List<Position>
+                {
+                    new(-1, 1.5),
+                    new(0.25, 1.5),
+                    new(0, 1),
+                    new(1, 0)
+                },
+                shortestPath
+            );
+        }
+
+        [Test]
+        public void RouteBetweenArbitraryLocations_short()
+        {
+            var shortestPath = hybridVisibilityGraph.ShortestPath(new Position(0, 1.75), new Position(1.25, 0.5));
+
+            CollectionAssert.AreEqual(
+                new List<Position>
+                {
+                    new(0, 1.75),
+                    new(1, 1),
+                    new(1.25, 0.5)
+                },
+                shortestPath
+            );
+        }
+
+        [Test]
+        public void RouteBetweenArbitraryLocations_long()
+        {
+            var shortestPath = hybridVisibilityGraph.ShortestPath(new Position(0.75, 0.75), new Position(1.5, 2.25));
+
+            CollectionAssert.AreEqual(
+                new List<Position>
+                {
+                    new(0.75, 0.75),
+                    new(0, 1),
+                    new(0.25, 1.5),
+                    new(0.5, 2),
+                    new(1.5, 2.25)
+                },
+                shortestPath
+            );
+        }
     }
 
     [Test]
@@ -482,22 +546,22 @@ public class HybridVisibilityGraphGeneratorTest
 
         var graph = new SpatialGraph();
         features.Each(f => graph.AddNode(f.Geometry.Coordinates[0].X, f.Geometry.Coordinates[0].Y));
-        
+
         // Add third POI feature which has no node in the graph
         features.Add(poiFeature3);
-        
+
         // Act
         HybridVisibilityGraphGenerator.AddAttributesToPoiNodes(features, graph);
-        
+
         // Assert
         Assert.AreEqual(3, graph.NodesMap.Count);
-        
+
         Assert.AreEqual(poiFeature1.Geometry.Coordinates[0], graph.NodesMap[0].Position.ToCoordinate());
         CollectionAssert.AreEquivalent(poiFeature1.Attributes.ToObjectDictionary(), graph.NodesMap[0].Data);
-        
+
         Assert.AreEqual(noPoiFeature.Geometry.Coordinates[0], graph.NodesMap[1].Position.ToCoordinate());
         CollectionAssert.IsEmpty(graph.NodesMap[1].Data);
-        
+
         Assert.AreEqual(poiFeature2.Geometry.Coordinates[0], graph.NodesMap[2].Position.ToCoordinate());
         CollectionAssert.AreEquivalent(poiFeature2.Attributes.ToObjectDictionary(), graph.NodesMap[2].Data);
     }
