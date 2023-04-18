@@ -85,37 +85,39 @@ public class HybridVisibilityGraph
             .ToList();
     }
 
-    private (int, bool) AddPositionToGraph(Position source)
+    private (int, bool) AddPositionToGraph(Position positionToAdd)
     {
-        var sourceNodeCandidates = Graph
+        var existingNodeCandidates = Graph
             .NodesMap
             .Values
-            .Where(n => n.Position.DistanceInMTo(source) < 0.1)
+            .Where(n => n.Position.DistanceInMTo(positionToAdd) < 0.1)
             .ToList();
-        if (sourceNodeCandidates.Any())
+        if (existingNodeCandidates.Any())
         {
-            return (sourceNodeCandidates[0].Key, false);
+            return (existingNodeCandidates[0].Key, false);
         }
 
-        var sourceNode = Graph.AddNode(new Dictionary<string, object>
+        var nodeToAdd = Graph.AddNode(new Dictionary<string, object>
         {
-            { "x", source.X },
-            { "y", source.Y },
+            { "x", positionToAdd.X },
+            { "y", positionToAdd.Y },
         }).Key;
+        var vertexToAdd = new Vertex(positionToAdd.ToCoordinate());
 
         // TODO If performance too bad: Pass multiple positions to not calculate certain things twice.
         var allVertices = _obstacles.QueryAll().Map(o => o.Vertices).SelectMany(x => x).Distinct().ToList();
-        var vertex = new Vertex(source.ToCoordinate());
-        var sourceVisibilityNeighborVertices =
+        var visibilityNeighborVertices =
             VisibilityGraphGenerator.GetVisibilityNeighborsForVertex(_obstacles, allVertices,
                 new Dictionary<Coordinate, List<Obstacle>>(),
-                vertex, 36, 10)[0];
+                vertexToAdd, 36, 10)[0];
 
-        sourceVisibilityNeighborVertices
+        visibilityNeighborVertices
             .Map(v => _vertexToNodes[v])
             .Map(nodeCandidates =>
             {
-                // We have all corresponding nodes for the given vertex ("nodeCandidates") but we only want the one node whose angle area includes the source vertex. So its angle area should include the angle from that node to the source vertex.
+                // We have all corresponding nodes for the given vertex ("nodeCandidates") but we only want the one node
+                // whose angle area includes the vertex to add. So its angle area should include the angle from that
+                // node candidate to the vertex.
                 return nodeCandidates
                     .First(nodeCandidate =>
                         // The angle area has same "from" and "to" value, which means it covers a range of 360°. In this
@@ -127,18 +129,19 @@ public class HybridVisibilityGraph
                         // covered angle area of this node candidate.
                         Angle.IsBetweenEqual(
                             _nodeToAngleArea[nodeCandidate].Item1,
-                            Angle.GetBearing(Graph.NodesMap[nodeCandidate].Position, source),
+                            Angle.GetBearing(Graph.NodesMap[nodeCandidate].Position, positionToAdd),
                             _nodeToAngleArea[nodeCandidate].Item2
                         ));
             })
             .Each(node =>
             {
-                // Create the bi-directional edge between source node and this visibility node and collect its IDs.
-                Graph.AddEdge(sourceNode, node);
-                Graph.AddEdge(node, sourceNode);
+                // Create the bi-directional edge between node to add and this visibility node and collect its IDs for
+                // later clean up.
+                Graph.AddEdge(nodeToAdd, node);
+                Graph.AddEdge(node, nodeToAdd);
             });
 
-        return (sourceNode, true);
+        return (nodeToAdd, true);
     }
 
     public List<NodeData> GetNodesByAttribute(string attributeName)
