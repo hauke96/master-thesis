@@ -160,9 +160,9 @@ public class HybridVisibilityGraphGeneratorTest
                 shortestPath
             );
         }
-        
+
         // TODO Route on visibility edges
-        
+
         // TODO Route from/to arbitrary location 
     }
 
@@ -437,6 +437,69 @@ public class HybridVisibilityGraphGeneratorTest
         AssertEdges(spatialGraph, node, vertexToNode[middleVertex0][0]);
         AssertEdges(spatialGraph, node, middleVertex1NodeTop);
         AssertEdges(spatialGraph, node, vertexToNode[middleVertex2][0]);
+    }
+
+    [Test]
+    public void AddAttributesToPoiNodes()
+    {
+        // Arrange
+        var poiFeature1 = new Feature(
+            new Point(1, 1),
+            new AttributesTable(new Dictionary<string, object>
+            {
+                { "poi", "foo" }
+            })
+        );
+        var noPoiFeature = new Feature(
+            new Point(2, 2),
+            new AttributesTable(new Dictionary<string, object>
+            {
+                { "not-a-poi", "bar" }
+            })
+        );
+        var poiFeature2 = new Feature(
+            new Point(3, 3),
+            new AttributesTable(new Dictionary<string, object>
+            {
+                { "some", "other attribute" },
+                { "poi", "blubb" }
+            })
+        );
+        var poiFeature3 = new Feature(
+            new Point(4, 4),
+            new AttributesTable(new Dictionary<string, object>
+            {
+                { "poi", "lorem ipsum" }
+            })
+        );
+
+        var features = new List<Feature>
+        {
+            poiFeature1,
+            noPoiFeature,
+            poiFeature2,
+        };
+
+        var graph = new SpatialGraph();
+        features.Each(f => graph.AddNode(f.Geometry.Coordinates[0].X, f.Geometry.Coordinates[0].Y));
+        
+        // Add third POI feature which has no node in the graph
+        features.Add(poiFeature3);
+        
+        // Act
+        HybridVisibilityGraphGenerator.AddAttributesToPoiNodes(features, graph);
+        
+        // Assert
+        Assert.AreEqual(3, graph.NodesMap.Count);
+        
+        Assert.AreEqual(poiFeature1.Geometry.Coordinates[0], graph.NodesMap[0].Position.ToCoordinate());
+        CollectionAssert.AreEquivalent(poiFeature1.Attributes.ToObjectDictionary(), graph.NodesMap[0].Data);
+        
+        Assert.AreEqual(noPoiFeature.Geometry.Coordinates[0], graph.NodesMap[1].Position.ToCoordinate());
+        CollectionAssert.IsEmpty(graph.NodesMap[1].Data);
+        
+        Assert.AreEqual(poiFeature2.Geometry.Coordinates[0], graph.NodesMap[2].Position.ToCoordinate());
+        CollectionAssert.AreEquivalent(poiFeature2.Attributes.ToObjectDictionary(), graph.NodesMap[2].Data);
     }
 
     [Test]

@@ -30,7 +30,7 @@ public static class HybridVisibilityGraphGenerator
         var (hybridVisibilityGraph, spatialGraph) = AddVisibilityVerticesAndEdges(vertexNeighbors, obstacles);
 
         MergeRoadsIntoGraph(features, spatialGraph);
-        AddAttributesToPOIs(features, spatialGraph);
+        AddAttributesToPoiNodes(features, spatialGraph);
 
         Console.WriteLine(
             $"{nameof(HybridVisibilityGraphGenerator)}: Done after {watch.ElapsedMilliseconds}ms");
@@ -188,11 +188,11 @@ public static class HybridVisibilityGraphGenerator
     }
 
     /// <summary>
-    /// Searches for each feature with an attribute name "poi" and adds all attributes of this feature to the according
-    /// node in the given graph.
+    /// Takes each feature with an attribute name "poi" and adds all attributes of this feature to the closest node
+    /// (within the given distance) in the graph.
     /// </summary>
-    private static void AddAttributesToPOIs(IEnumerable<IFeature> features, ISpatialGraph graph,
-        double nodeDistanceTolerance = 0.1)
+    public static void AddAttributesToPoiNodes(IEnumerable<IFeature> features, ISpatialGraph graph,
+        double nodeDistanceTolerance = 0.001)
     {
         features.Where(f => f.Attributes.Exists("poi"))
             .Each(f =>
