@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatasetCreator", "DatasetCr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetworkRoutingPlayground", "NetworkRoutingPlayground\NetworkRoutingPlayground.csproj", "{18269F48-18E5-41EB-8C26-F8727EC30140}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Triangulation", "Triangulation\Triangulation.csproj", "{51BC570F-637B-4EE3-AE37-11CC6965151E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,5 +44,9 @@ Global
 		{18269F48-18E5-41EB-8C26-F8727EC30140}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{18269F48-18E5-41EB-8C26-F8727EC30140}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{18269F48-18E5-41EB-8C26-F8727EC30140}.Release|Any CPU.Build.0 = Release|Any CPU
+		{51BC570F-637B-4EE3-AE37-11CC6965151E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51BC570F-637B-4EE3-AE37-11CC6965151E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51BC570F-637B-4EE3-AE37-11CC6965151E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51BC570F-637B-4EE3-AE37-11CC6965151E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

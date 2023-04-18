@@ -2,8 +2,8 @@ using HybridVisibilityGraphRouting.IO;
 using Mars.Common.Collections.Graph;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
-using NetTopologySuite.Triangulate.Polygon;
 using ServiceStack;
+using Triangulation;
 using Feature = NetTopologySuite.Features.Feature;
 
 namespace HybridVisibilityGraphRouting.Geometry;
@@ -20,7 +20,7 @@ public class GeometryHelper
     public static List<NetTopologySuite.Geometries.Geometry> UnwrapAndTriangulate(IEnumerable<IFeature> features,
         bool debugModeActive = false)
     {
-        var geometriesToTriangulate = new LinkedList<NetTopologySuite.Geometries.Geometry>();
+        var geometriesToTriangulate = new LinkedList<Polygon>();
         var geometriesToIgnore = new LinkedList<NetTopologySuite.Geometries.Geometry>();
 
         // Unwrap geometries and sort them into a list of geometries to triangulate and into a list of geometries to
@@ -44,7 +44,7 @@ public class GeometryHelper
                     geometry = new Polygon(new LinearRing(geometry.Coordinates));
                 }
 
-                geometriesToTriangulate.AddLast(geometry);
+                geometriesToTriangulate.AddLast((Polygon)geometry);
             });
 
         var vertexCount = geometriesToTriangulate.Sum(o => o.Coordinates.Length) +
@@ -54,7 +54,7 @@ public class GeometryHelper
         Log.D($"Amount of vertices before triangulating: {vertexCount}");
 
         var triangulatedGeometries = geometriesToTriangulate
-            .Map(geometry => ((GeometryCollection)PolygonTriangulator.Triangulate(geometry)).Geometries)
+            .Map(geometry => PolygonTriangulator.Triangulate(geometry))
             .SelectMany(x => x)
             .ToList();
 
