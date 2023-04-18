@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using Mars.Common;
 using Mars.Interfaces.Agents;
 using Mars.Interfaces.Annotations;
@@ -10,6 +11,7 @@ using Mars.Numerics;
 using NetTopologySuite.Geometries;
 using HybridVisibilityGraphRouting;
 using HybridVisibilityGraphRouting.IO;
+using ServiceStack;
 using Position = Mars.Interfaces.Environments.Position;
 
 namespace HikerModel.Model
@@ -24,7 +26,7 @@ namespace HikerModel.Model
 
         public Position Position { get; set; }
         public Guid ID { get; set; }
-        
+
         private HikerLayer _hikerLayer;
 
         // Locations the hiker wants to visit
@@ -32,15 +34,15 @@ namespace HikerModel.Model
         private Coordinate NextTargetWaypoint => _targetWaypoints.Current;
 
         // Locations the routing engine determined
-        private IEnumerator<Waypoint> _routeWaypoints;
-        private Waypoint NextRouteWaypoint => _routeWaypoints.Current;
+        private IEnumerator<Position> _routeWaypoints;
+        private Position NextRouteWaypoint => _routeWaypoints.Current;
 
         private PerformanceMeasurement.RawResult _routingPerformanceResult;
 
         public void Init(HikerLayer layer)
         {
             _targetWaypoints = WaypointLayer.TrackPoints.GetEnumerator();
-            _routeWaypoints = new List<Waypoint>().GetEnumerator();
+            _routeWaypoints = new List<Position>().GetEnumerator();
 
             _targetWaypoints.MoveNext();
             Position = NextTargetWaypoint.ToPosition();
@@ -78,7 +80,7 @@ namespace HikerModel.Model
                 Log.I("Hiker has target but no route. Calculate route to next target.");
                 CalculateRoute(Position, NextTargetWaypoint.ToPosition());
             }
-            else if (NextRouteWaypoint.Position.DistanceInMTo(Position) < StepSize * 2)
+            else if (NextRouteWaypoint.DistanceInMTo(Position) < StepSize * 2)
             {
                 _routeWaypoints.MoveNext();
 
@@ -103,7 +105,7 @@ namespace HikerModel.Model
                 }
             }
 
-            var bearing = Position.GetBearing(NextRouteWaypoint.Position);
+            var bearing = Position.GetBearing(NextRouteWaypoint);
             _hikerLayer.Environment.MoveTowards(this, bearing, StepSize);
         }
 
@@ -111,13 +113,13 @@ namespace HikerModel.Model
         {
             try
             {
-                RoutingResult routingResult = null;
+                List<Position> routingResult = null;
 
                 var performanceMeasurementResult = PerformanceMeasurement.ForFunction(
-                    () => { routingResult = ObstacleLayer.HybridGeometricRouter.RouteLegacy(from, to); },
+                    () => { routingResult = ObstacleLayer.HybridVisibilityGraph.ShortestPath(from, to); },
                     "CalculateRoute",
-                    PerformanceMeasurement.DEFAULT_ITERATION_COUNT*10,
-                    PerformanceMeasurement.DEFAULT_WARMUP_COUNT*3);
+                    PerformanceMeasurement.DEFAULT_ITERATION_COUNT * 10,
+                    PerformanceMeasurement.DEFAULT_WARMUP_COUNT * 3);
                 performanceMeasurementResult.Print();
 
                 // Collect data for routing requests for each such request. Requests can be differently long and complex
@@ -126,24 +128,37 @@ namespace HikerModel.Model
                 const string numberFormat = "0.###";
                 var invariantCulture = CultureInfo.InvariantCulture;
                 var distanceFromTo = Distance.Haversine(from.PositionArray, to.PositionArray);
-                var averageTimeString = performanceMeasurementResult.AverageTime.ToString(numberFormat, invariantCulture);
+                var averageTimeString =
+                    performanceMeasurementResult.AverageTime.ToString(numberFormat, invariantCulture);
                 _routingPerformanceResult.AddRow(new Dictionary<string, string>
                 {
-                    { "total_vertices", PerformanceMeasurement.TOTAL_VERTICES.ToString(numberFormat, invariantCulture) },
-                    { "total_vertices_after_preprocessing", PerformanceMeasurement.TOTAL_VERTICES_AFTER_PREPROCESSING.ToString(numberFormat, invariantCulture) },
+                    {
+                        "total_vertices", PerformanceMeasurement.TOTAL_VERTICES.ToString(numberFormat, invariantCulture)
+                    },
+                    {
+                        "total_vertices_after_preprocessing",
+                        PerformanceMeasurement.TOTAL_VERTICES_AFTER_PREPROCESSING.ToString(numberFormat,
+                            invariantCulture)
+                    },
                     { "distance", distanceFromTo.ToString(numberFormat, invariantCulture) },
-                    { "route_length", routingResult.OptimalRouteLength.ToString(numberFormat, invariantCulture) },
-                    
+                    {
+                        "route_length",
+                        routingResult
+                            .Select((position, i) => i == 0 ? 0 : position.DistanceInMTo(routingResult[i - 1]))
+                            .Sum()
+                            .ToString(numberFormat, invariantCulture)
+                    },
+
                     { "avg_time", averageTimeString },
                     { "iteration_time", averageTimeString },
                     { "min_time", performanceMeasurementResult.MinTime.ToString(numberFormat, invariantCulture) },
                     { "max_time", performanceMeasurementResult.MaxTime.ToString(numberFormat, invariantCulture) },
                     { "total_time", performanceMeasurementResult.TotalTime.ToString(numberFormat, invariantCulture) },
-                    
+
                     { "min_mem", performanceMeasurementResult.MinMemory.ToString() },
                     { "max_mem", performanceMeasurementResult.MaxMemory.ToString() },
                     { "avg_mem", performanceMeasurementResult.AverageMemory.ToString(numberFormat, invariantCulture) },
-                    
+
                     {
                         "from",
                         from.X.ToString(numberFormat, invariantCulture) + " " +
@@ -156,14 +171,12 @@ namespace HikerModel.Model
                     }
                 });
 
-                if (routingResult.OptimalRoute.Count == 0)
+                if (routingResult.Count == 0)
                 {
                     throw new Exception($"No route found from {from} to {to}");
                 }
 
-                Exporter.WriteRoutesToFile(routingResult.AllRoutes);
-
-                _routeWaypoints = routingResult.OptimalRoute.GetEnumerator();
+                _routeWaypoints = routingResult.GetEnumerator();
                 _routeWaypoints.MoveNext();
             }
             catch (Exception e)

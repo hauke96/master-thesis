@@ -3,12 +3,13 @@ using Mars.Interfaces.Data;
 using Mars.Interfaces.Layers;
 using ServiceStack;
 using HybridVisibilityGraphRouting;
+using HybridVisibilityGraphRouting.Geometry;
 
 namespace HikerModel.Model
 {
     public class ObstacleLayer : VectorLayer
     {
-        public HybridGeometricRouter HybridGeometricRouter { get; private set; }
+        public HybridVisibilityGraph HybridVisibilityGraph { get; private set; }
 
         public override bool InitLayer(LayerInitData layerInitData, RegisterAgent registerAgentHandle = null,
             UnregisterAgent unregisterAgent = null)
@@ -31,7 +32,7 @@ namespace HikerModel.Model
                     {
                         // Deactivate measurement within constructor:
                         PerformanceMeasurement.IS_ACTIVE = false;
-                        new HybridGeometricRouter(Features.Map(f => f.VectorStructured));
+                        HybridVisibilityGraphGenerator.Generate(Features.Map(f => f.VectorStructured));
                     },
                     "WavefrontAlgorithmCreation");
                 result.Print();
@@ -40,7 +41,7 @@ namespace HikerModel.Model
                 PerformanceMeasurement.IS_ACTIVE = true;
             }
 
-            HybridGeometricRouter = new HybridGeometricRouter(Features.Map(f => f.VectorStructured), true);
+            HybridVisibilityGraph = HybridVisibilityGraphGenerator.Generate(Features.Map(f => f.VectorStructured));
 
             return true;
         }

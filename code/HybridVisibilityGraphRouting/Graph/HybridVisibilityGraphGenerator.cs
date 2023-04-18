@@ -43,7 +43,7 @@ public static class HybridVisibilityGraphGenerator
     /// <returns>A map from each vertex to the bins of visibility neighbors.</returns>
     public static QuadTree<Obstacle> GetObstacles(IEnumerable<IFeature> features)
     {
-        var wantedKeys = new[] { "building", "barrier", "natural", "poi" };
+        var wantedKeys = new[] { "building", "barrier", "natural", "poi", "obstacle" };
         var importedObstacles = FeatureHelper.FilterFeaturesByKeys(features, wantedKeys);
 
         var watch = Stopwatch.StartNew();
