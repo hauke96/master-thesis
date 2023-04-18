@@ -118,6 +118,13 @@ public class HybridVisibilityGraph
                 // We have all corresponding nodes for the given vertex ("nodeCandidates") but we only want the one node whose angle area includes the source vertex. So its angle area should include the angle from that node to the source vertex.
                 return nodeCandidates
                     .First(nodeCandidate =>
+                        // The angle area has same "from" and "to" value, which means it covers a range of 360°. In this
+                        // case, no further checks are needed since this node candidate is definitely the one we want
+                        // to connect to.
+                        _nodeToAngleArea[nodeCandidate].Item1 == _nodeToAngleArea[nodeCandidate].Item2
+                        ||
+                        // In case the angles are not identical, we need to perform a check is the vertex is within the
+                        // covered angle area of this node candidate.
                         Angle.IsBetweenEqual(
                             _nodeToAngleArea[nodeCandidate].Item1,
                             Angle.GetBearing(Graph.NodesMap[nodeCandidate].Position, source),
