@@ -34,7 +34,7 @@ namespace HikerModel.Model
                         PerformanceMeasurement.IS_ACTIVE = false;
                         HybridVisibilityGraphGenerator.Generate(Features.Map(f => f.VectorStructured));
                     },
-                    "WavefrontAlgorithmCreation");
+                    "Graph creation");
                 result.Print();
                 result.WriteToFile();
 

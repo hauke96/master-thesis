@@ -5,6 +5,7 @@ using Mars.Interfaces.Data;
 using Mars.Interfaces.Layers;
 using ServiceStack;
 using HybridVisibilityGraphRouting;
+using HybridVisibilityGraphRouting.Geometry;
 using Position = Mars.Interfaces.Environments.Position;
 
 namespace GeoJsonRouting.Layer
@@ -16,7 +17,7 @@ namespace GeoJsonRouting.Layer
 
         private readonly Random _random = new(DateTime.Now.ToString().GetHashCode());
 
-        public HybridGeometricRouter HybridGeometricRouter { get; private set; }
+        public HybridVisibilityGraph HybridVisibilityGraph { get; private set; }
 
         public ObstacleLayer()
         {
@@ -39,8 +40,8 @@ namespace GeoJsonRouting.Layer
             _targetPositions = FindLocationsByKey("target");
 
             var watch = Stopwatch.StartNew();
-            HybridGeometricRouter = new HybridGeometricRouter(Features.Map(f=>f.VectorStructured), true);
-            Console.WriteLine($"Algorithm creation: {watch.ElapsedMilliseconds}ms");
+            HybridVisibilityGraph = HybridVisibilityGraphGenerator.Generate(Features.Map(f => f.VectorStructured));
+            Console.WriteLine($"Graph creation: {watch.ElapsedMilliseconds}ms");
 
             return true;
         }

@@ -35,7 +35,7 @@ namespace GeoJsonRouting.Model
         public double Extent { get; set; } = 0.0002; // -> Umrechnung in lat/lon-differenz für Euklidische Distanz
 
         private Position? _targetPosition;
-        private Queue<Waypoint> _waypoints = new();
+        private Queue<Position> _waypoints = new();
 
         public void Init(VectorLayer layer)
         {
@@ -68,7 +68,7 @@ namespace GeoJsonRouting.Model
         {
             var currentWaypoint = _waypoints.Peek();
 
-            var distanceToTarget = Distance.Euclidean(currentWaypoint.Position.PositionArray, Position.PositionArray);
+            var distanceToTarget = Distance.Euclidean(currentWaypoint.PositionArray, Position.PositionArray);
             if (distanceToTarget <= STEP_SIZE)
             {
                 _waypoints.Dequeue();
@@ -82,7 +82,7 @@ namespace GeoJsonRouting.Model
                 return;
             }
 
-            var bearing = Angle.GetBearing(Position, currentWaypoint.Position);
+            var bearing = Angle.GetBearing(Position, currentWaypoint);
             var oldPosition = (Position)Position.Clone();
             for (int i = 0; i < 4; i++)
             {
@@ -121,19 +121,16 @@ namespace GeoJsonRouting.Model
             try
             {
                 var watch = Stopwatch.StartNew();
-                var routingResult = ObstacleLayer.HybridGeometricRouter.RouteLegacy(Position, _targetPosition);
+                var routingResult = ObstacleLayer.HybridVisibilityGraph.ShortestPath(Position, _targetPosition);
                 watch.Stop();
                 Console.WriteLine($"Routing duration: {watch.ElapsedMilliseconds}ms");
 
-                if (routingResult.OptimalRoute.IsEmpty())
+                if (routingResult.IsEmpty())
                 {
                     throw new Exception($"No route found from {Position} to {_targetPosition}");
                 }
 
-                _waypoints = new Queue<Waypoint>(routingResult.OptimalRoute);
-
-                Exporter.WriteRoutesToFile(routingResult.AllRoutes);
-                Exporter.WriteVisitedPositionsToFile(routingResult.AllRoutes);
+                _waypoints = new Queue<Position>(routingResult);
             }
             catch (Exception e)
             {
