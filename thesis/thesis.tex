@@ -54,11 +54,20 @@
 \usepackage[hang]{footmisc}
 
 % TODO remove this when done
-\usepackage[textwidth=2cm,colorinlistoftodos]{todonotes}
-\newcommand{\citationNeeded}{\todo[backgroundcolor=red,textcolor=white,linecolor=red]{citation needed}}
-\makeatletter
-\renewcommand{\todo}[2][]{\tikzexternaldisable\@todo[#1]{#2}\tikzexternalenable}
-\makeatother
+\newcommand{\todo}[2][]
+{%
+	\ifthenelse{\equal{inline}{#1}}
+	{%
+		\textcolor{red}{\underline{\textbf{TODO: #2}}}
+	}%
+	{%
+		\vspace{0.25cm}
+		\ \\
+		\textcolor{red}{\underline{\textbf{TODO: #2}}}
+		\vspace{0.25cm}
+		\\%
+	}%
+}
 
 %
 % BibTex, Index, etc.

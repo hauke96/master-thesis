@@ -346,7 +346,7 @@ After that, the main sections of this chapter show details of each algorithmic s
 				The line segment intersection check uses a cross product based approach described in \emph{Introduction to algorithms} by Thomas H Cormen et al \cite[1018]{cormen-introduction-to-alg}.
 				Even though this method only works on single line segments, it is significantly faster than general purpose checks provided by the NetTopologySuite.
 				
-				Checking if a point lies inside a triangle is done by a barycentric collision check.
+				Checking if a  lies inside a triangle is done by a barycentric collision check.
 				This method creates a barycentric coordinate system where each coordinate consists of three values $\lambda_1$, $\lambda_2$ and $\lambda_3$ for each corner vertex of the triangle.
 				Due to the properties of this coordinate system, a point $p$ is inside the triangle when the condition $0 < \lambda_i < 1$ hold for each of the three values.
 				Even though it sounds complex to create a whole coordinate system for a single collision check, this method only uses a few basic arithmetic operations and is therefore very fast.
