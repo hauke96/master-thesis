@@ -444,11 +444,11 @@ After that, the main sections of this chapter show details of each algorithmic s
 						Both illustrations show a vertical obstacle with vertex $v$ in the middle.
 						The dotted edges are visibility edges added during graph generation.
 						\\
-						Left:
+						\underline{Left}:
 						Visibility graph with naive connections.
 						The two dotted visibility edges $(v_a, v)$ and $(v, v_b)$ allow a routing through the obstacle from $v_a$ vis $v$ to $v_b$.
 						\\
-						Right:
+						\underline{Right}:
 						The visibility graph with connection respecting the obstacles. For vertex $v$ two nodes are created.
 						All gabs are for illustrational purposes only, the two nodes for $v$ and the vertical edges have the exact locations.
 						One of $v$'s nodes is connected to $v_a$, the other one to $v_b$.
@@ -458,7 +458,7 @@ After that, the main sections of this chapter show details of each algorithmic s
 				\end{figure}
 				
 				It must therefore be known which visibility relations are between which obstacle neighbors.
-				Knowing this enables the graph generation to distinguish between all the edges and results in correct routing results.
+				Knowing this enables the graph generation to distinguish between all the edges and makes a correct routing results possible.
 				More on this in the \cref{subsec:step-3-graph-creation} below.
 				
 				Each of the resulting bins of a vertex $v$ covers the area between two adjacent obstacle neighbors.
@@ -472,12 +472,12 @@ After that, the main sections of this chapter show details of each algorithmic s
 							\tikzDot[label=below:$v$]{(0,0)}{v}
 							
 							\tikzDot[label=left:$n_1$]{(-2.25,0)}{n1}
-							\tikzDot[label=right:$n_2$]{(2.25,0)}{n2}
-							\tikzDot[label=above:$n_3$]{(0,2)}{n3}
+							\tikzDot[label=above:$n_2$]{(0,2)}{n2}
+							\tikzDot[label=right:$n_3$]{(2.25,0)}{n3}
 							
 							\draw[lightgray] (v) -- (n1);
-							\draw[lightgray] (v) -- (n2);
 							\draw[lightgray] (v) -- (n3);
+							\draw[lightgray] (v) -- (n2);
 							
 							% Visibility edges to n1
 							\tikzDot[blue]{(-1.1,-0.25)}{vn1}
@@ -487,24 +487,24 @@ After that, the main sections of this chapter show details of each algorithmic s
 							\draw[blue,densely dashed,->] (v) -- (vn2);
 							\draw[blue,densely dashed,->] (v) -- (vn3);
 %							\draw[blue,densely dashed,->] ($(v)+(-0.075,-\d)$) -- ($(n1)+(0.075,-\d)$);
-%							\draw[blue,densely dashed,->] ($(v)+(0.075,-\d)$) -- ($(n2)+(-0.075,-\d)$);
+%							\draw[blue,densely dashed,->] ($(v)+(0.075,-\d)$) -- ($(n3)+(-0.075,-\d)$);
 							
-							% Visibility edges to n2
+							% Visibility edges to n3
 							\tikzDot[red]{(0.7,1.4)}{vn4}
 							\tikzDot[red]{(2,1)}{vn5}
 							\draw[red,densely dotted,->] (v) -- (vn4);
 							\draw[red,densely dotted,->] (v) -- (vn5);
-%							\draw[red,densely dotted,->] ($(v)+(0.075,\d)$) -- ($(n2)+(-0.075,\d)$);
-%							\draw[red,densely dotted,->] ($(v)+(\d,0.075)$) -- ($(n3)+(\d,-0.075)$);
+%							\draw[red,densely dotted,->] ($(v)+(0.075,\d)$) -- ($(n3)+(-0.075,\d)$);
+%							\draw[red,densely dotted,->] ($(v)+(\d,0.075)$) -- ($(n2)+(\d,-0.075)$);
 							
-							% Visibility edges to n3
+							% Visibility edges to n2
 							\tikzDot[Green]{(-2,1.3)}{vn6}
 							\draw[Green,dashdotted,->] (v) -- (vn6);
-%							\draw[Green,dashdotted,->] ($(v)+(-\d,0.075)$) -- ($(n3)+(-\d,-0.075)$);
+%							\draw[Green,dashdotted,->] ($(v)+(-\d,0.075)$) -- ($(n2)+(-\d,-0.075)$);
 %							\draw[Green,dashdotted,->] ($(v)+(-0.075,\d)$) -- ($(n1)+(0.075,\d)$);
 						\end{tikzpicture}
 					\end{figcenter}
-					\caption{All visible neighbors of $v$ colored by their resulting bin. The neighbors $n_1$, $n_2$ and $n_3$ are also connected with two edges each, one for each adjacent bin.}
+					\caption{All visible neighbors of $v$ colored by their resulting bin. The neighbors $n_1$, $n_2$ and $n_3$ are also sorted into bins but they occur in each adjacent bin. The means $n_2$ is in the bin for area $n_1$/$n_2$ as well as in the bin for $n_2$/$n_3$.}
 					\label{fig:visibility-bin-sorting}
 				\end{figure}
 			
