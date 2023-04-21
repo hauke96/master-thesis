@@ -401,27 +401,34 @@ Agent based simulations will be covered as well since pedestrian simulations oft
 		\subsubsection{A*}
 		\label{subsubsec:astar}
 		
-			The A* shortest path algorithm was introduced in 1968 and uses a heuristic $h : V \rightarrow \mathbb{R}$ to decide what vertex to visit next \cite{astar}.
-			
-			It is rather simple and \cref{alg:astar} expresses it in pseudocode.
-			The path from $s$ to $t$ is requested and $h$ is the heuristic.
+			The A* shortest path algorithm was introduced in 1968 and uses a heuristic $h : V \rightarrow \mathbb{R}$ in combination with a distance $g : V \rightarrow \mathbb{R}$ to decide what vertex to visit next \cite{astar}.
+			The heuristic $h$ estimates the distance from a node to the target node $t$, while the distance function $g$ gives the already determined distance from the start node $s$ to a given node.
+			Summing up the two functions to $f(n) = g(n) + h(n)$ for a given node $n$, gives the estimated length of a shortest path from $s$ via $n$ to $t$ and is used to decide what successor of $n$ to process next.
+			The structure of A* is rather simple and \cref{alg:astar} expresses it in pseudocode.
 			
 			\begin{algorithm}[h]
 				\begin{algorithmic}[1]
-					\State Mark $s$ \emph{open}
+					\State Mark $s$ as \emph{open}
 					\State Set $u = s$ since $s$ is the only open vertex
 					\While{$u \neq t$}
 						\State Mark $u$ as \emph{closed}
-						\State Store $u$ to output graph $G$
-						\State Mark all non-closed successors of $u$ as \emph{open}
-						\State Mark each closed successor $u'$ of $u$ as \emph{open} when $h(u')$ became lower since the last visit where it has been marked as \emph{closed}
-						\State Select open vertex $u$ with minimal $h(u)$
+						\State Store $u$ with an edge to its predecessor to output graph $G$
+						\State Mark all non-closed successors of $u$ as \emph{open} \label{alg:astar-open-1}
+						\State Mark each closed successor $u'$ of $u$ as \emph{open} when $f(u')$ became lower since the last visit where it has been marked as \emph{closed} \label{alg:astar-open-2}
+						\State Select open vertex $u$ with minimal $f(u)$
 					\EndWhile
 					\State Take $G$, follow $t$ back to the source $s$ and output the path
 				\end{algorithmic}
-				\caption{Pseudocode of the originally proposed A* algorithm.}
+				\caption{Pseudocode of the originally proposed A* algorithm \cite{astar}.}
 				\label{alg:astar}
 			\end{algorithm}
+			
+			The performance of A* relies heavily on the quality of the heuristic and therefore no general complexity formula can be given \cite{russell-norvig-ai-modern-approach}.
+			However, given a specific problem, a so called \term{effective branching factor} $b^*$ can be determined which approximates the number of new open nodes per processed node (see line \ref{alg:astar-open-1} and \ref{alg:astar-open-2} in \cref{alg:astar}).
+			The optimal branching factor is 1 and a good heuristic has a factor of close to 1.
+			Having $b^*$ and the number of nodes $d$ in the shortest path, a general runtime complexity of $\bigo{(b^*)^d}$ can be assumed.
+			Since all closed nodes have to be stored in the output graph $G$, the space complexity is equal to the time complexity.
+			This is the major drawback of A* since a bad heuristic can turn A* into an algorithm with exponential and therefore unmanageable complexity.
 		
 	\subsection{Speedup methods}
 	\label{subsec:speedup-methods}
