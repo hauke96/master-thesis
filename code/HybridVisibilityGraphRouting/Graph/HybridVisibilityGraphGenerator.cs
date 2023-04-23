@@ -283,8 +283,8 @@ public static class HybridVisibilityGraphGenerator
                 edgeIndex.Insert(GeometryHelper.GetEnvelopeOfEdge(newEdge), newEdge.Key);
 
                 // 3. Remove old visibility edge
-                graph.RemoveEdge(visibilityEdgeId);
                 edgeIndex.Remove(GeometryHelper.GetEnvelopeOfEdge(graph.Edges[visibilityEdgeId]), visibilityEdgeId);
+                graph.RemoveEdge(visibilityEdgeId);
             });
 
             // 4. Add new line segments for our whole road segment
