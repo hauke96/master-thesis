@@ -90,7 +90,7 @@ public class HybridVisibilityGraph
         var existingNodeCandidates = Graph
             .NodesMap
             .Values
-            .Where(n => n.Position.DistanceInMTo(positionToAdd) < 0.1)
+            .Where(n => n.Position.DistanceInMTo(positionToAdd) < 0.001)
             .ToList();
         if (existingNodeCandidates.Any())
         {
@@ -105,7 +105,7 @@ public class HybridVisibilityGraph
         var vertexToAdd = new Vertex(positionToAdd.ToCoordinate());
 
         // TODO If performance too bad: Pass multiple positions to not calculate certain things twice.
-        var allVertices = _obstacles.QueryAll().Map(o => o.Vertices).SelectMany(x => x).Distinct().ToList();
+        var allVertices = _vertexToNodes.Keys.ToList();
         var visibilityNeighborVertices =
             VisibilityGraphGenerator.GetVisibilityNeighborsForVertex(_obstacles, allVertices,
                 new Dictionary<Coordinate, List<Obstacle>>(),
