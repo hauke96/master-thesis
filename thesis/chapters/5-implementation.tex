@@ -331,9 +331,9 @@ After that, the main sections of this chapter show details of each algorithmic s
 					\label{fig:bin-index}
 				\end{figure}
 				
-				The NetTopologySuite offers several indices specifically made for intervals, namely the \texttt{BinTree} and \texttt{SIRtree}, of which the latter one is static and does not allow insertions after the first query was made.
-				Even though these two structures are tree based and theoretically offer a logarithmic query complexity compared to the linear complexity of the \texttt{BinIndex}, the simple and list based \texttt{BinIndex} is significantly faster even for larger datasets with tens of thousands of vertices.
-				It is thinkable that the logarithmic complexity is useful for huge datasets with millions of vertices, but that has not been tested.
+				The NetTopologySuite offers several indices specifically made for intervals, namely the \texttt{BinTree}, \texttt{SIRtree} and \texttt{SortedPackedIntervalRTree}, of which the first one is dynamic allowing insertions and deletions after the first query.
+				Even though these three data structures are tree based and theoretically offer a logarithmic query time compared to the linear time complexity of the \texttt{BinIndex}, the simple and list based \texttt{BinIndex} is significantly faster even for larger datasets with tens of thousands of vertices.
+				It is thinkable that the logarithmic complexity is useful for even larger datasets with millions of vertices.
 			
 			\subsubsection{Intersection checks}
 			\label{subsubsec:intersection-checks}
