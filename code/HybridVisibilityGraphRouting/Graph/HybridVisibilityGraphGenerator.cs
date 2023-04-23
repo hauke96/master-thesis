@@ -336,11 +336,7 @@ public static class HybridVisibilityGraphGenerator
         if (potentialNodes.IsEmpty())
         {
             // No nodes found within the radius -> create a new node
-            node = graph.AddNode(new Dictionary<string, object>
-            {
-                { "x", position.X },
-                { "y", position.Y },
-            });
+            node = graph.AddNode(position.X, position.Y);
             nodeIndex.Add(position, node);
         }
         else

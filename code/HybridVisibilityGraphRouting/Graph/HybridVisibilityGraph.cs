@@ -97,11 +97,7 @@ public class HybridVisibilityGraph
             return (existingNodeCandidates[0].Key, false);
         }
 
-        var nodeToAdd = Graph.AddNode(new Dictionary<string, object>
-        {
-            { "x", positionToAdd.X },
-            { "y", positionToAdd.Y },
-        }).Key;
+        var nodeToAdd = Graph.AddNode(positionToAdd.X, positionToAdd.Y).Key;
         var vertexToAdd = new Vertex(positionToAdd.ToCoordinate());
 
         // TODO If performance too bad: Pass multiple positions to not calculate certain things twice.
