@@ -179,10 +179,7 @@ public static class HybridVisibilityGraphGenerator
 
         // Create and fill a spatial index with all nodes of the graph
         var nodeIndex = new KdTree<NodeData>(2);
-        graph.NodesMap.Values.Each(node =>
-        {
-            nodeIndex.Add(node.Position, node);
-        });
+        graph.NodesMap.Values.Each(node => { nodeIndex.Add(node.Position, node); });
 
         var roadFeatures = FeatureHelper.FilterFeaturesByKeys(features, "highway");
         var roadSegments = FeatureHelper.SplitFeaturesToSegments(roadFeatures);
@@ -237,57 +234,61 @@ public static class HybridVisibilityGraphGenerator
         var roadFeatureTo = roadSegment.Geometry.Coordinates[1];
         var roadFeatureFromPosition = roadFeatureFrom.ToPosition();
         var roadFeatureToPosition = roadFeatureTo.ToPosition();
+        var roadEdgeLineSegment = new LineSegment(
+            roadFeatureFrom,
+            roadFeatureTo
+        );
 
-        // Get all IDs of visibility edges that truly intersect the road edge. 
-        var edgeIds = edgeIndex.Query(roadSegment.Geometry.EnvelopeInternal).Where(id =>
+        // For every edge intersecting the given road segment a new node might be created at the intersection point.
+        // Maybe there's already a node there, which will be reused. In both cases, all nodes are collected to correctly
+        // subdivide the road segment into smaller edges between all intersection points.
+        var intersectionNodeIds = new HashSet<int>();
+
+        // Get all IDs of visibility edges that truly intersect the road edge. After this, all edges to split at the
+        // points where they intersect the road segment new nodes and edges are created to connect everything. 
+        edgeIndex.Query(roadSegment.Geometry.EnvelopeInternal).Each(visibilityEdgeId =>
         {
-            var edgePositions = graph.Edges[id].Geometry.Map(p => p.ToCoordinate());
-            return Intersect.DoIntersectOrTouch(roadFeatureFrom, roadFeatureTo, edgePositions[0], edgePositions[1]);
-        }).ToList();
+            var visibilityEdge = graph.Edges[visibilityEdgeId];
+            var edgePositionFrom = visibilityEdge.Geometry[0].ToCoordinate();
+            var edgePositionTo = visibilityEdge.Geometry[1].ToCoordinate();
+            var roadAndEdgeIntersectOrTouch =
+                Intersect.DoIntersectOrTouch(roadFeatureFrom, roadFeatureTo, edgePositionFrom, edgePositionTo);
 
-        if (edgeIds.Any())
-        {
-            // We have edges that intersect the given road segment. This means we have to split the edge and the
-            // road segment at all intersection points and create new nodes and edges. 
+            if (!roadAndEdgeIntersectOrTouch)
+            {
+                return;
+            }
 
-            var roadEdgeLineSegment = new LineSegment(
-                roadSegment.Geometry.Coordinates[0],
-                roadSegment.Geometry.Coordinates[1]
+            var visibilityEdgeLineSegment = new LineSegment(
+                visibilityEdge.Geometry[0].X,
+                visibilityEdge.Geometry[0].Y,
+                visibilityEdge.Geometry[1].X,
+                visibilityEdge.Geometry[1].Y
             );
 
-            // Every edge from the edgeIds list definitely intersects our road segment. A new node might be created at
-            // the intersection point. Maybe there's already a node there. In both cases, all nodes are collected to
-            // correctly subdivide the road segment into smaller edges between all intersection points.
-            var intersectionNodeIds = new HashSet<int>();
+            var intersectionCoordinate = roadEdgeLineSegment.Intersection(visibilityEdgeLineSegment);
 
-            edgeIds.Each(visibilityEdgeId =>
-            {
-                var visibilityEdgeLineSegment = new LineSegment(
-                    graph.Edges[visibilityEdgeId].Geometry[0].ToCoordinate(),
-                    graph.Edges[visibilityEdgeId].Geometry[1].ToCoordinate()
-                );
-                var visibilityEdge = graph.Edges[visibilityEdgeId];
+            // 1. Add intersection node (the node there the visibility edge and the road edge intersect). A new node
+            // is only added when there's no existing node at the intersection points.
+            var intersectionNode = GetOrCreateNodeAt(graph, nodeIndex, intersectionCoordinate.ToPosition()).Key;
+            intersectionNodeIds.Add(intersectionNode);
 
-                var intersectionCoordinate = roadEdgeLineSegment.Intersection(visibilityEdgeLineSegment);
+            // 2. Add two new edges
+            var newEdge = graph.AddEdge(visibilityEdge.From, intersectionNode);
+            edgeIndex.Insert(GeometryHelper.GetEnvelopeOfEdge(newEdge), newEdge.Key);
 
-                // 1. Add intersection node (the node there the visibility edge and the road edge intersect). A new node
-                // is only added when there's no existing node at the intersection points.
-                var intersectionNode = GetOrCreateNodeAt(graph, nodeIndex, intersectionCoordinate.ToPosition()).Key;
-                intersectionNodeIds.Add(intersectionNode);
+            newEdge = graph.AddEdge(intersectionNode, visibilityEdge.To);
+            edgeIndex.Insert(GeometryHelper.GetEnvelopeOfEdge(newEdge), newEdge.Key);
 
-                // 2. Add two new edges
-                var newEdge = graph.AddEdge(visibilityEdge.From, intersectionNode);
-                edgeIndex.Insert(GeometryHelper.GetEnvelopeOfEdge(newEdge), newEdge.Key);
+            // 3. Remove old visibility edge
+            edgeIndex.Remove(GeometryHelper.GetEnvelopeOfEdge(visibilityEdge), visibilityEdgeId);
+            graph.RemoveEdge(visibilityEdgeId);
+        });
 
-                newEdge = graph.AddEdge(intersectionNode, visibilityEdge.To);
-                edgeIndex.Insert(GeometryHelper.GetEnvelopeOfEdge(newEdge), newEdge.Key);
-
-                // 3. Remove old visibility edge
-                edgeIndex.Remove(GeometryHelper.GetEnvelopeOfEdge(graph.Edges[visibilityEdgeId]), visibilityEdgeId);
-                graph.RemoveEdge(visibilityEdgeId);
-            });
-
-            // 4. Add new line segments for our whole road segment
+        // 4. If there are any intersection nodes: Add new line segments between the intersection nodes for the whole
+        // road segment
+        if (intersectionNodeIds.Any())
+        {
             var orderedNodeIds = intersectionNodeIds
                 .OrderBy(nodeId => Distance.Euclidean(graph.NodesMap[nodeId].Position.PositionArray,
                     roadFeatureFromPosition.PositionArray));
