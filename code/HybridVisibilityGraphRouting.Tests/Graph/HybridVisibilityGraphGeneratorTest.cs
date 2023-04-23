@@ -629,7 +629,6 @@ public class HybridVisibilityGraphGeneratorTest
         CollectionAssert.Contains(nodePositions, new Position(1, 0.5));
         CollectionAssert.Contains(nodePositions, new Position(2, 0.5));
 
-        Assert.AreEqual(12, graph.Edges.Count);
         var edges = graph.Edges.Map(pair => pair.Value.Geometry);
 
         // New bi-directional edges for the added road
@@ -651,6 +650,8 @@ public class HybridVisibilityGraphGeneratorTest
         AssertEdges(graph, (1, 0.5), (1, 1));
         AssertEdges(graph, (1, 1), (1, 0.5));
         AssertEdges(graph, (1, 0.5), (1, 0));
+        
+        Assert.AreEqual(12, graph.Edges.Count);
 
         // Original edges should not exist anymore
         CollectionAssert.DoesNotContain(edges, new[] { new Position(0, 0), new Position(0, 1) });
