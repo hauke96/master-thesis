@@ -510,6 +510,16 @@ After that, the main sections of this chapter show details of each algorithmic s
 			
 	\subsection{Step 3: Graph creation with visibility edges}
 	\label{subsec:step-3-graph-creation}
+	
+		The previous step created the raw data that is needed to generate a routable visibility graph, which is done in this third step.
+		Since the \texttt{SpatialGraph} class in the NetTopologySuite uses the term \emph{node}, the term \emph{vertex} in this section refers to the vertices in the result of step 2.
+		
+		Because one node is created for each bin of neighboring vertices, mappings between nodes, vertices and neighbor bins have to be created.
+		Two iterations over all vertices are used to first create these mappings and then use them to connect all nodes correctly.
+		
+		\todo{More details on the mappings?}
+		
+		The resulting spatial graph together with some of the mappings, which will be used when \hyperref[sec:answering-queries]{answering routing queries}, are used to create an instance of the \texttt{HybridVisibilityGraph} class.
 		
 	\subsection{Step 4: Merging a road network into the visibility graph}
 
