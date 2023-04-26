@@ -152,13 +152,15 @@
 % TikZ
 %
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta}
-\usetikzlibrary{calc}
-\usetikzlibrary{external}
-\usetikzlibrary{fadings}
-\usetikzlibrary{patterns}
-\usetikzlibrary{positioning}
-
+\usetikzlibrary{
+	arrows.meta,
+	calc,
+	external,
+	fadings,
+	intersections,
+	patterns,
+	positioning
+}
 \tikzexternalize[prefix=tikz-cache/]
 
 % [params] pos id
@@ -191,9 +193,6 @@
 	\tableofcontents
 	\thispagestyle{empty}
 	\clearpage
-	
-%	\listoftodos
-%	\clearpage
 	
 	\chapter{Introduction}
 	

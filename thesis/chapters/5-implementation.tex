@@ -522,6 +522,72 @@ After that, the main sections of this chapter show details of each algorithmic s
 		The resulting spatial graph together with some of the mappings, which will be used when \hyperref[sec:answering-queries]{answering routing queries}, are used to create an instance of the \texttt{HybridVisibilityGraph} class.
 		
 	\subsection{Step 4: Merging a road network into the visibility graph}
+	
+		To allow a routing algorithm to switch between the road network and visibility edges, the road network needs to be merged into the visibility graph.
+		This happens not just by adding the road segments to the graph but by introducing and connecting new nodes at all intersections between road network and visibility edges.
+		\Cref{fig:merging-edges} illustrates this process for one road segment and two visibility edges.
+		
+		\begin{figure}[h]
+			\begin{figcenter}
+				\begin{tikzpicture}
+					\tikzDot{(0,-0.75)}{v1n1}
+					\tikzDot{(4,-0.6)}{v1n2}
+					
+					\tikzDot{(0,0.8)}{v2n1}
+					\tikzDot{(4.2,0.6)}{v2n2}
+					
+					\tikzDot{(1.5,-1.65)}{rn1}
+					\tikzDot{(1.8,1.65)}{rn2}
+					
+					\draw[<->,dotted] (v1n1) -- node[above right=0cm and 0.4cm] {$v$} (v1n2);
+					\draw[<->,dashed] (v2n1) -- node[above right=0cm and 0.4cm] {$u$} (v2n2);
+					
+					\draw[<->] (rn1) -- node[left] {$r$} (rn2);
+				\end{tikzpicture}
+				\hspace{2cm}
+				\begin{tikzpicture}
+					\tikzDot{(0,-0.75)}{v1n1}
+					\tikzDot{(4,-0.6)}{v1n2}
+					
+					\tikzDot{(0,0.8)}{v2n1}
+					\tikzDot{(4.2,0.6)}{v2n2}
+					
+					\tikzDot{(1.5,-1.65)}{rn1}
+					\tikzDot{(1.8,1.65)}{rn2}
+					
+					\tikzDot{(intersection of v1n1--v1n2 and rn1--rn2)}{i1}
+					\tikzDot{(intersection of v2n1--v2n2 and rn1--rn2)}{i2}
+					
+					\draw[<->,dotted] (v1n1) -- node[above] {$v_1$} (i1);
+					\draw[<->,dotted] (i1)   -- node[above] {$v_2$} (v1n2);
+					\draw[<->,dashed] (v2n1) -- node[above] {$u_1$} (i2);
+					\draw[<->,dashed] (i2)   -- node[above] {$u_2$} (v2n2);
+					
+					\draw[<->] (rn1) -- node[right] {$r_1$} (i1);
+					\draw[<->] (i1)  -- node[right] {$r_2$} (i2);
+					\draw[<->] (i2)  -- node[right] {$r_3$} (rn2);
+				\end{tikzpicture}
+			\end{figcenter}
+			\caption{
+				Merging the road edge $r$ with two bidirectional visibility edges $v$ and $u$.
+				\\
+				\underline{Left: } Before merging $r$ into the graph with a total of six nodes and six edges.
+				\\
+				\underline{Right: } After merging $r$. Two new vertices have been created and all edges are split on the intersection point. The graph size therefore increased by two nodes and eight edges (since all edges are bidirectional) to eight nodes and 14 edges.
+			}
+			\label{fig:merging-edges}
+		\end{figure}
+	
+		This final graph allows any routing algorithm to switch between road edges and visibility edges without further instructions or adjustments to the routing algorithm.
 
+		Assuming the road networks edges $E_R$ are segments, which only connect two nodes in a straight line, and are not larger line strings, the resulting graph size grows linear.
+		More precisely, it is in $\bigo{|E_R| \cdot |E_V|}$ with $|E_R|$ many road segments and $|E_V|$ many visibility edges.
+		
+		This complexity arises from the fact that a road segment intersecting with $n$ visibility edges leads to $n+1$ new road segments, $n$ new visibility edges and $n$ new nodes at the intersection points.
+		Therefore, in the worst case, where a road segments intersects with all visibility edges, $2 \cdot |E_V| + 1$ edges and $|E_V|$ nodes are added to the graph.
+		Even though it does not scale worse than linear, the size of the output graph is significantly higher than the input road network, which are typically quite sparse networks.
+
+		Effects on the routing performance are discussed in later sections. \todo{ref}
+	
 \section{Answering shortest path queries}
 \label{sec:answering-queries}
