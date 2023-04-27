@@ -49,10 +49,20 @@ public static class HybridVisibilityGraphGenerator
 
         var watch = Stopwatch.StartNew();
 
-        var obstacles = GeometryHelper.UnwrapAndTriangulate(importedObstacles, true);
+        var obstacleGeometries = GeometryHelper.UnwrapAndTriangulate(importedObstacles, true);
+
+        var coordinateToVertex = obstacleGeometries
+            .Map(g => g.Coordinates)
+            .SelectMany(x => x)
+            .Distinct()
+            .ToDictionary(c => c, c => new Vertex(c));
 
         var obstacleIndex = new QuadTree<Obstacle>();
-        obstacles.Each(obstacle => obstacleIndex.Insert(obstacle.EnvelopeInternal, new Obstacle(obstacle)));
+        obstacleGeometries.Each(geometry =>
+        {
+            var vertices = geometry.Coordinates.Map(c => coordinateToVertex[c]).ToList();
+            obstacleIndex.Insert(geometry.EnvelopeInternal, new Obstacle(geometry, vertices));
+        });
 
         Console.WriteLine(
             $"{nameof(HybridVisibilityGraphGenerator)}: Splitting obstacles done after {watch.ElapsedMilliseconds}ms");

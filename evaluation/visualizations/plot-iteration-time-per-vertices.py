@@ -17,4 +17,4 @@ plot=common.create_lineplot(
 	title,
 )
 
-common.save_to_file(plot.get_figure(), os.path.basename(__file__))
+common.save_to_file(plot.get_figure(), os.path.basename(__file__), "pgf")

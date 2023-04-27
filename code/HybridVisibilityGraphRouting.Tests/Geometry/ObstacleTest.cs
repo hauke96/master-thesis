@@ -11,7 +11,7 @@ public class ObstacleTest
     [Test]
     public void GetAngleAreaOfObstacle_Vertical()
     {
-        var obstacle = new Obstacle(new LineString(new[]
+        var obstacle = ObstacleTestHelper.CreateObstacle(new LineString(new[]
         {
             new Coordinate(1, 1),
             new Coordinate(1, 3)
@@ -40,7 +40,7 @@ public class ObstacleTest
     [Test]
     public void GetAngleAreaOfObstacle_Horizontal()
     {
-        var obstacle = new Obstacle(new LineString(new[]
+        var obstacle = ObstacleTestHelper.CreateObstacle(new LineString(new[]
         {
             new Coordinate(1, 1),
             new Coordinate(3, 1)
@@ -69,7 +69,7 @@ public class ObstacleTest
     public void GetAngleAreaOfObstacle_VertexOfObstacle()
     {
         // V-shape obstacle
-        var obstacle = new Obstacle(new LineString(new[]
+        var obstacle = ObstacleTestHelper.CreateObstacle(new LineString(new[]
         {
             new Coordinate(1, 2),
             new Coordinate(2, 1),
@@ -88,7 +88,7 @@ public class ObstacleTest
     [Test]
     public void GetAngleAreaOfObstacle_ClosedLineStringObstacle()
     {
-        var obstacle = new Obstacle(new LineString(new[]
+        var obstacle = ObstacleTestHelper.CreateObstacle(new LineString(new[]
         {
             new Coordinate(1, 1),
             new Coordinate(2, 1),
@@ -130,7 +130,7 @@ public class ObstacleTest
     [Test]
     public void GetAngleAreaOfObstacle_PolygonObstacle()
     {
-        var obstacle = new Obstacle(new Polygon(new LinearRing(new[]
+        var obstacle = ObstacleTestHelper.CreateObstacle(new Polygon(new LinearRing(new[]
         {
             new Coordinate(0, 0),
             new Coordinate(1, 0),
@@ -139,7 +139,7 @@ public class ObstacleTest
         })));
 
         ShadowArea shadowArea;
-        
+
         shadowArea = obstacle.GetShadowAreaOfObstacle(new Vertex(new Coordinate(0, 0)));
         Assert.AreEqual(45, shadowArea.From, 0.001);
         Assert.AreEqual(90, shadowArea.To, 0.001);
@@ -177,7 +177,7 @@ public class ObstacleTest
             new Coordinate(2, 2),
             new Coordinate(1, 1),
         };
-        var obstacle = new Obstacle(new LineString(coordinates));
+        var obstacle = ObstacleTestHelper.CreateObstacle(new LineString(coordinates));
         var coordinateToObstacles =
             VisibilityGraphGenerator.GetCoordinateToObstaclesMapping(new List<Obstacle> { obstacle });
 
@@ -228,10 +228,10 @@ public class ObstacleTest
             new Coordinate(3, 1),
             new Coordinate(2, 1),
         };
-        var obstacle1 = new Obstacle(new LineString(triangle1));
-        var obstacle2 = new Obstacle(new LineString(triangle2));
-        var coordinateToObstacles =
-            VisibilityGraphGenerator.GetCoordinateToObstaclesMapping(new List<Obstacle> { obstacle1, obstacle2 });
+        var obstacles = ObstacleTestHelper.CreateObstacles(new LineString(triangle1), new LineString(triangle2));
+        var obstacle1 = obstacles[0];
+        var obstacle2 = obstacles[1];
+        var coordinateToObstacles = VisibilityGraphGenerator.GetCoordinateToObstaclesMapping(obstacles);
 
         // Edges on outside of triangle 1
         Assert.IsFalse(obstacle1.IntersectsWithLine(triangle1[0], triangle1[1], coordinateToObstacles));
@@ -282,7 +282,7 @@ public class ObstacleTest
             new Coordinate(2, 1),
             new Coordinate(2, 2),
         };
-        var obstacle = new Obstacle(new LineString(coordinates));
+        var obstacle = ObstacleTestHelper.CreateObstacle(new LineString(coordinates));
         var coordinateToObstacles =
             VisibilityGraphGenerator.GetCoordinateToObstaclesMapping(new List<Obstacle> { obstacle });
 

@@ -29,18 +29,11 @@ public class Vertex
     /// The neighbors are neighboring vertices on obstacles but not across open spaces. These are not the visible
     /// vertices one might obtain by running the knn-search to find all n many visible neighbors.
     /// </param>
+    // TODO Only used in test code -> Merge with constructor above?
     public Vertex(Coordinate coordinate, IEnumerable<Position> obstacleNeighbors)
     {
-        var position = coordinate.ToPosition();
         Coordinate = coordinate;
-        ObstacleNeighbors = obstacleNeighbors
-            .Map(neighbor =>
-            {
-                neighbor.Bearing = Angle.GetBearing(position, neighbor);
-                return neighbor;
-            })
-            .OrderBy(neighbor => neighbor.Bearing)
-            .ToList();
+        ObstacleNeighbors = obstacleNeighbors.ToList();
         Id = ID_COUNTER++;
     }
 

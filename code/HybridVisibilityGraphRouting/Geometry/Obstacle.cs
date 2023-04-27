@@ -13,16 +13,18 @@ namespace HybridVisibilityGraphRouting.Geometry
 
         private readonly int _hash;
 
-        public Obstacle(NetTopologySuite.Geometries.Geometry geometry) : this(geometry,
-            geometry.Coordinates.Map(c => new Vertex(c)))
-        {
-        }
-
-        private Obstacle(NetTopologySuite.Geometries.Geometry geometry, List<Vertex> vertices)
+        public Obstacle(NetTopologySuite.Geometries.Geometry geometry, List<Vertex> vertices)
         {
             if (geometry is not Polygon && geometry is not LineString && geometry is not Point)
             {
                 throw new Exception("The obstacle geometry must be of type Polygon, LineString or Point!");
+            }
+
+            // If not all coordinates have any corresponding vertex (meaning if any coordinate has no corresponding
+            // vertex), then throw an exception. We always need vertices for each coordinate. 
+            if (!geometry.Coordinates.All(c => vertices.Any(v => v.Coordinate.Equals(c))))
+            {
+                throw new Exception("The obstacle geometry must have a vertex for each coordinate!");
             }
 
             Coordinates = geometry.Coordinates.ToList();
