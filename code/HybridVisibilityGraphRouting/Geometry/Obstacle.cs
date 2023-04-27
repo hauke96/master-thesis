@@ -1,5 +1,4 @@
 using NetTopologySuite.Geometries;
-using ServiceStack;
 
 namespace HybridVisibilityGraphRouting.Geometry
 {
@@ -9,7 +8,7 @@ namespace HybridVisibilityGraphRouting.Geometry
         public readonly Envelope Envelope;
         public readonly bool IsClosed;
 
-        public List<Vertex> Vertices;
+        public readonly List<Vertex> Vertices;
 
         private readonly int _hash;
 

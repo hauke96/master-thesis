@@ -15,11 +15,13 @@ public static class VisibilityGraphGenerator
 {
     /// <summary>
     /// Calculates the neighbor relationship for each vertex v in the given obstacles. The term "neighbor" here means
-    /// neighboring positions on multiple obstacles but not across open spaces. This means there is an edge on at least
-    /// one of the given obstacles from v to its neighboring positions.
+    /// neighboring positions on adjacent obstacles but not across open spaces. This means there is an edge on at least
+    /// one of the given obstacles from any vertex v to its neighboring positions.
+    ///
+    /// This neighbor relation is stored on the vertices of the obstacles. They therefore need to share the vertex
+    /// instances for identical vertices.
     /// </summary>
-    /// <returns>A dict from position to a duplicate free list of all neighbors found.</returns>
-    public static Dictionary<Coordinate, List<Position>> GetObstacleNeighborsFromObstacleVertices(
+    public static void AddObstacleNeighborsForObstacles(
         IList<Obstacle> obstacles,
         Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles,
         bool debugModeActive = false)
@@ -39,57 +41,38 @@ public static class VisibilityGraphGenerator
                     o.IntersectsWithLine(coordinate, otherCoordinate, coordinateToObstacles)
                 ));
 
-        var positionToObstacleNeighbors = new Dictionary<Coordinate, HashSet<Position>>();
-        obstacles.Each(obstacle =>
-        {
-            AddObstacleNeighborsForObstacle(obstacle, positionToObstacleNeighbors, IsCoordinateHidden);
-        });
+        obstacles.Each(obstacle => { AddObstacleNeighborsForObstacle(obstacle, IsCoordinateHidden); });
 
         if (!PerformanceMeasurement.IS_ACTIVE && debugModeActive)
         {
+            var positionToObstacleNeighbors = new Dictionary<Coordinate, HashSet<Position>>();
+            obstacles.Map(o => o.Vertices)
+                .SelectMany(x => x)
+                .Each(v => positionToObstacleNeighbors[v.Coordinate] = v.ObstacleNeighbors.ToSet());
             Exporter.WriteVertexNeighborsToFile(positionToObstacleNeighbors);
         }
-
-        // Use a list for easier handling later on (Vertices will eventually receive these neighbors and must be able to
-        // sort them).
-        var result = new Dictionary<Coordinate, List<Position>>();
-        obstacles.Map(o => o.Vertices)
-            .SelectMany(x => x)
-            .Distinct()
-            .Each(vertex => result.Add(vertex.Coordinate, vertex.ObstacleNeighbors));
-        return result;
     }
 
     /// <summary>
     /// Adds the obstacle neighbors (neighbors on this and touching obstacles but not across open spaces) to the given
     /// map.
     /// </summary>
+    /// <param name="obstacle">The obstacle of which the neighbor relation should be determined.</param>
     /// <param name="isCoordinateHidden">A function that determines if the obstacle is between the two given coordinates , in other words, if the two coordinates see each other.</param>
     private static void AddObstacleNeighborsForObstacle(
         Obstacle obstacle,
-        Dictionary<Coordinate, HashSet<Position>> positionToObstacleNeighbors,
         Func<Coordinate, Coordinate, Obstacle, bool> isCoordinateHidden)
     {
-        // TODO Change the return value to Dictionary<Position, HashSet<Position>> and add its entries to the overall dict in the callers method. This will remove the current side effect.
-
         var coordinates = obstacle.Coordinates.CreateCopy().Distinct().ToList();
-
         if (coordinates.Count == 1)
         {
-            positionToObstacleNeighbors[coordinates[0]] = new HashSet<Position>();
             return;
         }
 
         coordinates.Each((index, coordinate) =>
         {
-            if (!positionToObstacleNeighbors.ContainsKey(coordinate))
-            {
-                positionToObstacleNeighbors[coordinate] = new HashSet<Position>();
-            }
-
-            Coordinate? nextCoordinate =
-                index + 1 < coordinates.Count ? coordinates[index + 1] : null;
-            Coordinate? previousCoordinate = index - 1 >= 0 ? coordinates[index - 1] : null;
+            var nextCoordinate = index + 1 < coordinates.Count ? coordinates[index + 1] : null;
+            var previousCoordinate = index - 1 >= 0 ? coordinates[index - 1] : null;
 
             var neighbors = new HashSet<Position>();
 
@@ -129,14 +112,15 @@ public static class VisibilityGraphGenerator
                     vertex.ObstacleNeighbors.Add(n);
                 }
             });
-            // positionToObstacleNeighbors[coordinate].AddRange(neighbors);
         });
     }
 
     /// <summary>
-    /// Determines for each vertex all visible other vertices with respect to the given obstacles. The vertices are
-    /// extracted from the obstacles.
+    /// Determines for each vertex the "k" nearest visible vertices (visibility neighbors) with respect to the given
+    /// obstacles. The vertices are extracted from the obstacles.
     ///
+    /// The parameter "k" (for the knn search, hence the methods name) is determined by the following partitioning
+    /// strategy:
     /// This method uses bins to limit the number of visibility neighbors per angle area, since each bin covers a
     /// certain angle area of each vertex. Example: If "neighborBinCount" is set to 4, then each bin covers 90°. The
     /// "neighborsPerBin" also limit the amount of visible vertices per bin.
@@ -152,29 +136,15 @@ public static class VisibilityGraphGenerator
 
         var coordinateToObstacles = GetCoordinateToObstaclesMapping(allObstacles);
 
-        var positionToNeighbors = new Dictionary<Coordinate, List<Position>>();
         var result = PerformanceMeasurement.ForFunction(
-            () =>
-            {
-                positionToNeighbors =
-                    GetObstacleNeighborsFromObstacleVertices(allObstacles, coordinateToObstacles, debugModeActive);
-            },
-            "GetNeighborsFromObstacleVertices");
+            () => { AddObstacleNeighborsForObstacles(allObstacles, coordinateToObstacles, debugModeActive); },
+            "GetNeighborsFromObstacleVertices"
+        );
         result.Print();
         result.WriteToFile();
 
         Log.I("Collect all unique vertices");
         var allVertices = allObstacles.Map(o => o.Vertices).SelectMany(x => x).ToSet();
-
-        // Log.I("Create all unique vertices");
-        // var allVertices = positionToNeighbors.Map(pair => new Vertex(pair.Key, pair.Value));
-        //
-        // Log.I("Add vertices with neighbor information to obstacles");
-        // allObstacles.Each(o =>
-        // {
-        //     var verticesInObstacle = allVertices.Intersect(o.Vertices);
-        //     o.Vertices = verticesInObstacle.ToList();
-        // });
 
         Log.I("Calculate KNN to get visible vertices");
         var vertexNeighbors = new Dictionary<Vertex, List<List<Vertex>>>();
@@ -191,7 +161,7 @@ public static class VisibilityGraphGenerator
     }
 
     /// <summary>
-    /// Same as "CalculateVisibleKnn()" but takes the already determines vertices and the mapping from coordinate to
+    /// Same as "CalculateVisibleKnn()" but takes the already determined vertices and the mapping from coordinate to
     /// obstacles.
     /// </summary>
     /// <param name="coordinateToObstacles">
