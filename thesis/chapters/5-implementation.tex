@@ -44,6 +44,7 @@ After that, the main sections of this chapter show details of each algorithmic s
 		However, this performance enhancement would only affect the generation of a visibility graph and not the performance of the routing queries.
 			
 	\subsection{Algorithm steps}
+	\label{subsec:algorithm-steps}
 		
 		As describes in \cref{sec:components}, the \texttt{HybridVisibilityGraphGenerator} class provides a factory method to create a \texttt{HybridVisibilityGraph} from a given collection of features.
 		This factory method consists of the following top level steps, which are all described in \cref{sec:visibility-graph-creation} in more detail:
@@ -76,7 +77,10 @@ After that, the main sections of this chapter show details of each algorithmic s
 		
 \section{Visibility graph creation}
 \label{sec:visibility-graph-creation}
-		
+
+	This section describes the steps given in \cref{subsec:algorithm-steps}, generating a visibility graph and merging it with a road network, in more detail.
+	Newly introduces data structures are presented and described as well.
+
 	\subsection{Step 1: Obstacle filtering and feature preprocessing}
 	\label{subsec:step-1-preprocessing}
 			
@@ -389,22 +393,22 @@ After that, the main sections of this chapter show details of each algorithmic s
 					\begin{figcenter}
 						\begin{tikzpicture}
 							\tikzDot{(2,0)}{vo0};
-							\tikzDot[label={[label distance=-1mm]above right:$v$}]{(2,1)}{vo1};
+							\tikzDot[label={[label distance=-1.25mm]above right:$v $}]{(2,1)}{vo1};
 							\tikzDot{(2,2)}{vo2};
 							
 							\draw (vo0) -- (vo1);
 							\draw (vo1) -- (vo2);
 							
-							\tikzDot[label=left:$v_a$,outer sep=0.5mm]{(0.5,1.3)}{v1};
-							\tikzDot[label=right:$v_b$,outer sep=0.5mm]{(3.5,1)}{v2};
+							\tikzDot[label=left:$n_a$,outer sep=0.5mm]{(0.5,1.3)}{n1};
+							\tikzDot[label=right:$n_b$,outer sep=0.5mm]{(3.5,1)}{n2};
 							
-							\draw[dotted] (v1) -- (vo1);
-							\draw[dotted] (vo1) -- (v2);
+							\draw[dotted] (n1) -- (vo1);
+							\draw[dotted] (vo1) -- (n2);
 							
-							\draw[dotted] (v1) -- (vo0);
-							\draw[dotted] (v1) -- (vo2);
-							\draw[dotted] (v2) -- (vo0);
-							\draw[dotted] (v2) -- (vo2);
+							\draw[dotted] (n1) -- (vo0);
+							\draw[dotted] (n1) -- (vo2);
+							\draw[dotted] (n2) -- (vo0);
+							\draw[dotted] (n2) -- (vo2);
 						\end{tikzpicture}
 						\hspace{2cm}
 						\begin{tikzpicture}
@@ -413,7 +417,9 @@ After that, the main sections of this chapter show details of each algorithmic s
 							\def\gap{0.1875mm}
 							
 							\tikzDot{(2,0)}{vo0};
-							\node[label={[label distance=-1.25mm]above right:$v$}] (vo1) at (2,1) {};
+							\node (vo1) at (2,1) {};
+							\node[label={[label distance=-1.25mm]above left:$v_a$}] at (vo1) {};
+							\node[label={[label distance=-1.25mm]above right:$v_b$}] at (vo1) {};
 							\coordinate (vo11) at ($(vo1)+(180:\rMargin)$);
 							\coordinate (vo12) at ($(vo1)+(0:\rMargin)$);
 							\tikzDot{(2,2)}{vo2};
@@ -428,31 +434,31 @@ After that, the main sections of this chapter show details of each algorithmic s
 							\draw ($(vo1)+(90:\r)+(-0.275mm,0)$) -- ($(vo2)+(-0.275mm,-2mm)$) -- (vo2.south);
 							\draw ($(vo1)+(90:\r)+( 0.275mm,0)$) -- ($(vo2)+( 0.275mm,-2mm)$) -- (vo2.south);
 							
-							\tikzDot[label=left:$v_a$,outer sep=0.5mm]{(0.5,1.3)}{v1};
-							\tikzDot[label=right:$v_b$,outer sep=0.5mm]{(3.5,1)}{v2};
+							\tikzDot[label=left:$n_a$,outer sep=0.5mm]{(0.5,1.3)}{n1};
+							\tikzDot[label=right:$n_b$,outer sep=0.5mm]{(3.5,1)}{n2};
 							
-							\draw[dotted] (v1) -- (vo11);
-							\draw[dotted] (vo12) -- (v2);
+							\draw[dotted] (n1) -- (vo11);
+							\draw[dotted] (vo12) -- (n2);
 							
-							\draw[dotted] (v1) -- (vo0);
-							\draw[dotted] (v1) -- (vo2);
-							\draw[dotted] (v2) -- (vo0);
-							\draw[dotted] (v2) -- (vo2);
+							\draw[dotted] (n1) -- (vo0);
+							\draw[dotted] (n1) -- (vo2);
+							\draw[dotted] (n2) -- (vo0);
+							\draw[dotted] (n2) -- (vo2);
 						\end{tikzpicture}
 					\end{figcenter}
 					\caption{
-						Both illustrations show a vertical obstacle with vertex $v$ in the middle.
+						Both illustrations show two neighboring vertices $n_a$ and $n_b$ around a vertical obstacle with one vertex in the middle through which routing should \emph{not} be possible.
 						The dotted edges are visibility edges added during graph generation.
 						\\
 						\underline{Left}:
 						Visibility graph with naive connections.
-						The two dotted visibility edges $(v_a, v)$ and $(v, v_b)$ allow a routing through the obstacle from $v_a$ vis $v$ to $v_b$.
+						The two dotted visibility edges $(n_a, u)$ and $(u, n_b)$ allow the shortest path to go through the obstacle from $n_a$ via $u$ to $n_b$.
 						\\
 						\underline{Right}:
-						The visibility graph with connection respecting the obstacles. For vertex $v$ two nodes are created.
-						All gabs are for illustrational purposes only, the two nodes for $v$ and the vertical edges have the exact locations.
-						One of $v$'s nodes is connected to $v_a$, the other one to $v_b$.
-						This ensures that the shortest path from $v_a$ to $v_b$ does not lead through $v$ anymore.
+						The visibility graph with connection respecting the obstacles. Instead of a single node $u$, two nodes $v_a$ and $v_b$ are created.
+						All gabs are for illustration purposes only, the two created nodes have the exact same location, which holds true for the parallel vertical edges.
+						The node $v_a$ is connected to $n_a$ and $v_b$ to $n_b$ but $v_a$ and $v_b$ are not connected.
+						This ensures that the shortest path from $n_a$ to $n_b$ does not lead through the middle vertex of the obstacle anymore.
 					}
 					\label{fig:routing-through-line-obstacle}
 				\end{figure}
@@ -517,9 +523,12 @@ After that, the main sections of this chapter show details of each algorithmic s
 		Because one node is created for each bin of neighboring vertices, mappings between nodes, vertices and neighbor bins have to be created.
 		Two iterations over all vertices are used to first create these mappings and then use them to connect all nodes correctly.
 		
-		\todo{More details on the mappings?}
+		Without the mappings, it would not be clear to what node to connect.
+		An example is shown in \cref{fig:visibility-bin-sorting}:
+		Without a mapping between visibility neighbor bins and nodes, it is unclear whether to connect $n_a$ to $v_a$ or to $v_b$ because they both are on the exact same location.
 		
 		The resulting spatial graph together with some of the mappings, which will be used when \hyperref[sec:answering-queries]{answering routing queries}, are used to create an instance of the \texttt{HybridVisibilityGraph} class.
+		It contains the final spatial graph along with all information needed to correctly add and connect new nodes, more precisely nodes for the start and target locations of a routing query.
 		
 	\subsection{Step 4: Merging a road network into the visibility graph}
 	
@@ -539,7 +548,7 @@ After that, the main sections of this chapter show details of each algorithmic s
 					\tikzDot{(1.5,-1.65)}{rn1}
 					\tikzDot{(1.8,1.65)}{rn2}
 					
-					\draw[<->,dotted] (v1n1) -- node[above right=0cm and 0.4cm] {$v$} (v1n2);
+					\draw[<->,dashed] (v1n1) -- node[above right=0cm and 0.4cm] {$v$} (v1n2);
 					\draw[<->,dashed] (v2n1) -- node[above right=0cm and 0.4cm] {$u$} (v2n2);
 					
 					\draw[<->] (rn1) -- node[left] {$r$} (rn2);
@@ -558,8 +567,8 @@ After that, the main sections of this chapter show details of each algorithmic s
 					\tikzDot{(intersection of v1n1--v1n2 and rn1--rn2)}{i1}
 					\tikzDot{(intersection of v2n1--v2n2 and rn1--rn2)}{i2}
 					
-					\draw[<->,dotted] (v1n1) -- node[above] {$v_1$} (i1);
-					\draw[<->,dotted] (i1)   -- node[above] {$v_2$} (v1n2);
+					\draw[<->,dashed] (v1n1) -- node[above] {$v_1$} (i1);
+					\draw[<->,dashed] (i1)   -- node[above] {$v_2$} (v1n2);
 					\draw[<->,dashed] (v2n1) -- node[above] {$u_1$} (i2);
 					\draw[<->,dashed] (i2)   -- node[above] {$u_2$} (v2n2);
 					
