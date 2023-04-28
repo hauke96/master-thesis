@@ -197,8 +197,9 @@ After that, the main sections of this chapter show details of each algorithmic s
 				The distance from which everything within the angle area of the shadow is definitely not visible from $v$, is determined by the two bounding vertices (marked in red in \cref{fig:shadow-area}).
 				These bounding vertices determine the angular range and the furthest of these two determines the minimum distance of the shadow area.
 				
-				Keeping track of these shadow areas for each vertex significantly improves performance.
-				\todo[inline]{conrete numbers?}\todo[inline]{Reference to BinIndex below or other used data structure (s. TODO below)}
+				Keeping track of these shadow areas for each vertex significantly improves performance, especially with the use of the \texttt{BinIndex} data structure described \hyperref[subsubsec:binindex]{below}.
+				\todo[inline]{conrete numbers?}
+				
 				% NetworkRoutingPlayground->Jungfernstieg dataset with 7916 vertices: ~7.3s with and 67s without shadow areas -> speed up of factor ~9
 				% Hamburg inner city dataset with 67819 vertices: 382s with and ~31000s without shadow areas -> speed up of factor ~81
 				
@@ -266,6 +267,7 @@ After that, the main sections of this chapter show details of each algorithmic s
 				\end{figure}
 				
 			\subsubsection{BinIndex data structure}
+			\label{subsubsec:binindex}
 			
 				The \texttt{BinIndex} class implements a simple index structure to store and access intervals.
 				It contains $n$ many bins of which each covers a certain range and consists of a linked list.
