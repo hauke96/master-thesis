@@ -187,6 +187,11 @@
 \setlist[itemize]{noitemsep, leftmargin=2em}
 \setlist[enumerate]{noitemsep, leftmargin=2em}
 
+% Allow line and word breaks in tele-type font
+\newcommand{\origttfamily}{}
+\let\origttfamily=\ttfamily
+\renewcommand{\ttfamily}{\origttfamily \hyphenchar\font=`\-}
+
 \begin{document}
 	\include{titlepage.tex}
 	

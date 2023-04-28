@@ -71,7 +71,6 @@ After that, the main sections of this chapter show details of each algorithmic s
 			\item Route along the resulting graph
 			\item Restore the original graph by removing all added nodes and edges
 		\end{enumerate}
-	
 		The last step ensures that subsequent routing queries are answered based on the original graph and not on a previously altered version.
 		It also prevents an uncontrolled growth of the graph.
 		
@@ -528,7 +527,7 @@ After that, the main sections of this chapter show details of each algorithmic s
 		Without a mapping between visibility neighbor bins and nodes, it is unclear whether to connect $n_a$ to $v_a$ or to $v_b$ because they both are on the exact same location.
 		
 		The resulting spatial graph together with some of the mappings, which will be used when \hyperref[sec:answering-queries]{answering routing queries}, are used to create an instance of the \texttt{HybridVisibilityGraph} class.
-		It contains the final spatial graph along with all information needed to correctly add and connect new nodes, more precisely nodes for the start and target locations of a routing query.
+		It contains the final spatial graph, as an instance of the \texttt{SpatialGraph} class contained in the MARS framework, along with all information needed to correctly add and connect new nodes, more precisely nodes for the start and target locations of a routing query.
 		
 	\subsection{Step 4: Merging a road network into the visibility graph}
 	
@@ -600,3 +599,19 @@ After that, the main sections of this chapter show details of each algorithmic s
 	
 \section{Answering shortest path queries}
 \label{sec:answering-queries}
+
+	The process of answering shortest path queries, or routing queries in general, is the following simple routine:
+	
+	\begin{enumerate}
+		\item \label{itm:answering-queries-add-nodes} Add the source and target nodes $s$ and $t$ to the graph.
+		\item \label{itm:answering-queries-vis-edges} Determine visibility edges of these nodes and add these new edges to the graph.
+		\item \label{itm:answering-queries-routing} Use a normal shortest path algorithm, such as A*, to find the path between $s$ and $t$.
+		\item \label{itm:answering-queries-cleanup} Remove all previously added nodes and edges to get a clean graph for future routing requests.
+	\end{enumerate}
+	Fortunately, the \texttt{SpatialGraph.RemoveNode(int)} method removes the node given by its ID and also removes all edges, which are connected to the given node.
+	This makes step \ref{itm:answering-queries-cleanup} very easy since step \ref{itm:answering-queries-add-nodes} yields the node IDs needed for the cleanup.
+	
+	Because step \ref{itm:answering-queries-vis-edges} is already implemented for the general graph generation, the core method \texttt{VisibilityGraphGenerator.GetVisibilityNeighborsForVertex()} can be reused without further adjustments.
+	The most complex part is to determine the correct node to connect to.
+	Thanks to the mappings of neighbor bins and their covered angle areas, as introduced in \cref{subsec:step-3-graph-creation}, the correct bin for a location must be determined and a bidirectional edge be created.
+	All are simple filtering operations on the bins and can be implemented with very little code.
