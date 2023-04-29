@@ -29,17 +29,24 @@ public static class VisibilityGraphGenerator
         // A function that determines if any obstacles is between the two given coordinates.
         bool IsCoordinateHidden(Coordinate coordinate, Coordinate otherCoordinate, Obstacle obstacleOfCoordinate) =>
             obstacles.Any(o =>
-                o.IsClosed &&
-                (
-                    // Either we have a different obstacle than "obstacleOfCoordinate" which also has the line segment
-                    // between the two coordinates, which means "o" and "obstacleOfCoordinate" touch each other on
-                    // this segment, ...
-                    !obstacleOfCoordinate.Equals(o) &&
-                    o.HasLineSegment(coordinate, otherCoordinate) ||
-                    // ... or we have something else (same obstacle of the above check returned false), so we check for
-                    // true line intersection.
-                    o.IntersectsWithLine(coordinate, otherCoordinate, coordinateToObstacles)
-                ));
+                // There are two cases to consider of which one has to be true when checking if there's anything between
+                // "coordinate" and "otherCoordinate":
+                //
+                // 1. case:
+                // We have a different obstacle than "obstacleOfCoordinate" which also has the line segment
+                // between the two coordinates, which means "o" and "obstacleOfCoordinate" touch each other on
+                // this segment. It's important that both are closed, because if one is open, the two coordinates
+                // are reachable and therefore might actually see each other.
+                !obstacleOfCoordinate.Equals(o) && o.IsClosed
+                                                && obstacleOfCoordinate.IsClosed
+                                                && o.HasLineSegment(coordinate, otherCoordinate)
+                                                && obstacleOfCoordinate.HasLineSegment(coordinate, otherCoordinate)
+                ||
+                // 2. case:
+                // We have something else, so we check for true line intersection.
+                !obstacleOfCoordinate.Equals(o) &&
+                o.IntersectsWithLine(coordinate, otherCoordinate, coordinateToObstacles)
+            );
 
         obstacles.Each(obstacle => { AddObstacleNeighborsForObstacle(obstacle, IsCoordinateHidden); });
 

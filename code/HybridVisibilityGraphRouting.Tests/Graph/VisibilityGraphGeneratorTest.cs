@@ -546,8 +546,16 @@ public class VisibilityGraphGeneratorTest
         });
         var obstacles = ObstacleTestHelper.CreateObstacles(obstacle1, obstacle2);
 
-        VisibilityGraphGenerator.AddObstacleNeighborsForObstacles(obstacles,
-            new Dictionary<Coordinate, List<Obstacle>>());
+        var coordinateToObstacles = new Dictionary<Coordinate, List<Obstacle>>
+        {
+            { obstacle1.Coordinates[0], new List<Obstacle> { obstacles[0], obstacles[1] } },
+            { obstacle1.Coordinates[1], new List<Obstacle> { obstacles[0], obstacles[1] } },
+            { obstacle1.Coordinates[2], new List<Obstacle> { obstacles[0] } },
+            { obstacle1.Coordinates[3], new List<Obstacle> { obstacles[0] } },
+            { obstacle2.Coordinates[2], new List<Obstacle> { obstacles[1] } }
+        };
+
+        VisibilityGraphGenerator.AddObstacleNeighborsForObstacles(obstacles, coordinateToObstacles);
 
         var positionToNeighbors = GetPositionToNeighborMap(obstacles);
 
@@ -584,6 +592,41 @@ public class VisibilityGraphGeneratorTest
     }
 
     [Test]
+    public void AddObstacleNeighborsForObstacles_OverlappingLines_WithoutIntersectionNode()
+    {
+        var obstacle1 = new LineString(new[]
+        {
+            new Coordinate(0, 1),
+            // Intersection with obstacle 2
+            new Coordinate(2, 1)
+        });
+        var obstacle2 = new LineString(new[]
+        {
+            new Coordinate(1, 0),
+            // Intersection with obstacle 1
+            new Coordinate(1, 2)
+        });
+        var obstacles = ObstacleTestHelper.CreateObstacles(obstacle1, obstacle2);
+
+        var coordinateToObstacles = new Dictionary<Coordinate, List<Obstacle>>
+        {
+            { obstacle1.Coordinates[0], new List<Obstacle> { obstacles[0] } },
+            { obstacle1.Coordinates[1], new List<Obstacle> { obstacles[0] } },
+            { obstacle2.Coordinates[0], new List<Obstacle> { obstacles[1] } },
+            { obstacle2.Coordinates[1], new List<Obstacle> { obstacles[1] } }
+        };
+
+        VisibilityGraphGenerator.AddObstacleNeighborsForObstacles(obstacles, coordinateToObstacles);
+
+        var positionToNeighbors = GetPositionToNeighborMap(obstacles);
+
+        Assert.IsEmpty(positionToNeighbors[obstacle1.Coordinates[0]]);
+        Assert.IsEmpty(positionToNeighbors[obstacle1.Coordinates[1]]);
+        Assert.IsEmpty(positionToNeighbors[obstacle2.Coordinates[0]]);
+        Assert.IsEmpty(positionToNeighbors[obstacle2.Coordinates[1]]);
+    }
+
+    [Test]
     public void AddObstacleNeighborsForObstacles_TouchingLines()
     {
         var obstacle1 = new LineString(new[]
@@ -598,8 +641,14 @@ public class VisibilityGraphGeneratorTest
         });
         var obstacles = ObstacleTestHelper.CreateObstacles(obstacle1, obstacle2);
 
-        VisibilityGraphGenerator.AddObstacleNeighborsForObstacles(obstacles,
-            new Dictionary<Coordinate, List<Obstacle>>());
+        var coordinateToObstacles = new Dictionary<Coordinate, List<Obstacle>>
+        {
+            { obstacle1.Coordinates[0], new List<Obstacle> { obstacles[0] } },
+            { obstacle1.Coordinates[1], new List<Obstacle> { obstacles[0], obstacles[1] } },
+            { obstacle2.Coordinates[1], new List<Obstacle> { obstacles[1] } }
+        };
+
+        VisibilityGraphGenerator.AddObstacleNeighborsForObstacles(obstacles, coordinateToObstacles);
 
         var positionToNeighbors = GetPositionToNeighborMap(obstacles);
 
