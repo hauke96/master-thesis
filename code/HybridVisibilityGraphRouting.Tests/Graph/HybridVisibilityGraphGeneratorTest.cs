@@ -16,7 +16,7 @@ namespace HybridVisibilityGraphRouting.Tests.Graph;
 
 public class HybridVisibilityGraphGeneratorTest
 {
-    class WithGeneratedGraph : HybridVisibilityGraphGeneratorTest
+    class WithGeneratedGraph
     {
         Feature featureObstacle1;
         Feature featureObstacle2;
@@ -663,7 +663,7 @@ public class HybridVisibilityGraphGeneratorTest
         CollectionAssert.DoesNotContain(edges, new[] { new Position(1, 1), new Position(1, 0) });
     }
 
-    private void AssertEdges(SpatialGraph graph, (double, double) coordinateA, (double, double) coordinateB)
+    static void AssertEdges(SpatialGraph graph, (double, double) coordinateA, (double, double) coordinateB)
     {
         AssertEdges(
             graph,
@@ -692,7 +692,7 @@ public class HybridVisibilityGraphGeneratorTest
         CollectionAssert.Contains(graph.EdgesMap.Keys, (nodeA, nodeB));
     }
 
-    private int GetNode(ISpatialGraph graph, Coordinate coordinate)
+    static int GetNode(ISpatialGraph graph, Coordinate coordinate)
     {
         var nodes = graph.NodesMap
             .Map(pair => pair.Value)
