@@ -338,7 +338,7 @@ public class VisibilityGraphGeneratorTest
         CollectionAssert.AreEquivalent(expectedCoordinates, actualCoordinates);
     }
 
-    class GetVisibilityNeighborsForVertex 
+    class GetVisibilityNeighborsForVertex
     {
         Obstacle obstacle;
         QuadTree<Obstacle> obstacleIndex;

@@ -95,7 +95,9 @@ public static class Exporter
                     new LineString(edgeData.Geometry.Map(p => p.ToCoordinate()).ToArray()),
                     new AttributesTable(new Dictionary<string, object>()
                     {
-                        { "edge_id", key }
+                        { "edge_id", key },
+                        { "node_from", edgeData.From },
+                        { "node_to", edgeData.To }
                     })));
             });
             WriteFeatures(graphFeatures, fileName);

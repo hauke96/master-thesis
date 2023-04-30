@@ -23,7 +23,7 @@ public class NetworkLayer : VectorLayer
 
         Graph = HybridVisibilityGraphGenerator.Generate(Features.Map(f => f.VectorStructured));
         
-        Exporter.WriteGraphToFile(Graph.Graph, "graph.geojson");
+        Exporter.WriteGraphToFile(Graph.Graph);
 
         return true;
     }

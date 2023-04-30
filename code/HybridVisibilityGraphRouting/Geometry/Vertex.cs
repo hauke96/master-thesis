@@ -1,6 +1,4 @@
-using Mars.Common;
 using NetTopologySuite.Geometries;
-using ServiceStack;
 using Position = Mars.Interfaces.Environments.Position;
 
 namespace HybridVisibilityGraphRouting.Geometry;
