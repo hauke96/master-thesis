@@ -70,12 +70,16 @@ public static class HybridVisibilityGraphGenerator
 
     public static Dictionary<Vertex, List<List<Vertex>>> DetermineVisibilityNeighbors(QuadTree<Obstacle> obstacles)
     {
-        var watch = Stopwatch.StartNew();
+        Dictionary<Vertex, List<List<Vertex>>> vertexNeighbors = new Dictionary<Vertex, List<List<Vertex>>>();
 
-        var vertexNeighbors = VisibilityGraphGenerator.CalculateVisibleKnn(obstacles, 36, 10, true);
+        var result = PerformanceMeasurement.ForFunction(
+            () => { vertexNeighbors = VisibilityGraphGenerator.CalculateVisibleKnn(obstacles, 36, 10, true); },
+            "CalculateVisibleKnn"
+        );
+        result.Print();
+        result.WriteToFile();
 
-        Console.WriteLine(
-            $"{nameof(HybridVisibilityGraphGenerator)}: CalculateVisibleKnn done after {watch.ElapsedMilliseconds}ms");
+        Log.D($"{nameof(HybridVisibilityGraphGenerator)}: CalculateVisibleKnn done after {result.AverageTime}ms");
         return vertexNeighbors;
     }
 
@@ -194,7 +198,7 @@ public static class HybridVisibilityGraphGenerator
 
         roadSegments.Each((i, roadSegment) =>
         {
-            Console.WriteLine($"MergeSegmentIntoGraph {i}/{roadSegments.Count}");
+            Log.D($"MergeSegmentIntoGraph {i}/{roadSegments.Count}");
             MergeSegmentIntoGraph(graph, edgeIndex, nodeIndex, roadSegment);
         });
 

@@ -8,9 +8,10 @@ namespace HybridVisibilityGraphRouting;
 
 public class PerformanceMeasurement
 {
+    public const int DEFAULT_ITERATION_COUNT = 10;
+    public const int DEFAULT_WARMUP_COUNT = 5;
+
     public static bool IS_ACTIVE = false;
-    public static int DEFAULT_ITERATION_COUNT = 10;
-    public static int DEFAULT_WARMUP_COUNT = 5;
 
     public static int TOTAL_VERTICES = -1;
     public static int TOTAL_VERTICES_AFTER_PREPROCESSING = -1;
@@ -103,7 +104,10 @@ public class PerformanceMeasurement
 
         public async void WriteToFile()
         {
-            await File.WriteAllTextAsync("performance_" + _name + ".csv", ToCsv());
+            if (IS_ACTIVE)
+            {
+                await File.WriteAllTextAsync("performance_" + _name + ".csv", ToCsv());
+            }
         }
 
         private static String ToString(double number)
@@ -255,26 +259,20 @@ public class PerformanceMeasurement
         return Process.GetCurrentProcess().WorkingSet64;
     }
 
-    public static Result ForFunction(Action func, string name = "", int iterationCount = -1, int warmupCount = -1)
+    public static Result ForFunction(Action func, string name = "", int iterationCount = DEFAULT_ITERATION_COUNT,
+        int warmupCount = DEFAULT_WARMUP_COUNT)
     {
-        Result result = new Result(name);
-        
+        var result = new Result(name);
+
         if (!IS_ACTIVE)
         {
+            StartTimer();
             func();
+            var iterationDuration = StopTimer();
+            result.AddIteration(iterationDuration, 0, 0);
             return result;
         }
-        
-        if (iterationCount == -1)
-        {
-            iterationCount = DEFAULT_ITERATION_COUNT;
-        }
 
-        if (warmupCount == -1)
-        {
-            warmupCount = DEFAULT_WARMUP_COUNT;
-        }
-        
         Log.D(
             $"Performance measurement {name}: Measure performance using {warmupCount} warmup iterations and {iterationCount} actual iterations");
 

@@ -140,29 +140,15 @@ public static class VisibilityGraphGenerator
     {
         Log.D("Get direct neighbors on each obstacle geometry");
         var allObstacles = obstacles.QueryAll();
-
         var coordinateToObstacles = GetCoordinateToObstaclesMapping(allObstacles);
-
-        var result = PerformanceMeasurement.ForFunction(
-            () => { AddObstacleNeighborsForObstacles(allObstacles, coordinateToObstacles, debugModeActive); },
-            "GetNeighborsFromObstacleVertices"
-        );
-        result.Print();
-        result.WriteToFile();
+        AddObstacleNeighborsForObstacles(allObstacles, coordinateToObstacles, debugModeActive);
 
         Log.D("Collect all unique vertices");
         var allVertices = allObstacles.Map(o => o.Vertices).SelectMany(x => x).ToSet();
 
         Log.D("Calculate KNN to get visible vertices");
-        var vertexNeighbors = new Dictionary<Vertex, List<List<Vertex>>>();
-        result = PerformanceMeasurement.ForFunction(() =>
-        {
-            vertexNeighbors =
-                CalculateVisibleKnnInternal(obstacles, coordinateToObstacles, allVertices, neighborBinCount,
-                    neighborsPerBin, debugModeActive);
-        }, "CalculateVisibleKnn");
-        result.Print();
-        result.WriteToFile();
+        var vertexNeighbors = CalculateVisibleKnnInternal(obstacles, coordinateToObstacles, allVertices,
+            neighborBinCount, neighborsPerBin, debugModeActive);
 
         return vertexNeighbors;
     }
