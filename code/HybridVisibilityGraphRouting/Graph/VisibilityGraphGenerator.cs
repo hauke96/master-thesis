@@ -150,10 +150,10 @@ public static class VisibilityGraphGenerator
         result.Print();
         result.WriteToFile();
 
-        Log.I("Collect all unique vertices");
+        Log.D("Collect all unique vertices");
         var allVertices = allObstacles.Map(o => o.Vertices).SelectMany(x => x).ToSet();
 
-        Log.I("Calculate KNN to get visible vertices");
+        Log.D("Calculate KNN to get visible vertices");
         var vertexNeighbors = new Dictionary<Vertex, List<List<Vertex>>>();
         result = PerformanceMeasurement.ForFunction(() =>
         {

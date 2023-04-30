@@ -33,8 +33,7 @@ public static class HybridVisibilityGraphGenerator
         MergeRoadsIntoGraph(features, spatialGraph);
         AddAttributesToPoiNodes(features, spatialGraph);
 
-        Console.WriteLine(
-            $"{nameof(HybridVisibilityGraphGenerator)}: Done after {watch.ElapsedMilliseconds}ms");
+        Log.D($"{nameof(HybridVisibilityGraphGenerator)}: Done after {watch.ElapsedMilliseconds}ms");
         return hybridVisibilityGraph;
     }
 
@@ -64,7 +63,7 @@ public static class HybridVisibilityGraphGenerator
             obstacleIndex.Insert(geometry.EnvelopeInternal, new Obstacle(geometry, vertices));
         });
 
-        Console.WriteLine(
+        Log.D(
             $"{nameof(HybridVisibilityGraphGenerator)}: Splitting obstacles done after {watch.ElapsedMilliseconds}ms");
         return obstacleIndex;
     }
@@ -162,10 +161,9 @@ public static class HybridVisibilityGraphGenerator
             });
         });
 
-        Console.WriteLine(
-            $"{nameof(HybridVisibilityGraphGenerator)}: Graph creation done after {watch.ElapsedMilliseconds}ms");
-        Console.WriteLine($"  Number of nodes: {graph.NodesMap.Count}");
-        Console.WriteLine($"  Number of edges: {graph.EdgesMap.Count}");
+        Log.D($"{nameof(HybridVisibilityGraphGenerator)}: Graph creation done after {watch.ElapsedMilliseconds}ms");
+        Log.D($"  Number of nodes: {graph.NodesMap.Count}");
+        Log.D($"  Number of edges: {graph.EdgesMap.Count}");
 
         var hybridVisibilityGraph = new HybridVisibilityGraph(graph, obstacles, vertexToNode, nodeToAngleArea);
         return (hybridVisibilityGraph, graph);
@@ -200,7 +198,7 @@ public static class HybridVisibilityGraphGenerator
             MergeSegmentIntoGraph(graph, edgeIndex, nodeIndex, roadSegment);
         });
 
-        Console.WriteLine(
+        Log.D(
             $"{nameof(HybridVisibilityGraphGenerator)}: Merging road network into graph done after {watch.ElapsedMilliseconds}ms");
         Console.WriteLine($"  Number of nodes: {graph.NodesMap.Count}");
         Console.WriteLine($"  Number of edges: {graph.EdgesMap.Count}");

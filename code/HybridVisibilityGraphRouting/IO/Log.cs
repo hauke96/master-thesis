@@ -24,4 +24,9 @@ public class Log
     {
         D("- " + message);
     }
+
+    public static void W(string message)
+    {
+        I("WARN: " + message);
+    }
 }

@@ -207,7 +207,7 @@ public class PerformanceMeasurement
         }
         catch (Exception)
         {
-            Log.I("WARN: Setting high priority on thread failed. Use normal priority.");
+            Log.W("Setting high priority on thread failed. Use normal priority.");
         }
     }
 
@@ -275,7 +275,8 @@ public class PerformanceMeasurement
             warmupCount = DEFAULT_WARMUP_COUNT;
         }
         
-        Log.D($"Performance measurement {name}: Measure performance using {warmupCount} warmup iterations and {iterationCount} actual iterations");
+        Log.D(
+            $"Performance measurement {name}: Measure performance using {warmupCount} warmup iterations and {iterationCount} actual iterations");
 
         Init();
 
@@ -299,11 +300,13 @@ public class PerformanceMeasurement
             if (i >= warmupCount)
             {
                 result.AddIteration(iterationDuration, memBefore, memAfter);
-                Log.I($"Performance measurement {name}: Iteration {i - warmupCount} / {iterationCount} done: {iterationDuration}ms");
+                Log.I(
+                    $"Performance measurement {name}: Iteration {i - warmupCount} / {iterationCount} done: {iterationDuration}ms");
             }
             else
             {
-                Log.I($"Performance measurement {name}: Warmup iteration {i} / {warmupCount} done: {iterationDuration}ms");
+                Log.I(
+                    $"Performance measurement {name}: Warmup iteration {i} / {warmupCount} done: {iterationDuration}ms");
             }
         }
 
