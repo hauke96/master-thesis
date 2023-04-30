@@ -7,6 +7,7 @@ using NetworkRoutingPlayground.Model;
 using ServiceStack.Text;
 using HybridVisibilityGraphRouting;
 using HybridVisibilityGraphRouting.Geometry;
+using HybridVisibilityGraphRouting.IO;
 using ServiceStack;
 
 namespace NetworkRoutingPlayground.Layer;
@@ -21,6 +22,8 @@ public class NetworkLayer : VectorLayer
         base.InitLayer(layerInitData, registerAgentHandle, unregisterAgent);
 
         Graph = HybridVisibilityGraphGenerator.Generate(Features.Map(f => f.VectorStructured));
+        
+        Exporter.WriteGraphToFile(Graph.Graph, "graph.geojson");
 
         return true;
     }
