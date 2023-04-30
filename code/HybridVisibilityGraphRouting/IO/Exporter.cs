@@ -106,7 +106,7 @@ public static class Exporter
             throw;
         }
 
-        Console.WriteLine($"WriteGraphToFile: Store layer as GeoJSON done after {watch.ElapsedMilliseconds}ms");
+        Log.D($"WriteGraphToFile: Store layer as GeoJSON done after {watch.ElapsedMilliseconds}ms");
     }
 
     public static void WriteFeatures(FeatureCollection vectorFeatures, string fileName = "./NetworkLayer.geojson")

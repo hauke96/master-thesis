@@ -204,8 +204,8 @@ public static class HybridVisibilityGraphGenerator
 
         Log.D(
             $"{nameof(HybridVisibilityGraphGenerator)}: Merging road network into graph done after {watch.ElapsedMilliseconds}ms");
-        Console.WriteLine($"  Number of nodes: {graph.NodesMap.Count}");
-        Console.WriteLine($"  Number of edges: {graph.EdgesMap.Count}");
+        Log.D($"  Number of nodes: {graph.NodesMap.Count}");
+        Log.D($"  Number of edges: {graph.EdgesMap.Count}");
     }
 
     /// <summary>
