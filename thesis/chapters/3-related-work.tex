@@ -134,8 +134,10 @@ This section gives an overview about closely related work from these areas.
 		
 		One of the most popular algorithms is the A* algorithm introduced by Hart, Nilsson and Raphael in 1968 \cite{astar}.
 		A detailed description of A* including its time and space complexities can be found in \cref{subsubsec:astar}.
-		
-		\todo[inline]{Related work: Network based routing}
+
+		Because the result of this thesis can be used with any network based algorithm, all previously described \hyperref[subsec:routing-engines]{routing algorithms} and \hyperref[subsec:speedup-methods]{speedup methods} are related to this thesis.
+		The combination of speedup methods is also possible and has been studied by Bauer et al. \cite{bauer-combining-speedup-methods} with promising results on the combination of arc-flags and highway hierarchies, which they called CHASE.
+		A comparison by Bast et al. showed the performance increase against normal speedup methods \cite{bast-transportation-networks}, for example compared to contraction hierarchies, which had a 19 times slower query time but a six times faster preprocessing.
 
 \section{Pedestrian path finding}
 \label{sec:pedestrian-path-planning}

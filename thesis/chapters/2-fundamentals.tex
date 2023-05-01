@@ -348,7 +348,8 @@ Agent based simulations will be covered as well since pedestrian simulations oft
 			A naive approach would be to use an algorithm solving the single-pair problem on each vertex, but there are faster ways to solve this.
 			Two popular algorithms solving this problem are the Floyd-Warshall algorithm, allowing negative edge weights by assuming no negative cycles exist \cite[693]{cormen-introduction-to-alg}, and Johnson's algorithm, which also detects negative cycles and terminates in such case \cite[700]{cormen-introduction-to-alg}.
 		
-	\subsection{Routing engines}
+	\subsection{Routing engines and shortest path algorithms}
+	\label{subsec:routing-engines}
 		
 		A \term{routing engine} is software built to create routes but might perform other operations as well, such as map matching or calculation of isochrones.
 		In all cases, finding optimal paths is the central algorithmic task.
