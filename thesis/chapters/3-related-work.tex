@@ -86,10 +86,10 @@ This section gives an overview about closely related work from these areas.
 		Even though, this technique works well on large datasets, the reason of skeletonization instead of visibility edges or other generation algorithms, was not further discussed.
 		
 		A similar work was presented by Birgit Elias merging multiple data sources, like topographical maps or indoor building plans, into one vector dataset for routing \cite{elias-tailored-geodatabase}.
-		To create a graph from existing maps, she uses a skeletonization method based on a Delaunay triangulation.
+		To create a graph from existing maps, she used a skeletonization method based on a Delaunay triangulation.
 		She also took into account that important point like structures, like entrances or other \term*{points of interest}, need to be connected to the graph as well.
 		This was solves by creating a perpendicular line to the nearest edge of the graph.
-		The problem of unconnected points of interest is one topic of this thesis and will be discussed \todo[inline]{ref} in a later section.
+		The problem of unconnected points of interest is one topic of this thesis and is solved during graph creation as mentioned later in \cref{subsec:step-1-preprocessing}.
 		
 	\subsection{Crowd sourced graph generation}
 	

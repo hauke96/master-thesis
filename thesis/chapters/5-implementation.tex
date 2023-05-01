@@ -85,10 +85,13 @@ After that, the main sections of this chapter show details of each algorithmic s
 			
 			First the features are filtered to get all relevant obstacle features, which are of arbitrary shape.
 			For performance reasons, multi-geometries, like \texttt{MultiPolygon} are split up into their separate geometries.
-			This is not only unproblematic for \texttt{MultiLineString} but also for \texttt{MultiPolygon} features, since holes in a polygon are not reachable in the first place and unwrapping the \texttt{MultiPolygon} will not change this.
-			% TODO Better formulation?
+			This is unproblematic for \texttt{MultiLineString} as well as \texttt{MultiPolygon} features, since holes in a polygon are not reachable in the first place and unwrapping the \texttt{MultiPolygon} will not change this.
+			
+			Point features are also considered so that visibility edges can reach \term*{points of interest}.
+			Of course visibility checks can ignore point features, since they have no size and therefore do not slow down the visibility graph creation.
+			
 			Another task within this first step is the triangulation of all polygonal shapes.
-			The main reason is a better performance for intersection checks, which is an important task of creating a visibility graph.
+			The main reason is a better performance for intersection checks, which is an important operation when checking if an obstacle is between two vertices.
 			
 	\subsection{Step 2: Determining $k$ nearest visible neighbors}
 			
