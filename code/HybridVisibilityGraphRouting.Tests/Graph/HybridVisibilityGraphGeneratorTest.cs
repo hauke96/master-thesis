@@ -228,6 +228,23 @@ public class HybridVisibilityGraphGeneratorTest
                 shortestPath
             );
         }
+
+        [Test]
+        public void RouteBetweenArbitraryLocations_connectingNewEdgesToRoadNetwork()
+        {
+            var shortestPath = hybridVisibilityGraph.ShortestPath(new Position(1, 1.75), new Position(1.5, -1));
+
+            CollectionAssert.AreEqual(
+                new List<Position>
+                {
+                    new(1, 1.75),
+                    new(1, 1.5),
+                    new(1.5, 1.5),
+                    new(1.5, -1)
+                },
+                shortestPath
+            );
+        }
     }
 
     [Test]
