@@ -5,6 +5,7 @@ using NetTopologySuite.Geometries;
 using ServiceStack;
 using Triangulation;
 using Feature = NetTopologySuite.Features.Feature;
+using Position = Mars.Interfaces.Environments.Position;
 
 namespace HybridVisibilityGraphRouting.Geometry;
 
@@ -119,10 +120,8 @@ public class GeometryHelper
     /// <summary>
     /// This assumes that the edge only consists of two coordinates.
     /// </summary>
-    public static Envelope GetEnvelopeOfEdge(EdgeData e)
+    public static Envelope GetEnvelope(Position[] coordinates)
     {
-        var coordinates = e.Geometry;
-
         var minX = coordinates.Min(c => c.X);
         var maxX = coordinates.Max(c => c.X);
         var minY = coordinates.Min(c => c.Y);

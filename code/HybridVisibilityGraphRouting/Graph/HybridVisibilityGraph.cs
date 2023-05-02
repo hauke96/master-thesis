@@ -147,4 +147,31 @@ public class HybridVisibilityGraph
             .Where(node => node.Data.ContainsKey(attributeName))
             .ToList();
     }
+
+    public bool ContainsEdge(int fromNode, int toNode)
+    {
+        return Graph.EdgesMap.ContainsKey((fromNode, toNode));
+    }
+
+    public EdgeData? AddEdge(int fromNode, int toNode)
+    {
+        return AddEdge(fromNode, toNode, new Dictionary<string, object>());
+    }
+
+    public EdgeData? AddEdge(int fromNode, int toNode, Dictionary<string, object> attributes)
+    {
+        var hasEdge = ContainsEdge(fromNode, toNode);
+
+        if (fromNode != toNode && !hasEdge)
+        {
+            return Graph.AddEdge(fromNode, toNode, attributes);
+        }
+
+        return null;
+    }
+
+    public void RemoveEdge(int edgeId)
+    {
+        Graph.RemoveEdge(edgeId);
+    }
 }

@@ -30,15 +30,15 @@ public class HybridVisibilityGraphGeneratorTest
         public void setup()
         {
             /*
-             *        (obst.)
+             *        (obst.1)
              *      x----------x
              * 
-             *  x - - - - x - - - x (road)
+             *  x - - - - x - - - x (road1)
              *            '
              *   x---x    '
-             *       |    ' (road)
+             *       |    ' (road2)
              *       x    '
-             * (obst.)    x
+             * (obst.2)   x
              */
             featureObstacle1 = new Feature(
                 new LineString(new[] { new Coordinate(0.5, 2), new Coordinate(2, 2) }),
@@ -115,7 +115,7 @@ public class HybridVisibilityGraphGeneratorTest
             AssertEdges(graph, intersection_O1C0_O2C2, obstacle2Coord2);
 
             AssertEdges(graph, obstacle1Coord0, intersection_O1C0_O2C1);
-            // Cannot be tested properly due to multiple nodes at the location: AssertEdges(graph, intersection_O1C0_O2C1, obstacle2Coord1);
+            AssertEdges(graph, intersection_O1C0_O2C1, obstacle2Coord1);
 
             // Intersections between Obstacle1-Coordinate1 and Obstacle2
             AssertEdges(graph, obstacle1Coord1, intersection_O1C1_O2C0_road1);
@@ -123,7 +123,7 @@ public class HybridVisibilityGraphGeneratorTest
             AssertEdges(graph, intersection_O1C1_O2C0_road2, obstacle2Coord0);
 
             AssertEdges(graph, obstacle1Coord1, intersection_O1C1_O2C1);
-            // Cannot be tested properly due to multiple nodes at the location: AssertEdges(graph, intersection_O1C1_O2C1, obstacle2Coord1);
+            AssertEdges(graph, intersection_O1C1_O2C1, obstacle2Coord1);
 
             AssertEdges(graph, obstacle1Coord1, intersection_O1C1_O2C2);
             AssertEdges(graph, intersection_O1C1_O2C2, obstacle2Coord2);
@@ -610,8 +610,11 @@ public class HybridVisibilityGraphGeneratorTest
             )
         };
 
+        var hybridVisibilityGraph = new HybridVisibilityGraph(graph, new QuadTree<Obstacle>(),
+            new Dictionary<Vertex, int[]>(), new Dictionary<int, (double, double)>());
+
         // Act
-        HybridVisibilityGraphGenerator.MergeRoadsIntoGraph(features, graph);
+        HybridVisibilityGraphGenerator.MergeRoadsIntoGraph(features, hybridVisibilityGraph);
 
         // Assert
         Assert.AreEqual(8, graph.NodesMap.Count);
@@ -669,7 +672,7 @@ public class HybridVisibilityGraphGeneratorTest
             GetNode(graph, new Coordinate(coordinateB.Item1, coordinateB.Item2))
         );
     }
-    
+
     private void AssertEdge(SpatialGraph graph, (double, double) coordinateA, (double, double) coordinateB)
     {
         AssertEdge(
