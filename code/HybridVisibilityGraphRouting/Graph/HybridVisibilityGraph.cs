@@ -70,23 +70,23 @@ public class HybridVisibilityGraph
     {
         // TODO: This is highly inefficient but the KdTree implementation has no ".Remove()" method. Implementing my own method should solve this issue.
         InitNodeIndex();
-        
-        var (sourceNode, isSourceNodeTemporary) = AddPositionToGraph(source);
-        var (targetNode, isTargetNodeTemporary) = AddPositionToGraph(target);
+
+        var (sourceNode, newCreatedNodesForSource) = AddPositionToGraph(source);
+        var (targetNode, newCreatedNodesForTarget) = AddPositionToGraph(target);
         Exporter.WriteGraphToFile(Graph, "graph-with-source-target.geojson");
 
         var routingResult = Graph.AStarAlgorithm(sourceNode, targetNode, heuristic);
 
         // Remove temporarily created nodes (which automatically removes the edges too) to have a clean graph for
         // further routing requests.
-        if (isSourceNodeTemporary)
+        if (newCreatedNodesForSource.Any())
         {
-            RemoveNode(sourceNode);
+            newCreatedNodesForSource.Each(RemoveNode);
         }
 
-        if (isTargetNodeTemporary)
+        if (newCreatedNodesForTarget.Any())
         {
-            RemoveNode(targetNode);
+            newCreatedNodesForTarget.Each(RemoveNode);
         }
 
         Exporter.WriteGraphToFile(Graph, "graph-restored.geojson");
@@ -109,16 +109,23 @@ public class HybridVisibilityGraph
             .ToList();
     }
 
-    private (int, bool) AddPositionToGraph(Position positionToAdd)
+    /// <summary>
+    /// Adds the given position to the graph, if not already exists. When a new node was created, visibility edges are
+    /// determined and connected to the graph.
+    /// </summary>
+    /// <returns>A tuple with the node for the given location and a list of all newly added nodes, which can be removed after the routing request.</returns>
+    private (int, IList<int>) AddPositionToGraph(Position positionToAdd)
     {
         var existingNodeCandidates = _nodeIndex.Nearest(positionToAdd.PositionArray, 0.000001);
         if (existingNodeCandidates.Any())
         {
-            return (existingNodeCandidates[0].Node.Value.Key, false);
+            return (existingNodeCandidates[0].Node.Value.Key, new List<int>());
         }
 
         var nodeToAdd = Graph.AddNode(positionToAdd.X, positionToAdd.Y).Key;
         var vertexToAdd = new Vertex(positionToAdd.ToCoordinate());
+
+        var newNodes = new List<int> { nodeToAdd };
 
         // TODO If performance too bad: Pass multiple positions to not calculate certain things twice.
         var allVertices = _vertexToNodes.Keys.ToList();
@@ -135,18 +142,18 @@ public class HybridVisibilityGraph
                 // whose angle area includes the vertex to add. So its angle area should include the angle from that
                 // node candidate to the vertex.
                 return Enumerable.First(nodeCandidates, nodeCandidate =>
-                        // The angle area has same "from" and "to" value, which means it covers a range of 360°. In this
-                        // case, no further checks are needed since this node candidate is definitely the one we want
-                        // to connect to.
-                        _nodeToAngleArea[nodeCandidate].Item1 == _nodeToAngleArea[nodeCandidate].Item2
-                        ||
-                        // In case the angles are not identical, we need to perform a check is the vertex is within the
-                        // covered angle area of this node candidate.
-                        Angle.IsBetweenEqual(
-                            _nodeToAngleArea[nodeCandidate].Item1,
-                            Angle.GetBearing(Graph.NodesMap[nodeCandidate].Position, positionToAdd),
-                            _nodeToAngleArea[nodeCandidate].Item2
-                        ));
+                    // The angle area has same "from" and "to" value, which means it covers a range of 360°. In this
+                    // case, no further checks are needed since this node candidate is definitely the one we want
+                    // to connect to.
+                    _nodeToAngleArea[nodeCandidate].Item1 == _nodeToAngleArea[nodeCandidate].Item2
+                    ||
+                    // In case the angles are not identical, we need to perform a check is the vertex is within the
+                    // covered angle area of this node candidate.
+                    Angle.IsBetweenEqual(
+                        _nodeToAngleArea[nodeCandidate].Item1,
+                        Angle.GetBearing(Graph.NodesMap[nodeCandidate].Position, positionToAdd),
+                        _nodeToAngleArea[nodeCandidate].Item2
+                    ));
             })
             .Each(node =>
             {
@@ -156,7 +163,7 @@ public class HybridVisibilityGraph
                 Graph.AddEdge(node, nodeToAdd);
             });
 
-        return (nodeToAdd, true);
+        return (nodeToAdd, newNodes);
     }
 
     /// <summary>
