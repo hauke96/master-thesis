@@ -148,14 +148,6 @@ public static class HybridVisibilityGraphGenerator
                         return nodeToBinVertices[potentialOtherVertexNode].Contains(vertex);
                     }).ToList();
 
-                    // Due to the bins, it can happen that visibility edges only exist in one direction. In this case,
-                    // it would be really difficult to determine the node of the target vertex to connect the edge to.
-                    if (otherVertexNodes.IsEmpty())
-                    {
-                        Log.I("WARN: No visibility edge found from " + vertex + " to " + otherVertex);
-                        return;
-                    }
-
                     otherVertexNodes.Each(otherVertexNode =>
                     {
                         nodeNeighbors[vertexNode].Add(otherVertexNode);
