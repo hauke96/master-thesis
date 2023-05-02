@@ -644,8 +644,8 @@ public class HybridVisibilityGraphGeneratorTest
         AssertEdges(graph, (2, 0.5), (1, 0.5));
 
         // New edges for the former left edge
-        AssertEdges(graph, (0, 0), (0, 0.5));
-        AssertEdges(graph, (0, 0.5), (0, 1));
+        AssertEdge(graph, (0, 0), (0, 0.5));
+        AssertEdge(graph, (0, 0.5), (0, 1));
 
         // New edges for the former right edges
         AssertEdges(graph, (1, 0), (1, 0.5));
@@ -664,6 +664,15 @@ public class HybridVisibilityGraphGeneratorTest
     private static void AssertEdges(SpatialGraph graph, (double, double) coordinateA, (double, double) coordinateB)
     {
         AssertEdges(
+            graph,
+            GetNode(graph, new Coordinate(coordinateA.Item1, coordinateA.Item2)),
+            GetNode(graph, new Coordinate(coordinateB.Item1, coordinateB.Item2))
+        );
+    }
+    
+    private void AssertEdge(SpatialGraph graph, (double, double) coordinateA, (double, double) coordinateB)
+    {
+        AssertEdge(
             graph,
             GetNode(graph, new Coordinate(coordinateA.Item1, coordinateA.Item2)),
             GetNode(graph, new Coordinate(coordinateB.Item1, coordinateB.Item2))
