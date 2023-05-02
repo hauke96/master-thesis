@@ -20,6 +20,8 @@ public class HybridVisibilityGraph
     private readonly QuadTree<Obstacle> _obstacles;
     private readonly Dictionary<Vertex, int[]> _vertexToNodes;
     private readonly Dictionary<int, (double, double)> _nodeToAngleArea;
+    private readonly QuadTree<int> _edgeIndex;
+    private readonly KdTree<NodeData> _nodeIndex;
 
     public readonly SpatialGraph Graph;
     public BoundingBox BoundingBox => Graph.BoundingBox;
@@ -33,6 +35,18 @@ public class HybridVisibilityGraph
         _obstacles = obstacles;
         _vertexToNodes = vertexToNodes;
         _nodeToAngleArea = nodeToAngleArea;
+
+        // Create and fill a spatial index with all edges of the graph
+        _edgeIndex = new QuadTree<int>();
+        Graph.Edges.Values.Each((i, e) =>
+        {
+            var envelope = GeometryHelper.GetEnvelope(e.Geometry);
+            _edgeIndex.Insert(envelope, i);
+        });
+
+        // Create and fill a spatial index with all nodes of the graph
+        _nodeIndex = new KdTree<NodeData>(2);
+        Graph.NodesMap.Values.Each(node => { _nodeIndex.Add(node.Position, node); });
     }
 
     public List<Position> WeightedShortestPath(Position source, Position target)
@@ -164,14 +178,45 @@ public class HybridVisibilityGraph
 
         if (fromNode != toNode && !hasEdge)
         {
-            return Graph.AddEdge(fromNode, toNode, attributes);
+            var edge = Graph.AddEdge(fromNode, toNode, attributes);
+            _edgeIndex.Insert(GeometryHelper.GetEnvelope(edge.Geometry), edge.Key);
+            return edge;
         }
 
         return null;
     }
 
-    public void RemoveEdge(int edgeId)
+    public void RemoveEdge(EdgeData edge)
     {
-        Graph.RemoveEdge(edgeId);
+        Graph.RemoveEdge(edge.Key);
+        _edgeIndex.Remove(GeometryHelper.GetEnvelope(edge.Geometry), edge.Key);
+    }
+
+    public IList<int> GetEdgesWithin(Envelope envelope)
+    {
+        return _edgeIndex.Query(envelope);
+    }
+
+    /// <summary>
+    /// Gets the nearest node at the given location. Is no node was found, a new one is created and returned.
+    /// </summary>
+    public NodeData GetOrCreateNodeAt(SpatialGraph graph, Position position)
+    {
+        NodeData node;
+
+        var potentialNodes = _nodeIndex.Nearest(position.PositionArray, 0.000001);
+        if (potentialNodes.IsEmpty())
+        {
+            // No nodes found within the radius -> create a new node
+            node = graph.AddNode(position.X, position.Y);
+            _nodeIndex.Add(position, node);
+        }
+        else
+        {
+            // Take one of the nodes, they are all close enough and therefore we can't say for sure which one to take.
+            node = potentialNodes[0].Node.Value;
+        }
+
+        return node;
     }
 }

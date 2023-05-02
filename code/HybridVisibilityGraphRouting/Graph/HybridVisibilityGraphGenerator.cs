@@ -9,7 +9,6 @@ using Mars.Numerics;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using ServiceStack;
-using Position = Mars.Interfaces.Environments.Position;
 
 namespace HybridVisibilityGraphRouting;
 
@@ -173,25 +172,13 @@ public static class HybridVisibilityGraphGenerator
     {
         var watch = Stopwatch.StartNew();
 
-        // Create and fill a spatial index with all edges of the graph
-        var edgeIndex = new QuadTree<int>();
-        hybridGraph.Graph.Edges.Values.Each((i, e) =>
-        {
-            var envelope = GeometryHelper.GetEnvelope(e.Geometry);
-            edgeIndex.Insert(envelope, i);
-        });
-
-        // Create and fill a spatial index with all nodes of the graph
-        var nodeIndex = new KdTree<NodeData>(2);
-        hybridGraph.Graph.NodesMap.Values.Each(node => { nodeIndex.Add(node.Position, node); });
-
         var roadFeatures = FeatureHelper.FilterFeaturesByKeys(features, "highway");
         var roadSegments = FeatureHelper.SplitFeaturesToSegments(roadFeatures);
 
         roadSegments.Each((i, roadSegment) =>
         {
             Log.D($"MergeSegmentIntoGraph {i}/{roadSegments.Count}");
-            MergeSegmentIntoGraph(hybridGraph, edgeIndex, nodeIndex, roadSegment);
+            MergeSegmentIntoGraph(hybridGraph, roadSegment);
         });
 
         Log.D(
@@ -228,11 +215,8 @@ public static class HybridVisibilityGraphGenerator
     /// Merges the given road segment into the graph.
     /// </summary>
     /// <param name="hybridGraph">The graph with other edges this road segment might intersect. New nodes and edges might be added.</param>
-    /// <param name="edgeIndex">An index to quickly get the edge keys in a certain bounding box.</param>
-    /// <param name="nodeIndex">An index to quickly get the nodes in a certain bounding box.</param>
     /// <param name="roadSegment">The road segment to add. This must be a real segment, meaning a line string with exactly two coordinates. Any further coordinates will be ignored.</param>
-    private static void MergeSegmentIntoGraph(HybridVisibilityGraph hybridGraph, QuadTree<int> edgeIndex,
-        KdTree<NodeData> nodeIndex, IFeature roadSegment)
+    private static void MergeSegmentIntoGraph(HybridVisibilityGraph hybridGraph, IFeature roadSegment)
     {
         var roadFeatureFrom = roadSegment.Geometry.Coordinates[0];
         var roadFeatureTo = roadSegment.Geometry.Coordinates[1];
@@ -251,7 +235,7 @@ public static class HybridVisibilityGraphGenerator
         // 1. Split visibility edges at the road segment.
         // Get all IDs of visibility edges that truly intersect the road edge. After this, all edges to split at the
         // points where they intersect the road segment new nodes and edges are created to connect everything. 
-        edgeIndex.Query(roadSegment.Geometry.EnvelopeInternal).Each(visibilityEdgeId =>
+        hybridGraph.GetEdgesWithin(roadSegment.Geometry.EnvelopeInternal).Each(visibilityEdgeId =>
         {
             var visibilityEdge = hybridGraph.Graph.Edges[visibilityEdgeId];
             var edgePositionFrom = visibilityEdge.Geometry[0].ToCoordinate();
@@ -275,7 +259,7 @@ public static class HybridVisibilityGraphGenerator
 
             // 1.1. Add intersection node (the node there the visibility edge and the road edge intersect). A new node
             // is only added when there's no existing node at the intersection points.
-            var intersectionNode = GetOrCreateNodeAt(hybridGraph.Graph, nodeIndex, intersectionCoordinate.ToPosition())
+            var intersectionNode = hybridGraph.GetOrCreateNodeAt(hybridGraph.Graph, intersectionCoordinate.ToPosition())
                 .Key;
             intersectionNodeIds.Add(intersectionNode);
 
@@ -292,21 +276,11 @@ public static class HybridVisibilityGraphGenerator
             }
 
             // 1.2. Add two new edges
-            var edge = hybridGraph.AddEdge(visibilityEdge.From, intersectionNode);
-            if (edge != null)
-            {
-                edgeIndex.Insert(GeometryHelper.GetEnvelope(edge.Value.Geometry), edge.Value.Key);
-            }
-
-            edge = hybridGraph.AddEdge(intersectionNode, visibilityEdge.To);
-            if (edge != null)
-            {
-                edgeIndex.Insert(GeometryHelper.GetEnvelope(edge.Value.Geometry), edge.Value.Key);
-            }
+            hybridGraph.AddEdge(visibilityEdge.From, intersectionNode);
+            hybridGraph.AddEdge(intersectionNode, visibilityEdge.To);
 
             // 1.3. Remove old visibility edge, which was replaced by the two new edges above.
-            edgeIndex.Remove(GeometryHelper.GetEnvelope(visibilityEdge.Geometry), visibilityEdgeId);
-            hybridGraph.RemoveEdge(visibilityEdgeId);
+            hybridGraph.RemoveEdge(visibilityEdge);
         });
 
         // 2. Split road segment at visibility edges.
@@ -319,8 +293,8 @@ public static class HybridVisibilityGraphGenerator
                     roadFeatureFromPosition.PositionArray));
 
             // Find or create from-node and to-node of the unsplitted road segment
-            var fromNode = GetOrCreateNodeAt(hybridGraph.Graph, nodeIndex, roadFeatureFromPosition);
-            var toNode = GetOrCreateNodeAt(hybridGraph.Graph, nodeIndex, roadFeatureToPosition);
+            var fromNode = hybridGraph.GetOrCreateNodeAt(hybridGraph.Graph, roadFeatureFromPosition);
+            var toNode = hybridGraph.GetOrCreateNodeAt(hybridGraph.Graph, roadFeatureToPosition);
 
             // Add the first new segment from the from-node to the first intersection points, then iterate over all
             // intersection points to create new edges between them and finally add the last segment to the to-node.
@@ -345,32 +319,9 @@ public static class HybridVisibilityGraphGenerator
         }
         else
         {
-            var fromNode = GetOrCreateNodeAt(hybridGraph.Graph, nodeIndex, roadFeatureFromPosition);
-            var toNode = GetOrCreateNodeAt(hybridGraph.Graph, nodeIndex, roadFeatureToPosition);
+            var fromNode = hybridGraph.GetOrCreateNodeAt(hybridGraph.Graph, roadFeatureFromPosition);
+            var toNode = hybridGraph.GetOrCreateNodeAt(hybridGraph.Graph, roadFeatureToPosition);
             hybridGraph.AddEdge(fromNode.Key, toNode.Key, roadSegment.Attributes.ToObjectDictionary());
         }
-    }
-
-    /// <summary>
-    /// Gets the nearest node at the given location. Is no node was found, a new one is created and returned.
-    /// </summary>
-    private static NodeData GetOrCreateNodeAt(SpatialGraph graph, KdTree<NodeData> nodeIndex, Position position)
-    {
-        NodeData node;
-
-        var potentialNodes = nodeIndex.Nearest(position.PositionArray, 0.000001);
-        if (potentialNodes.IsEmpty())
-        {
-            // No nodes found within the radius -> create a new node
-            node = graph.AddNode(position.X, position.Y);
-            nodeIndex.Add(position, node);
-        }
-        else
-        {
-            // Take one of the nodes, they are all close enough and therefore we can't say for sure which one to take.
-            node = potentialNodes[0].Node.Value;
-        }
-
-        return node;
     }
 }
