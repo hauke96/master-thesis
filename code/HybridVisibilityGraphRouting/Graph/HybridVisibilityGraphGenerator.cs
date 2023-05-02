@@ -248,6 +248,7 @@ public static class HybridVisibilityGraphGenerator
         // subdivide the road segment into smaller edges between all intersection points.
         var intersectionNodeIds = new HashSet<int>();
 
+        // 1. Split visibility edges at the road segment.
         // Get all IDs of visibility edges that truly intersect the road edge. After this, all edges to split at the
         // points where they intersect the road segment new nodes and edges are created to connect everything. 
         edgeIndex.Query(roadSegment.Geometry.EnvelopeInternal).Each(visibilityEdgeId =>
@@ -272,23 +273,25 @@ public static class HybridVisibilityGraphGenerator
 
             var intersectionCoordinate = roadEdgeLineSegment.Intersection(visibilityEdgeLineSegment);
 
-            // 1. Add intersection node (the node there the visibility edge and the road edge intersect). A new node
+            // 1.1. Add intersection node (the node there the visibility edge and the road edge intersect). A new node
             // is only added when there's no existing node at the intersection points.
             var intersectionNode = GetOrCreateNodeAt(hybridGraph.Graph, nodeIndex, intersectionCoordinate.ToPosition())
                 .Key;
             intersectionNodeIds.Add(intersectionNode);
 
-            if (visibilityEdge.From == intersectionNode ||
-                hybridGraph.ContainsEdge(visibilityEdge.From, intersectionNode) &&
-                intersectionNode == visibilityEdge.To ||
-                hybridGraph.ContainsEdge(intersectionNode, visibilityEdge.To))
+            // Check if any new edges would be created.
+            var edge1WouldBeCreated = visibilityEdge.From == intersectionNode ||
+                                      hybridGraph.ContainsEdge(visibilityEdge.From, intersectionNode);
+            var edge2WouldBeCreated = intersectionNode == visibilityEdge.To ||
+                                      hybridGraph.ContainsEdge(intersectionNode, visibilityEdge.To);
+            if (edge1WouldBeCreated && edge2WouldBeCreated)
             {
-                // In case no edge would be created, we can skip the hole process. An edge is only created if the two
-                // nodes are unequal and the edge does not already exist.
+                // In case no new edges would be created, we can skip this step and proceed with the next visibility
+                // edge. An edge is only created if the two nodes are unequal and the edge does not already exist.
                 return;
             }
 
-            // 2. Add two new edges
+            // 1.2. Add two new edges
             var edge = hybridGraph.AddEdge(visibilityEdge.From, intersectionNode);
             if (edge != null)
             {
@@ -301,12 +304,13 @@ public static class HybridVisibilityGraphGenerator
                 edgeIndex.Insert(GeometryHelper.GetEnvelope(edge.Value.Geometry), edge.Value.Key);
             }
 
-            // 3. Remove old visibility edge
+            // 1.3. Remove old visibility edge, which was replaced by the two new edges above.
             edgeIndex.Remove(GeometryHelper.GetEnvelope(visibilityEdge.Geometry), visibilityEdgeId);
             hybridGraph.RemoveEdge(visibilityEdgeId);
         });
 
-        // 4. If there are any intersection nodes: Add new line segments between the intersection nodes for the whole
+        // 2. Split road segment at visibility edges.
+        // If there are any intersection nodes: Add new line segments between the intersection nodes for the whole
         // road segment
         if (intersectionNodeIds.Any())
         {
