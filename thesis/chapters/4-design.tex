@@ -52,6 +52,22 @@
 \label{sec:components}
 
 	% Generator classes, HybridVisibilityGrahp class and helper functions
+	Since this works resides in a rather technical and algorithmic oriented area, there are not many components needed to implement a hybrid routing approach.
+	The two most important parts are the graph generation and handling of routing requests.
+	
+	Because routing requests should be handled entirely within the resulting graph, meaning without the need of additional generators, some of the generator tasks are within the graph component.
+	
+	Using the implementation therefore has two entry points:
+	The generator, which initially creates the routing graph, and the graph itself to which routing requests can be made.
+	Due to the chosen construction and handling of arbitrary locations, the graph itself might generate new nodes and edges.
+	This is needed to connect the arbitrarily chooseable source and target locations, which is describes in \cref{sec:answering-queries} with more details.
+	
+	\begin{figure}[h]
+		\begin{figcenter}
+			\includegraphics[width=\textwidth]{images/components.pdf}
+		\end{figcenter}
+		\caption{The relevant components of the resulting implementation.}
+	\end{figure}
 
 \section{Deployment view}
 
@@ -94,7 +110,6 @@
 		
 		Assume that the ad hoc generation starts at each road junction vertex $j$ and stops when a certain condition is fulfilled (for example only generating paths of a certain length).
 		When the graph routing algorithm reaches an unvisited junction vertex $j$ from some other vertex $v$, it either used a road edge or preprocessed edge to get there. Therefore, the following two cases exist:
-		
 		\begin{itemize}
 			\item In case a preprocessed edge was used, then the shortest path from $v$ to $j$ would be identical when using a completely preprocessed graph containing this exact edge $(v, j)$.
 			\item In case a road edge was used to get to $j$, then there are two sub-cases.
@@ -103,7 +118,6 @@
 				\item In case the road edge was not the optimal path, then the ad hoc generation stopped before reaching $j$ (due to the distance or any other stopping condition) and the edge $(v, j)$ was never added.
 			\end{itemize}
 		\end{itemize}
-		
 		Even though, this is not a formal proof, generating a preprocessed graph and using a normal routing algorithm is probably as least as good as using the ad hoc generation approach.
 	
 	% Concurrent routing: Use A* and wavefront in parallel and merge the results

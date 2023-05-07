@@ -48,19 +48,16 @@ After that, the main sections of this chapter show details of each algorithmic s
 		
 		As describes in \cref{sec:components}, the \texttt{HybridVisibilityGraphGenerator} class provides a factory method to create a \texttt{HybridVisibilityGraph} from a given collection of features.
 		This factory method consists of the following top level steps, which are all described in \cref{sec:visibility-graph-creation} in more detail:
-		
 		\begin{enumerate}
 			\item Filter the given features for obstacles
 			\item Determine the visibility neighbors
 			\item Use this visibility relation to create a visibility graph
 			\item Merge the existing road network into this graph
 		\end{enumerate}
-	
 		The graph then allows to route between existing nodes.
 		So far, routing queries between arbitrary locations cannot be answered, since this graph based approach only allows routing between existing nodes.
 		To enable answering routing requests between arbitrary locations the resulting graph needs to be extended with edges from and to the given start and end locations.
 		These edges are themselves visibility edges and can therefore be created just like the visibility edges before. The process is further described in \cref{sec:answering-queries} and contains the following steps:
-		
 		\begin{enumerate}
 			\item Connect the source coordinate to the graph:
 			\begin{enumerate}
@@ -368,7 +365,6 @@ After that, the main sections of this chapter show details of each algorithmic s
 				Additionally, all obstacles casting a shadow are stored, simply to not add shadows twice.
 				
 				For the given vertex $v$, each other vertices vertex $v'$ is checked for visibility by executing the following steps:
-				
 				\begin{enumerate}
 					\item Check is $v'$ is in a shadow area and continue with the next vertex if this is the case.
 					\item Determine the extent between $v$ and $v'$ and query all obstacles within this region. For each obstacle $o$ the following steps are performed:
@@ -606,7 +602,6 @@ After that, the main sections of this chapter show details of each algorithmic s
 \label{sec:answering-queries}
 
 	The process of answering shortest path queries, or routing queries in general, is the following simple routine:
-	
 	\begin{enumerate}
 		\item \label{itm:answering-queries-add-nodes} Add the source and target nodes $s$ and $t$ to the graph.
 		\item \label{itm:answering-queries-vis-edges} Determine visibility edges of these nodes and add these new edges to the graph.
