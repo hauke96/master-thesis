@@ -32,7 +32,7 @@ public class GeometryHelperTest
             var result = GeometryHelper.UnwrapAndTriangulate(new List<IFeature> { feature });
 
             Assert.AreEqual(1, result.Count);
-            CollectionAssert.AreEquivalent(feature.Geometry.Coordinates, result[0].Coordinates);
+            CollectionAssert.AreEquivalent(feature.Geometry.Coordinates, result.First(pair => pair.Value.Equals(feature.Geometry)).Value.Coordinates);
         }
 
         [Test]
@@ -51,7 +51,7 @@ public class GeometryHelperTest
             var result = GeometryHelper.UnwrapAndTriangulate(new List<IFeature> { feature });
 
             Assert.AreEqual(1, result.Count);
-            CollectionAssert.AreEquivalent(feature.Geometry.Coordinates, result[0].Coordinates);
+            CollectionAssert.AreEquivalent(feature.Geometry.Coordinates, result[feature.Geometry].Coordinates);
         }
 
         [Test]
@@ -73,9 +73,12 @@ public class GeometryHelperTest
 
             var result = GeometryHelper.UnwrapAndTriangulate(new List<IFeature> { feature });
 
-            Assert.AreEqual(2, result.Count);
-            Assert.AreEqual(4, result[0].Coordinates.Length);
-            Assert.AreEqual(4, result[1].Coordinates.Length);
+            var triangulatedGeometries = result.Keys.ToList();
+            Assert.AreEqual(2, triangulatedGeometries.Count);
+            Assert.AreEqual(4, triangulatedGeometries[0].Coordinates.Length);
+            Assert.AreEqual(4, triangulatedGeometries[1].Coordinates.Length);
+            Assert.AreEqual(feature.Geometry, result[triangulatedGeometries[0]]);
+            Assert.AreEqual(feature.Geometry, result[triangulatedGeometries[1]]);
         }
     }
 
@@ -107,16 +110,16 @@ public class GeometryHelperTest
             var result = GeometryHelper.UnwrapAndTriangulate(new List<IFeature> { feature });
 
             Assert.AreEqual(2, result.Count);
-            Assert.AreEqual(3, result[0].Coordinates.Length);
-            Assert.AreEqual(3, result[1].Coordinates.Length);
-            CollectionAssert.AreEquivalent(lineString1.Coordinates, result[0].Coordinates);
-            CollectionAssert.AreEquivalent(lineString2.Coordinates, result[1].Coordinates);
+            Assert.AreEqual(3, result[lineString1].Coordinates.Length);
+            Assert.AreEqual(3, result[lineString2].Coordinates.Length);
+            CollectionAssert.AreEquivalent(lineString1.Coordinates, result[lineString1].Coordinates);
+            CollectionAssert.AreEquivalent(lineString2.Coordinates, result[lineString2].Coordinates);
         }
 
         [Test]
         public void TestUnwrapAndTriangulate_TwoRectangles()
         {
-            var featureOuter = new Polygon(
+            var geometryOuter = new Polygon(
                 new LinearRing(new[]
                 {
                     new Coordinate(0, 0),
@@ -126,7 +129,7 @@ public class GeometryHelperTest
                     new Coordinate(0, 0)
                 })
             );
-            var featureInner = new Polygon(
+            var geometryInner = new Polygon(
                 new LinearRing(new[]
                 {
                     new Coordinate(1, 1),
@@ -138,21 +141,30 @@ public class GeometryHelperTest
             );
 
             var feature = new Feature(
-                new MultiPolygon(new[] { featureOuter, featureInner }),
+                new MultiPolygon(new[] { geometryOuter, geometryInner }),
                 new AttributesTable()
             );
 
             var result = GeometryHelper.UnwrapAndTriangulate(new List<IFeature> { feature });
 
+            var triangulatedGeometries = result.Keys.ToList();
             Assert.AreEqual(4, result.Count);
-            Assert.AreEqual(4, result[0].Coordinates.Length);
-            Assert.AreEqual(4, result[1].Coordinates.Length);
-            Assert.AreEqual(4, result[2].Coordinates.Length);
-            Assert.AreEqual(4, result[3].Coordinates.Length);
-            CollectionAssert.IsSupersetOf(featureOuter.Coordinates.Distinct(), result[0].Coordinates.Distinct());
-            CollectionAssert.IsSupersetOf(featureOuter.Coordinates.Distinct(), result[1].Coordinates.Distinct());
-            CollectionAssert.IsSupersetOf(featureInner.Coordinates.Distinct(), result[2].Coordinates.Distinct());
-            CollectionAssert.IsSupersetOf(featureInner.Coordinates.Distinct(), result[3].Coordinates.Distinct());
+            Assert.AreEqual(4, triangulatedGeometries[0].Coordinates.Length);
+            Assert.AreEqual(4, triangulatedGeometries[1].Coordinates.Length);
+            Assert.AreEqual(4, triangulatedGeometries[2].Coordinates.Length);
+            Assert.AreEqual(4, triangulatedGeometries[3].Coordinates.Length);
+
+            var outerTriangles = triangulatedGeometries.Where(g => result[g] == geometryOuter).ToList();
+            CollectionAssert.IsSupersetOf(geometryOuter.Coordinates.Distinct(),
+                outerTriangles[0].Coordinates.Distinct());
+            CollectionAssert.IsSupersetOf(geometryOuter.Coordinates.Distinct(),
+                outerTriangles[1].Coordinates.Distinct());
+
+            var innerTriangles = triangulatedGeometries.Where(g => result[g] == geometryInner).ToList();
+            CollectionAssert.IsSupersetOf(geometryInner.Coordinates.Distinct(),
+                innerTriangles[0].Coordinates.Distinct());
+            CollectionAssert.IsSupersetOf(geometryInner.Coordinates.Distinct(),
+                innerTriangles[1].Coordinates.Distinct());
         }
 
         [Test]
@@ -184,8 +196,10 @@ public class GeometryHelperTest
 
             var result = GeometryHelper.UnwrapAndTriangulate(new List<IFeature> { feature });
 
+            var triangulatedGeometries = result.Keys.ToList();
             Assert.AreEqual(1, result.Count);
-            Assert.AreEqual(4, result[0].Coordinates.Length);
+            Assert.AreEqual(4, triangulatedGeometries[0].Coordinates.Length);
+            Assert.AreEqual(new Polygon(((Polygon)feature.Geometry).Shell), result[triangulatedGeometries[0]]);
         }
 
         [Test]
@@ -220,11 +234,9 @@ public class GeometryHelperTest
 
             var result = GeometryHelper.UnwrapAndTriangulate(new List<IFeature> { feature });
 
-            Assert.AreEqual(4, result.Count);
-            Assert.AreEqual(lineString.Coordinates.Length, result[0].Coordinates.Length);
-            Assert.AreEqual(lineString.Coordinates.Length, result[1].Coordinates.Length);
-            Assert.AreEqual(polygon.Coordinates.Length, result[2].Coordinates.Length);
-            Assert.AreEqual(polygon.Coordinates.Length, result[3].Coordinates.Length);
+            Assert.AreEqual(2, result.Count);
+            Assert.AreEqual(lineString, result[lineString]);
+            Assert.AreEqual(polygon, result.First(pair=>pair.Value.Equals(polygon)).Value);
         }
     }
 

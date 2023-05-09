@@ -49,17 +49,24 @@ public static class HybridVisibilityGraphGenerator
 
         var obstacleGeometries = GeometryHelper.UnwrapAndTriangulate(importedObstacles, true);
 
+        var convexHullCoordinates = obstacleGeometries
+            .Map(g => g.Value.ConvexHull().Coordinates)
+            .SelectMany(x => x)
+            .Distinct()
+            .ToSet();
+
         var coordinateToVertex = obstacleGeometries
+            .Keys
             .Map(g => g.Coordinates)
             .SelectMany(x => x)
             .Distinct()
-            .ToDictionary(c => c, c => new Vertex(c));
+            .ToDictionary(c => c, c => new Vertex(c, convexHullCoordinates.Contains(c)));
 
         var obstacleIndex = new QuadTree<Obstacle>();
         obstacleGeometries.Each(geometry =>
         {
-            var vertices = geometry.Coordinates.Map(c => coordinateToVertex[c]).ToList();
-            obstacleIndex.Insert(geometry.EnvelopeInternal, new Obstacle(geometry, vertices));
+            var vertices = geometry.Key.Coordinates.Map(c => coordinateToVertex[c]).ToList();
+            obstacleIndex.Insert(geometry.Key.EnvelopeInternal, new Obstacle(geometry.Key, geometry.Value, vertices));
         });
 
         Log.D(
@@ -91,12 +98,14 @@ public static class HybridVisibilityGraphGenerator
         var vertexToNode = new Dictionary<Vertex, int[]>();
         var nodeToBinVertices = new Dictionary<int, List<Vertex>>();
         var nodeToAngleArea = new Dictionary<int, (double, double)>();
-        var allVertices = vertexNeighbors.Keys;
+        var verticesOnConvexHull = vertexNeighbors.Keys;
 
         // Create a node for every vertex in the dataset. Also store the mapping between node keys and vertices.
-        allVertices.Each(vertex =>
+        verticesOnConvexHull.Each(vertex =>
         {
-            var vertexNeighborBin = vertexNeighbors[vertex];
+            List<List<Vertex>> vertexNeighborBin =
+                vertex.IsOnConvexHull ? vertexNeighbors[vertex] : new List<List<Vertex>>();
+
             vertexToNode[vertex] = new int[vertexNeighborBin.Count];
             vertexNeighborBin.Each((i, bin) =>
             {
@@ -129,8 +138,13 @@ public static class HybridVisibilityGraphGenerator
         // Create visibility edges in the graph. This is done on a per-bin basis. Each bin got a separate node and this
         // node is then correctly connected to the node of its visibility vertices.
         var nodeNeighbors = new Dictionary<int, List<int>>();
-        allVertices.Each(vertex =>
+        verticesOnConvexHull.Each(vertex =>
         {
+            if (!vertex.IsOnConvexHull)
+            {
+                return;
+            }
+
             var neighborBins = vertexNeighbors[vertex];
             neighborBins.Each((i, neighborBin) =>
             {

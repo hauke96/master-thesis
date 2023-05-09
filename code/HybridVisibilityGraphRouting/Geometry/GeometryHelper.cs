@@ -1,7 +1,9 @@
 using HybridVisibilityGraphRouting.IO;
 using Mars.Common.Collections.Graph;
+using Mars.Common.Core.Collections;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
+using NetTopologySuite.Operation.Distance;
 using ServiceStack;
 using Triangulation;
 using Feature = NetTopologySuite.Features.Feature;
@@ -17,12 +19,14 @@ public class GeometryHelper
     /// </summary>
     /// <param name="features">The features whose geometries should be triangulated</param>
     /// <param name="debugModeActive">Set to true to write the result to disk.</param>
-    /// <returns>A list of simple triangulated geometries.</returns>
-    public static List<NetTopologySuite.Geometries.Geometry> UnwrapAndTriangulate(IEnumerable<IFeature> features,
-        bool debugModeActive = false)
+    /// <returns>A dict from triangulated geometry to its original one.</returns>
+    public static Dictionary<NetTopologySuite.Geometries.Geometry, NetTopologySuite.Geometries.Geometry>
+        UnwrapAndTriangulate(IEnumerable<IFeature> features,
+            bool debugModeActive = false)
     {
         var geometriesToTriangulate = new LinkedList<Polygon>();
-        var geometriesToIgnore = new LinkedList<NetTopologySuite.Geometries.Geometry>();
+        var geometriesToIgnore =
+            new Dictionary<NetTopologySuite.Geometries.Geometry, NetTopologySuite.Geometries.Geometry>();
 
         // Unwrap geometries and sort them into a list of geometries to triangulate and into a list of geometries to
         // keep unchanged.
@@ -36,7 +40,7 @@ public class GeometryHelper
                     if (geometry.Coordinates.Length == 1 || !IsGeometryClosed(geometry))
                     {
                         // Ignore point and non-closed geometries for triangulation and just keep them as they are.
-                        geometriesToIgnore.AddLast(geometry);
+                        geometriesToIgnore[geometry] = geometry;
                         return;
                     }
 
@@ -49,18 +53,22 @@ public class GeometryHelper
             });
 
         var vertexCount = geometriesToTriangulate.Sum(o => o.Coordinates.Length) +
-                          geometriesToIgnore.Sum(o => o.Coordinates.Length);
+                          geometriesToIgnore.Sum(o => o.Value.Coordinates.Length);
         PerformanceMeasurement.TOTAL_VERTICES = vertexCount;
         Log.D($"Amount of features before triangulating: {geometriesToTriangulate.Count + geometriesToIgnore.Count}");
         Log.D($"Amount of vertices before triangulating: {vertexCount}");
 
-        var triangulatedGeometries = geometriesToTriangulate
-            .Map(geometry => PolygonTriangulator.Triangulate(geometry))
-            .SelectMany(x => x)
-            .ToList();
+        var triangulatedGeometries =
+            new Dictionary<NetTopologySuite.Geometries.Geometry, NetTopologySuite.Geometries.Geometry>();
+        geometriesToTriangulate
+            .Each(geometry =>
+            {
+                PolygonTriangulator.Triangulate(geometry)
+                    .Each(g=>triangulatedGeometries[g] = geometry);
+            });
 
-        vertexCount = triangulatedGeometries.Sum(o => o.Coordinates.Length) +
-                      geometriesToIgnore.Sum(o => o.Coordinates.Length);
+        vertexCount = triangulatedGeometries.Sum(o => o.Key.Coordinates.Length) +
+                      geometriesToIgnore.Sum(o => o.Key.Coordinates.Length);
         PerformanceMeasurement.TOTAL_VERTICES_AFTER_PREPROCESSING = vertexCount;
         Log.D($"Amount of features after triangulating: {triangulatedGeometries.Count + geometriesToIgnore.Count}");
         Log.D($"Amount of vertices after triangulating: {vertexCount}");
@@ -68,11 +76,11 @@ public class GeometryHelper
         if (debugModeActive)
         {
             var featureCollection = new FeatureCollection();
-            triangulatedGeometries.Each(o => featureCollection.Add(new Feature(o, new AttributesTable())));
+            triangulatedGeometries.Each(o => featureCollection.Add(new Feature(o.Key, new AttributesTable())));
             Exporter.WriteFeaturesToFile(featureCollection, "features-splitted.geojson").Wait();
         }
 
-        return geometriesToIgnore.Concat(triangulatedGeometries).ToList();
+        return triangulatedGeometries.Merge(geometriesToIgnore);
     }
 
     /// <summary>

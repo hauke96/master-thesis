@@ -442,14 +442,14 @@ public class HybridVisibilityGraphGeneratorTest
 
         // Vertices:
         // Vertex at bottom
-        var bottomVertex = new Vertex(new Coordinate(1, 0));
+        var bottomVertex = new Vertex(new Coordinate(1, 0), true);
         // Middle line with tree vertices
-        var middleVertex0 = new Vertex(new Coordinate(0, 1), new[] { new Position(1, 1) });
-        var middleVertex1 = new Vertex(new Coordinate(1, 1), new[] { new Position(0, 1), new Position(2, 1) });
-        var middleVertex2 = new Vertex(new Coordinate(2, 1), new[] { new Position(1, 1) });
+        var middleVertex0 = new Vertex(new Coordinate(0, 1), new[] { new Position(1, 1) }, true);
+        var middleVertex1 = new Vertex(new Coordinate(1, 1), new[] { new Position(0, 1), new Position(2, 1) }, true);
+        var middleVertex2 = new Vertex(new Coordinate(2, 1), new[] { new Position(1, 1) }, true);
         // Top line with two vertices
-        var topVertex0 = new Vertex(new Coordinate(0, 2), new[] { new Position(1, 2) });
-        var topVertex1 = new Vertex(new Coordinate(1, 2), new[] { new Position(0, 2) });
+        var topVertex0 = new Vertex(new Coordinate(0, 2), new[] { new Position(1, 2) }, true);
+        var topVertex1 = new Vertex(new Coordinate(1, 2), new[] { new Position(0, 2) }, true);
 
         // Create visibility relations without the use of additional function to make sure the setup is always correct.
         var vertexNeighbors = new Dictionary<Vertex, List<List<Vertex>>>();

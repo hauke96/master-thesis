@@ -7,12 +7,12 @@ namespace HybridVisibilityGraphRouting.Geometry
         public readonly List<Coordinate> Coordinates;
         public readonly Envelope Envelope;
         public readonly bool IsClosed;
-
         public readonly List<Vertex> Vertices;
+        public readonly NetTopologySuite.Geometries.Geometry OriginalGeometry;
 
         private readonly int _hash;
 
-        public Obstacle(NetTopologySuite.Geometries.Geometry geometry, List<Vertex> vertices)
+        public Obstacle(NetTopologySuite.Geometries.Geometry geometry, NetTopologySuite.Geometries.Geometry originalGeometry, List<Vertex> vertices)
         {
             if (geometry is not Polygon && geometry is not LineString && geometry is not Point)
             {
@@ -37,6 +37,7 @@ namespace HybridVisibilityGraphRouting.Geometry
             Vertices = vertices;
             _hash = (int)geometry.Coordinates.Sum(coordinate => coordinate.X * 7919 + coordinate.Y * 4813);
             Envelope = geometry.EnvelopeInternal;
+            OriginalGeometry = originalGeometry;
         }
 
         public bool CanIntersect(Envelope envelope)

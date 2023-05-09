@@ -8,13 +8,13 @@ namespace HybridVisibilityGraphRouting.Tests;
 
 public class ObstacleTestHelper
 {
-    public static Obstacle CreateObstacle(NetTopologySuite.Geometries.Geometry geometries)
+    public static Obstacle CreateObstacle(NetTopologySuite.Geometries.Geometry geometry)
     {
-        var coordinateToVertex = geometries.Coordinates
+        var coordinateToVertex = geometry.Coordinates
             .Distinct()
-            .Map(c => new Vertex(c));
+            .Map(c => new Vertex(c, true));
 
-        return new Obstacle(geometries, coordinateToVertex);
+        return new Obstacle(geometry, geometry, coordinateToVertex);
     }
 
     public static List<Obstacle> CreateObstacles(params NetTopologySuite.Geometries.Geometry[] geometries)
@@ -23,9 +23,9 @@ public class ObstacleTestHelper
             .Map(g => g.Coordinates)
             .SelectMany(x => x)
             .Distinct()
-            .ToDictionary(c => c, c => new Vertex(c));
+            .ToDictionary(c => c, c => new Vertex(c, true));
 
-        return geometries.Map(g => new Obstacle(g, g.Coordinates.Map(c => coordinateToVertex[c])));
+        return geometries.Map(g => new Obstacle(g, g, g.Coordinates.Map(c => coordinateToVertex[c])));
     }
 
     public static Vertex VertexAt(List<Vertex> vertices, Coordinate coordinate)

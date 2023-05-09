@@ -689,7 +689,7 @@ public class VisibilityGraphGeneratorTest
             new(0, 2), // 315°
         }.Map(n => new Vertex(n.ToCoordinate()));
 
-        var vertex = new Vertex(new Coordinate(1, 1), obstacleNeighbors);
+        var vertex = new Vertex(new Coordinate(1, 1), obstacleNeighbors, true);
 
         var allVisibilityNeighbors = visibilityNeighbors.CreateCopy();
         allVisibilityNeighbors.AddRange(obstacleNeighbors.Map(n => new Vertex(n.ToCoordinate())));

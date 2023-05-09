@@ -18,7 +18,7 @@ namespace HybridVisibilityGraphRouting.Geometry;
 public class HybridVisibilityGraph
 {
     public static readonly Func<EdgeData, NodeData, double> WeightedHeuristic =
-        (edge, _) => edge.Length * (edge.Data.IsEmpty() ? 1 : 0.5);
+        (edge, _) => edge.Length * (edge.Data.IsEmpty() ? 1 : 0.8);
 
     public static readonly Func<EdgeData, NodeData, double> ShortestHeuristic = (edge, _) => edge.Length;
 

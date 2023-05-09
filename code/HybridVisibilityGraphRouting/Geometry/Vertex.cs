@@ -18,8 +18,13 @@ public class Vertex
     public List<Position> ObstacleNeighbors { get; }
 
     public Coordinate Coordinate { get; }
+    public bool IsOnConvexHull { get; }
 
-    public Vertex(Coordinate coordinate) : this(coordinate, new List<Position>())
+    public Vertex(Coordinate coordinate) : this(coordinate, new List<Position>(), false)
+    {
+    }
+
+    public Vertex(Coordinate coordinate, bool isOnConvexHull) : this(coordinate, new List<Position>(), isOnConvexHull)
     {
     }
 
@@ -28,11 +33,12 @@ public class Vertex
     /// vertices one might obtain by running the knn-search to find all n many visible neighbors.
     /// </param>
     // TODO Only used in test code -> Merge with constructor above?
-    public Vertex(Coordinate coordinate, IEnumerable<Position> obstacleNeighbors)
+    public Vertex(Coordinate coordinate, IEnumerable<Position> obstacleNeighbors, bool isOnConvexHull)
     {
         Coordinate = coordinate;
         ObstacleNeighbors = obstacleNeighbors.ToList();
         Id = ID_COUNTER++;
+        IsOnConvexHull = isOnConvexHull;
     }
 
     public override bool Equals(object? obj)

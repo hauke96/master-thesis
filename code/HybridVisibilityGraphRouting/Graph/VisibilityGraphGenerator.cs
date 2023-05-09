@@ -144,7 +144,7 @@ public static class VisibilityGraphGenerator
         AddObstacleNeighborsForObstacles(allObstacles, coordinateToObstacles, debugModeActive);
 
         Log.D("Collect all unique vertices");
-        var allVertices = allObstacles.Map(o => o.Vertices).SelectMany(x => x).ToSet();
+        var allVertices = allObstacles.Map(o => o.Vertices).SelectMany(x => x).Where(v=>v.IsOnConvexHull).ToSet();
 
         Log.D("Calculate KNN to get visible vertices");
         var vertexNeighbors = CalculateVisibleKnnInternal(obstacles, coordinateToObstacles, allVertices,
@@ -252,7 +252,7 @@ public static class VisibilityGraphGenerator
 
         foreach (var otherVertex in vertices)
         {
-            if (otherVertex.Equals(vertex))
+            if (otherVertex.Equals(vertex) || !otherVertex.IsOnConvexHull)
             {
                 continue;
             }
