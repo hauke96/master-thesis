@@ -27,20 +27,20 @@ namespace HikerModel.Model
             // be measured as intended.
             // When performance measurement inactive -> Skip this and just call the constructor below. It'll not measure
             // any internal calls, since measurement is disabled.
-            if (PerformanceMeasurement.IS_ACTIVE)
+            if (PerformanceMeasurement.IsActive)
             {
-                var result = PerformanceMeasurement.ForFunction(
+                var result = PerformanceMeasurement.NewMeasurementForFunction(
                     () =>
                     {
                         // Deactivate measurement within constructor:
-                        PerformanceMeasurement.IS_ACTIVE = false;
-                        HybridVisibilityGraph = HybridVisibilityGraphGenerator.Generate(features);
+                        // PerformanceMeasurement.IsActive = false;
+                        HybridVisibilityGraphGenerator.Generate(features);
                     },
-                    "Graph creation");
+                    "GenerateGraph", 5, 2);
                 result.Print();
                 result.WriteToFile();
 
-                PerformanceMeasurement.IS_ACTIVE = true;
+                // PerformanceMeasurement.IsActive = true;
             }
 
             HybridVisibilityGraph = HybridVisibilityGraphGenerator.Generate(features);

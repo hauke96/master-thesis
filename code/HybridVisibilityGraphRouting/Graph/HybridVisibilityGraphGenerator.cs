@@ -76,16 +76,16 @@ public static class HybridVisibilityGraphGenerator
 
     public static Dictionary<Vertex, List<List<Vertex>>> DetermineVisibilityNeighbors(QuadTree<Obstacle> obstacles)
     {
-        Dictionary<Vertex, List<List<Vertex>>> vertexNeighbors = new Dictionary<Vertex, List<List<Vertex>>>();
+        var vertexNeighbors = new Dictionary<Vertex, List<List<Vertex>>>();
 
-        var result = PerformanceMeasurement.ForFunction(
+        var stopwatch = new Stopwatch();
+        PerformanceMeasurement.AddFunctionDurationToCurrentRun(
             () => { vertexNeighbors = VisibilityGraphGenerator.CalculateVisibleKnn(obstacles, 36, 10, true); },
             "CalculateVisibleKnn"
         );
-        result.Print();
-        result.WriteToFile();
+        Log.D(
+            $"{nameof(HybridVisibilityGraphGenerator)}: CalculateVisibleKnn done after {stopwatch.ElapsedMilliseconds}ms");
 
-        Log.D($"{nameof(HybridVisibilityGraphGenerator)}: CalculateVisibleKnn done after {result.AverageTime}ms");
         return vertexNeighbors;
     }
 

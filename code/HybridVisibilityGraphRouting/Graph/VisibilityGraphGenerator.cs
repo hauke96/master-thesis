@@ -50,7 +50,7 @@ public static class VisibilityGraphGenerator
 
         obstacles.Each(obstacle => { AddObstacleNeighborsForObstacle(obstacle, IsCoordinateHidden); });
 
-        if (!PerformanceMeasurement.IS_ACTIVE && debugModeActive)
+        if (!PerformanceMeasurement.IsActive && debugModeActive)
         {
             var positionToObstacleNeighbors = new Dictionary<Coordinate, HashSet<Position>>();
             obstacles.Map(o => o.Vertices)
@@ -197,7 +197,7 @@ public static class VisibilityGraphGenerator
 
         Log.D($"  100% done after a total of {totalTimeStopWatch.ElapsedMilliseconds}ms");
 
-        if (!PerformanceMeasurement.IS_ACTIVE && debugModeActive)
+        if (!PerformanceMeasurement.IsActive && debugModeActive)
         {
             var vertexPositionDict = new Dictionary<Coordinate, HashSet<Position>>();
             result.Keys.Each(vertex =>

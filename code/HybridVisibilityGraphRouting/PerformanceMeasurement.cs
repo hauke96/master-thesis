@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -8,154 +9,157 @@ namespace HybridVisibilityGraphRouting;
 
 public class PerformanceMeasurement
 {
-    public const int DEFAULT_ITERATION_COUNT = 10;
-    public const int DEFAULT_WARMUP_COUNT = 5;
+    public static bool IsActive = false;
+    
+    public const int DefaultIterationCount = 10;
+    public const int DefaultWarmupCount = 5;
 
-    public static bool IS_ACTIVE = false;
+    public static Result? CurrentRun;
 
-    public static int TOTAL_VERTICES = -1;
-    public static int TOTAL_VERTICES_AFTER_PREPROCESSING = -1;
-
-    public class Result
+    public class Result : RawResult
     {
-        private static string NUMBER_FORMAT = "0.###";
+        private const string IterationNumberKey = "iteration_number";
+        private const string IterationTimeKey = "iteration_time";
+        private const string MemoryKey = "memory";
+        private const string TotalVerticesKey = "total_vertices";
+        private const string TotalVerticesAfterPreprocessingKey = "total_vertices_after_preprocessing";
 
-        private readonly List<double> _iterations;
-        private readonly List<long> _memUsage;
-        private readonly string _name;
+        private List<double> Iterations => Values[IterationTimeKey].Map(v => (double)v);
 
-        public double IterationCount => _iterations.Count;
-        public double TotalTime => _iterations.Sum();
-        public double MinTime => !_iterations.IsEmpty() ? _iterations.Min() : 0;
-        public double MaxTime => !_iterations.IsEmpty() ? _iterations.Max() : 0;
-        public double AverageTime => TotalTime / IterationCount;
-        public long MinMemory => !_memUsage.IsEmpty() ? _memUsage.Min() : 0;
-        public long MaxMemory => !_memUsage.IsEmpty() ? _memUsage.Max() : 0;
-        public double AverageMemory => _memUsage.Sum() / IterationCount;
+        private List<long> MemUsage => Values[MemoryKey].Map(v => (long)v);
+        public double MinMemory => MemUsage.Min();
+        public double MaxMemory => MemUsage.Max();
+        public double AvgMemory => MemUsage.Average();
 
-        public Result(string name)
+        public int TotalVertices = -1;
+        public int TotalVerticesAfterPreprocessing = -1;
+
+        public double IterationCount => RowCount;
+        public double TotalTime => Iterations.Sum();
+
+        public Result(string name) : base(name)
         {
-            _iterations = new List<double>();
-            _memUsage = new List<long>();
-            _name = name;
         }
 
         public void AddIteration(double iterationDuration, long memBeforeIteration, long memAfterIteration)
         {
-            _iterations.Add(iterationDuration);
-            _memUsage.Add(memAfterIteration - memBeforeIteration);
+            AddRow(new Dictionary<string, object>
+            {
+                { IterationNumberKey, IterationCount },
+                { IterationTimeKey, iterationDuration },
+                { MemoryKey, memAfterIteration - memBeforeIteration },
+            });
         }
 
-        public void Print()
+        /// <summary>
+        /// This "closes" the result. It means the total number of vertices are added to all existing rows. This
+        /// should therefore only be called once after the measurement.
+        /// </summary>
+        public void Close()
         {
-            if (_iterations.Count > 0)
+            var rowCount = RowCount;
+            AddRows(new Dictionary<string, List<object>>
             {
-                Console.WriteLine(ToString());
-            }
-        }
-
-        public string ToCsv()
-        {
-            var stringBuilder = new StringBuilder();
-
-            var propertyNames = new List<string>
-            {
-                "iteration_number",
-                "iteration_time",
-                "total_time",
-                "min_time",
-                "max_time",
-                "avg_time",
-                "min_mem",
-                "max_mem",
-                "avg_mem",
-                "total_vertices",
-                "total_vertices_after_preprocessing"
-            };
-
-            stringBuilder.Append(String.Join(",", propertyNames));
-            stringBuilder.Append("\n");
-
-            for (var i = 0; i < _iterations.Count; i++)
-            {
-                var iteration = _iterations[i];
-
-                var propertyValues = new List<object>
                 {
-                    i,
-                    ToString(iteration),
-                    ToString(TotalTime),
-                    ToString(MinTime),
-                    ToString(MaxTime),
-                    ToString(AverageTime),
-                    ToString(MinMemory),
-                    ToString(MaxMemory),
-                    ToString(AverageMemory),
-                    ToString(TOTAL_VERTICES),
-                    ToString(TOTAL_VERTICES_AFTER_PREPROCESSING)
-                };
-
-                stringBuilder.Append(String.Join(",", propertyValues));
-                stringBuilder.Append("\n");
-            }
-
-            return stringBuilder.ToString();
-        }
-
-        public async void WriteToFile()
-        {
-            if (IS_ACTIVE)
-            {
-                await File.WriteAllTextAsync("performance_" + _name + ".csv", ToCsv());
-            }
-        }
-
-        private static String ToString(double number)
-        {
-            return number.ToString(NUMBER_FORMAT, System.Globalization.CultureInfo.InvariantCulture);
+                    TotalVerticesKey,
+                    Enumerable.Range(0, rowCount)
+                        .Map(x => ToString(TotalVertices))
+                        .Cast<object>()
+                        .ToList()
+                },
+                {
+                    TotalVerticesAfterPreprocessingKey,
+                    Enumerable.Range(0, rowCount)
+                        .Map(x => ToString(TotalVerticesAfterPreprocessing))
+                        .Cast<object>()
+                        .ToList()
+                }
+            });
         }
 
         public override string ToString()
         {
+            var minTime = Iterations.Min();
+            var maxTime = Iterations.Max();
+            var avgTime = Iterations.Average();
+
             return
-                @$"Measurement '{_name}':
+                @$"Measurement '{Name}':
   Iterations: {IterationCount}
   Tot time  : {TotalTime}ms
-  Time range: {MinTime} - {MaxTime} ms
-  Avg time  : {AverageTime}ms
+  Time range: {minTime} - {maxTime} ms
+  Avg time  : {avgTime}ms
   Mem range : {MinMemory} - {MaxMemory} bytes
-  Avg mem   : {AverageMemory} bytes"
+  Avg mem   : {AvgMemory} bytes"
                 ;
         }
     }
 
     public class RawResult
     {
-        private readonly string _name;
-        private readonly Dictionary<string, List<object>> _values;
+        private const string NumberFormat = "0.###";
 
-        private int _rowCount;
+        protected readonly string Name;
+        protected readonly Dictionary<string, List<object>> Values;
+        protected int RowCount;
 
         public RawResult(string name)
         {
-            _name = name;
-            _values = new Dictionary<string, List<object>>();
-            _rowCount = 0;
+            Name = name;
+            Values = new Dictionary<string, List<object>>();
+            RowCount = 0;
         }
 
-        public void AddRow(Dictionary<string, string> row)
+        /// <summary>
+        /// Adds a row entry for the given columns (represented as dictionary keys).
+        /// </summary>
+        public void AddRow(Dictionary<string, object> row, bool updateRowCount = true)
         {
             foreach (var key in row.Keys)
             {
-                if (!_values.ContainsKey(key))
+                if (!Values.ContainsKey(key))
                 {
-                    _values[key] = new List<object>();
+                    Values[key] = new List<object>();
                 }
 
-                _values[key].Add(row[key]);
+                Values[key].Add(row[key]);
             }
 
-            _rowCount++;
+            if (updateRowCount)
+            {
+                UpdateRowCount();
+            }
+        }
+
+        protected void AddRows(Dictionary<string, List<object>> row, bool updateRowCount = true)
+        {
+            foreach (var key in row.Keys)
+            {
+                if (!Values.ContainsKey(key))
+                {
+                    Values[key] = new List<object>();
+                }
+
+                Values[key].AddRange(row[key]);
+            }
+
+            if (updateRowCount)
+            {
+                UpdateRowCount();
+            }
+        }
+
+        private void UpdateRowCount()
+        {
+            var rowCounts = Values.Map(pair => pair.Value.Count).ToSet();
+            if (rowCounts.Count != 1)
+            {
+                throw new Exception($"Row count mismatch, found {rowCounts.Count} different row counts: " +
+                                    rowCounts.Join(","));
+            }
+
+            // All columns have the same amount of rows
+            RowCount = rowCounts.First();
         }
 
         public void Print()
@@ -163,17 +167,36 @@ public class PerformanceMeasurement
             Console.WriteLine(ToString());
         }
 
-        public string ToCsv()
+        protected static String ToString(double number)
         {
+            return number.ToString(NumberFormat, CultureInfo.InvariantCulture);
+        }
+
+        protected static String ToString(object o)
+        {
+            if (o is double d)
+            {
+                return ToString(d);
+            }
+
+            return o.ToString() ?? "" + o;
+        }
+
+        private string ToCsv()
+        {
+            var keys = Values.Keys.ToList();
+            Log.D($"Create CSV for result \'{Name}\' with the following columns:");
+            keys.Each(k => Log.D("  " + k));
+
             var stringBuilder = new StringBuilder();
 
-            stringBuilder.Append(String.Join(",", _values.Keys));
+            stringBuilder.Append(String.Join(",", keys));
             stringBuilder.Append("\n");
 
-            for (var i = 0; i < _rowCount; i++)
+            for (var i = 0; i < RowCount; i++)
             {
                 var rowNu = i;
-                var valuesForRow = _values.Keys.Map(k => _values[k][rowNu].ToString());
+                var valuesForRow = keys.Map(k => ToString(Values[k][rowNu]));
 
                 stringBuilder.Append(String.Join(",", valuesForRow));
                 stringBuilder.Append("\n");
@@ -184,11 +207,9 @@ public class PerformanceMeasurement
 
         public async void WriteToFile()
         {
-            await File.WriteAllTextAsync("performance_" + _name + ".csv", ToCsv());
+            await File.WriteAllTextAsync("performance_" + Name + ".csv", ToCsv());
         }
     }
-
-    private static Stopwatch stopwatch = new();
 
     /// <summary>
     /// Prepares the measurement setup by setting process and thread parameter.
@@ -232,7 +253,7 @@ public class PerformanceMeasurement
     /// Resets and starts the stopwatch timer.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void StartTimer()
+    private static void StartTimer(Stopwatch stopwatch)
     {
         stopwatch.Reset();
         stopwatch.Start();
@@ -243,7 +264,7 @@ public class PerformanceMeasurement
     /// </summary>
     /// <returns>The number of milliseconds of this measurement.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static double StopTimer()
+    private static double StopTimer(Stopwatch stopwatch)
     {
         stopwatch.Stop();
         return stopwatch.Elapsed.TotalMilliseconds;
@@ -259,18 +280,36 @@ public class PerformanceMeasurement
         return Process.GetCurrentProcess().WorkingSet64;
     }
 
-    public static Result ForFunction(Action func, string name = "", int iterationCount = DEFAULT_ITERATION_COUNT,
-        int warmupCount = DEFAULT_WARMUP_COUNT)
+    public static void AddFunctionDurationToCurrentRun(Action func, string name = "")
     {
-        var result = new Result(name);
-
-        if (!IS_ACTIVE)
+        if (CurrentRun == null || !IsActive)
         {
-            StartTimer();
             func();
-            var iterationDuration = StopTimer();
-            result.AddIteration(iterationDuration, 0, 0);
-            return result;
+            return;
+        }
+
+        var stopwatch = new Stopwatch();
+        StartTimer(stopwatch);
+        func();
+        var time = StopTimer(stopwatch);
+        CurrentRun.AddRow(new Dictionary<string, object> { { name, time } }, false);
+    }
+
+    public static Result NewMeasurementForFunction(Action func, string name = "",
+        int iterationCount = DefaultIterationCount,
+        int warmupCount = DefaultWarmupCount)
+    {
+        var stopwatch = new Stopwatch();
+
+        if (!IsActive)
+        {
+            StartTimer(stopwatch);
+            func();
+            var iterationDuration = StopTimer(stopwatch);
+            var r = new Result(name);
+            r.AddIteration(iterationDuration, 0, 0);
+            CurrentRun = null;
+            return r;
         }
 
         Log.D(
@@ -281,13 +320,19 @@ public class PerformanceMeasurement
         // Actual run
         for (var i = 0; i < iterationCount + warmupCount; i++)
         {
+            if (i == warmupCount)
+            {
+                // Warmup finished, this is the first normal iteration. Therefore the current run result is created.
+                CurrentRun = new Result(name);
+            }
+
             GarbageCollection();
 
             GC.TryStartNoGCRegion(256 * 1024 * 1024);
             var memBefore = GetRamUsage();
-            StartTimer();
+            StartTimer(stopwatch);
             func();
-            var iterationDuration = StopTimer();
+            var iterationDuration = StopTimer(stopwatch);
             var memAfter = GetRamUsage();
             if (GCSettings.LatencyMode == GCLatencyMode.NoGCRegion)
             {
@@ -297,17 +342,21 @@ public class PerformanceMeasurement
             // Add result if warmup completed
             if (i >= warmupCount)
             {
-                result.AddIteration(iterationDuration, memBefore, memAfter);
+                CurrentRun!.AddIteration(iterationDuration, memBefore, memAfter);
                 Log.I(
-                    $"Performance measurement {name}: Iteration {i - warmupCount} / {iterationCount} done: {iterationDuration}ms");
+                    $"Performance measurement {name}: Iteration {i - warmupCount + 1} / {iterationCount} done: {iterationDuration}ms");
             }
             else
             {
                 Log.I(
-                    $"Performance measurement {name}: Warmup iteration {i} / {warmupCount} done: {iterationDuration}ms");
+                    $"Performance measurement {name}: Warmup iteration {i + 1} / {warmupCount} done: {iterationDuration}ms");
             }
         }
 
+        CurrentRun!.Close();
+
+        var result = CurrentRun;
+        CurrentRun = null;
         return result;
     }
 }

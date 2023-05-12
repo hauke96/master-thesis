@@ -10,8 +10,6 @@ using Mars.Interfaces.Layers;
 using Mars.Numerics;
 using NetTopologySuite.Geometries;
 using HybridVisibilityGraphRouting;
-using HybridVisibilityGraphRouting.IO;
-using ServiceStack;
 using Position = Mars.Interfaces.Environments.Position;
 
 namespace HikerModel.Model
@@ -115,11 +113,11 @@ namespace HikerModel.Model
             {
                 List<Position> routingResult = null;
 
-                var performanceMeasurementResult = PerformanceMeasurement.ForFunction(
+                var performanceMeasurementResult = PerformanceMeasurement.NewMeasurementForFunction(
                     () => { routingResult = ObstacleLayer.HybridVisibilityGraph.ShortestPath(from, to); },
                     "CalculateRoute",
-                    PerformanceMeasurement.DEFAULT_ITERATION_COUNT * 10,
-                    PerformanceMeasurement.DEFAULT_WARMUP_COUNT * 3);
+                    PerformanceMeasurement.DefaultIterationCount * 10,
+                    PerformanceMeasurement.DefaultWarmupCount * 3);
                 performanceMeasurementResult.Print();
 
                 // Collect data for routing requests for each such request. Requests can be differently long and complex
@@ -129,15 +127,16 @@ namespace HikerModel.Model
                 var invariantCulture = CultureInfo.InvariantCulture;
                 var distanceFromTo = Distance.Haversine(from.PositionArray, to.PositionArray);
                 var averageTimeString =
-                    performanceMeasurementResult.AverageTime.ToString(numberFormat, invariantCulture);
-                _routingPerformanceResult.AddRow(new Dictionary<string, string>
+                    (performanceMeasurementResult.TotalTime / performanceMeasurementResult.IterationCount).ToString(
+                        numberFormat, invariantCulture);
+                _routingPerformanceResult.AddRow(new Dictionary<string, object>
                 {
                     {
-                        "total_vertices", PerformanceMeasurement.TOTAL_VERTICES.ToString(numberFormat, invariantCulture)
+                        "total_vertices", performanceMeasurementResult.TotalVertices.ToString(numberFormat, invariantCulture)
                     },
                     {
                         "total_vertices_after_preprocessing",
-                        PerformanceMeasurement.TOTAL_VERTICES_AFTER_PREPROCESSING.ToString(numberFormat,
+                        performanceMeasurementResult.TotalVerticesAfterPreprocessing.ToString(numberFormat,
                             invariantCulture)
                     },
                     { "distance", distanceFromTo.ToString(numberFormat, invariantCulture) },
@@ -151,13 +150,11 @@ namespace HikerModel.Model
 
                     { "avg_time", averageTimeString },
                     { "iteration_time", averageTimeString },
-                    { "min_time", performanceMeasurementResult.MinTime.ToString(numberFormat, invariantCulture) },
-                    { "max_time", performanceMeasurementResult.MaxTime.ToString(numberFormat, invariantCulture) },
                     { "total_time", performanceMeasurementResult.TotalTime.ToString(numberFormat, invariantCulture) },
 
-                    { "min_mem", performanceMeasurementResult.MinMemory.ToString() },
-                    { "max_mem", performanceMeasurementResult.MaxMemory.ToString() },
-                    { "avg_mem", performanceMeasurementResult.AverageMemory.ToString(numberFormat, invariantCulture) },
+                    { "min_mem", performanceMeasurementResult.MinMemory.ToString(numberFormat, invariantCulture) },
+                    { "max_mem", performanceMeasurementResult.MaxMemory.ToString(numberFormat, invariantCulture) },
+                    { "avg_mem", performanceMeasurementResult.AvgMemory.ToString(numberFormat, invariantCulture) },
 
                     {
                         "from",

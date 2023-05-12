@@ -54,7 +54,11 @@ public class GeometryHelper
 
         var vertexCount = geometriesToTriangulate.Sum(o => o.Coordinates.Length) +
                           geometriesToIgnore.Sum(o => o.Value.Coordinates.Length);
-        PerformanceMeasurement.TOTAL_VERTICES = vertexCount;
+        if (PerformanceMeasurement.CurrentRun != null)
+        {
+            PerformanceMeasurement.CurrentRun.TotalVertices = vertexCount;
+        }
+
         Log.D($"Amount of features before triangulating: {geometriesToTriangulate.Count + geometriesToIgnore.Count}");
         Log.D($"Amount of vertices before triangulating: {vertexCount}");
 
@@ -64,12 +68,16 @@ public class GeometryHelper
             .Each(geometry =>
             {
                 PolygonTriangulator.Triangulate(geometry)
-                    .Each(g=>triangulatedGeometries[g] = geometry);
+                    .Each(g => triangulatedGeometries[g] = geometry);
             });
 
         vertexCount = triangulatedGeometries.Sum(o => o.Key.Coordinates.Length) +
                       geometriesToIgnore.Sum(o => o.Key.Coordinates.Length);
-        PerformanceMeasurement.TOTAL_VERTICES_AFTER_PREPROCESSING = vertexCount;
+        if (PerformanceMeasurement.CurrentRun != null)
+        {
+            PerformanceMeasurement.CurrentRun.TotalVerticesAfterPreprocessing = vertexCount;
+        }
+
         Log.D($"Amount of features after triangulating: {triangulatedGeometries.Count + geometriesToIgnore.Count}");
         Log.D($"Amount of vertices after triangulating: {vertexCount}");
 
