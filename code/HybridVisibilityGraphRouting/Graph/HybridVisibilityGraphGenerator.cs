@@ -40,7 +40,7 @@ public static class HybridVisibilityGraphGenerator
         // DetermineVisibilityNeighbors
         time = PerformanceMeasurement.AddFunctionDurationToCurrentRun(
             () => { vertexNeighbors = DetermineVisibilityNeighbors(obstacles); },
-            "get_knn_search_time"
+            "knn_search_time"
         );
         Log.D($"{nameof(HybridVisibilityGraphGenerator)}: get_knn_search_time done after {time}ms");
         ArgumentNullException.ThrowIfNull(vertexNeighbors);
@@ -51,7 +51,7 @@ public static class HybridVisibilityGraphGenerator
             {
                 (hybridVisibilityGraph, spatialGraph) = AddVisibilityVerticesAndEdges(vertexNeighbors, obstacles);
             },
-            "get_create_graph_time"
+            "build_graph_time"
         );
         Log.D($"{nameof(HybridVisibilityGraphGenerator)}: get_knn_search_time done after {time}ms");
         ArgumentNullException.ThrowIfNull(hybridVisibilityGraph);
