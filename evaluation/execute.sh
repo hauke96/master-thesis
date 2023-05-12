@@ -28,8 +28,9 @@ Example:    models/HikingModel  datasets/foo   results/foo   "1 2 3 foo bar"
 This script does the following:
  1. Clean-build the model in "Release" configuration
  2. Copy each given dataset to the "Resources" folder in the built model (so into "bin/Release/.../Resources/obstacles.geojson")
- 3. Execute the model
- 4. Move all *.csv files to the given result folder and add the "performance_{dataset-name}" as prefix
+ 3. Copy the "{dataset-dir}/waypoints.geojson" to the "Resources" folder
+ 4. Execute the model
+ 5. Move all *.csv files to the given result folder and add the "performance_{dataset-name}" as prefix
 
 The datasets must be GeoJSON files but the given names must *not* contain the ".geojson" ending.
 END
@@ -67,6 +68,7 @@ do
 
 	# Copy the obstacle file to the right location
 	cp "$DATASET_DIR/${d}.geojson" ./Resources/obstacles.geojson
+	cp "$DATASET_DIR/waypoints.geojson" ./Resources/waypoints.geojson
 
 	# Execute model which outputs CSV files with performance measurements
 	dotnet "${MODEL}.dll"

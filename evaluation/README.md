@@ -162,9 +162,24 @@ Running it like this uses the three smallest datasets from the pattern-datasets:
 
 Note: You must use `sudo` on Linux to change the thread priority to "high".
 
+#### Getting dataset files
+
+Specifying all dataset names manually is boring, so here's some helping code getting all relevant GeoJSON files for the rectangle pattern based dataset:
+
+`DATASETS=$(ls datasets/pattern-based-rectangles/ | grep --color=never -P "pattern_\\d*x\\d*\.geojson" | sed "s/\.geojson//g")`
+
+Using `./execute.sh ... $DATASETS` is much easier.
+
 ### B: Manual execution
 
 4. Go into `bin/Release/net7.0/` of your model (or instead of `Release` and `net7.0` whatever configuration and .NET version you used)
 5. Make sure the correct dataset is in the correct location (e.g. the correct GeoJSON file at `Resources/obstacles.geojson` for the HikingModel)
 6. `sudo dotnet HikerModel.dll`
+
+# Visualize the results
+
+The `visualizations/` folder contains several python sripts generating visualizations via the python library seaborn.
+
+
+
 
