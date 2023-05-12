@@ -5,9 +5,7 @@ using Mars.Common.Collections;
 using Mars.Common.Collections.Graph;
 using Mars.Common.Core.Collections;
 using Mars.Interfaces.Environments;
-using Mars.Numerics;
 using NetTopologySuite.Features;
-using NetTopologySuite.Geometries;
 using ServiceStack;
 
 namespace HybridVisibilityGraphRouting;
@@ -76,17 +74,7 @@ public static class HybridVisibilityGraphGenerator
 
     public static Dictionary<Vertex, List<List<Vertex>>> DetermineVisibilityNeighbors(QuadTree<Obstacle> obstacles)
     {
-        var vertexNeighbors = new Dictionary<Vertex, List<List<Vertex>>>();
-
-        var stopwatch = new Stopwatch();
-        PerformanceMeasurement.AddFunctionDurationToCurrentRun(
-            () => { vertexNeighbors = VisibilityGraphGenerator.CalculateVisibleKnn(obstacles, 36, 10, true); },
-            "CalculateVisibleKnn"
-        );
-        Log.D(
-            $"{nameof(HybridVisibilityGraphGenerator)}: CalculateVisibleKnn done after {stopwatch.ElapsedMilliseconds}ms");
-
-        return vertexNeighbors;
+        return VisibilityGraphGenerator.CalculateVisibleKnn(obstacles, 36, 10, true);
     }
 
     public static (HybridVisibilityGraph, SpatialGraph) AddVisibilityVerticesAndEdges(

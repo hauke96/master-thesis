@@ -35,8 +35,6 @@ namespace HikerModel.Model
         private IEnumerator<Position> _routeWaypoints;
         private Position NextRouteWaypoint => _routeWaypoints.Current;
 
-        private PerformanceMeasurement.RawResult _routingPerformanceResult;
-
         public void Init(HikerLayer layer)
         {
             _targetWaypoints = WaypointLayer.TrackPoints.GetEnumerator();
@@ -48,8 +46,6 @@ namespace HikerModel.Model
 
             _hikerLayer = layer;
             _hikerLayer.InitEnvironment(ObstacleLayer.Features, this);
-
-            _routingPerformanceResult = new PerformanceMeasurement.RawResult("Routing");
         }
 
         public void Tick()
@@ -91,8 +87,6 @@ namespace HikerModel.Model
                     if (NextTargetWaypoint == null)
                     {
                         Log.I("Hiker reached last waypoint. He will now die of exhaustion. Farewell dear hiker.");
-                        _routingPerformanceResult.WriteToFile();
-                        Log.D("Performance data written to file");
                         _hikerLayer.Environment.Remove(this);
                         UnregisterHandle.Invoke(_hikerLayer, this);
                         Log.D("Hiker unregistered");
@@ -111,63 +105,7 @@ namespace HikerModel.Model
         {
             try
             {
-                List<Position> routingResult = null;
-
-                var performanceMeasurementResult = PerformanceMeasurement.NewMeasurementForFunction(
-                    () => { routingResult = ObstacleLayer.HybridVisibilityGraph.ShortestPath(from, to); },
-                    "CalculateRoute",
-                    PerformanceMeasurement.DefaultIterationCount * 10,
-                    PerformanceMeasurement.DefaultWarmupCount * 3);
-                performanceMeasurementResult.Print();
-
-                // Collect data for routing requests for each such request. Requests can be differently long and complex
-                // so it's interesting to put the result into a perspective (e.g. relative to distance between "from"
-                // and "to").
-                const string numberFormat = "0.###";
-                var invariantCulture = CultureInfo.InvariantCulture;
-                var distanceFromTo = Distance.Haversine(from.PositionArray, to.PositionArray);
-                var averageTimeString =
-                    (performanceMeasurementResult.TotalTime / performanceMeasurementResult.IterationCount).ToString(
-                        numberFormat, invariantCulture);
-                _routingPerformanceResult.AddRow(new Dictionary<string, object>
-                {
-                    {
-                        "total_vertices", performanceMeasurementResult.TotalVertices.ToString(numberFormat, invariantCulture)
-                    },
-                    {
-                        "total_vertices_after_preprocessing",
-                        performanceMeasurementResult.TotalVerticesAfterPreprocessing.ToString(numberFormat,
-                            invariantCulture)
-                    },
-                    { "distance", distanceFromTo.ToString(numberFormat, invariantCulture) },
-                    {
-                        "route_length",
-                        routingResult
-                            .Select((position, i) => i == 0 ? 0 : position.DistanceInMTo(routingResult[i - 1]))
-                            .Sum()
-                            .ToString(numberFormat, invariantCulture)
-                    },
-
-                    { "avg_time", averageTimeString },
-                    { "iteration_time", averageTimeString },
-                    { "total_time", performanceMeasurementResult.TotalTime.ToString(numberFormat, invariantCulture) },
-
-                    { "min_mem", performanceMeasurementResult.MinMemory.ToString(numberFormat, invariantCulture) },
-                    { "max_mem", performanceMeasurementResult.MaxMemory.ToString(numberFormat, invariantCulture) },
-                    { "avg_mem", performanceMeasurementResult.AvgMemory.ToString(numberFormat, invariantCulture) },
-
-                    {
-                        "from",
-                        from.X.ToString(numberFormat, invariantCulture) + " " +
-                        from.Y.ToString(numberFormat, invariantCulture)
-                    },
-                    {
-                        "to",
-                        to.X.ToString(numberFormat, invariantCulture) + " " +
-                        to.Y.ToString(numberFormat, invariantCulture)
-                    }
-                });
-
+                var routingResult = ObstacleLayer.HybridVisibilityGraph.ShortestPath(from, to);
                 if (routingResult.Count == 0)
                 {
                     throw new Exception($"No route found from {from} to {to}");
