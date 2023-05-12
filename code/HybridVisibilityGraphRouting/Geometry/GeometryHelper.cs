@@ -1,9 +1,6 @@
 using HybridVisibilityGraphRouting.IO;
-using Mars.Common.Collections.Graph;
-using Mars.Common.Core.Collections;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
-using NetTopologySuite.Operation.Distance;
 using ServiceStack;
 using Triangulation;
 using Feature = NetTopologySuite.Features.Feature;
