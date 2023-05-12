@@ -1,3 +1,4 @@
+using System.Linq;
 using Mars.Components.Layers;
 using Mars.Interfaces.Data;
 using Mars.Interfaces.Layers;
@@ -19,6 +20,7 @@ namespace HikerModel.Model
             {
                 return false;
             }
+            var features = Features.Map(f => f.VectorStructured).ToList();
 
             // When performance measurement active -> Turn off performance measurements within the constructor call.
             // Below this if-block, the performance measurement is reactivated and the calls within the constructor will
@@ -32,7 +34,7 @@ namespace HikerModel.Model
                     {
                         // Deactivate measurement within constructor:
                         PerformanceMeasurement.IS_ACTIVE = false;
-                        HybridVisibilityGraphGenerator.Generate(Features.Map(f => f.VectorStructured));
+                        HybridVisibilityGraph = HybridVisibilityGraphGenerator.Generate(features);
                     },
                     "Graph creation");
                 result.Print();
@@ -41,7 +43,7 @@ namespace HikerModel.Model
                 PerformanceMeasurement.IS_ACTIVE = true;
             }
 
-            HybridVisibilityGraph = HybridVisibilityGraphGenerator.Generate(Features.Map(f => f.VectorStructured));
+            HybridVisibilityGraph = HybridVisibilityGraphGenerator.Generate(features);
 
             return true;
         }
