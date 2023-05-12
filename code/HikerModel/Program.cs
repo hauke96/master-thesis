@@ -13,10 +13,10 @@ namespace HikerModel
         {
             try
             {
-                PerformanceMeasurement.IsActive = false;
-                // PerformanceMeasurement.IsActive = true;
+                // PerformanceMeasurement.IsActive = false;
+                PerformanceMeasurement.IsActive = true;
 
-                // Log.LogLevel = Log.DEBUG;<
+                // Log.LogLevel = Log.DEBUG;
 
                 // the scenario consist of the model (represented by the model description)
                 // an the simulation configuration (see config.json)

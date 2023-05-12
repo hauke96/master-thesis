@@ -25,15 +25,56 @@ public static class HybridVisibilityGraphGenerator
         // Prevent multiple enumerations
         features = features.ToList();
 
-        var obstacles = GetObstacles(features);
-        var vertexNeighbors = DetermineVisibilityNeighbors(obstacles);
-        var (hybridVisibilityGraph, spatialGraph) = AddVisibilityVerticesAndEdges(vertexNeighbors, obstacles);
+        QuadTree<Obstacle>? obstacles = null;
+        Dictionary<Vertex, List<List<Vertex>>>? vertexNeighbors = null;
+        HybridVisibilityGraph? hybridVisibilityGraph = null;
+        SpatialGraph? spatialGraph = null;
+        double time;
 
-        MergeRoadsIntoGraph(features, hybridVisibilityGraph);
-        AddAttributesToPoiNodes(features, spatialGraph);
+        // GetObstacles
+        time = PerformanceMeasurement.AddFunctionDurationToCurrentRun(
+            () => { obstacles = GetObstacles(features); },
+            "get_obstacle_time"
+        );
+        Log.D($"{nameof(HybridVisibilityGraphGenerator)}: get_obstacle_time done after {time}ms");
+        ArgumentNullException.ThrowIfNull(obstacles);
+
+        // DetermineVisibilityNeighbors
+        time = PerformanceMeasurement.AddFunctionDurationToCurrentRun(
+            () => { vertexNeighbors = DetermineVisibilityNeighbors(obstacles); },
+            "get_knn_search_time"
+        );
+        Log.D($"{nameof(HybridVisibilityGraphGenerator)}: get_knn_search_time done after {time}ms");
+        ArgumentNullException.ThrowIfNull(vertexNeighbors);
+
+        // AddVisibilityVerticesAndEdges
+        time = PerformanceMeasurement.AddFunctionDurationToCurrentRun(
+            () =>
+            {
+                (hybridVisibilityGraph, spatialGraph) = AddVisibilityVerticesAndEdges(vertexNeighbors, obstacles);
+            },
+            "get_create_graph_time"
+        );
+        Log.D($"{nameof(HybridVisibilityGraphGenerator)}: get_knn_search_time done after {time}ms");
+        ArgumentNullException.ThrowIfNull(hybridVisibilityGraph);
+        ArgumentNullException.ThrowIfNull(spatialGraph);
+
+        // MergeRoadsIntoGraph
+        time = PerformanceMeasurement.AddFunctionDurationToCurrentRun(
+            () => { MergeRoadsIntoGraph(features, hybridVisibilityGraph); },
+            "merge_road_graph_time"
+        );
+        Log.D($"{nameof(HybridVisibilityGraphGenerator)}: merge_road_graph_time done after {time}ms");
+
+        // AddAttributesToPoiNodes
+        time = PerformanceMeasurement.AddFunctionDurationToCurrentRun(
+            () => { AddAttributesToPoiNodes(features, spatialGraph); },
+            "add_poi_attributes_time"
+        );
+        Log.D($"{nameof(HybridVisibilityGraphGenerator)}: add_poi_attributes_time done after {time}ms");
 
         Log.D($"{nameof(HybridVisibilityGraphGenerator)}: Done after {watch.ElapsedMilliseconds}ms");
-        return hybridVisibilityGraph;
+        return hybridVisibilityGraph!;
     }
 
     /// <summary>
@@ -76,17 +117,7 @@ public static class HybridVisibilityGraphGenerator
 
     public static Dictionary<Vertex, List<List<Vertex>>> DetermineVisibilityNeighbors(QuadTree<Obstacle> obstacles)
     {
-        var vertexNeighbors = new Dictionary<Vertex, List<List<Vertex>>>();
-
-        var stopwatch = new Stopwatch();
-        PerformanceMeasurement.AddFunctionDurationToCurrentRun(
-            () => { vertexNeighbors = VisibilityGraphGenerator.CalculateVisibleKnn(obstacles, 36, 10, true); },
-            "CalculateVisibleKnn"
-        );
-        Log.D(
-            $"{nameof(HybridVisibilityGraphGenerator)}: CalculateVisibleKnn done after {stopwatch.ElapsedMilliseconds}ms");
-
-        return vertexNeighbors;
+        return VisibilityGraphGenerator.CalculateVisibleKnn(obstacles, 36, 10, true);
     }
 
     public static (HybridVisibilityGraph, SpatialGraph) AddVisibilityVerticesAndEdges(

@@ -10,7 +10,7 @@ namespace HybridVisibilityGraphRouting;
 public class PerformanceMeasurement
 {
     public static bool IsActive = false;
-    
+
     public const int DefaultIterationCount = 10;
     public const int DefaultWarmupCount = 5;
 
@@ -280,25 +280,35 @@ public class PerformanceMeasurement
         return Process.GetCurrentProcess().WorkingSet64;
     }
 
-    public static void AddFunctionDurationToCurrentRun(Action func, string name = "")
+    /// <summary>
+    /// Executes the given function and measures its time. The result will be added to the <code>CurrentRun</code>
+    /// result with <code>name</code> as key/column.
+    /// </summary>
+    public static double AddFunctionDurationToCurrentRun(Action func, string name = "")
     {
-        if (CurrentRun == null || !IsActive)
-        {
-            func();
-            return;
-        }
-
         var stopwatch = new Stopwatch();
         StartTimer(stopwatch);
         func();
         var time = StopTimer(stopwatch);
-        CurrentRun.AddRow(new Dictionary<string, object> { { name, time } }, false);
+
+        if (IsActive && CurrentRun != null)
+        {
+            CurrentRun.AddRow(new Dictionary<string, object> { { name, time } }, false);
+        }
+
+        return time;
     }
 
+    /// <summary>
+    /// Starts a new performance measurement. The Field <code>CurrentRun</code> must not be set, i.e. an exception is
+    /// thrown in case a measurement run is currently in progress. 
+    /// </summary>
     public static Result NewMeasurementForFunction(Action func, string name = "",
         int iterationCount = DefaultIterationCount,
         int warmupCount = DefaultWarmupCount)
     {
+        if (CurrentRun != null) throw new Exception("A measurement is already in progress, cannot start a new one.");
+
         var stopwatch = new Stopwatch();
 
         if (!IsActive)

@@ -115,9 +115,7 @@ namespace HikerModel.Model
 
                 var performanceMeasurementResult = PerformanceMeasurement.NewMeasurementForFunction(
                     () => { routingResult = ObstacleLayer.HybridVisibilityGraph.ShortestPath(from, to); },
-                    "CalculateRoute",
-                    PerformanceMeasurement.DefaultIterationCount * 10,
-                    PerformanceMeasurement.DefaultWarmupCount * 3);
+                    "CalculateRoute", 5, 3);
                 performanceMeasurementResult.Print();
 
                 // Collect data for routing requests for each such request. Requests can be differently long and complex
@@ -132,7 +130,8 @@ namespace HikerModel.Model
                 _routingPerformanceResult.AddRow(new Dictionary<string, object>
                 {
                     {
-                        "total_vertices", performanceMeasurementResult.TotalVertices.ToString(numberFormat, invariantCulture)
+                        "total_vertices",
+                        performanceMeasurementResult.TotalVertices.ToString(numberFormat, invariantCulture)
                     },
                     {
                         "total_vertices_after_preprocessing",
