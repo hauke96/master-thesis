@@ -5,9 +5,7 @@ using Mars.Common.Collections;
 using Mars.Common.Collections.Graph;
 using Mars.Common.Core.Collections;
 using Mars.Interfaces.Environments;
-using Mars.Numerics;
 using NetTopologySuite.Features;
-using NetTopologySuite.Geometries;
 using ServiceStack;
 
 namespace HybridVisibilityGraphRouting;
