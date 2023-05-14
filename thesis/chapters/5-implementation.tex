@@ -29,19 +29,19 @@ After that, the main sections of this chapter show details of each algorithmic s
 		
 		The first reason was a bad performance.
 		Early stages of the continuous dijsktra approach used a very naive and simple implementation without optimizations mentioned in recent literature on this topic.
-		Before investing larger efforts into the implementation of a more complex approach, like the one presented by Hershberger and Suri\cite{hershberger-suri}, a simple preprocessing was introduced and lead to a major performance enhancement.
-		This perprocessing determined the visibility between all vertices, which was later used to create events for the collision between wavelets and vertices.
+		Before investing larger efforts into the implementation of a more complex approach, like the one presented by Hershberger and Suri\cite{hershberger-suri}, a simple preprocessing was introduced and lead to a major performance improvement.
+		This preprocessing determined the visibility between all vertices, which was later used to create events for the collision between wavelets and vertices.
 		Such predetermined visibilities are the core of a visibility graph, thus moving to an actual visibility graph based approach was not a big step.
+		Deciding on the exact approach to generate a working visibility graph was discussed in \cref{subsec:decision-against-existing-approaches}.
 		
 		The second reason to actually move towards a visibility graph was the difficulty and the disadvantages of combining the network based routing with the continuous dijkstra algorithm implemented so far, as described in \cref{sec:combining-routing-algorithms}.
 		Therefore, the decision fell in favor of implementing and optimizing the creation of a routable visibility graph.
 	
-	\subsection{Chosen approach and potentially faster known algorithms}
-
-		% Maybe this whole subsection is part of a later discussion?
-		Due to the step by step development by turning the former continuous dijkstra preprocessing into a visibility graph generator, the implemented approach does not follow algorithms described in the literature.
-		The performance of this implementation, as shown in \todo[inline]{link to evaluation chapter}, is still enough for practical use, but a well designed and fast algorithm, like the one presented by Overmars and Welzl \cite{overmars-weizl-visibility-graph} or the one by Ghosh and Mount \cite{ghosh-output-sensitive-vgraph}, would clearly increase performance.
-		However, this performance enhancement would only affect the generation of a visibility graph and not the performance of the routing queries.
+%	\subsection{Chosen approach and potentially faster known algorithms}
+%
+%		Due to the step by step development by turning the former continuous dijkstra preprocessing into a visibility graph generator, the implemented approach does not follow algorithms described in the literature.
+%		The performance of this implementation, as shown in \todo[inline]{link to evaluation chapter}, is still enough for practical use, but a well designed and fast algorithm, like the one presented by Overmars and Welzl \cite{overmars-weizl-visibility-graph} or the one by Ghosh and Mount \cite{ghosh-output-sensitive-vgraph}, would clearly increase performance.
+%		However, this performance enhancement would only affect the generation of a visibility graph and not the performance of the routing queries.
 			
 	\subsection{Algorithm steps}
 	\label{subsec:algorithm-steps}
@@ -70,12 +70,174 @@ After that, the main sections of this chapter show details of each algorithmic s
 		\end{enumerate}
 		The last step ensures that subsequent routing queries are answered based on the original graph and not on a previously altered version.
 		It also prevents an uncontrolled growth of the graph.
+	
+\section{Data structures}
+	
+	Before the separate steps of the graph generation are described in detail, the newly created data structures are presented.
 		
-\section{Visibility graph creation}
+	\subsection{Shadow areas}
+		
+		Shadow areas are a method to quickly determine vertices that are definitely not visible to each other.
+		The idea of shadow areas is the following:
+		Let $v$ be the currently processed vertex and think of it as a light bulb illuminating its surroundings.
+		An obstacle $o$ casts a shadow outwards and everything within this shadow is definitely not visible from $v$.
+		
+		Each shadow is determined by three values: two values for the angular range and a third value for the minimum distance from which other vertices within the angular range are definitely not visible.
+		This means each shadow is an interval with of certain distance, which turns the visibility problem into an interval intersection problem.
+		Latter one, specifically to check whether a point is within an angle area, can be solved using just a few arithmetic operations.
+		
+		The angular range of a shadow is determined by the two bounding vertices (marked in red in \cref{fig:shadow-area}) of the respective obstacle.
+		The furthest of these two bounding vertices determines the minimum distance of the shadow area.
+		
+		Keeping track of these shadow areas for each vertex significantly improves performance, especially with the use of the \texttt{BinIndex} data structure described \hyperref[subsec:binindex]{below}.
+		\todo[inline]{conrete numbers?}
+		
+		% NetworkRoutingPlayground->Jungfernstieg dataset with 7916 vertices: ~7.3s with and 67s without shadow areas -> speed up of factor ~9
+		% Hamburg inner city dataset with 67819 vertices: 382s with and ~31000s without shadow areas -> speed up of factor ~81
+		
+		\begin{figure}[h]
+			\begin{figcenter}
+				\begin{tikzpicture}
+					\def\angle{20}
+					\def\boundingVertexDistance{3}
+					
+					\tikzDot[label=$v$]{(0,1.5)}{v}
+					\coordinate (shadow-arc-top)				at ($(v) +( \angle:\boundingVertexDistance)$);
+					\coordinate (shadow-arc-bottom)				at ($(v) +(-\angle:\boundingVertexDistance)$);
+					\coordinate (shadow-arc-top-end)			at ($(v) +( \angle:5.75)$);
+					\coordinate (shadow-arc-bottom-end)			at ($(v) +(-\angle:5.75)$);
+					\coordinate (shadow-arc-top-faded-end)		at ($(v) +( \angle:6.5)$);
+					\coordinate (shadow-arc-bottom-faded-end)	at ($(v) +(-\angle:6.5)$);
+					
+					% Gray area
+					\filldraw[lightgray] 
+					(shadow-arc-bottom) arc [start angle=-\angle, delta angle=2*\angle, radius=\boundingVertexDistance] --
+					(shadow-arc-top-end) --
+					(shadow-arc-bottom-end) --
+					cycle;
+					\draw[gray]
+					(shadow-arc-bottom-end) --
+					(shadow-arc-bottom) arc [start angle=-\angle, delta angle=2*\angle, radius=\boundingVertexDistance] --
+					(shadow-arc-top-end);
+					
+					\draw[dotted] (v) -- (shadow-arc-top);
+					\draw[dotted] (v) -- (shadow-arc-bottom);
+					
+					% Faded gray area
+					\filldraw[draw=none,lightgray,path fading=east]
+					(shadow-arc-top-faded-end) --
+					(shadow-arc-top-end) --
+					(shadow-arc-bottom-end) --
+					(shadow-arc-bottom-faded-end) --
+					cycle;
+					\draw[gray,path fading=east] (shadow-arc-top-end) -- (shadow-arc-top-faded-end);
+					\draw[gray,path fading=east] (shadow-arc-bottom-end) -- (shadow-arc-bottom-faded-end);
+					
+					% Obstacle 1
+					\tikzDot[red]{(shadow-arc-top)}{o10}
+					\tikzDot{(3.5,2)}{o11}
+					\tikzDot[red]{($(v) +(-\angle:1.2)$)}{o12}
+					\node[above right = 0.5 and 1 of o12] {$o_1$};
+					
+					% Obstacle 2
+					\tikzDot[label=right:$v'$]{(3.5,1.35)}{o20}
+					\tikzDot{(3.5,-0.25)}{o21}
+					
+					% Obstacle 3
+					\tikzDot[label=right:$v''$]{(2.1,1.1)}{o30}
+					\tikzDot{(2.1,-0.5)}{o31}
+					
+					\node[darkgray] at (4.65,1.5) {\huge$S$};
+					
+					\draw (o10) -- (o11) -- (o12) -- (o10);
+					\draw (o20) -- node[right] {$o_2$} (o21);
+					\draw (o30) -- node[left] {$o_3$} (o31);
+				\end{tikzpicture}
+			\end{figcenter}
+			\caption{Shadow area $S$ cast by obstacle $o_1$ seen from vertex $v$. The vertex $v'$ of obstacle $o_2$ is not visible from $v$ since it lies inside the shadow area. The two red vertices of obstacle $o_1$ are the bounding vertices determining angle range and distance of $S$. Note that $v''$ is not visible from $v$ even though it is not inside the shadow area.}
+			\label{fig:shadow-area}
+		\end{figure}
+		
+	\subsection{BinIndex data structure}
+	\label{subsec:binindex}
+		
+		The \texttt{BinIndex} class implements a linear bin based index structure to store and access intervals.
+		It contains $n$ many bins covering a certain range and consisting of a linked list.
+		When an item is added, it is added to each bin intersecting with the range of the item.
+		Due to the linked list as the underlying data structure for the bins, queries can be answered in linear time.
+		\Cref{fig:bin-index} illustrates this data structure with a simple example.
+		
+		\begin{figure}[h]
+			\begin{figcenter}
+				\begin{tikzpicture}
+					\def\l{0.5}
+					\def\countX{9} % One more is added due to start at x=0
+					\def\countY{1} % One more is added due to start at x=0
+					
+					\def\itemBStartX{1.5}
+					\def\itemBIndexStart{1}
+					\def\itemBLength{4.2}
+					
+					\def\itemAStartX{4}
+					\def\itemAIndexStart{4}
+					\def\itemALength{7.8}
+					
+					% Item A: Bins 1-5
+					\filldraw[pattern=north west lines,pattern color=red] (\itemBStartX*\l,\countY+4*\l) rectangle node[above right=0.125 and -0.5]{Item B: \itemBStartX\ - 5.7} ++(\itemBLength*\l,0.5*\l);
+					
+					% Item B: Bins 4-11(2)
+					\filldraw[pattern=crosshatch dots,pattern color=blue] (\itemAStartX*\l,\countY+3*\l) rectangle node[above right=0.125 and -0.5]{Item A: \itemAStartX\ - 10.8} ++(\itemALength*\l,0.5*\l);
+					
+					\draw[->] (0.5*\countX*\l,\countY+2.25*\l) -- +(0,-1*\l);
+					
+					% Draw pattern to bins
+					\fill[pattern=north west lines,pattern color=red] (\itemBIndexStart*\l,1.5*\l) rectangle ++(\l,\l);
+					\fill[pattern=north west lines,pattern color=red] (\itemBIndexStart*\l+1*\l,0) rectangle ++(2*\l,\l);
+					\fill[pattern=north west lines,pattern color=red] (\itemBIndexStart*\l+3*\l,1.5*\l) rectangle ++(\l,\l);
+					\fill[pattern=north west lines,pattern color=red] (\itemBIndexStart*\l+4*\l,1.5*\l) rectangle ++(\l,\l);
+					
+					\fill[pattern=crosshatch dots,pattern color=blue] (\itemAIndexStart*\l,0) rectangle ++(6*\l,\l);
+					\fill[pattern=crosshatch dots,pattern color=blue] (0,0) rectangle ++(2*\l,\l);
+					
+					% Draw outlines of bins
+					\foreach \x in {0,...,\countX}
+					{
+						\draw (\l*\x,0) rectangle ++(\l,\l);
+					}
+					
+					\draw (\itemBIndexStart*\l,1.5*\l) rectangle ++(\l,\l);
+					\draw[->] (\itemBIndexStart*\l+0.5*\l,\l) -- ++(0,0.5*\l);
+					
+					\draw (\itemBIndexStart*\l+3*\l,1.5*\l) rectangle ++(\l,\l);
+					\draw[->] (\itemBIndexStart*\l+3.5*\l,\l) -- ++(0,0.5*\l);
+					
+					\draw (\itemBIndexStart*\l+4*\l,1.5*\l) rectangle ++(\l,\l);
+					\draw[->] (\itemBIndexStart*\l+4.5*\l,\l) -- ++(0,0.5*\l);
+					
+					% Label
+					\foreach \x in {0,...,\countX}
+					{
+						\node at (\l*\x+0.5*\l,-0.35) {$\x$};
+					}
+					
+					\node at (0.5*\countX*\l,-0.875) {bins};
+					\node[align=right] at (-1.25,0.5*\countY*\l+\l) {Linked list\\of bins};
+				\end{tikzpicture}
+			\end{figcenter}
+			\caption{Bin index filled with two items A and B. Since item A was added first, B's entries in, which fall into a bin where en entry for item A already exists, are moved to a next item in the linked list of the bin. Each bin covers a range, which means non integer value are rounded down (for from-values) or up (for to-values).}
+			\label{fig:bin-index}
+		\end{figure}
+		
+		The NetTopologySuite offers several indices specifically made for intervals, namely the \texttt{BinTree}, \texttt{SIRtree} and \texttt{SortedPackedIntervalRTree}, of which only the first one is dynamic and thus allows insertions and deletions after the first query was made.
+		Even though these three data structures are tree based and should offer a logarithmic query time complexity compared to the linear time complexity of the \texttt{BinIndex}, the simple and list based \texttt{BinIndex} is significantly faster even for larger datasets with tens of thousands of vertices.
+		It is thinkable that the logarithmic complexity is useful for even larger datasets with millions of vertices.
+		
+		\todo{Performance analysis (maybe in evaluation chapter?)}
+		
+\section{Routing graph creation}
 \label{sec:visibility-graph-creation}
-
+		
 	This section describes the steps given in \cref{subsec:algorithm-steps}, generating a visibility graph and merging it with a road network, in more detail.
-	Newly introduces data structures are presented and described as well.
 
 	\subsection{Step 1: Obstacle filtering and feature preprocessing}
 	\label{subsec:step-1-preprocessing}
@@ -89,49 +251,62 @@ After that, the main sections of this chapter show details of each algorithmic s
 			
 			Another task within this first step is the triangulation of all polygonal shapes.
 			The main reason is a better performance for intersection checks, which is an important operation when checking if an obstacle is between two vertices.
+			Details on this intersection check implementation are described \hyperref[subsubsec:intersection-checks]{below}.
 			
 	\subsection{Step 2: Determining $k$ nearest visible neighbors}
 			
-			After having all preprocessed obstacles, the main task of the visibility graph creation is performed, namely determining all $k$ many visible neighbors.
+			After having all preprocessed obstacles, the main task of the visibility graph creation is performed, namely the determination of all $k$ many visible neighbors.
 			Determining all visible neighbors would also be possible, but this parameter is an easy way to increase performance with the downside of not having all possible edges in the final routing graph.
+			
+			\subsubsection{Parameter $k$ and consequences on the shortest paths}
+			
+				The $k$, however, is not just a single parameter, but rather consists of two separate values:
+				The number of bins $k_b$ and the number of maximum neighbors per bin $k_n$.
+				This means a maximum of $k_b \cdot k_n$ many neighbors are considered.
+				
+				Each bin covers a certain angle area of each vertex, for example for a bin count of 36, each bin would cover a 10° area.
+				In fact, the chosen default values of 36 bins with ten neighbors per bin worked well in all and usages of the implementation.
+				When a bin is filled and a new edge should be inserted, an existing edge might be removed from the bin.
+				The criterion on which edge to remove is its length such that only the $k_n$ shortest edges per angle area of the bin remain.
+				
+				Without this subdivision and by only considering a static maximum number of neighbors, it is possible to only have edges to complex and close objects but no edges to obstacles further away.
+				An example for this would be a large and open park where the $k$ nearest neighbors are probably all at the side of the park where the currently processed vertex is, even though the far away other side of the park is clearly visibly.
+				This subdivision into bins ensures that there will definitely be connections to the other side of the park.
+				
+				Not considering exactly all edges leads to less accurate routing results, i.e. to suboptimal non-shortest paths.
+				As mentioned above, a bin only contains the $k_n$ shortest edges.
+				In the case of using the above mentioned default values of ten edges per 10° range, an omitted edge led to a similar direction as at least nine other edges did.
+				The negative influence of a detour to the total route length by using the second-best edge towards the destination is most likely not significant.
+				\todo{Check this in evaluation! Test: ca. 17\% of edges are removed with $(36,10)$ compared to $(3600,1000)$ with only 13\% longer calculation time}
 			
 			\subsubsection{Terminology}
 			
 				Before describing the details on determining the $k$ nearest neighbors, there are some terms that need to be defined.
 				
 				\begin{description}
-					\item[\term*{visibility neighbor}] Sometimes also just \emph{visible neighbor} is a vertex $u$ that is visible from the currently processed vertex $v$.
+					\item[obstacle] An obstacle is a geometry that should be avoided when determining shortest paths. It can be any type of geometry, not only a polygon.
+					\item[\term*{visibility neighbor}] A visibility neighbor of a vertex $v$ is another vertex $u$, which is visible. In other words a linestring from $v$ to $u$ does not intersect with any obstacle. Sometimes $u$ is just called a \emph{visible neighbor}.
 					\item[\term*{obstacle neighbor}] This is a vertex $u$ with an existing edge to or from the currently processed vertex $v$. In other words, $u$ is visible from $v$ but via an existing obstacle edge.
-					\item[\term*{shadow area}] This is an angle area that starts at a certain distance, for example \enquote{10° to 20° with a minimum distance of 30 meter}.
 				\end{description}
 			
-			\subsubsection{Algorithm overview}
+			\subsubsection{Visibility graph generation overview}
 			
-				The performed steps of determining the visible neighbors are the following, more details are given in the section below.
+				The performed steps of determining the visible neighbors are the following.
+				Each step is described with more details sections below.
 				\begin{enumerate}
-					\item Get the obstacle neighbors for each vertex.
+					\item Determine the obstacle neighbors for each vertex.
 					\item For each vertex $v$, determine its visibility neighbors as follows.
 					\begin{enumerate}
 						\item For each other vertex $u$, do the following:
 						\begin{enumerate}
 							\item Is $u$ in any shadow area? If so, which means $u$ is not visible, move to the next other vertex. Continue otherwise.
-							\item Query all obstacles between $v$ and $u$.
+							\item Query all obstacles between $v$ and $u$. This is done by the bounding box spanned by $v$ and $u$.
 							\item Create and store the shadow area of each such obstacle $o$.
-							\item Mark $u$ as visibility neighbors if $u$ is still not in any shadow area and a line segment from $v$ to $u$ intersects with none of the above queries obstacles.
+							\item Check if $u$ is a visibility neighbor, which is true if $u$ is a) still not in any shadow area and b) the line segment from $v$ to $u$ intersects with none of the above queries obstacles.
 						\end{enumerate}
 						\item Sort visibility neighbors into bins based on the obstacle neighbors.
 					\end{enumerate}
 				\end{enumerate}
-			
-			\subsubsection{Parameter $k$}
-			
-				The $k$, however, is not just a single parameter, but rather consists of two separate values:
-				The number of bins and the number of maximum neighbors per bin.
-				Each bin covers a certain angle area of each vertex, for example for a bin count of 36, each bin would cover a 10° area.
-				Without this subdivision of the neighbors, it is possible to only have edges to complex and close objects but no edges to obstacles further away.
-				
-				An example for this would be a large and open park where the $k$ nearest neighbors are probably all at the side of the park where the currently processed vertex is, even though the far away other side of the park is clearly visibly.
-				This subdivision into bins ensure that there will definitely be connections to the other side of the park.
 			
 			\subsubsection{Determining obstacle neighbors}
 				
@@ -186,161 +361,8 @@ After that, the main sections of this chapter show details of each algorithmic s
 						\caption{The black lines show the obstacle neighbors of $v_1$, which are $v_0$ and $v_2$. The vertex $v_3$ is a neighbor as well, but hidden due to the touching obstacles $o_1$ and $o_2$.}
 					\end{minipage}
 				\end{figure}
-				
-			\subsubsection{Shadow areas}
 			
-				Shadow areas are a simple method to quickly determine vertices that are definitely not visible to each other.
-				The idea of shadow areas is the following:
-				Let $v$ be the currently processed vertex and think of it as a light bulb illuminating its surroundings.
-				An obstacle $o$ casts a shadow outwards and everything within this shadow is definitely not visible from $v$.
-				
-				The distance from which everything within the angle area of the shadow is definitely not visible from $v$, is determined by the two bounding vertices (marked in red in \cref{fig:shadow-area}).
-				These bounding vertices determine the angular range and the furthest of these two determines the minimum distance of the shadow area.
-				
-				Keeping track of these shadow areas for each vertex significantly improves performance, especially with the use of the \texttt{BinIndex} data structure described \hyperref[subsubsec:binindex]{below}.
-				\todo[inline]{conrete numbers?}
-				
-				% NetworkRoutingPlayground->Jungfernstieg dataset with 7916 vertices: ~7.3s with and 67s without shadow areas -> speed up of factor ~9
-				% Hamburg inner city dataset with 67819 vertices: 382s with and ~31000s without shadow areas -> speed up of factor ~81
-				
-				\begin{figure}[h]
-					\begin{figcenter}
-						\begin{tikzpicture}
-							\def\angle{20}
-							\def\boundingVertexDistance{3}
-							
-							\tikzDot[label=$v$]{(0,1.5)}{v}
-							\coordinate (shadow-arc-top)				at ($(v) +( \angle:\boundingVertexDistance)$);
-							\coordinate (shadow-arc-bottom)				at ($(v) +(-\angle:\boundingVertexDistance)$);
-							\coordinate (shadow-arc-top-end)			at ($(v) +( \angle:5.75)$);
-							\coordinate (shadow-arc-bottom-end)			at ($(v) +(-\angle:5.75)$);
-							\coordinate (shadow-arc-top-faded-end)		at ($(v) +( \angle:6.5)$);
-							\coordinate (shadow-arc-bottom-faded-end)	at ($(v) +(-\angle:6.5)$);
-							
-							% Gray area
-							\filldraw[lightgray] 
-								(shadow-arc-bottom) arc [start angle=-\angle, delta angle=2*\angle, radius=\boundingVertexDistance] --
-								(shadow-arc-top-end) --
-								(shadow-arc-bottom-end) --
-								cycle;
-							\draw[gray]
-								(shadow-arc-bottom-end) --
-								(shadow-arc-bottom) arc [start angle=-\angle, delta angle=2*\angle, radius=\boundingVertexDistance] --
-								(shadow-arc-top-end);
-							
-							\draw[dotted] (v) -- (shadow-arc-top);
-							\draw[dotted] (v) -- (shadow-arc-bottom);
-							
-							% Faded gray area
-							\filldraw[draw=none,lightgray,path fading=east]
-								(shadow-arc-top-faded-end) --
-								(shadow-arc-top-end) --
-								(shadow-arc-bottom-end) --
-								(shadow-arc-bottom-faded-end) --
-								cycle;
-							\draw[gray,path fading=east] (shadow-arc-top-end) -- (shadow-arc-top-faded-end);
-							\draw[gray,path fading=east] (shadow-arc-bottom-end) -- (shadow-arc-bottom-faded-end);
-							
-							% Obstacle 1
-							\tikzDot[red]{(shadow-arc-top)}{o10}
-							\tikzDot{(3.5,2)}{o11}
-							\tikzDot[red]{($(v) +(-\angle:1.2)$)}{o12}
-							\node[above right = 0.5 and 1 of o12] {$o_1$};
-							
-							% Obstacle 2
-							\tikzDot[label=right:$v'$]{(3.5,1.35)}{o20}
-							\tikzDot{(3.5,-0.25)}{o21}
-							
-							% Obstacle 3
-							\tikzDot[label=right:$v''$]{(2.1,1.1)}{o30}
-							\tikzDot{(2.1,-0.5)}{o31}
-							
-							\node[darkgray] at (4.65,1.5) {\huge$S$};
-							
-							\draw (o10) -- (o11) -- (o12) -- (o10);
-							\draw (o20) -- node[right] {$o_2$} (o21);
-							\draw (o30) -- node[left] {$o_3$} (o31);
-						\end{tikzpicture}
-					\end{figcenter}
-					\caption{Shadow area $S$ cast by obstacle $o_1$ seen from vertex $v$. The vertex $v'$ of obstacle $o_2$ is not visible from $v$ since it lies inside the shadow area. The two red vertices of obstacle $o_1$ are the bounding vertices determining angle range and distance of $S$. Note that $v''$ is not visible from $v$ even though it is not inside the shadow area.}
-					\label{fig:shadow-area}
-				\end{figure}
-				
-			\subsubsection{BinIndex data structure}
-			\label{subsubsec:binindex}
-			
-				The \texttt{BinIndex} class implements a simple index structure to store and access intervals.
-				It contains $n$ many bins of which each covers a certain range and consists of a linked list.
-				When an item is added, it is added to each bin intersecting with the range of the item.
-				Due to the linked list as the underlying data structure for the bins, queries can be answered in $\bigo{m}$ time for $m$ many items in the index.
-				\Cref{fig:bin-index} illustrates this data structure with a simple example.
-				
-				\begin{figure}[h]
-					\begin{figcenter}
-						\begin{tikzpicture}
-							\def\l{0.5}
-							\def\countX{9} % One more is added due to start at x=0
-							\def\countY{1} % One more is added due to start at x=0
-							
-							\def\itemBStartX{1.5}
-							\def\itemBIndexStart{1}
-							\def\itemBLength{4.2}
-							
-							\def\itemAStartX{4}
-							\def\itemAIndexStart{4}
-							\def\itemALength{7.8}
-							
-							% Item A: Bins 1-5
-							\filldraw[pattern=north west lines,pattern color=red] (\itemBStartX*\l,\countY+4*\l) rectangle node[above right=0.125 and -0.5]{Item B: \itemBStartX\ - 5.7} ++(\itemBLength*\l,0.5*\l);
-							
-							% Item B: Bins 4-11(2)
-							\filldraw[pattern=crosshatch dots,pattern color=blue] (\itemAStartX*\l,\countY+3*\l) rectangle node[above right=0.125 and -0.5]{Item A: \itemAStartX\ - 10.8} ++(\itemALength*\l,0.5*\l);
-							
-							\draw[->] (0.5*\countX*\l,\countY+2.25*\l) -- +(0,-1*\l);
-							
-							% Draw pattern to bins
-							\fill[pattern=north west lines,pattern color=red] (\itemBIndexStart*\l,1.5*\l) rectangle ++(\l,\l);
-							\fill[pattern=north west lines,pattern color=red] (\itemBIndexStart*\l+1*\l,0) rectangle ++(2*\l,\l);
-							\fill[pattern=north west lines,pattern color=red] (\itemBIndexStart*\l+3*\l,1.5*\l) rectangle ++(\l,\l);
-							\fill[pattern=north west lines,pattern color=red] (\itemBIndexStart*\l+4*\l,1.5*\l) rectangle ++(\l,\l);
-							
-							\fill[pattern=crosshatch dots,pattern color=blue] (\itemAIndexStart*\l,0) rectangle ++(6*\l,\l);
-							\fill[pattern=crosshatch dots,pattern color=blue] (0,0) rectangle ++(2*\l,\l);
-						
-							% Draw outlines of bins
-							\foreach \x in {0,...,\countX}
-							{
-								\draw (\l*\x,0) rectangle ++(\l,\l);
-							}
-							
-							\draw (\itemBIndexStart*\l,1.5*\l) rectangle ++(\l,\l);
-							\draw[->] (\itemBIndexStart*\l+0.5*\l,\l) -- ++(0,0.5*\l);
-							
-							\draw (\itemBIndexStart*\l+3*\l,1.5*\l) rectangle ++(\l,\l);
-							\draw[->] (\itemBIndexStart*\l+3.5*\l,\l) -- ++(0,0.5*\l);
-							
-							\draw (\itemBIndexStart*\l+4*\l,1.5*\l) rectangle ++(\l,\l);
-							\draw[->] (\itemBIndexStart*\l+4.5*\l,\l) -- ++(0,0.5*\l);
-						
-							% Label
-							\foreach \x in {0,...,\countX}
-							{
-								\node at (\l*\x+0.5*\l,-0.35) {$\x$};
-							}
-						
-							\node at (0.5*\countX*\l,-0.875) {bins};
-							\node[align=right] at (-1.25,0.5*\countY*\l+\l) {Linked list\\of bins};
-						\end{tikzpicture}
-					\end{figcenter}
-					\caption{Bin index filled with two items A and B. Since item A was added first, B's entries in, which fall into a bin where en entry for item A already exists, are moved to a next item in the linked list of the bin. Each bin covers a range, which means non integer value are rounded down (for from-values) or up (for to-values).}
-					\label{fig:bin-index}
-				\end{figure}
-				
-				The NetTopologySuite offers several indices specifically made for intervals, namely the \texttt{BinTree}, \texttt{SIRtree} and \texttt{SortedPackedIntervalRTree}, of which the first one is dynamic allowing insertions and deletions after the first query.
-				Even though these three data structures are tree based and theoretically offer a logarithmic query time compared to the linear time complexity of the \texttt{BinIndex}, the simple and list based \texttt{BinIndex} is significantly faster even for larger datasets with tens of thousands of vertices.
-				It is thinkable that the logarithmic complexity is useful for even larger datasets with millions of vertices.
-			
-			\subsubsection{Intersection checks}
+			\subsubsection{Line segment intersection checks}
 			\label{subsubsec:intersection-checks}
 			
 				All intersections are checked using own implementations no not rely on the generalized and therefore slower intersection checks of the NetTopologySuite.
@@ -355,30 +377,37 @@ After that, the main sections of this chapter show details of each algorithmic s
 				This method creates a barycentric coordinate system where each coordinate consists of three values $\lambda_1$, $\lambda_2$ and $\lambda_3$ for each corner vertex of the triangle.
 				Due to the properties of this coordinate system, a point $p$ is inside the triangle when the condition $0 < \lambda_i < 1$ hold for each of the three values.
 				Even though it sounds complex to create a whole coordinate system for a single collision check, this method only uses a few basic arithmetic operations and is therefore very fast.
+				\todo{Figure}
+				
+			\subsubsection{Shadow area operations}
+				
+				\todo{Insert + intersection checks aka queries}
 				
 			\subsubsection{Determining visibility neighbors}
 			
 				The \texttt{VisibilityGraphGenerator} class contains the above described method and structures to determine the visibility neighbors for every vertex.
 				Essential to this process is the \texttt{GetVisibilityNeighborsForVertex} method determining the visibility neighbors for a single vertex.
 				
-				This method uses the concept of shadow areas stored in a BinIndex structure with a bin count of 360, each for a 1° area.
-				Additionally, all obstacles casting a shadow are stored, simply to not add shadows twice.
+				This method uses the concept of shadow areas stored in a BinIndex structure with a bin count of 360, each bin covering a 1° area.
+				Additionally, all obstacles casting a shadow are separately stored, simply to check whether or not a obstacle already casts a shadow.
 				
-				For the given vertex $v$, each other vertices vertex $v'$ is checked for visibility by executing the following steps:
+				For a given vertex $v$, any other vertex $u$ is checked for visibility by executing the following steps:
 				\begin{enumerate}
-					\item Check is $v'$ is in a shadow area and continue with the next vertex if this is the case.
-					\item Determine the extent between $v$ and $v'$ and query all obstacles within this region. For each obstacle $o$ the following steps are performed:
+					\item Check is $u$ is in a shadow area and continue with the next vertex if this is the case.
+					\item Determine the extent between $v$ and $u$ and query all obstacles within this region. For each obstacle $o$ the following steps are performed:
 					\begin{enumerate}
-						\item Get the cached shadow area for $o$ of create a new shadow area if there is no cached one.
-						\item If $v'$ is not part of $o$ and a new shadow area $S$ was just created, check if $v'$ is in $S$:
+						\item Get the shadow area for $o$ or create a new one if $o$ is not casting a shadow yet.
+						\item If $u$ is not part of $o$ \emph{and} a new shadow area $S$ was just created, check if $u$ is in $S$:
 						\begin{enumerate}
-							\item If so, mark $v'$ as hidden and skip all subsequent checks and obstacles.
-							\item If not, perform an intersection check (with the methods described above in \emph{\nameref{subsubsec:intersection-checks}}) if $v'$ is within the angle area of the obstacle.
+							\item If so, mark $u$ as hidden and skip all subsequent checks and obstacles.
+							\item If not, mark $u$ as hidden if $u$ is within the angle area of the obstacle \emph{and} an intersection check was positive (using the methods described above in \emph{\nameref{subsubsec:intersection-checks}}).
 						\end{enumerate}
 					\end{enumerate}
-					\item If $v'$ has been marked as hidden, continue with the next vertex.
-					\item If $V'$ is visible, store it in a bin for its angle and continue with the next vertex
+					\item If $u$ has been marked as hidden, continue with the next vertex.
+					\item If $u$ is visible, store it in a bin for its angle and continue with the next vertex
 				\end{enumerate}
+				
+				\todo{Describe the \enquote{If $u$ is not part of $o$} part}
 			
 				Having all visibility neighbors according to the amount and size of the bins, they are sorted in new bins based on the obstacle neighbors.
 				This procedure is described in the following section and its result is stored for the graph creation, which is described below in \cref{subsec:step-3-graph-creation}.
@@ -596,7 +625,7 @@ After that, the main sections of this chapter show details of each algorithmic s
 		Therefore, in the worst case, where a road segments intersects with all visibility edges, $2 \cdot |E_V| + 1$ edges and $|E_V|$ nodes are added to the graph.
 		Even though it does not scale worse than linear, the size of the output graph is significantly higher than the input road network, which are typically quite sparse networks.
 
-		Effects on the routing performance are discussed in later sections. \todo{ref}
+		Effects on the routing performance are discussed in later sections. \todo[inline]{ref}
 	
 \section{Answering shortest path queries}
 \label{sec:answering-queries}

@@ -58,14 +58,12 @@
 {%
 	\ifthenelse{\equal{inline}{#1}}
 	{%
-		\textcolor{red}{\underline{\textbf{TODO: #2}}}
+		\textcolor{red}{\textbf{TODO: #2}}
 	}%
 	{%
-		\vspace{0.25cm}
-		\ \\
-		\textcolor{red}{\underline{\textbf{TODO: #2}}}
-		\vspace{0.25cm}
-		\\%
+		\vspace{0.25cm}\par\noindent%
+		\textcolor{red}{\textbf{TODO: #2}}%
+		\vspace{0.25cm}\par%
 	}%
 }
 
