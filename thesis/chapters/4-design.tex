@@ -48,31 +48,6 @@
 	
 	% Diagram with MARS Agent using my hybrid algorithm
 	
-\section{Components}
-\label{sec:components}
-
-	% Generator classes, HybridVisibilityGrahp class and helper functions
-	Since this works resides in a rather technical and algorithmic oriented area, there are not many components needed to implement a hybrid routing approach.
-	The two most important parts are the graph generation and handling of routing requests.
-	
-	Because routing requests should be handled entirely within the resulting graph, meaning without the need of additional generators, some of the generator tasks are within the graph component.
-	
-	Using the implementation therefore has two entry points:
-	The generator, which initially creates the routing graph, and the graph itself to which routing requests can be made.
-	Due to the chosen construction and handling of arbitrary locations, the graph itself might generate new nodes and edges.
-	This is needed to connect the arbitrarily chooseable source and target locations, which is describes in \cref{sec:answering-queries} with more details.
-	
-	\begin{figure}[h]
-		\begin{figcenter}
-			\includegraphics[width=\textwidth]{images/components.pdf}
-		\end{figcenter}
-		\caption{The relevant components of the resulting implementation.}
-	\end{figure}
-
-\section{Deployment view}
-
-	% published in MARS
-
 \section{Combination of routing algorithms}
 \label{sec:combining-routing-algorithms}
 
@@ -179,3 +154,30 @@
 		
 		However, the advantages are more important.
 		As already mentioned, this strategy is simple and fast, compared to the time complexities above, only makes one routing query and enabled the use of speed up methods.
+
+	
+\section{Components}
+\label{sec:components}
+
+	% Generator classes, HybridVisibilityGrahp class and helper functions
+	Since this works resides in a rather technical and algorithmic oriented area, there are not many components needed to implement a hybrid routing approach.
+	The two most important parts are the graph generation and handling of routing requests.
+	
+	Because routing requests should be handled entirely within the resulting graph, meaning without the need of additional generators, some of the generator tasks are within the graph component.
+	
+	Using the implementation therefore has two entry points:
+	The generator, which initially creates the routing graph, and the graph itself to which routing requests can be made.
+	Due to the chosen construction and handling of arbitrary locations, the graph itself might generate new nodes and edges.
+	This is needed to connect the arbitrarily chooseable source and target locations, which is describes in \cref{sec:answering-queries} with more details.
+	
+	\begin{figure}[h]
+		\begin{figcenter}
+			\includegraphics[width=\textwidth]{images/components.pdf}
+		\end{figcenter}
+		\caption{The relevant components of the resulting implementation.}
+	\end{figure}
+
+\section{Deployment view}
+
+	% published in MARS
+
