@@ -30,8 +30,11 @@ This section gives an overview about closely related work from these areas.
 		Ghosh and Mount use plain-sweeps to create a triangulation of the free space and introduced so called \emph{funnel sequences}, which are sets of vertices visible to parts of an edge.
 		To avoid numerous edge cases, their approach assumes no collinear vertices and unique x-coordinates.
 		
-		Kapoor and Maheshwari introduced algorithms based on triangulations as well \cite{kapoor-shortest-path-vgraph}, but only use a certain subset of the visibility graph to actually determine the shortest path.
-		Their approach to create the visibility graph has the same complexity as Ghosh and Mounts, but is simpler structured and therefore might lead to a better performance in practice.
+		Kapoor and Maheshwari introduced two algorithms, one for determining shortest paths and one to create a visibility graph, which are based on triangulations as well \cite{kapoor-shortest-path-vgraph}.
+		Finding shortest paths in the presence of $m$ polygonal obstacles works in $\bigo{m^2 \log{n} + n\log{n}}$ with their approach but only uses a certain subset of the visibility graph to actually determine the shortest path.
+		Their visibility graph creation is done in $\bigo{E+T}$, with $T$ being the time needed to triangulation the space between the obstacles, and therefore has the same complexity as Ghosh and Mounts algorithm since a triangulation of the space between $n$ obstacles can be done in $\bigo{n \log{n}}$.
+		% TODO https://www.researchgate.net/profile/Vasyl-Tereshchenko/publication/321979941_Triangulating_a_region_between_arbitrary_polygons/links/5a6b1b94458515b2d0539612/Triangulating-a-region-between-arbitrary-polygons.pdf
+		Due to its simpler structure, the approach by Kapoor and Maheshwari might lead to a better performance in practice.
 		
 		% evtl. noch: A NEW ALGORITHM FOR COMPUTING VISIBILITY GRAPHS OF POLYGONAL OBSTACLES IN THE PLANE
 		
@@ -69,11 +72,11 @@ This section gives an overview about closely related work from these areas.
 		They chose the construction of a visibility graph over generalized Voronoi diagrams for more realistic edges.
 		
 		The same strategy was used by Liu and Zlatanova for indoor routing through open spaces \cite{liu-indoor-routing}, however, they took the size of a pedestrians into account and added a buffer area around obstacles by calculating their Minkowski sum.
-		Xu et al. also created a precise indoor navigation algorithm but they used a certain Delaunay triangulation, which is faster than the visibility graph creation but comparably good \cite{xu-indoor-delaunay}.
+		Xu et al. also created a precise indoor navigation algorithm but they used a certain Delaunay triangulation, which is faster than the visibility graph creation but comparably good \cite{xu-indoor-delaunay} for their use case.
 		
 		Another interesting paper on enhancing existing navigation graphs was presented in 2016 by Anita Graser, where she integrated visibility graph edges into the existing OSM data model\cite{graser-osm-open-spaces}.
 		Again, the visibility graph was the preferred method to generate edges.
-		Considered and discussed alternatives were two skeletonization methods and the usage of a simple grid layed over open spaces.
+		Considered and discussed alternatives were two skeletonization methods and the usage of a simple grid filling the open spaces.
 		
 	\subsection{Generate graphs from existing maps}
 	
