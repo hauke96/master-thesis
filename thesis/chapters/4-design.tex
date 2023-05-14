@@ -211,12 +211,9 @@
 			Next to the limitation on collinear vertices, they assume x-coordinates to be unique, which, even though it is very likely fulfilled in real world datasets, needs to be handled as well.
 			
 			Kapoor and Maheshwari presented a visibility creation as well \cite{kapoor-shortest-path-vgraph} but assumed a triangulation of the open space between the obstacles.
-			Such a triangulation can be done quite fast but libraries such as MARS or the NetTopologySuite do not implement this.
+			Such a triangulation can be done quite fast, algorithms with time complexities of $\bigo{n \log{n}}$ and better are known \cite[58-60]{de-berg-computational-geometry}, but libraries such as MARS or the NetTopologySuite do not implement this.
 			They only provide triangulation methods for polygons but not for the space between them.
-			Even though it would probably not be a significant effort, implementing an algorithm for this task would be needed, e.g. the algorithm presented by \todo{TRIANGULATING A REGION BETWEEN ARBITRARY POLYGONS}, in addition to the visibility graph creation itself.
-	
-	\subsection{Data structure design}
-	% TODO own section? What type of architecture view? With class diagrams?
+			Even though it would probably not be a significant effort, implementing an algorithm for this task would be needed in addition to the visibility graph creation itself.
 	
 \section{Components}
 \label{sec:components}
