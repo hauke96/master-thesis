@@ -12,9 +12,13 @@ dataset=common.load_dataset(dataset_filter, title)
 
 common.init_seaborn(width=6, height=4, dpi=120)
 
+#dataset['memory'] = dataset['memory'] / 1000000
+
 plot=common.create_lineplot(
 	dataset,
 	title,
+	#ycol='memory',
+	#ylabel='Memory usage in MB'
 )
 
-common.save_to_file(plot.get_figure(), os.path.basename(__file__), "pgf")
+common.save_to_file(plot.get_figure(), os.path.basename(__file__), "png")
