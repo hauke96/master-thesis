@@ -183,7 +183,7 @@ After that, the main sections of this chapter show details of each algorithmic s
 					\def\itemALength{7.8}
 					
 					% Item A: Bins 1-5
-					\filldraw[pattern=north west lines,pattern color=red] (\itemBStartX*\l,\countY+4*\l) rectangle node[above right=0.125 and -0.5]{Item B: \itemBStartX\ - 5.7} ++(\itemBLength*\l,0.5*\l);
+					\filldraw[pattern=north west lines,pattern color=red] (\itemBStartX*\l,\countY+4*\l) rectangle node[above right=0.125 and -1.3]{Item B: \itemBStartX\ - 5.7} ++(\itemBLength*\l,0.5*\l);
 					
 					% Item B: Bins 4-11(2)
 					\filldraw[pattern=crosshatch dots,pattern color=blue] (\itemAStartX*\l,\countY+3*\l) rectangle node[above right=0.125 and -0.5]{Item A: \itemAStartX\ - 10.8} ++(\itemALength*\l,0.5*\l);
@@ -373,15 +373,52 @@ After that, the main sections of this chapter show details of each algorithmic s
 				The line segment intersection check uses a cross product based approach described in \emph{Introduction to algorithms} by Thomas H Cormen et al \cite[1018]{cormen-introduction-to-alg}.
 				Even though this method only works on single line segments, it is significantly faster than general purpose checks provided by the NetTopologySuite.
 				
-				Checking if a  lies inside a triangle is done by a barycentric collision check.
-				This method creates a barycentric coordinate system where each coordinate consists of three values $\lambda_1$, $\lambda_2$ and $\lambda_3$ for each corner vertex of the triangle.
-				Due to the properties of this coordinate system, a point $p$ is inside the triangle when the condition $0 < \lambda_i < 1$ hold for each of the three values.
+				\begin{figure}[h]
+					\begin{figcenter}
+						\begin{tikzpicture}
+							\tikzDot[label={below left:$(1,0,0)$}]{(0,0)}{a}
+							\tikzDot[label={below right:$(0,1,0)$}]{(4,0)}{b}
+							\tikzDot[label={above:$(0,0,1)$}]{(2,3)}{c}
+							
+							\coordinate[between={a and c}] (ac);
+							\coordinate[between={b and c}] (bc);
+							\coordinate[between={a and b}] (ab);
+							
+							\draw (a) -- (b);
+							\draw (a) -- (c);
+							\draw (b) -- (c);
+							
+							\draw[dotted] (a) -- (bc);
+							\draw[dotted] (b) -- (ac);
+							\draw[dotted] (c) -- (ab);
+							
+							\tikzDot{(intersection of a--bc and b--ac)}{center};
+							\node[below=1mm of center,inner sep=0mm,fill=white] {$c=(\nicefrac{1}{3},\nicefrac{1}{3},\nicefrac{1}{3})$};
+							
+							\tikzDot[label={left:$a=(0.5,0,0.5)$}]{(ac)}{left}
+							\tikzDot[label={right:$b=(-0.2,0.5,0.7)$}]{(3.4,2.1)}{right}
+						\end{tikzpicture}
+					\end{figcenter}
+					\caption{A triangle with barycentric coordinates and dotted lines for the three coordinate axes. Noteworthy is coordinate $b$ as it is outside the triangle, which can be directly seen from the negative value $-0.2$.}
+					\label{fig:barycentric-triangle}
+				\end{figure}
+				
+				\noindent Checking if a vertex lies inside a triangle is done by a barycentric collision check.
+				This method creates a barycentric coordinate system where each coordinate has the form $(\lambda_1,\lambda_2,\lambda_3)$ of which one value is one and the other two are zero for each corner vertex of the triangle.
+				\Cref{fig:barycentric-triangle} illustrates this with some exemplary points.
+				Due to the properties of this coordinate system, a point $p$ is inside the triangle when the condition $0 < \lambda_i < 1$ is satisfied for each of the three values.
 				Even though it sounds complex to create a whole coordinate system for a single collision check, this method only uses a few basic arithmetic operations and is therefore very fast.
-				\todo{Figure}
 				
 			\subsubsection{Shadow area operations}
 				
-				\todo{Insert + intersection checks aka queries}
+				The shadow areas are stored in the previously described \hyperref[subsec:binindex]{BinIndex} data structure.
+				Inserting therefore works as describes above.
+				
+				Shadow areas are always relative to a central vertex $v$.
+				Checking if a different vertex $u$ is within any shadow area, and therefore not visible from $v$, is quite simple.
+				First, all shadow areas are queried that fall into the bin of the vertex's angle.
+				Second, for each shadow area $s$ it is checked whether $u$ is at least a far away from $v$ as the minimum distance of $s$ and whether the vertex is exactly within the angle area of $s$.
+				If both holds true for any such shadow area, then $u$ is not visible from $v$.
 				
 			\subsubsection{Determining visibility neighbors}
 			
@@ -397,17 +434,20 @@ After that, the main sections of this chapter show details of each algorithmic s
 					\item Determine the extent between $v$ and $u$ and query all obstacles within this region. For each obstacle $o$ the following steps are performed:
 					\begin{enumerate}
 						\item Get the shadow area for $o$ or create a new one if $o$ is not casting a shadow yet.
-						\item If $u$ is not part of $o$ \emph{and} a new shadow area $S$ was just created, check if $u$ is in $S$:
+						\item If $u$ is not part of $o$ \emph{and} a new shadow area $S$ was just created, check if $u$ is in $S$:\label{itm:if-u-not-on-obstacle}
 						\begin{enumerate}
 							\item If so, mark $u$ as hidden and skip all subsequent checks and obstacles.
-							\item If not, mark $u$ as hidden if $u$ is within the angle area of the obstacle \emph{and} an intersection check was positive (using the methods described above in \emph{\nameref{subsubsec:intersection-checks}}).
+							\item If not, mark $u$ as hidden if $u$ is within the angle area of the obstacle \emph{and} an intersection check was positive (using the methods described above in \emph{\nameref{subsubsec:intersection-checks}}).\label{itm:real-visibilty-check}
 						\end{enumerate}
 					\end{enumerate}
 					\item If $u$ has been marked as hidden, continue with the next vertex.
 					\item If $u$ is visible, store it in a bin for its angle and continue with the next vertex
 				\end{enumerate}
-				
-				\todo{Describe the \enquote{If $u$ is not part of $o$} part}
+				Most steps are relatively straightforward, however, step \ref{itm:if-u-not-on-obstacle} might not be obvious.
+				For a potential neighbor $u$ being part of the current obstacle $o$, the visibility from $v$ cannot solely be determined by the shadow area of $o$.
+				Imagine $o$ being a zig-zag line and $u$ being one vertex in the middle of it such that it is not visible from $v$.
+				In such case, the shadow area of $o$ might start behind $u$, which means $u$ is not within the shadow area and therefore might appear visible to $v$, even though its not, when just checking via the shadow area.
+				To avoid such false positive results, vertices on a current obstacle $o$ are always checked with a full visibility check in step \ref{itm:real-visibilty-check}.
 			
 				Having all visibility neighbors according to the amount and size of the bins, they are sorted in new bins based on the obstacle neighbors.
 				This procedure is described in the following section and its result is stored for the graph creation, which is described below in \cref{subsec:step-3-graph-creation}.

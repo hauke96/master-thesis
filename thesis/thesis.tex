@@ -39,6 +39,7 @@
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amssymb}
+\usepackage{nicefrac}
 
 \usepackage{algorithm}
 \usepackage{algpseudocode}
@@ -161,8 +162,6 @@
 }
 \tikzexternalize[prefix=tikz-cache/]
 
-% [params] pos id
-\newcommand{\tikzDot}[3][]{\node (#3) at #2 [circle,fill,inner sep=0.4mm,outer sep=0.25mm,#1]{};}
 
 \tikzset{every path/.append style={line width=0.5pt}}
 \tikzset{every path/.append style={>=stealth}}
@@ -171,6 +170,11 @@
 		at = ($(#1)!0.5!(#2)$)
 	}
 }
+\tikzset{
+	dot/.style={circle,fill,inner sep=0.4mm,outer sep=0.25mm}
+}
+% [params] pos id
+\newcommand{\tikzDot}[3][]{\node (#3) at #2 [dot,#1]{};}
 
 %
 % General page styling
