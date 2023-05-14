@@ -229,6 +229,10 @@ Two preprocessing steps are performed:
 1. MultiPolygon geometries are "simplified", meaning they're converted into several polygons and only their exterior rings are used.
 2. All polygons are triangulated, which makes intersection checks and queries much easier and faster.
 
+### Only consider vertices on the convex hull
+
+Vertices *not* lying on the convex hull will never be part of a route between to arbitrary points. Therefore these vertices do not need to be connectes to the rest of the graph. This gives a significant performance boost: https://wekan.hauke-stieler.de/b/eheY4RusHb6Bph3Jb/ma/QJfsnYncpNnrdfvXu (about 2x faster knn search + 1.6x faster generation in general)
+
 ### Ideas for further optimizations
 
 #### Routing strategies
