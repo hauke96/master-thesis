@@ -119,6 +119,7 @@ public static class VisibilityGraphGenerator
                     vertex.ObstacleNeighbors.Add(n);
                 }
             });
+            vertex.SortObstacleNeighborsByAngle();
         });
     }
 
@@ -144,7 +145,7 @@ public static class VisibilityGraphGenerator
         AddObstacleNeighborsForObstacles(allObstacles, coordinateToObstacles, debugModeActive);
 
         Log.D("Collect all unique vertices");
-        var allVertices = allObstacles.Map(o => o.Vertices).SelectMany(x => x).Where(v=>v.IsOnConvexHull).ToSet();
+        var allVertices = allObstacles.Map(o => o.Vertices).SelectMany(x => x).Where(v => v.IsOnConvexHull).ToSet();
 
         Log.D("Calculate KNN to get visible vertices");
         var vertexNeighbors = CalculateVisibleKnnInternal(obstacles, coordinateToObstacles, allVertices,
@@ -243,6 +244,46 @@ public static class VisibilityGraphGenerator
 
         var degreePerBin = 360.0 / neighborBinCount;
 
+        // TODO Documentation
+        var validAngleAreas = new List<(double, double)>();
+        if (vertex.ObstacleNeighbors.Count == 0)
+        {
+            validAngleAreas.Add((0, 360));
+        }
+        else if (vertex.ObstacleNeighbors.Count == 1)
+        {
+            var angleToSingleObstacleNeighbor =
+                Angle.GetBearing(vertex.Coordinate.ToPosition(), vertex.ObstacleNeighbors[0]);
+            if (angleToSingleObstacleNeighbor != 0)
+            {
+                validAngleAreas.Add((angleToSingleObstacleNeighbor, 0));
+                validAngleAreas.Add((0, angleToSingleObstacleNeighbor));
+            }
+        }
+        else if (vertex.ObstacleNeighbors.Count >= 2)
+        {
+            // Only up to one angle between two adjacent obstacle neighbors can be >180°. This means only none or one
+            // valid angle areas exist.
+            vertex.ObstacleNeighbors
+                .Each((thisIndex, neighbor) =>
+                {
+                    var nextIndex = thisIndex + 1;
+                    if (thisIndex == vertex.ObstacleNeighbors.Count - 1)
+                    {
+                        nextIndex = 0;
+                    }
+
+                    var angleFrom = Angle.GetBearing(vertex.Coordinate.ToPosition(), neighbor);
+                    var angleTo = Angle.GetBearing(vertex.Coordinate.ToPosition(), vertex.ObstacleNeighbors[nextIndex]);
+
+                    if (Angle.Difference(angleFrom, angleTo) > 180)
+                    {
+                        validAngleAreas.Add((angleFrom, Angle.Normalize(angleTo - 180)));
+                        validAngleAreas.Add((Angle.Normalize(angleFrom - 180), angleTo));
+                    }
+                });
+        }
+
         /*
          * These arrays store the neighbors sorted by their distance from close (at index 0) for furthest. In the end
          * the "neighbors" array contains the closest "neighborsPerBin"-many visibility neighbors.
@@ -253,6 +294,12 @@ public static class VisibilityGraphGenerator
         foreach (var otherVertex in vertices)
         {
             if (otherVertex.Equals(vertex) || !otherVertex.IsOnConvexHull)
+            {
+                continue;
+            }
+
+            if (!validAngleAreas.Any(area => Angle.IsBetweenEqual(area.Item1,
+                    Angle.GetBearing(vertex.Coordinate, otherVertex.Coordinate), area.Item2)))
             {
                 continue;
             }

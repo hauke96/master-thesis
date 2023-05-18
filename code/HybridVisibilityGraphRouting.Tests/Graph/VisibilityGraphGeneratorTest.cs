@@ -703,6 +703,75 @@ public class VisibilityGraphGeneratorTest
         Assert.Contains(visibilityNeighbors[4], bins[2]);
     }
 
+    [Test]
+    public void SortVisibleNeighborsIntoBins_onlyConvexParts()
+    {
+        var obstacleNeighbors = new List<Position>
+        {
+            new(2, 0), // 135° from vertex
+            new(1, 1), // vertex
+            new(0, 1), // 270° from vertex
+        };
+        var obstacleNeighborVertices = new List<Vertex>
+        {
+            new(obstacleNeighbors[0].ToCoordinate(), new[] { obstacleNeighbors[1] }, true),
+            new(obstacleNeighbors[1].ToCoordinate(), new[] { obstacleNeighbors[0], obstacleNeighbors[2] }, true),
+            new(obstacleNeighbors[2].ToCoordinate(), new[] { obstacleNeighbors[1] }, true)
+        };
+        var obstacle = new Obstacle(
+            new LineString(obstacleNeighbors.Map(n => n.ToCoordinate()).ToArray()),
+            new LineString(obstacleNeighbors.Map(n => n.ToCoordinate()).ToArray()),
+            obstacleNeighborVertices
+        );
+
+        var otherVertices = new List<Position>
+        {
+            new(0, 1.001), // yes
+            new(0, 0.999), // no
+
+            new(0, 1.999), // yes
+            new(0, 2.001), // no
+
+            new(1.999, 0), // no
+            new(2.001, 0), // yes
+
+            new(2, 0.999), // yes
+            new(2, 1.001), // no
+
+            new(1.5, 1.5), // no
+            new(0.5, 0.5), // no
+        }.Map(n => new Vertex(n.ToCoordinate(), true));
+
+        var allVertices = otherVertices.Concat(obstacleNeighborVertices).ToList();
+        var coordinateToObstacles = allVertices.ToDictionary(v => v.Coordinate,
+            v => new List<Obstacle>
+                { new(new Point(v.Coordinate), new Point(v.Coordinate), new List<Vertex> { v }) });
+
+        var obstacleIndex = new QuadTree<Obstacle>();
+        obstacleIndex.Insert(obstacle.Envelope, obstacle);
+        otherVertices.Each(
+            v => obstacleIndex.Insert(new Envelope(v.Coordinate), coordinateToObstacles[v.Coordinate][0]));
+
+        var vertex = obstacleNeighborVertices[1];
+
+        // Act
+        var bins = VisibilityGraphGenerator.GetVisibilityNeighborsForVertex(obstacleIndex, allVertices,
+            coordinateToObstacles, vertex);
+
+        // Assert
+        Assert.Contains(obstacleNeighborVertices[0], bins[0]);
+        Assert.Contains(obstacleNeighborVertices[2], bins[0]);
+        Assert.AreEqual(2, bins[0].Count);
+        Assert.Contains(obstacleNeighborVertices[0], bins[1]);
+        Assert.Contains(obstacleNeighborVertices[2], bins[1]);
+        Assert.Contains(otherVertices[0], bins[1]);
+        Assert.Contains(otherVertices[2], bins[1]);
+        Assert.Contains(otherVertices[5], bins[1]);
+        Assert.Contains(otherVertices[6], bins[1]);
+        Assert.AreEqual(6, bins[1].Count);
+        Assert.AreEqual(2, bins.Count);
+    }
+
     private static Dictionary<Coordinate, List<Coordinate>> GetPositionToNeighborMap(List<Obstacle> obstacles)
     {
         return obstacles.Map(o => o.Vertices)
