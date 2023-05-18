@@ -463,9 +463,10 @@ public static class VisibilityGraphGenerator
             };
         }
 
-        allVisibilityNeighbors.Sort((p1, p2) =>
-            (int)(Angle.GetBearing(vertex.Coordinate, p1.Coordinate) -
-                  Angle.GetBearing(vertex.Coordinate, p2.Coordinate)));
+        // TODO Should already be sorted
+        // allVisibilityNeighbors.Sort((p1, p2) =>
+        //     (int)(Angle.GetBearing(vertex.Coordinate, p1.Coordinate) -
+        //           Angle.GetBearing(vertex.Coordinate, p2.Coordinate)));
 
         /*
          * This following routing collects all visibility neighbors we just determined above and puts them into bins.
