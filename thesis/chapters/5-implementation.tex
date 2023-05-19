@@ -290,6 +290,7 @@ After that, the main sections of this chapter show details of each algorithmic s
 					\item[obstacle] An obstacle is a geometry that should be avoided when determining shortest paths. It can be any type of geometry, not only a polygon.
 					\item[\term*{visibility neighbor}] A visibility neighbor of a vertex $v$ is another vertex $u$, which is visible. In other words a linestring from $v$ to $u$ does not intersect with any obstacle. Sometimes $u$ is just called a \emph{visible neighbor}.
 					\item[\term*{obstacle neighbor}] This is a vertex $u$ with an existing edge to or from the currently processed vertex $v$. In other words, $u$ is visible from $v$ but via an existing obstacle edge.
+					\item[\term*{valid angle area}] Certain angle areas around a vertex in which potential visibility neighbors are checked.
 				\end{description}
 				
 			\subsubsection{Convex hull}
@@ -362,7 +363,10 @@ After that, the main sections of this chapter show details of each algorithmic s
 						\\
 						The green angle at $v_0$ indicates the angle area in which all visibility neighbors of $v_0$, in case they would be added to $o_1$, would be part of $o_1$'s convex hull. Same applies to the blue angle for $o_2$ and $v_1$ respectively.}
 					\label{fig:convex-hull}
-				\end{figure}				
+				\end{figure}
+				
+				The marked green and blue angles area in \cref{fig:convex-hull} represent the \emph{valid angle areas} for potential visibility neighbors.
+				Vertices at other angles will be ignored since the resulting edges will never be part of a shortest path.
 			
 			\subsubsection{Visibility graph generation overview}
 			
@@ -374,7 +378,7 @@ After that, the main sections of this chapter show details of each algorithmic s
 					\begin{enumerate}
 						\item For each other vertex $u$, do the following:
 						\begin{enumerate}
-							\item Is $u$ in any shadow area? If so, which means $u$ is not visible, move to the next other vertex. Continue otherwise.
+							\item Is $u$ in any shadow area \emph{or} not on any convex hull \emph{or} not in any valid angle area? If so: $u$ is not relevant, move to the next other vertex.
 							\item Query all obstacles between $v$ and $u$. This is done by the bounding box spanned by $v$ and $u$.
 							\item Create and store the shadow area of each such obstacle $o$.
 							\item Check if $u$ is a visibility neighbor, which is true if $u$ is a) still not in any shadow area and b) the line segment from $v$ to $u$ intersects with none of the above queries obstacles.
