@@ -137,7 +137,7 @@ public static class VisibilityGraphGenerator
     /// A map from vertex to "neighborBinCount"-many sub-lists, each containing vertices of one bin.
     /// </returns>
     public static Dictionary<Vertex, List<List<Vertex>>> CalculateVisibleKnn(QuadTree<Obstacle> obstacles,
-        int neighborBinCount, int neighborsPerBin = 10, bool debugModeActive = false)
+        int neighborBinCount = 36, int neighborsPerBin = 10, bool debugModeActive = false)
     {
         Log.D("Get direct neighbors on each obstacle geometry");
         var allObstacles = obstacles.QueryAll();
@@ -166,8 +166,8 @@ public static class VisibilityGraphGenerator
         Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles,
         ICollection<Vertex> vertices,
         int neighborBinCount,
-        int neighborsPerBin = 10,
-        bool debugModeActive = false)
+        int neighborsPerBin,
+        bool debugModeActive)
     {
         var result = new Dictionary<Vertex, List<List<Vertex>>>();
         Log.D(
@@ -224,8 +224,8 @@ public static class VisibilityGraphGenerator
         List<Vertex> vertices,
         Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles,
         Vertex vertex,
-        int neighborBinCount = 36,
-        int neighborsPerBin = 10)
+        int neighborBinCount,
+        int neighborsPerBin)
     {
         /*
          * The idea of the shadow areas:

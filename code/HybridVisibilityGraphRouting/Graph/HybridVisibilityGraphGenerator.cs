@@ -16,7 +16,8 @@ public static class HybridVisibilityGraphGenerator
     /// Generates the complete hybrid visibility graph based on the obstacles in the given feature collection. This
     /// method also merges the road and ways within the features correctly with the visibility edges.
     /// </summary>
-    public static HybridVisibilityGraph Generate(IEnumerable<IFeature> features)
+    public static HybridVisibilityGraph Generate(IEnumerable<IFeature> features, int neighborBinCount = 36,
+        int neighborsPerBin = 10)
     {
         var watch = Stopwatch.StartNew();
 
@@ -24,7 +25,7 @@ public static class HybridVisibilityGraphGenerator
         features = features.ToList();
 
         var obstacles = GetObstacles(features);
-        var vertexNeighbors = DetermineVisibilityNeighbors(obstacles);
+        var vertexNeighbors = DetermineVisibilityNeighbors(obstacles, neighborBinCount, neighborsPerBin);
         var (hybridVisibilityGraph, spatialGraph) = AddVisibilityVerticesAndEdges(vertexNeighbors, obstacles);
 
         MergeRoadsIntoGraph(features, hybridVisibilityGraph);
@@ -72,9 +73,10 @@ public static class HybridVisibilityGraphGenerator
         return obstacleIndex;
     }
 
-    public static Dictionary<Vertex, List<List<Vertex>>> DetermineVisibilityNeighbors(QuadTree<Obstacle> obstacles)
+    public static Dictionary<Vertex, List<List<Vertex>>> DetermineVisibilityNeighbors(QuadTree<Obstacle> obstacles,
+        int neighborBinCount, int neighborsPerBin)
     {
-        return VisibilityGraphGenerator.CalculateVisibleKnn(obstacles, 36, 10, true);
+        return VisibilityGraphGenerator.CalculateVisibleKnn(obstacles, neighborBinCount, neighborsPerBin);
     }
 
     public static (HybridVisibilityGraph, SpatialGraph) AddVisibilityVerticesAndEdges(

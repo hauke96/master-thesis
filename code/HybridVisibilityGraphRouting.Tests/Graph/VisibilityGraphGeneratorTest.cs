@@ -26,7 +26,7 @@ public class VisibilityGraphGeneratorTest
         var obstacleQuadTree = new QuadTree<Obstacle>();
         obstacleQuadTree.Insert(obstacle.Envelope, obstacle);
 
-        var visibleKnn = VisibilityGraphGenerator.CalculateVisibleKnn(obstacleQuadTree, 100);
+        var visibleKnn = VisibilityGraphGenerator.CalculateVisibleKnn(obstacleQuadTree);
         var vertices = visibleKnn.Keys.OrderBy(v => v.ToString()).ToList();
 
         var bin = visibleKnn[vertices[0]];
@@ -65,7 +65,7 @@ public class VisibilityGraphGeneratorTest
         var obstacleQuadTree = new QuadTree<Obstacle>();
         obstacleQuadTree.Insert(obstacle.Envelope, obstacle);
 
-        var visibleKnn = VisibilityGraphGenerator.CalculateVisibleKnn(obstacleQuadTree, 100);
+        var visibleKnn = VisibilityGraphGenerator.CalculateVisibleKnn(obstacleQuadTree);
         var vertices = obstacle.Vertices;
 
         List<List<Vertex>> bin;
@@ -126,7 +126,7 @@ public class VisibilityGraphGeneratorTest
         obstacleQuadTree.Insert(obstacle1.Envelope, obstacle1);
         obstacleQuadTree.Insert(obstacle2.Envelope, obstacle2);
 
-        var visibleKnn = VisibilityGraphGenerator.CalculateVisibleKnn(obstacleQuadTree, 100);
+        var visibleKnn = VisibilityGraphGenerator.CalculateVisibleKnn(obstacleQuadTree);
         var vertices1 = obstacle1.Vertices;
         var vertices2 = obstacle2.Vertices;
 
@@ -203,7 +203,7 @@ public class VisibilityGraphGeneratorTest
         obstacles.Each(o => obstacleQuadTree.Insert(o.Envelope, o));
 
         // Act
-        var visibleKnn = VisibilityGraphGenerator.CalculateVisibleKnn(obstacleQuadTree, 1, 10);
+        var visibleKnn = VisibilityGraphGenerator.CalculateVisibleKnn(obstacleQuadTree, 1);
 
         // Assert
         IEnumerable<Coordinate> actualCoordinates;
@@ -282,7 +282,7 @@ public class VisibilityGraphGeneratorTest
         obstacles.Each(o => obstacleQuadTree.Insert(o.Envelope, o));
 
         // Act
-        var visibleKnn = VisibilityGraphGenerator.CalculateVisibleKnn(obstacleQuadTree, 100);
+        var visibleKnn = VisibilityGraphGenerator.CalculateVisibleKnn(obstacleQuadTree);
 
         // Assert
         // lower left of square (=lower left of left triangle) 
@@ -369,7 +369,7 @@ public class VisibilityGraphGeneratorTest
             var vertex = new Vertex(new Coordinate(1, 0));
 
             var visibilityNeighbors = VisibilityGraphGenerator.GetVisibilityNeighborsForVertex(obstacleIndex, vertices,
-                coordinateToObstacles, vertex);
+                coordinateToObstacles, vertex, 30, 10);
 
             Assert.AreEqual(1, visibilityNeighbors.Count);
             Assert.AreEqual(3, visibilityNeighbors[0].Count);
@@ -382,7 +382,7 @@ public class VisibilityGraphGeneratorTest
             var vertex = obstacle.Vertices[0];
 
             var visibilityNeighbors = VisibilityGraphGenerator.GetVisibilityNeighborsForVertex(obstacleIndex, vertices,
-                coordinateToObstacles, vertex);
+                coordinateToObstacles, vertex, 30, 10);
 
             Assert.AreEqual(1, visibilityNeighbors.Count);
             Assert.AreEqual(2, visibilityNeighbors[0].Count);
@@ -777,7 +777,7 @@ public class VisibilityGraphGeneratorTest
 
         // Act
         var bins = VisibilityGraphGenerator.GetVisibilityNeighborsForVertex(obstacleIndex, allVertices,
-            coordinateToObstacles, vertex);
+            coordinateToObstacles, vertex, 30, 10);
 
         // Assert
         Assert.Contains(obstacleNeighborVertices[0], bins[0]);
@@ -866,7 +866,7 @@ public class VisibilityGraphGeneratorTest
 
         // Act
         var bins = VisibilityGraphGenerator.GetVisibilityNeighborsForVertex(obstacleIndex, allVertices,
-            coordinateToObstacles, vertex);
+            coordinateToObstacles, vertex, 30, 10);
 
         // Assert
         Assert.AreEqual(0, bins.Count);
@@ -946,7 +946,7 @@ public class VisibilityGraphGeneratorTest
 
         // Act
         var bins = VisibilityGraphGenerator.GetVisibilityNeighborsForVertex(obstacleIndex, allVertices,
-            coordinateToObstacles, vertex);
+            coordinateToObstacles, vertex, 30, 10);
 
         // Assert
         Assert.Contains(obstacleNeighborVertices[0], bins[0]);
@@ -1012,7 +1012,7 @@ public class VisibilityGraphGeneratorTest
 
         // Act
         var bins = VisibilityGraphGenerator.GetVisibilityNeighborsForVertex(obstacleIndex, allVertices,
-            coordinateToObstacles, vertex);
+            coordinateToObstacles, vertex, 30, 10);
 
         // Assert
         Assert.Contains(obstacleNeighborVertices[0], bins[0]);
@@ -1064,7 +1064,7 @@ public class VisibilityGraphGeneratorTest
 
         // Act
         var bins = VisibilityGraphGenerator.GetVisibilityNeighborsForVertex(obstacleIndex, otherVertices,
-            coordinateToObstacles, vertex);
+            coordinateToObstacles, vertex, 36, 10);
 
         // Assert
         CollectionAssert.AreEquivalent(otherVertices, bins[0]);

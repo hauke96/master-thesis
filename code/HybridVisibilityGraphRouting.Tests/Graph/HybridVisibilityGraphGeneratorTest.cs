@@ -430,9 +430,9 @@ public class HybridVisibilityGraphGeneratorTest
         obstacleIndex.Insert(obstacle2.Envelope, obstacle2);
         obstacleIndex.Insert(obstacle3.Envelope, obstacle3);
 
-        var visibilityNeighbors = HybridVisibilityGraphGenerator.DetermineVisibilityNeighbors(obstacleIndex);
+        var visibilityNeighbors = HybridVisibilityGraphGenerator.DetermineVisibilityNeighbors(obstacleIndex, 36, 10);
 
-        CollectionAssert.AreEquivalent(VisibilityGraphGenerator.CalculateVisibleKnn(obstacleIndex, 36, 10, true),
+        CollectionAssert.AreEquivalent(VisibilityGraphGenerator.CalculateVisibleKnn(obstacleIndex),
             visibilityNeighbors);
     }
 
