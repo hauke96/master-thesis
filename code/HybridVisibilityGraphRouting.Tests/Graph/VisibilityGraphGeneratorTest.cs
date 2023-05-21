@@ -9,7 +9,7 @@ using NUnit.Framework;
 using ServiceStack;
 using Position = Mars.Interfaces.Environments.Position;
 
-namespace HybridVisibilityGraphRouting.Tests;
+namespace HybridVisibilityGraphRouting.Tests.Graph;
 
 public class VisibilityGraphGeneratorTest
 {
@@ -100,13 +100,16 @@ public class VisibilityGraphGeneratorTest
     [Test]
     public void CalculateVisibleKnn_onTouchingPolygons()
     {
-        var obstacles = ObstacleTestHelper.CreateObstacles(new Polygon(new LinearRing(new[]
+        var obstacles = ObstacleTestHelper.CreateObstacles(
+            // Triangle /|
+            new Polygon(new LinearRing(new[]
             {
                 new Coordinate(0, 0),
                 new Coordinate(1, 0),
                 new Coordinate(1, 1),
                 new Coordinate(0, 0)
             })),
+            // Triangle |\
             new Polygon(new LinearRing(new[]
             {
                 new Coordinate(1, 0),
@@ -141,13 +144,8 @@ public class VisibilityGraphGeneratorTest
 
         // Bottom middle
         bin = visibleKnn[vertices1[1]];
-        Assert.AreEqual(2, bin.Count);
-        Assert.AreEqual(2, bin[0].Count);
-        Assert.Contains(vertices1[0], bin[0]);
-        Assert.Contains(vertices2[1], bin[0]);
-        Assert.AreEqual(2, bin[1].Count);
-        Assert.Contains(vertices1[0], bin[1]);
-        Assert.Contains(vertices2[1], bin[1]);
+        // No entries due to no valid angle area
+        Assert.AreEqual(0, bin.Count);
 
         // Bottom right
         bin = visibleKnn[vertices2[1]];
@@ -197,8 +195,7 @@ public class VisibilityGraphGeneratorTest
         }));
 
         var obstacles = ObstacleTestHelper.CreateObstacles(obstacleGeometries.ToArray());
-        var vertices = obstacles.SelectMany(o => o.Coordinates)
-            .Map(c => new Vertex(c))
+        var vertices = obstacles.SelectMany(o => o.Vertices)
             .Distinct()
             .ToList();
 
@@ -277,8 +274,7 @@ public class VisibilityGraphGeneratorTest
                 new Coordinate(6, 2),
             })
         );
-        var vertices = obstacles.SelectMany(o => o.Coordinates)
-            .Map(c => new Vertex(c))
+        var vertices = obstacles.SelectMany(o => o.Vertices)
             .Distinct()
             .ToList();
 
@@ -849,10 +845,7 @@ public class VisibilityGraphGeneratorTest
             coordinateToObstacles, vertex);
 
         // Assert
-        Assert.IsEmpty(bins[0]);
-        Assert.IsEmpty(bins[1]);
-        Assert.IsEmpty(bins[2]);
-        Assert.AreEqual(3, bins.Count);
+        Assert.AreEqual(0, bins.Count);
     }
 
     [Test]

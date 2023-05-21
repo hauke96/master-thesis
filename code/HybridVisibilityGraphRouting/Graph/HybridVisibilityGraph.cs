@@ -359,11 +359,11 @@ public class HybridVisibilityGraph
     }
 
     /// <summary>
-    /// Determined the correct node for the given position based on the angle from the position to the node. This method
+    /// Determines the correct node for the given position based on the angle from the position to the node. This method
     /// does *not* find the node *at* this position. Therefore, the <code>position</code> parameter can be seen as a
     /// neighbor of the given node candidates.
     /// </summary>
-    private int GetNodeForAngle(Position position, IEnumerable<int> nodeCandidates)
+    public int GetNodeForAngle(Position position, IEnumerable<int> nodeCandidates)
     {
         // We have all corresponding nodes for the given position ("nodeCandidates") but we only want the one node
         // whose angle area includes the position to add. So its angle area should include the angle from that
