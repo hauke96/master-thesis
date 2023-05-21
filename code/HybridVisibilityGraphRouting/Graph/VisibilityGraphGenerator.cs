@@ -416,9 +416,19 @@ public static class VisibilityGraphGenerator
         return SortVisibilityNeighborsIntoBins(vertex, allVisibilityNeighbors.ToList());
     }
 
+    /// <summary>
+    /// Calculates the valid angle areas for the given vertex.
+    ///
+    /// A valid angle area is an angle area in which potential visibility neighbors are. Not all neighboring nodes
+    /// are potential visibility neighbors since not all resulting visibility edges would be part of shortest paths.
+    /// To avoid unnecessary checks, only nodes which have a chance to be on a shortest path are selected. To do this,
+    /// certain angle areas are used to exclude irrelevant nodes.
+    ///
+    /// Valid angle areas are determined depending on the obstacle neighbors of the given vertex. Angle areas that
+    /// would enlarge the convex hull of the obstacle (without removing the given vertex from it) are determined.
+    /// </summary>
     private static List<(double, double)> GetValidAngleAreasForVertex(Vertex vertex)
     {
-        // TODO Documentation
         var validAngleAreas = new List<(double, double)>();
         if (vertex.ObstacleNeighbors.Count <= 1)
         {
