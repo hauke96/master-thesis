@@ -130,14 +130,14 @@ public static class VisibilityGraphGenerator
     /// The parameter "k" (for the knn search, hence the methods name) is determined by the following partitioning
     /// strategy:
     /// This method uses bins to limit the number of visibility neighbors per angle area, since each bin covers a
-    /// certain angle area of each vertex. Example: If "neighborBinCount" is set to 4, then each bin covers 90°. The
+    /// certain angle area of each vertex. Example: If "visibilityNeighborBinCount" is set to 4, then each bin covers 90°. The
     /// "neighborsPerBin" also limit the amount of visible vertices per bin.
     /// </summary>
     /// <returns>
-    /// A map from vertex to "neighborBinCount"-many sub-lists, each containing vertices of one bin.
+    /// A map from vertex to "visibilityNeighborBinCount"-many sub-lists, each containing vertices of one bin.
     /// </returns>
     public static Dictionary<Vertex, List<List<Vertex>>> CalculateVisibleKnn(QuadTree<Obstacle> obstacles,
-        int neighborBinCount = 36, int neighborsPerBin = 10, bool debugModeActive = false)
+        int visibilityNeighborBinCount, int visibilityNeighborsPerBin, bool debugModeActive = false)
     {
         Log.D("Get direct neighbors on each obstacle geometry");
         var allObstacles = obstacles.QueryAll();
@@ -149,7 +149,7 @@ public static class VisibilityGraphGenerator
 
         Log.D("Calculate KNN to get visible vertices");
         var vertexNeighbors = CalculateVisibleKnnInternal(obstacles, coordinateToObstacles, allVertices,
-            neighborBinCount, neighborsPerBin, debugModeActive);
+            visibilityNeighborBinCount, visibilityNeighborsPerBin, debugModeActive);
 
         return vertexNeighbors;
     }
@@ -165,13 +165,13 @@ public static class VisibilityGraphGenerator
         QuadTree<Obstacle> obstacles,
         Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles,
         ICollection<Vertex> vertices,
-        int neighborBinCount,
-        int neighborsPerBin,
+        int visibilityNeighborBinCount,
+        int visibilityNeighborsPerBin,
         bool debugModeActive)
     {
         var result = new Dictionary<Vertex, List<List<Vertex>>>();
         Log.D(
-            $"Calculate nearest visible neighbors for each vertex. Bin size is {neighborBinCount} with {neighborsPerBin} neighbors per bin.");
+            $"Calculate nearest visible neighbors for each vertex. Bin size is {visibilityNeighborBinCount} with {visibilityNeighborsPerBin} neighbors per bin.");
 
         var i = 1;
         var verticesPerPercent = vertices.Count / 100d;
@@ -193,7 +193,7 @@ public static class VisibilityGraphGenerator
 
             result[vertex] = GetVisibilityNeighborsForVertex(obstacles, new List<Vertex>(vertices),
                 coordinateToObstacles,
-                vertex, neighborBinCount, neighborsPerBin);
+                vertex, visibilityNeighborBinCount, visibilityNeighborsPerBin);
         }
 
         Log.D($"  100% done after a total of {totalTimeStopWatch.ElapsedMilliseconds}ms");
@@ -217,15 +217,15 @@ public static class VisibilityGraphGenerator
 
     /// <summary>
     /// Determines all visibility neighbors with respect to the limits given by the maximum of "neighborsPerBin" many
-    /// neighbors per bin for each of the "neighborBinCount" many bins.
+    /// neighbors per bin for each of the "visibilityNeighborBinCount" many bins.
     /// </summary>
     public static List<List<Vertex>> GetVisibilityNeighborsForVertex(
         QuadTree<Obstacle> obstacles,
         List<Vertex> vertices,
         Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles,
         Vertex vertex,
-        int neighborBinCount,
-        int neighborsPerBin)
+        int visibilityNeighborBinCount,
+        int visibilityNeighborsPerBin)
     {
         /*
          * The idea of the shadow areas:
@@ -242,7 +242,7 @@ public static class VisibilityGraphGenerator
         // Store the shadow areas for each obstacle, to no add them twice and to prevent unnecessary intersection checks.
         var obstacleToShadowArea = new Dictionary<Obstacle, ShadowArea>();
 
-        var degreePerBin = 360.0 / neighborBinCount;
+        var degreePerBin = 360.0 / visibilityNeighborBinCount;
 
         var validAngleAreas = GetValidAngleAreasForVertex(vertex);
 
@@ -255,8 +255,8 @@ public static class VisibilityGraphGenerator
          * These arrays store the neighbors sorted by their distance from close (at index 0) for furthest. In the end
          * the "neighbors" array contains the closest "neighborsPerBin"-many visibility neighbors.
          */
-        var visibilityNeighbors = new LinkedList<Vertex>?[neighborBinCount];
-        var maxDistances = new LinkedList<double>?[neighborBinCount];
+        var visibilityNeighbors = new LinkedList<Vertex>?[visibilityNeighborBinCount];
+        var maxDistances = new LinkedList<double>?[visibilityNeighborBinCount];
 
         foreach (var otherVertex in vertices)
         {
@@ -274,14 +274,14 @@ public static class VisibilityGraphGenerator
             var angle = Angle.GetBearing(vertex.Coordinate, otherVertex.Coordinate);
             var binKey = (int)(angle / degreePerBin);
 
-            if (binKey == neighborBinCount)
+            if (binKey == visibilityNeighborBinCount)
             {
                 // This can rarely happen and an "if" is faster than doing module.
                 binKey = 0;
             }
 
             var distanceToOtherVertex = vertex.Coordinate.Distance(otherVertex.Coordinate);
-            if (maxDistances[binKey]?.Count == neighborsPerBin &&
+            if (maxDistances[binKey]?.Count == visibilityNeighborsPerBin &&
                 distanceToOtherVertex >= maxDistances[binKey]?.Last?.Value)
             {
                 continue;
@@ -397,7 +397,7 @@ public static class VisibilityGraphGenerator
                 maxDistanceList.AddAfter(distanceNode, distanceToOtherVertex);
             }
 
-            if (visibilityNeighborList.Count > neighborsPerBin)
+            if (visibilityNeighborList.Count > visibilityNeighborsPerBin)
             {
                 visibilityNeighborList.RemoveLast();
                 maxDistanceList.RemoveLast();

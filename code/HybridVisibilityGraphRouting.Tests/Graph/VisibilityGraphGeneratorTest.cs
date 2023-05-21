@@ -26,7 +26,7 @@ public class VisibilityGraphGeneratorTest
         var obstacleQuadTree = new QuadTree<Obstacle>();
         obstacleQuadTree.Insert(obstacle.Envelope, obstacle);
 
-        var visibleKnn = VisibilityGraphGenerator.CalculateVisibleKnn(obstacleQuadTree);
+        var visibleKnn = VisibilityGraphGenerator.CalculateVisibleKnn(obstacleQuadTree, 36, 10);
         var vertices = visibleKnn.Keys.OrderBy(v => v.ToString()).ToList();
 
         var bin = visibleKnn[vertices[0]];
@@ -65,7 +65,7 @@ public class VisibilityGraphGeneratorTest
         var obstacleQuadTree = new QuadTree<Obstacle>();
         obstacleQuadTree.Insert(obstacle.Envelope, obstacle);
 
-        var visibleKnn = VisibilityGraphGenerator.CalculateVisibleKnn(obstacleQuadTree);
+        var visibleKnn = VisibilityGraphGenerator.CalculateVisibleKnn(obstacleQuadTree, 36, 10);
         var vertices = obstacle.Vertices;
 
         List<List<Vertex>> bin;
@@ -126,7 +126,7 @@ public class VisibilityGraphGeneratorTest
         obstacleQuadTree.Insert(obstacle1.Envelope, obstacle1);
         obstacleQuadTree.Insert(obstacle2.Envelope, obstacle2);
 
-        var visibleKnn = VisibilityGraphGenerator.CalculateVisibleKnn(obstacleQuadTree);
+        var visibleKnn = VisibilityGraphGenerator.CalculateVisibleKnn(obstacleQuadTree, 36, 10);
         var vertices1 = obstacle1.Vertices;
         var vertices2 = obstacle2.Vertices;
 
@@ -203,7 +203,7 @@ public class VisibilityGraphGeneratorTest
         obstacles.Each(o => obstacleQuadTree.Insert(o.Envelope, o));
 
         // Act
-        var visibleKnn = VisibilityGraphGenerator.CalculateVisibleKnn(obstacleQuadTree, 1);
+        var visibleKnn = VisibilityGraphGenerator.CalculateVisibleKnn(obstacleQuadTree, 1, 10);
 
         // Assert
         IEnumerable<Coordinate> actualCoordinates;
@@ -282,7 +282,7 @@ public class VisibilityGraphGeneratorTest
         obstacles.Each(o => obstacleQuadTree.Insert(o.Envelope, o));
 
         // Act
-        var visibleKnn = VisibilityGraphGenerator.CalculateVisibleKnn(obstacleQuadTree);
+        var visibleKnn = VisibilityGraphGenerator.CalculateVisibleKnn(obstacleQuadTree, 36, 10);
 
         // Assert
         // lower left of square (=lower left of left triangle) 

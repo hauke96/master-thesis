@@ -432,7 +432,7 @@ public class HybridVisibilityGraphGeneratorTest
 
         var visibilityNeighbors = HybridVisibilityGraphGenerator.DetermineVisibilityNeighbors(obstacleIndex, 36, 10);
 
-        CollectionAssert.AreEquivalent(VisibilityGraphGenerator.CalculateVisibleKnn(obstacleIndex),
+        CollectionAssert.AreEquivalent(VisibilityGraphGenerator.CalculateVisibleKnn(obstacleIndex, 36, 10),
             visibilityNeighbors);
     }
 

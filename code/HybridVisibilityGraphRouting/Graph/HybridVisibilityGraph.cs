@@ -112,8 +112,8 @@ public class HybridVisibilityGraph
     /// determined and connected to the graph.
     /// </summary>
     /// <returns>A tuple with the node for the given location and a list of all newly added nodes, which can be removed after the routing request.</returns>
-    public (int, IList<NodeData>, IList<EdgeData>) AddPositionToGraph(Position positionToAdd, int neighborBinCount = 36,
-        int neighborsPerBin = 10)
+    public (int, IList<NodeData>, IList<EdgeData>) AddPositionToGraph(Position positionToAdd, int visibilityNeighborBinCount = 36,
+        int visibilityNeighborsPerBin = 10)
     {
         var existingNodeCandidates = _nodeIndex.Nearest(positionToAdd.PositionArray, 0.000001);
         if (existingNodeCandidates.Any())
@@ -131,8 +131,8 @@ public class HybridVisibilityGraph
         // TODO If performance too bad: Pass multiple positions to not calculate certain things twice.
         var allVertices = _vertexToNodes.Keys.ToList();
         var visibilityNeighborVertices = VisibilityGraphGenerator.GetVisibilityNeighborsForVertex(_obstacles,
-            allVertices, new Dictionary<Coordinate, List<Obstacle>>(), vertexToAdd, neighborBinCount,
-            neighborsPerBin)[0];
+            allVertices, new Dictionary<Coordinate, List<Obstacle>>(), vertexToAdd, visibilityNeighborBinCount,
+            visibilityNeighborsPerBin)[0];
 
         visibilityNeighborVertices
             .Map(v => _vertexToNodes[v])
