@@ -1,3 +1,4 @@
+using Mars.Common;
 using NetTopologySuite.Geometries;
 using Position = Mars.Interfaces.Environments.Position;
 
@@ -11,11 +12,11 @@ public class Vertex
 
     /// <summary>
     /// The neighbors are neighboring vertices on obstacles but not across open spaces. These are not the visible
-    /// vertices one might obtain by running the knn-search to find all n many visible neighbors. This list is sorted by
-    /// the bearing of each position.
+    /// vertices one might obtain by running the knn-search to find all k many visible neighbors. This list is sorted by
+    /// the angle of the vertex position to each neighbor.
     /// In other words: There is an edge from this vertex to these neighboring vertices in the (preprocessed) dataset. 
     /// </summary>
-    public List<Position> ObstacleNeighbors { get; }
+    public List<Position> ObstacleNeighbors { get; private set; }
 
     public Coordinate Coordinate { get; }
     public bool IsOnConvexHull { get; }
@@ -39,6 +40,11 @@ public class Vertex
         ObstacleNeighbors = obstacleNeighbors.ToList();
         Id = ID_COUNTER++;
         IsOnConvexHull = isOnConvexHull;
+    }
+
+    public void SortObstacleNeighborsByAngle()
+    {
+        ObstacleNeighbors = ObstacleNeighbors.OrderBy(n => Angle.GetBearing(Coordinate, n.ToCoordinate())).ToList();
     }
 
     public override bool Equals(object? obj)

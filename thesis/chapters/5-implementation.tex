@@ -183,21 +183,21 @@ After that, the main sections of this chapter show details of each algorithmic s
 					\def\itemALength{7.8}
 					
 					% Item A: Bins 1-5
-					\filldraw[pattern=north west lines,pattern color=red] (\itemBStartX*\l,\countY+4*\l) rectangle node[above right=0.125 and -1.3]{Item B: \itemBStartX\ - 5.7} ++(\itemBLength*\l,0.5*\l);
+					\filldraw[pattern=north west lines,pattern color=Red2] (\itemBStartX*\l,\countY+4*\l) rectangle node[above right=0.125 and -1.3]{Item B: \itemBStartX\ - 5.7} ++(\itemBLength*\l,0.5*\l);
 					
 					% Item B: Bins 4-11(2)
-					\filldraw[pattern=crosshatch dots,pattern color=blue] (\itemAStartX*\l,\countY+3*\l) rectangle node[above right=0.125 and -0.5]{Item A: \itemAStartX\ - 10.8} ++(\itemALength*\l,0.5*\l);
+					\filldraw[pattern=crosshatch dots,pattern color=DodgerBlue3] (\itemAStartX*\l,\countY+3*\l) rectangle node[above right=0.125 and -0.5]{Item A: \itemAStartX\ - 10.8} ++(\itemALength*\l,0.5*\l);
 					
 					\draw[->] (0.5*\countX*\l,\countY+2.25*\l) -- +(0,-1*\l);
 					
 					% Draw pattern to bins
-					\fill[pattern=north west lines,pattern color=red] (\itemBIndexStart*\l,1.5*\l) rectangle ++(\l,\l);
-					\fill[pattern=north west lines,pattern color=red] (\itemBIndexStart*\l+1*\l,0) rectangle ++(2*\l,\l);
-					\fill[pattern=north west lines,pattern color=red] (\itemBIndexStart*\l+3*\l,1.5*\l) rectangle ++(\l,\l);
-					\fill[pattern=north west lines,pattern color=red] (\itemBIndexStart*\l+4*\l,1.5*\l) rectangle ++(\l,\l);
+					\fill[pattern=north west lines,pattern color=Red2] (\itemBIndexStart*\l,1.5*\l) rectangle ++(\l,\l);
+					\fill[pattern=north west lines,pattern color=Red2] (\itemBIndexStart*\l+1*\l,0) rectangle ++(2*\l,\l);
+					\fill[pattern=north west lines,pattern color=Red2] (\itemBIndexStart*\l+3*\l,1.5*\l) rectangle ++(\l,\l);
+					\fill[pattern=north west lines,pattern color=Red2] (\itemBIndexStart*\l+4*\l,1.5*\l) rectangle ++(\l,\l);
 					
-					\fill[pattern=crosshatch dots,pattern color=blue] (\itemAIndexStart*\l,0) rectangle ++(6*\l,\l);
-					\fill[pattern=crosshatch dots,pattern color=blue] (0,0) rectangle ++(2*\l,\l);
+					\fill[pattern=crosshatch dots,pattern color=DodgerBlue3] (\itemAIndexStart*\l,0) rectangle ++(6*\l,\l);
+					\fill[pattern=crosshatch dots,pattern color=DodgerBlue3] (0,0) rectangle ++(2*\l,\l);
 					
 					% Draw outlines of bins
 					\foreach \x in {0,...,\countX}
@@ -247,11 +247,14 @@ After that, the main sections of this chapter show details of each algorithmic s
 			This is unproblematic for \texttt{MultiLineString} as well as \texttt{MultiPolygon} features, since holes in a polygon are not reachable in the first place and unwrapping the \texttt{MultiPolygon} will not change this.
 			
 			Point features are also considered so that visibility edges can reach \term*{points of interest}.
-			Of course visibility checks can ignore point features, since they have no size and therefore do not slow down the visibility graph creation.
+			Of course the later performed visibility checks can ignore point features, since they have no spatial size.
 			
 			Another task within this first step is the triangulation of all polygonal shapes.
 			The main reason is a better performance for intersection checks, which is an important operation when checking if an obstacle is between two vertices.
 			Details on this intersection check implementation are described \hyperref[subsubsec:intersection-checks]{below}.
+			
+			Also worth mentioning is the determination of the convex hull of each obstacle.
+			Of course this is not a complex task, since all obstacles are either trianges, linestrings or points, but only vertices on the convex hull of obstacles are further processed.
 			
 	\subsection{Step 2: Determining $k$ nearest visible neighbors}
 			
@@ -287,7 +290,83 @@ After that, the main sections of this chapter show details of each algorithmic s
 					\item[obstacle] An obstacle is a geometry that should be avoided when determining shortest paths. It can be any type of geometry, not only a polygon.
 					\item[\term*{visibility neighbor}] A visibility neighbor of a vertex $v$ is another vertex $u$, which is visible. In other words a linestring from $v$ to $u$ does not intersect with any obstacle. Sometimes $u$ is just called a \emph{visible neighbor}.
 					\item[\term*{obstacle neighbor}] This is a vertex $u$ with an existing edge to or from the currently processed vertex $v$. In other words, $u$ is visible from $v$ but via an existing obstacle edge.
+					\item[\term*{valid angle area}] Certain angle areas around a vertex in which potential visibility neighbors are checked.
 				\end{description}
+				
+			\subsubsection{Convex hull}
+				
+				As mentioned above, only visibility neighbors of vertices lying on the convex hull of any obstacle are determined.
+				Such a visibility neighbors also has to be on any convex hull, which means vertices not being on any convex hull will never be connected to anything.
+				
+				The reason for this filtering is quite simple:
+				Vertices not being on a convex hull will never be part of a route since the convex hull itself is by definition the smallest set of points which area completely contains all other points \cite[2]{de-berg-computational-geometry}.
+				Interpreting the convex hull as path around a shape and together with the triangle inequality, this implies that the convex hull is the shortest path around the shape.
+				When determining shortest paths, the part of a route bending around an obstacle will therefore always be a subset of its convex hull.
+				
+				Of course, a routing query might start within a concave part of the obstacle or somewhere completely else.
+				This case, however, is independent of the graph generation and belongs to answering routing queries, which is covered later in \cref{sec:answering-queries}.
+				
+			\subsubsection{Valid angle areas}
+				
+				As mentioned above, a subsection of a shortest path bending around an obstacle always follows a part of its convex hull.
+				Eventually the path follows a visibility edge or reaches its destination vertex on the obstacle.
+				
+				This means, a shortest path consists of many convex hull parts that either are connected by straight lines or touch each other.
+				Connecting lines between two convex hull parts always follow the clockwise or counter clockwise rotation of the convex hull segments being part of the shortest path as illustrated in \cref{fig:convex-hull}.
+				In other words, if the destination vertex of the connecting line would be part of the source obstacle, then the connecting line would be part of the convex hull as well.
+
+				\begin{figure}[h]
+					\begin{figcenter}
+						\begin{tikzpicture}
+							\coordinate (c00) at (0,0.2);
+							\draw (c00)
+								-- ++(2.75,0) coordinate (c01)
+								-- ++(0.8,0.4) coordinate (c02)
+								-- ++(0.1,0.8) coordinate (c03)
+								-- ++(-2,0) coordinate (c04)
+								-- ++(-1.25,-0.35) coordinate (c05)
+								-- (c00);
+							\node[above right = 0.3 and 1.6 of c00] {$o_1$};
+								
+							\coordinate (c10) at (2.5,3.85);
+							\draw (c10)
+								-- ++(-0.4,-0.4) coordinate (c11)
+								-- ++(0.1,-0.6) coordinate (c12)
+								-- ++(2.3,0) coordinate (c13)
+								-- ++(-0.4,1) coordinate (c14)
+								-- (c10);
+							\node[below right = 0.3 and 0.5 of c10] {$o_2$};
+							
+							\filldraw[thin,Green4!35!white] ($(c03)+(0,0.015)$) -- +(180:0.35) arc [start angle=180, delta angle=-97.126, radius=0.35];
+							\draw[thin,Green4] (c03) -- (intersection of c03--[shift=(c03)]82.874:3 and c12--c13);
+							\draw[thin,Green4] ($(c03)+(0,0.015)$) -- +(180:4);
+%							
+							\filldraw[thin,DodgerBlue3!35!white] ($(c12)+(0,-0.015)$) -- +(279.462:0.4) arc [start angle=279.462, delta angle=80.538, radius=0.4];
+							\draw[thin,DodgerBlue3] (c12) -- (intersection of c12--[shift=(c12)]279.462:1 and c03--c04);
+							\draw[thin,DodgerBlue3] ($(c12)+(0,-0.015)$) -- +(0:4);
+							
+							\tikzDot[label={right:$s$}]{(c01)}{s}
+							\tikzDot[label={right:$v_0$}]{(c03)}{v0}
+							\tikzDot[label={left:$v_1$}]{(c12)}{v1}
+							\tikzDot[label={left:$t$}]{(c10)}{t}
+							
+							\draw[->,Red2,thick] (s) -- (c02);
+							\draw[->,Red2,thick] (c02) -- (v0);
+							\draw[->,Red2,thick] (v0) -- (v1);
+							\draw[->,Red2,thick] (v1) -- (c11);
+							\draw[->,Red2,thick] (c11) -- (t);
+						\end{tikzpicture}
+					\end{figcenter}
+					\caption{The path from $s$ via $v_0$ and $v_1$ to $t$ bends along the convex hulls of $o_1$ and $o_2$.
+						\\
+						The segment from $v_0$ to $v_1$ is a connecting line between the hull parts. Suppose $v_1$ would be part of $o_1$, then the path from $s$ via $v_0$ to $v_1$ would be on its convex hull. Same holds true for $v_0$ and $o_2$ respectively.
+						\\
+						The green angle at $v_0$ indicates the angle area in which all visibility neighbors of $v_0$, in case they would be added to $o_1$, would be part of $o_1$'s convex hull. Same applies to the blue angle for $o_2$ and $v_1$ respectively.}
+					\label{fig:convex-hull}
+				\end{figure}
+				
+				The marked green and blue angles area in \cref{fig:convex-hull} represent the \emph{valid angle areas} for potential visibility neighbors.
+				Vertices at other angles will be ignored since the resulting edges will never be part of a shortest path.
 			
 			\subsubsection{Visibility graph generation overview}
 			
@@ -295,11 +374,11 @@ After that, the main sections of this chapter show details of each algorithmic s
 				Each step is described with more details sections below.
 				\begin{enumerate}
 					\item Determine the obstacle neighbors for each vertex.
-					\item For each vertex $v$, determine its visibility neighbors as follows.
+					\item For each vertex $v$ lying on the convex hull of any obstacle, determine its visibility neighbors as follows.
 					\begin{enumerate}
 						\item For each other vertex $u$, do the following:
 						\begin{enumerate}
-							\item Is $u$ in any shadow area? If so, which means $u$ is not visible, move to the next other vertex. Continue otherwise.
+							\item Is $u$ in any shadow area \emph{or} not on any convex hull \emph{or} not in any valid angle area? If so: $u$ is not relevant, move to the next other vertex.
 							\item Query all obstacles between $v$ and $u$. This is done by the bounding box spanned by $v$ and $u$.
 							\item Create and store the shadow area of each such obstacle $o$.
 							\item Check if $u$ is a visibility neighbor, which is true if $u$ is a) still not in any shadow area and b) the line segment from $v$ to $u$ intersects with none of the above queries obstacles.
@@ -426,14 +505,15 @@ After that, the main sections of this chapter show details of each algorithmic s
 				Essential to this process is the \texttt{GetVisibilityNeighborsForVertex} method determining the visibility neighbors for a single vertex.
 				
 				This method uses the concept of shadow areas stored in a BinIndex structure with a bin count of 360, each bin covering a 1° area.
-				Additionally, all obstacles casting a shadow are separately stored, simply to check whether or not a obstacle already casts a shadow.
+%				Additionally, all obstacles casting a shadow are separately stored, simply to check whether or not a obstacle already casts a shadow.
+%				Since querying of obstacles is necessary, they are stored in a QuadTree.
 				
-				For a given vertex $v$, any other vertex $u$ is checked for visibility by executing the following steps:
+				For a given vertex $v$ any other vertex $u$ is checked for visibility by executing the following steps:
 				\begin{enumerate}
-					\item Check is $u$ is in a shadow area and continue with the next vertex if this is the case.
-					\item Determine the extent between $v$ and $u$ and query all obstacles within this region. For each obstacle $o$ the following steps are performed:
+					\item Check if $u$ is in a shadow area \emph{or} if $u$ is outside a valid angle area and continue with the next vertex if this is the case.
+					\item Query all obstacles in the extent spanned by $v$ and $u$. For each obstacle $o$ the following steps are performed:
 					\begin{enumerate}
-						\item Get the shadow area for $o$ or create a new one if $o$ is not casting a shadow yet.
+						\item Get or create the shadow area for $o$.
 						\item If $u$ is not part of $o$ \emph{and} a new shadow area $S$ was just created, check if $u$ is in $S$:\label{itm:if-u-not-on-obstacle}
 						\begin{enumerate}
 							\item If so, mark $u$ as hidden and skip all subsequent checks and obstacles.
@@ -555,28 +635,28 @@ After that, the main sections of this chapter show details of each algorithmic s
 							\draw[lightgray] (v) -- (n2);
 							
 							% Visibility edges to n1
-							\tikzDot[blue]{(-1.1,-0.25)}{vn1}
-							\tikzDot[blue]{(-1.6,-0.9)}{vn2}
-							\tikzDot[blue]{(1.6,-0.5)}{vn3}
-							\draw[blue,densely dashed,->] (v) -- (vn1);
-							\draw[blue,densely dashed,->] (v) -- (vn2);
-							\draw[blue,densely dashed,->] (v) -- (vn3);
-%							\draw[blue,densely dashed,->] ($(v)+(-0.075,-\d)$) -- ($(n1)+(0.075,-\d)$);
-%							\draw[blue,densely dashed,->] ($(v)+(0.075,-\d)$) -- ($(n3)+(-0.075,-\d)$);
+							\tikzDot[DodgerBlue3]{(-1.1,-0.25)}{vn1}
+							\tikzDot[DodgerBlue3]{(-1.6,-0.9)}{vn2}
+							\tikzDot[DodgerBlue3]{(1.6,-0.5)}{vn3}
+							\draw[DodgerBlue3,densely dashed,->] (v) -- (vn1);
+							\draw[DodgerBlue3,densely dashed,->] (v) -- (vn2);
+							\draw[DodgerBlue3,densely dashed,->] (v) -- (vn3);
+%							\draw[DodgerBlue3,densely dashed,->] ($(v)+(-0.075,-\d)$) -- ($(n1)+(0.075,-\d)$);
+%							\draw[DodgerBlue3,densely dashed,->] ($(v)+(0.075,-\d)$) -- ($(n3)+(-0.075,-\d)$);
 							
 							% Visibility edges to n3
-							\tikzDot[red]{(0.7,1.4)}{vn4}
-							\tikzDot[red]{(2,1)}{vn5}
-							\draw[red,densely dotted,->] (v) -- (vn4);
-							\draw[red,densely dotted,->] (v) -- (vn5);
-%							\draw[red,densely dotted,->] ($(v)+(0.075,\d)$) -- ($(n3)+(-0.075,\d)$);
-%							\draw[red,densely dotted,->] ($(v)+(\d,0.075)$) -- ($(n2)+(\d,-0.075)$);
+							\tikzDot[Red2]{(0.7,1.4)}{vn4}
+							\tikzDot[Red2]{(2,1)}{vn5}
+							\draw[Red2,densely dotted,->] (v) -- (vn4);
+							\draw[Red2,densely dotted,->] (v) -- (vn5);
+%							\draw[Red2,densely dotted,->] ($(v)+(0.075,\d)$) -- ($(n3)+(-0.075,\d)$);
+%							\draw[Red2,densely dotted,->] ($(v)+(\d,0.075)$) -- ($(n2)+(\d,-0.075)$);
 							
 							% Visibility edges to n2
-							\tikzDot[Green]{(-2,1.3)}{vn6}
-							\draw[Green,dashdotted,->] (v) -- (vn6);
-%							\draw[Green,dashdotted,->] ($(v)+(-\d,0.075)$) -- ($(n2)+(-\d,-0.075)$);
-%							\draw[Green,dashdotted,->] ($(v)+(-0.075,\d)$) -- ($(n1)+(0.075,\d)$);
+							\tikzDot[Green4]{(-2,1.3)}{vn6}
+							\draw[Green4,dashdotted,->] (v) -- (vn6);
+%							\draw[Green4,dashdotted,->] ($(v)+(-\d,0.075)$) -- ($(n2)+(-\d,-0.075)$);
+%							\draw[Green4,dashdotted,->] ($(v)+(-0.075,\d)$) -- ($(n1)+(0.075,\d)$);
 						\end{tikzpicture}
 					\end{figcenter}
 					\caption{All visible neighbors of $v$ colored by their resulting bin. The neighbors $n_1$, $n_2$ and $n_3$ are also sorted into bins but they occur in each adjacent bin. The means $n_2$ is in the bin for area $n_1$/$n_2$ as well as in the bin for $n_2$/$n_3$.}

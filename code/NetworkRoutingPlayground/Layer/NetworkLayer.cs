@@ -7,6 +7,7 @@ using NetworkRoutingPlayground.Model;
 using ServiceStack.Text;
 using HybridVisibilityGraphRouting;
 using HybridVisibilityGraphRouting.Geometry;
+using HybridVisibilityGraphRouting.Graph;
 using HybridVisibilityGraphRouting.IO;
 using ServiceStack;
 

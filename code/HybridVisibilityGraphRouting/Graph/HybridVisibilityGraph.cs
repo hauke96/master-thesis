@@ -1,3 +1,4 @@
+using HybridVisibilityGraphRouting.Geometry;
 using HybridVisibilityGraphRouting.IO;
 using Mars.Common;
 using Mars.Common.Collections;
@@ -13,7 +14,7 @@ using ServiceStack;
 using Feature = NetTopologySuite.Features.Feature;
 using Position = Mars.Interfaces.Environments.Position;
 
-namespace HybridVisibilityGraphRouting.Geometry;
+namespace HybridVisibilityGraphRouting.Graph;
 
 public class HybridVisibilityGraph
 {
@@ -112,7 +113,8 @@ public class HybridVisibilityGraph
     /// determined and connected to the graph.
     /// </summary>
     /// <returns>A tuple with the node for the given location and a list of all newly added nodes, which can be removed after the routing request.</returns>
-    public (int, IList<NodeData>, IList<EdgeData>) AddPositionToGraph(Position positionToAdd)
+    public (int, IList<NodeData>, IList<EdgeData>) AddPositionToGraph(Position positionToAdd, int visibilityNeighborBinCount = 36,
+        int visibilityNeighborsPerBin = 10)
     {
         var existingNodeCandidates = _nodeIndex.Nearest(positionToAdd.PositionArray, 0.000001);
         if (existingNodeCandidates.Any())
@@ -129,10 +131,9 @@ public class HybridVisibilityGraph
 
         // TODO If performance too bad: Pass multiple positions to not calculate certain things twice.
         var allVertices = _vertexToNodes.Keys.ToList();
-        var visibilityNeighborVertices =
-            VisibilityGraphGenerator.GetVisibilityNeighborsForVertex(_obstacles, allVertices,
-                new Dictionary<Coordinate, List<Obstacle>>(),
-                vertexToAdd, 36, 10)[0];
+        var visibilityNeighborVertices = VisibilityGraphGenerator.GetVisibilityNeighborsForVertex(_obstacles,
+            allVertices, new Dictionary<Coordinate, List<Obstacle>>(), vertexToAdd, visibilityNeighborBinCount,
+            visibilityNeighborsPerBin)[0];
 
         visibilityNeighborVertices
             .Map(v => _vertexToNodes[v])
@@ -206,7 +207,8 @@ public class HybridVisibilityGraph
             var edgePositionFrom = existingEdge.Geometry[0].ToCoordinate();
             var edgePositionTo = existingEdge.Geometry[1].ToCoordinate();
             var segmentAndEdgeIntersectOrTouch =
-                Intersect.DoIntersectOrTouch(segmentFromCoordinate, segmentToCoordinate, edgePositionFrom, edgePositionTo);
+                Intersect.DoIntersectOrTouch(segmentFromCoordinate, segmentToCoordinate, edgePositionFrom,
+                    edgePositionTo);
 
             if (!segmentAndEdgeIntersectOrTouch)
             {
@@ -359,11 +361,11 @@ public class HybridVisibilityGraph
     }
 
     /// <summary>
-    /// Determined the correct node for the given position based on the angle from the position to the node. This method
+    /// Determines the correct node for the given position based on the angle from the position to the node. This method
     /// does *not* find the node *at* this position. Therefore, the <code>position</code> parameter can be seen as a
     /// neighbor of the given node candidates.
     /// </summary>
-    private int GetNodeForAngle(Position position, IEnumerable<int> nodeCandidates)
+    public int GetNodeForAngle(Position position, IEnumerable<int> nodeCandidates)
     {
         // We have all corresponding nodes for the given position ("nodeCandidates") but we only want the one node
         // whose angle area includes the position to add. So its angle area should include the angle from that
