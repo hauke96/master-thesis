@@ -12,24 +12,34 @@ namespace HybridVisibilityGraphRouting;
 
 public static class HybridVisibilityGraphGenerator
 {
+    private static readonly string[] DefaultObstacleKeys = { "building", "barrier", "natural", "poi", "obstacle" };
+    private static readonly string[] DefaultPoiKeys = { "poi" };
+    private static readonly string[] DefaultRoadKeys = { "highway" };
+
     /// <summary>
     /// Generates the complete hybrid visibility graph based on the obstacles in the given feature collection. This
     /// method also merges the road and ways within the features correctly with the visibility edges.
     /// </summary>
-    public static HybridVisibilityGraph Generate(IEnumerable<IFeature> features, int visibilityNeighborBinCount = 36,
-        int visibilityNeighborsPerBin = 10)
+    public static HybridVisibilityGraph Generate(IEnumerable<IFeature> features,
+        int visibilityNeighborBinCount = 36,
+        int visibilityNeighborsPerBin = 10,
+        string[]? obstacleKeys = null,
+        string[]? poiKeys = null,
+        string[]? roadKeys = null)
     {
         var watch = Stopwatch.StartNew();
 
         // Prevent multiple enumerations
         features = features.ToList();
 
-        var obstacles = GetObstacles(features);
-        var vertexNeighbors = DetermineVisibilityNeighbors(obstacles, visibilityNeighborBinCount, visibilityNeighborsPerBin);
+        var obstacles = GetObstacles(features, obstacleKeys);
+        var vertexNeighbors =
+            VisibilityGraphGenerator.CalculateVisibleKnn(obstacles, visibilityNeighborBinCount,
+                visibilityNeighborsPerBin);
         var (hybridVisibilityGraph, spatialGraph) = AddVisibilityVerticesAndEdges(vertexNeighbors, obstacles);
 
-        MergeRoadsIntoGraph(features, hybridVisibilityGraph);
-        AddAttributesToPoiNodes(features, spatialGraph);
+        MergeRoadsIntoGraph(features, hybridVisibilityGraph, roadKeys);
+        AddAttributesToPoiNodes(features, spatialGraph, default, poiKeys);
 
         Log.D($"{nameof(HybridVisibilityGraphGenerator)}: Done after {watch.ElapsedMilliseconds}ms");
         return hybridVisibilityGraph;
@@ -39,10 +49,11 @@ public static class HybridVisibilityGraphGenerator
     /// Takes all obstacle features and calculates for each vertex the visibility neighbors.
     /// </summary>
     /// <returns>A map from each vertex to the bins of visibility neighbors.</returns>
-    public static QuadTree<Obstacle> GetObstacles(IEnumerable<IFeature> features)
+    public static QuadTree<Obstacle> GetObstacles(IEnumerable<IFeature> features, string[]? obstacleKeys = null)
     {
-        var wantedKeys = new[] { "building", "barrier", "natural", "poi", "obstacle" };
-        var importedObstacles = FeatureHelper.FilterFeaturesByKeys(features, wantedKeys);
+        obstacleKeys ??= DefaultObstacleKeys;
+
+        var importedObstacles = FeatureHelper.FilterFeaturesByKeys(features, obstacleKeys);
 
         var watch = Stopwatch.StartNew();
 
@@ -73,12 +84,6 @@ public static class HybridVisibilityGraphGenerator
         return obstacleIndex;
     }
 
-    public static Dictionary<Vertex, List<List<Vertex>>> DetermineVisibilityNeighbors(QuadTree<Obstacle> obstacles,
-        int visibilityNeighborBinCount, int visibilityNeighborsPerBin)
-    {
-        return VisibilityGraphGenerator.CalculateVisibleKnn(obstacles, visibilityNeighborBinCount, visibilityNeighborsPerBin);
-    }
-
     public static (HybridVisibilityGraph, SpatialGraph) AddVisibilityVerticesAndEdges(
         Dictionary<Vertex, List<List<Vertex>>> vertexNeighbors,
         QuadTree<Obstacle> obstacles)
@@ -103,11 +108,8 @@ public static class HybridVisibilityGraphGenerator
                 // var nodePosition = PositionHelper.CalculatePositionByBearing(vertex.Position.X, vertex.Position.Y,
                 //     360 / vertexNeighborBin.Count * i, 0.000005);
 
-                var nodeKey = graph.AddNode(new Dictionary<string, object>
-                {
-                    { "x", vertex.Coordinate.X },
-                    { "y", vertex.Coordinate.Y },
-                }).Key;
+                var nodeKey = graph.AddNode(vertex.Coordinate.X, vertex.Coordinate.Y, new Dictionary<string, object>())
+                    .Key;
                 vertexToNode[vertex][i] = nodeKey;
                 nodeToBinVertices[nodeKey] = bin;
 
@@ -172,11 +174,14 @@ public static class HybridVisibilityGraphGenerator
     /// This merges all features with a "highway=*" attribute into the given graph. Whenever a road-edge intersects
     /// an existing edge, both edges will be split at the intersection point where a new node is added.
     /// </summary>
-    public static void MergeRoadsIntoGraph(IEnumerable<IFeature> features, HybridVisibilityGraph hybridGraph)
+    public static void MergeRoadsIntoGraph(IEnumerable<IFeature> features, HybridVisibilityGraph hybridGraph,
+        string[]? roadKeys = null)
     {
+        roadKeys ??= DefaultRoadKeys;
+
         var watch = Stopwatch.StartNew();
 
-        var roadFeatures = FeatureHelper.FilterFeaturesByKeys(features, "highway");
+        var roadFeatures = FeatureHelper.FilterFeaturesByKeys(features, roadKeys);
         var roadSegments = FeatureHelper.SplitFeaturesToSegments(roadFeatures);
 
         roadSegments.Each((i, roadSegment) =>
@@ -192,13 +197,15 @@ public static class HybridVisibilityGraphGenerator
     }
 
     /// <summary>
-    /// Takes each feature with an attribute name "poi" and adds all attributes of this feature to the closest node
-    /// (within the given distance) in the graph.
+    /// Takes each feature with an attribute name from "poiKeys" and adds all attributes of this feature to the closest
+    /// node (within the given distance) in the graph.
     /// </summary>
     public static void AddAttributesToPoiNodes(IEnumerable<IFeature> features, ISpatialGraph graph,
-        double nodeDistanceTolerance = 0.001)
+        double nodeDistanceTolerance = 0.001, string[]? poiKeys = null)
     {
-        features.Where(f => f.Attributes.Exists("poi"))
+        poiKeys ??= DefaultPoiKeys;
+
+        features.Where(f => poiKeys.Any(poiKey => f.Attributes.Exists(poiKey)))
             .Each(f =>
             {
                 var featurePosition = f.Geometry.Coordinates[0].ToPosition();

@@ -401,42 +401,6 @@ public class HybridVisibilityGraphGeneratorTest
     }
 
     [Test]
-    public void DetermineVisibilityNeighbors()
-    {
-        var obstacles = ObstacleTestHelper.CreateObstacles(new LineString(new[]
-            {
-                new Coordinate(0, 0),
-                new Coordinate(1, 0),
-                new Coordinate(2, 0)
-            }),
-            new LineString(new[]
-            {
-                new Coordinate(0.5, 1),
-                new Coordinate(10, 1)
-            }),
-            new LineString(new[]
-            {
-                new Coordinate(0, 2),
-                new Coordinate(1, 2),
-                new Coordinate(2, 2)
-            })
-        );
-        var obstacle1 = obstacles[0];
-        var obstacle2 = obstacles[1];
-        var obstacle3 = obstacles[2];
-
-        var obstacleIndex = new QuadTree<Obstacle>();
-        obstacleIndex.Insert(obstacle1.Envelope, obstacle1);
-        obstacleIndex.Insert(obstacle2.Envelope, obstacle2);
-        obstacleIndex.Insert(obstacle3.Envelope, obstacle3);
-
-        var visibilityNeighbors = HybridVisibilityGraphGenerator.DetermineVisibilityNeighbors(obstacleIndex, 36, 10);
-
-        CollectionAssert.AreEquivalent(VisibilityGraphGenerator.CalculateVisibleKnn(obstacleIndex, 36, 10),
-            visibilityNeighbors);
-    }
-
-    [Test]
     public void AddVisibilityVerticesAndEdges()
     {
         // Dummy obstacles because the hybrid graph also contains all obstacles.
