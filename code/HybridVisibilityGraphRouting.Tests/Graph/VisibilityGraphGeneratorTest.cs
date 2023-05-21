@@ -433,6 +433,10 @@ public class VisibilityGraphGeneratorTest
 
         Assert.AreEqual(1, positionToNeighbors[obstacle[2]].Count);
         Assert.Contains(obstacle[1], positionToNeighbors[obstacle[2]]);
+
+        var vertices = obstacles.SelectMany(o => o.Vertices).Distinct().ToList();
+        Assert.AreEqual(3, vertices.Count);
+        AssertObstacleNeighborsSorted(vertices);
     }
 
     [Test]
@@ -465,6 +469,10 @@ public class VisibilityGraphGeneratorTest
         Assert.AreEqual(2, positionToNeighbors[obstacle[2]].Count);
         Assert.Contains(obstacle[0], positionToNeighbors[obstacle[2]]);
         Assert.Contains(obstacle[1], positionToNeighbors[obstacle[2]]);
+
+        var vertices = obstacles.SelectMany(o => o.Vertices).Distinct().ToList();
+        Assert.AreEqual(3, vertices.Count);
+        AssertObstacleNeighborsSorted(vertices);
     }
 
     [Test]
@@ -523,6 +531,10 @@ public class VisibilityGraphGeneratorTest
         Assert.AreEqual(2, positionToNeighbors[obstacle2[2]].Count);
         Assert.Contains(obstacle1[0], positionToNeighbors[obstacle2[2]]);
         Assert.Contains(obstacle2[1], positionToNeighbors[obstacle2[2]]);
+
+        var vertices = obstacles.SelectMany(o => o.Vertices).Distinct().ToList();
+        Assert.AreEqual(4, vertices.Count);
+        AssertObstacleNeighborsSorted(vertices);
     }
 
     [Test]
@@ -586,6 +598,10 @@ public class VisibilityGraphGeneratorTest
 
         Assert.AreEqual(1, positionToNeighbors[obstacle2[2]].Count);
         Assert.Contains(obstacle2[1], positionToNeighbors[obstacle2[2]]);
+
+        var vertices = obstacles.SelectMany(o => o.Vertices).Distinct().ToList();
+        Assert.AreEqual(5, vertices.Count);
+        AssertObstacleNeighborsSorted(vertices);
     }
 
     [Test]
@@ -621,6 +637,10 @@ public class VisibilityGraphGeneratorTest
         Assert.IsEmpty(positionToNeighbors[obstacle1.Coordinates[1]]);
         Assert.IsEmpty(positionToNeighbors[obstacle2.Coordinates[0]]);
         Assert.IsEmpty(positionToNeighbors[obstacle2.Coordinates[1]]);
+
+        var vertices = obstacles.SelectMany(o => o.Vertices).Distinct().ToList();
+        Assert.AreEqual(4, vertices.Count);
+        AssertObstacleNeighborsSorted(vertices);
     }
 
     [Test]
@@ -666,6 +686,10 @@ public class VisibilityGraphGeneratorTest
 
         Assert.AreEqual(1, positionToNeighbors[obstacle2[1]].Count);
         Assert.Contains(obstacle2[0], positionToNeighbors[obstacle2[1]]);
+
+        var vertices = obstacles.SelectMany(o => o.Vertices).Distinct().ToList();
+        Assert.AreEqual(3, vertices.Count);
+        AssertObstacleNeighborsSorted(vertices);
     }
 
     [Test]
@@ -827,7 +851,7 @@ public class VisibilityGraphGeneratorTest
 
         var allVertices = otherVertices.Concat(obstacle.Vertices).Concat(otherObstacle.Vertices).Distinct().ToList();
         // The order of the neighbors matters (from smallest angle to largest):
-        allVertices.Each(v=>v.SortObstacleNeighborsByAngle());
+        allVertices.Each(v => v.SortObstacleNeighborsByAngle());
         var coordinateToObstacles = allVertices.ToDictionary(v => v.Coordinate,
             v => new List<Obstacle>
                 { new(new Point(v.Coordinate), new Point(v.Coordinate), new List<Vertex> { v }) });
@@ -907,7 +931,7 @@ public class VisibilityGraphGeneratorTest
 
         var allVertices = otherVertices.Concat(obstacle.Vertices).Concat(otherObstacle.Vertices).Distinct().ToList();
         // The order of the neighbors matters (from smallest angle to largest):
-        allVertices.Each(v=>v.SortObstacleNeighborsByAngle());
+        allVertices.Each(v => v.SortObstacleNeighborsByAngle());
         var coordinateToObstacles = allVertices.ToDictionary(v => v.Coordinate,
             v => new List<Obstacle>
                 { new(new Point(v.Coordinate), new Point(v.Coordinate), new List<Vertex> { v }) });
@@ -1056,5 +1080,15 @@ public class VisibilityGraphGeneratorTest
                 v => v.Coordinate,
                 v => v.ObstacleNeighbors.Map(n => n.ToCoordinate())
             );
+    }
+
+    private void AssertObstacleNeighborsSorted(List<Vertex> vertices)
+    {
+        foreach (var vertex in vertices)
+        {
+            var obstacleNeighbors = vertex.ObstacleNeighbors;
+            CollectionAssert.AreEqual(obstacleNeighbors,
+                obstacleNeighbors.OrderBy(n => Angle.GetBearing(vertex.Coordinate, n.ToCoordinate())));
+        }
     }
 }
