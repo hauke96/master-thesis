@@ -244,44 +244,11 @@ public static class VisibilityGraphGenerator
 
         var degreePerBin = 360.0 / neighborBinCount;
 
-        // TODO Documentation
-        var validAngleAreas = new List<(double, double)>();
-        if (vertex.ObstacleNeighbors.Count == 0)
-        {
-            validAngleAreas.Add((0, 360));
-        }
-        else if (vertex.ObstacleNeighbors.Count == 1)
-        {
-            var angleToSingleObstacleNeighbor =
-                Angle.GetBearing(vertex.Coordinate.ToPosition(), vertex.ObstacleNeighbors[0]);
-            if (angleToSingleObstacleNeighbor != 0)
-            {
-                validAngleAreas.Add((angleToSingleObstacleNeighbor, 0));
-                validAngleAreas.Add((0, angleToSingleObstacleNeighbor));
-            }
-        }
-        else if (vertex.ObstacleNeighbors.Count >= 2)
-        {
-            // Only up to one angle between two adjacent obstacle neighbors can be >180°. This means only none or one
-            // valid angle areas exist.
-            vertex.ObstacleNeighbors
-                .Each((thisIndex, neighbor) =>
-                {
-                    var nextIndex = thisIndex + 1;
-                    if (thisIndex == vertex.ObstacleNeighbors.Count - 1)
-                    {
-                        nextIndex = 0;
-                    }
+        var validAngleAreas = GetValidAngleAreasForVertex(vertex);
 
-                    var angleFrom = Angle.GetBearing(vertex.Coordinate.ToPosition(), neighbor);
-                    var angleTo = Angle.GetBearing(vertex.Coordinate.ToPosition(), vertex.ObstacleNeighbors[nextIndex]);
-
-                    if (Angle.Difference(angleFrom, angleTo) > 180)
-                    {
-                        validAngleAreas.Add((angleFrom, Angle.Normalize(angleTo - 180)));
-                        validAngleAreas.Add((Angle.Normalize(angleFrom - 180), angleTo));
-                    }
-                });
+        if (validAngleAreas.IsEmpty())
+        {
+            return new List<List<Vertex>>();
         }
 
         /*
@@ -449,12 +416,52 @@ public static class VisibilityGraphGenerator
         return SortVisibilityNeighborsIntoBins(vertex, allVisibilityNeighbors.ToList());
     }
 
+    private static List<(double, double)> GetValidAngleAreasForVertex(Vertex vertex)
+    {
+        // TODO Documentation
+        var validAngleAreas = new List<(double, double)>();
+        if (vertex.ObstacleNeighbors.Count <= 1)
+        {
+            validAngleAreas.Add((0, 360));
+        }
+        else if (vertex.ObstacleNeighbors.Count >= 2)
+        {
+            // Only up to one angle between two adjacent obstacle neighbors can be >180°. This means only none or one
+            // valid angle areas exist.
+            vertex.ObstacleNeighbors
+                .Each((thisIndex, neighbor) =>
+                {
+                    var nextIndex = thisIndex + 1;
+                    if (thisIndex == vertex.ObstacleNeighbors.Count - 1)
+                    {
+                        nextIndex = 0;
+                    }
+
+                    var angleFrom = Angle.GetBearing(vertex.Coordinate.ToPosition(), neighbor);
+                    var angleTo = Angle.GetBearing(vertex.Coordinate.ToPosition(), vertex.ObstacleNeighbors[nextIndex]);
+
+                    if (Angle.Difference(angleFrom, angleTo) > 180)
+                    {
+                        validAngleAreas.Add((angleFrom, Angle.Normalize(angleTo - 180)));
+                        validAngleAreas.Add((Angle.Normalize(angleFrom - 180), angleTo));
+                    }
+                });
+        }
+
+        return validAngleAreas;
+    }
+
     /// <summary>
     /// Takes the obstacle neighbors from the given vertex and interprets the angle areas between these neighbors as
     /// bins. Each of the given visibility neighbors is then sorted into these bins.
     /// </summary>
     public static List<List<Vertex>> SortVisibilityNeighborsIntoBins(Vertex vertex, List<Vertex> allVisibilityNeighbors)
     {
+        if (allVisibilityNeighbors.IsEmpty())
+        {
+            return new List<List<Vertex>>();
+        }
+
         if (vertex.ObstacleNeighbors.Count < 2)
         {
             return new List<List<Vertex>>
@@ -462,11 +469,6 @@ public static class VisibilityGraphGenerator
                 allVisibilityNeighbors
             };
         }
-
-        // TODO Should already be sorted
-        // allVisibilityNeighbors.Sort((p1, p2) =>
-        //     (int)(Angle.GetBearing(vertex.Coordinate, p1.Coordinate) -
-        //           Angle.GetBearing(vertex.Coordinate, p2.Coordinate)));
 
         /*
          * This following routing collects all visibility neighbors we just determined above and puts them into bins.
