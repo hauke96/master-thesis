@@ -8,7 +8,7 @@ using Mars.Interfaces.Environments;
 using NetTopologySuite.Features;
 using ServiceStack;
 
-namespace HybridVisibilityGraphRouting;
+namespace HybridVisibilityGraphRouting.Graph;
 
 public static class HybridVisibilityGraphGenerator
 {

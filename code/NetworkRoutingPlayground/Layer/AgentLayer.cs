@@ -6,6 +6,7 @@ using Mars.Interfaces.Layers;
 using NetworkRoutingPlayground.Model;
 using HybridVisibilityGraphRouting;
 using HybridVisibilityGraphRouting.Geometry;
+using HybridVisibilityGraphRouting.Graph;
 
 namespace NetworkRoutingPlayground.Layer
 {

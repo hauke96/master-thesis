@@ -1,3 +1,4 @@
+using HybridVisibilityGraphRouting.Geometry;
 using HybridVisibilityGraphRouting.IO;
 using Mars.Common;
 using Mars.Common.Collections;
@@ -13,7 +14,7 @@ using ServiceStack;
 using Feature = NetTopologySuite.Features.Feature;
 using Position = Mars.Interfaces.Environments.Position;
 
-namespace HybridVisibilityGraphRouting.Geometry;
+namespace HybridVisibilityGraphRouting.Graph;
 
 public class HybridVisibilityGraph
 {

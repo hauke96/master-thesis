@@ -5,6 +5,7 @@ using Mars.Interfaces.Layers;
 using ServiceStack;
 using HybridVisibilityGraphRouting;
 using HybridVisibilityGraphRouting.Geometry;
+using HybridVisibilityGraphRouting.Graph;
 
 namespace HikerModel.Model
 {

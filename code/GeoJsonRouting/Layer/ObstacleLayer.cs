@@ -6,6 +6,7 @@ using Mars.Interfaces.Layers;
 using ServiceStack;
 using HybridVisibilityGraphRouting;
 using HybridVisibilityGraphRouting.Geometry;
+using HybridVisibilityGraphRouting.Graph;
 using Position = Mars.Interfaces.Environments.Position;
 
 namespace GeoJsonRouting.Layer

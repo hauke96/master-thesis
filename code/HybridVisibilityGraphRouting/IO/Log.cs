@@ -1,6 +1,6 @@
-namespace HybridVisibilityGraphRouting;
+namespace HybridVisibilityGraphRouting.IO;
 
-public class Log
+public static class Log
 {
     public static readonly int DEBUG = 0;
     public static readonly int INFO = 1;

@@ -2,7 +2,7 @@ using NetTopologySuite.Geometries;
 using NetTopologySuite.IO.Converters;
 using Newtonsoft.Json;
 
-namespace HybridVisibilityGraphRouting;
+namespace HybridVisibilityGraphRouting.IO;
 
 public class CoordinateZMConverter : CoordinateConverter
 {

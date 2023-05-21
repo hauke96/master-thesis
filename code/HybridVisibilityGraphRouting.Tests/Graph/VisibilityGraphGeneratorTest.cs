@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using HybridVisibilityGraphRouting.Geometry;
+using HybridVisibilityGraphRouting.Graph;
 using Mars.Common;
 using Mars.Common.Collections;
 using MongoDB.Driver;

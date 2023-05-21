@@ -9,7 +9,7 @@ using NetTopologySuite.Geometries;
 using ServiceStack;
 using Position = Mars.Interfaces.Environments.Position;
 
-namespace HybridVisibilityGraphRouting;
+namespace HybridVisibilityGraphRouting.Graph;
 
 public static class VisibilityGraphGenerator
 {

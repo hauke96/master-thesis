@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using HybridVisibilityGraphRouting.Geometry;
+using HybridVisibilityGraphRouting.Graph;
 using Mars.Common;
 using NetTopologySuite.Geometries;
 using NUnit.Framework;
