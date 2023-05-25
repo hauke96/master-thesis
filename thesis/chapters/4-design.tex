@@ -1,6 +1,10 @@
 % !TEX root = ../thesis.tex
 % !TeX spellcheck = en_US
 
+This chapter covers the design of the implemented hybrid routing algorithm.
+After an overview and a description of the overall context, the decision on the routing strategy as well as the general design decisions are presented.
+In addition to that, an overview of the separate components is given as well as a description on the deployment of this algorithm.
+
 \section{Overview and Context}
 
 	% Used by agents for wayfinding
@@ -220,22 +224,29 @@
 \label{sec:components}
 
 	% Generator classes, HybridVisibilityGrahp class and helper functions
-	Since this works resides in a rather technical and algorithmic oriented area, there are not many components needed to implement a hybrid routing approach.
-	The two most important parts are the graph generation and handling of routing requests.
-	
-	Because routing requests should be handled entirely within the resulting graph, meaning without the need of additional generators, some of the generator tasks are within the graph component.
-	
-	Using the implementation therefore has two entry points:
-	The generator, which initially creates the routing graph, and the graph itself to which routing requests can be made.
-	Due to the chosen construction and handling of arbitrary locations, the graph itself might generate new nodes and edges.
-	This is needed to connect the arbitrarily chooseable source and target locations, which is describes in \cref{sec:answering-queries} with more details.
+	Since this works resides in a rather technical and algorithmic oriented context, there are not many separate components needed to implement a hybrid routing approach.
+	The two most important components are the graph generation and handling of routing requests.
+	A third component is the hybrid visibility graph itself, containing additional procedures to answer routing queries.
 	
 	\begin{figure}[h]
 		\begin{figcenter}
 			\includegraphics[width=\textwidth]{images/components.pdf}
 		\end{figcenter}
-		\caption{The relevant components of the resulting implementation.}
+		\caption{The components and usages of interfaces of the resulting implementation.}
+		\label{fig:components}
 	\end{figure}
+	
+	The first step for a consumer of the system, in the context of this thesis an agent based simulation, is to generate the hybrid visibility graph.
+	Hence, the \texttt{HybridVisibilityGraphGenerator} (abbreviated as \enquote{H.V.GraphGenerator} in \cref{fig:components}) presents a public interface to create such hybrid visibility graph.
+	The result of the graph generation is an instance of the \texttt{HybridVisibilityGraph} class offering public methods to answer shortest path requests, such as \texttt{ShortestPath} returning a list of positions (i.e. coordinates) representing the shortest path between the two input locations.
+	More details on the graph generation can be found in \cref{sec:graph-generation}.
+	
+	For convenience and consistency with the other graphs in the MARS framework, routing queries are put to the hybrid visibility graph.
+	Each routing query should be able to start and end at arbitrary locations, thus, there is no guarantee that the source and destination locations of the query are on any vertex in the graph.
+	Therefore, the hybrid visibility graph has to temporarily connect these locations to the graph.
+	This is done by determining all visible neighbors of the source and destination locations and then merging the resulting edges to the underlying graph.
+	To perform this task, the hybrid visibility graph uses the interface of the \texttt{VisibilityGraphGenerator} to determine visibility neighbors of a single vertex.
+	\Cref{sec:answering-queries} covers the process of answering routing queries in more details.
 
 \section{Deployment view}
 
