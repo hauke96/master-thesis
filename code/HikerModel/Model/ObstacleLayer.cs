@@ -11,6 +11,9 @@ namespace HikerModel.Model
 {
     public class ObstacleLayer : VectorLayer
     {
+        public long totalVertices = -1;
+        public long totalVerticesAfterPreprocessing = -1;
+
         public HybridVisibilityGraph HybridVisibilityGraph { get; private set; }
 
         public override bool InitLayer(LayerInitData layerInitData, RegisterAgent registerAgentHandle = null,
@@ -21,6 +24,7 @@ namespace HikerModel.Model
             {
                 return false;
             }
+
             var features = Features.Map(f => f.VectorStructured).ToList();
 
             // When performance measurement active -> Turn off performance measurements within the constructor call.
@@ -40,6 +44,9 @@ namespace HikerModel.Model
                     "GenerateGraph", 5, 3);
                 result.Print();
                 result.WriteToFile();
+
+                totalVertices = result.TotalVertices;
+                totalVerticesAfterPreprocessing = result.TotalVerticesAfterPreprocessing;
 
                 // PerformanceMeasurement.IsActive = true;
             }

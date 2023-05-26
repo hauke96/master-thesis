@@ -125,37 +125,23 @@ namespace HikerModel.Model
                 const string numberFormat = "0.###";
                 var invariantCulture = CultureInfo.InvariantCulture;
                 var distanceFromTo = Distance.Haversine(from.PositionArray, to.PositionArray);
-                var averageTimeString =
-                    (performanceMeasurementResult.TotalTime / performanceMeasurementResult.IterationCount).ToString(
-                        numberFormat, invariantCulture);
+                var averageTimeString = performanceMeasurementResult.Iterations.Average()
+                    .ToString(numberFormat, invariantCulture);
+                var minTimeString = performanceMeasurementResult.Iterations.Min()
+                    .ToString(numberFormat, invariantCulture);
+                var maxTimeString = performanceMeasurementResult.Iterations.Max()
+                    .ToString(numberFormat, invariantCulture);
                 _routingPerformanceResult.AddRow(new Dictionary<string, object>
                 {
                     {
                         "total_vertices",
-                        performanceMeasurementResult.TotalVertices.ToString(numberFormat, invariantCulture)
+                        ObstacleLayer.totalVertices.ToString(numberFormat, invariantCulture)
                     },
                     {
                         "total_vertices_after_preprocessing",
-                        performanceMeasurementResult.TotalVerticesAfterPreprocessing.ToString(numberFormat,
+                        ObstacleLayer.totalVerticesAfterPreprocessing.ToString(numberFormat,
                             invariantCulture)
                     },
-                    { "distance", distanceFromTo.ToString(numberFormat, invariantCulture) },
-                    {
-                        "route_length",
-                        routingResult
-                            .Select((position, i) => i == 0 ? 0 : position.DistanceInMTo(routingResult[i - 1]))
-                            .Sum()
-                            .ToString(numberFormat, invariantCulture)
-                    },
-
-                    { "avg_time", averageTimeString },
-                    { "iteration_time", averageTimeString },
-                    { "total_time", performanceMeasurementResult.TotalTime.ToString(numberFormat, invariantCulture) },
-
-                    { "min_mem", performanceMeasurementResult.MinMemory.ToString(numberFormat, invariantCulture) },
-                    { "max_mem", performanceMeasurementResult.MaxMemory.ToString(numberFormat, invariantCulture) },
-                    { "avg_mem", performanceMeasurementResult.AvgMemory.ToString(numberFormat, invariantCulture) },
-
                     {
                         "from",
                         from.X.ToString(numberFormat, invariantCulture) + " " +
@@ -165,7 +151,24 @@ namespace HikerModel.Model
                         "to",
                         to.X.ToString(numberFormat, invariantCulture) + " " +
                         to.Y.ToString(numberFormat, invariantCulture)
-                    }
+                    },
+                    { "distance_beeline", distanceFromTo.ToString(numberFormat, invariantCulture) },
+                    {
+                        "distance_route",
+                        routingResult
+                            .Select((position, i) => i == 0 ? 0 : position.DistanceInMTo(routingResult[i - 1]))
+                            .Sum()
+                            .ToString(numberFormat, invariantCulture)
+                    },
+
+                    { "min_time", averageTimeString },
+                    { "max_time", minTimeString },
+                    { "avg_time", maxTimeString },
+                    { "total_time", performanceMeasurementResult.TotalTime.ToString(numberFormat, invariantCulture) },
+
+                    { "min_mem", performanceMeasurementResult.MinMemory.ToString(numberFormat, invariantCulture) },
+                    { "max_mem", performanceMeasurementResult.MaxMemory.ToString(numberFormat, invariantCulture) },
+                    { "avg_mem", performanceMeasurementResult.AvgMemory.ToString(numberFormat, invariantCulture) },
                 });
 
                 if (routingResult.Count == 0)

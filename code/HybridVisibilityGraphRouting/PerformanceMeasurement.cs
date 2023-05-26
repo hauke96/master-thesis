@@ -25,7 +25,7 @@ public class PerformanceMeasurement
         private const string TotalVerticesKey = "total_vertices";
         private const string TotalVerticesAfterPreprocessingKey = "total_vertices_after_preprocessing";
 
-        private List<double> Iterations => Values[IterationTimeKey].Map(v => (double)v);
+        public List<double> Iterations => Values[IterationTimeKey].Map(v => (double)v);
 
         private List<long> MemUsage => Values[MemoryKey].Map(v => (long)v);
         public double MinMemory => MemUsage.Min();
