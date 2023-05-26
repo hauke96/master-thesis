@@ -131,6 +131,14 @@ namespace HikerModel.Model
                     .ToString(numberFormat, invariantCulture);
                 var maxTimeString = performanceMeasurementResult.Iterations.Max()
                     .ToString(numberFormat, invariantCulture);
+                var addPositionToGraphAvgTime = performanceMeasurementResult.Values["add_positions_to_graph_time"]
+                    .Cast<double>().Average()
+                    .ToString(numberFormat, invariantCulture);
+                var astarAvgTime = performanceMeasurementResult.Values["astar_time"].Cast<double>().Average()
+                    .ToString(numberFormat, invariantCulture);
+                var restoreAvgTime = performanceMeasurementResult.Values["restore_graph"].Cast<double>().Average()
+                    .ToString(numberFormat, invariantCulture);
+
                 _routingPerformanceResult.AddRow(new Dictionary<string, object>
                 {
                     {
@@ -165,6 +173,9 @@ namespace HikerModel.Model
                     { "max_time", minTimeString },
                     { "avg_time", maxTimeString },
                     { "total_time", performanceMeasurementResult.TotalTime.ToString(numberFormat, invariantCulture) },
+                    { "astar_avg_time", astarAvgTime },
+                    { "add_positions_to_graph_avg_time", addPositionToGraphAvgTime },
+                    { "restore_avg_time", restoreAvgTime },
 
                     { "min_mem", performanceMeasurementResult.MinMemory.ToString(numberFormat, invariantCulture) },
                     { "max_mem", performanceMeasurementResult.MaxMemory.ToString(numberFormat, invariantCulture) },

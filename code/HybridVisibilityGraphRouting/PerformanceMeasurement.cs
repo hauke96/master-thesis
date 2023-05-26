@@ -101,8 +101,9 @@ public class PerformanceMeasurement
         private const string NumberFormat = "0.###";
 
         protected readonly string Name;
-        protected readonly Dictionary<string, List<object>> Values;
         protected int RowCount;
+        
+        public readonly Dictionary<string, List<object>> Values;
 
         public RawResult(string name)
         {

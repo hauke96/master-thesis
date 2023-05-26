@@ -18,6 +18,11 @@ public static class Exporter
 {
     public static async Task WriteFeaturesToFile(FeatureCollection features, string filename)
     {
+        if (PerformanceMeasurement.IsActive)
+        {
+            return;
+        }
+
         var serializer = GeoJsonSerializer.Create();
         foreach (var converter in serializer.Converters
                      .Where(c => c is CoordinateConverter || c is GeometryConverter)
@@ -41,6 +46,11 @@ public static class Exporter
     public static async void WriteVertexNeighborsToFile(Dictionary<Coordinate, HashSet<Position>> positionToNeighbors,
         string filename = "vertex-neighbors.geojson")
     {
+        if (PerformanceMeasurement.IsActive)
+        {
+            return;
+        }
+
         var geometries = new List<NetTopologySuite.Geometries.Geometry>();
         foreach (var pair in positionToNeighbors)
         {
@@ -74,6 +84,11 @@ public static class Exporter
 
     public static void WriteGraphToFile(SpatialGraph graph, string fileName = "./graph.geojson")
     {
+        if (PerformanceMeasurement.IsActive)
+        {
+            return;
+        }
+
         var watch = Stopwatch.StartNew();
 
         try
@@ -113,6 +128,11 @@ public static class Exporter
 
     public static void WriteFeatures(FeatureCollection vectorFeatures, string fileName = "./NetworkLayer.geojson")
     {
+        if (PerformanceMeasurement.IsActive)
+        {
+            return;
+        }
+
         if (File.Exists(fileName))
         {
             File.Delete(fileName);

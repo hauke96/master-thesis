@@ -75,18 +75,44 @@ public class HybridVisibilityGraph
         // TODO: This is highly inefficient but the KdTree implementation has no ".Remove()" method. Implementing my own method should solve this issue.
         InitNodeIndex();
 
-        var (sourceNode, newCreatedNodesForSource, newEdgedForSource) = AddPositionToGraph(source);
-        var (targetNode, newCreatedNodesForTarget, newEdgedForTarget) = AddPositionToGraph(target);
+        int sourceNode = -1;
+        IList<NodeData>? newCreatedNodesForSource = null;
+        IList<EdgeData>? newEdgedForSource = null;
+        int targetNode = -1;
+        IList<NodeData>? newCreatedNodesForTarget = null;
+        IList<EdgeData>? newEdgedForTarget = null;
+        var time = PerformanceMeasurement.AddFunctionDurationToCurrentRun(
+            () =>
+            {
+                (sourceNode, newCreatedNodesForSource, newEdgedForSource) = AddPositionToGraph(source);
+                (targetNode, newCreatedNodesForTarget, newEdgedForTarget) = AddPositionToGraph(target);
+            },
+            "add_positions_to_graph_time"
+        );
+        Log.D($"{nameof(HybridVisibilityGraph)}: add_positions_to_graph_time done after {time}ms");
         Exporter.WriteGraphToFile(Graph, "graph-with-source-target.geojson");
 
-        var routingResult = Graph.AStarAlgorithm(sourceNode, targetNode, heuristic);
+        // AddVisibilityVerticesAndEdges
+        IList<EdgeData> routingResult = new List<EdgeData>();
+        time = PerformanceMeasurement.AddFunctionDurationToCurrentRun(
+            () => { routingResult = Graph.AStarAlgorithm(sourceNode, targetNode, heuristic); },
+            "astar_time"
+        );
+        Log.D($"{nameof(HybridVisibilityGraph)}: astar_time done after {time}ms");
 
         // Remove temporarily created nodes (which automatically removes the edges too) to have a clean graph for
         // further routing requests.
-        newEdgedForSource.Each(RemoveEdge);
-        newEdgedForTarget.Each(RemoveEdge);
-        newCreatedNodesForSource.Each(RemoveNode);
-        newCreatedNodesForTarget.Each(RemoveNode);
+        time = PerformanceMeasurement.AddFunctionDurationToCurrentRun(
+            () =>
+            {
+                newEdgedForSource.Each(RemoveEdge);
+                newEdgedForTarget.Each(RemoveEdge);
+                newCreatedNodesForSource.Each(RemoveNode);
+                newCreatedNodesForTarget.Each(RemoveNode);
+            },
+            "restore_graph"
+        );
+        Log.D($"{nameof(HybridVisibilityGraph)}: restore_graph done after {time}ms");
 
         Exporter.WriteGraphToFile(Graph, "graph-restored.geojson");
 
@@ -113,7 +139,8 @@ public class HybridVisibilityGraph
     /// determined and connected to the graph.
     /// </summary>
     /// <returns>A tuple with the node for the given location and a list of all newly added nodes, which can be removed after the routing request.</returns>
-    public (int, IList<NodeData>, IList<EdgeData>) AddPositionToGraph(Position positionToAdd, int visibilityNeighborBinCount = 36,
+    public (int, IList<NodeData>, IList<EdgeData>) AddPositionToGraph(Position positionToAdd,
+        int visibilityNeighborBinCount = 36,
         int visibilityNeighborsPerBin = 10)
     {
         var existingNodeCandidates = _nodeIndex.Nearest(positionToAdd.PositionArray, 0.000001);

@@ -78,7 +78,7 @@ public class GeometryHelper
         Log.D($"Amount of features after triangulating: {triangulatedGeometries.Count + geometriesToIgnore.Count}");
         Log.D($"Amount of vertices after triangulating: {vertexCount}");
 
-        if (debugModeActive)
+        if (!PerformanceMeasurement.IsActive && debugModeActive)
         {
             var featureCollection = new FeatureCollection();
             triangulatedGeometries.Each(o => featureCollection.Add(new Feature(o.Key, new AttributesTable())));
