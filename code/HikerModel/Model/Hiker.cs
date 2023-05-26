@@ -1,15 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
+using HybridVisibilityGraphRouting.IO;
 using Mars.Common;
 using Mars.Interfaces.Agents;
 using Mars.Interfaces.Annotations;
 using Mars.Interfaces.Environments;
 using Mars.Interfaces.Layers;
-using Mars.Numerics;
 using NetTopologySuite.Geometries;
-using HybridVisibilityGraphRouting;
 using Position = Mars.Interfaces.Environments.Position;
 
 namespace HikerModel.Model
