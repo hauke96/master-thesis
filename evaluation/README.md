@@ -55,19 +55,24 @@ The graph generation and routing is performed as is (without adjustments).
 This means the merging takes place (even though there are no roads) and routing is done on the resulting hybrid visisibility graph.
 
 * [ ] Maze like pattern
-	* [ ] Create dataset
+	* [x] Create dataset
+	* [ ] Measurement
 	* [ ] Visualize
-* [ ] Square pattern
-	* [ ] Create dataset
+* [ ] Rectangle pattern
+	* [x] Create dataset
+	* [ ] Measurement
 	* [ ] Visualize
 * [ ] Circle pattern
-	* [ ] Create dataset
+	* [x] Create dataset
+	* [ ] Measurement
 	* [ ] Visualize
 * [ ] Full OSM dataset without roads
-	* [ ] Create dataset
+	* [x] Create dataset
+	* [ ] Measurement
 	* [ ] Visualize
 * [ ] OSM dataset without roads (multiple simplification grades)
-	* [ ] Create dataset
+	* [x] Create dataset
+	* [ ] Measurement
 	* [ ] Visualize
 
 ### 2. With roads
@@ -75,10 +80,12 @@ This means the merging takes place (even though there are no roads) and routing 
 The import takes place as is, without adjustments. Merging is performed and routing takes place on the resulting visisibility graph.
 
 * [ ] Full OSM dataset with roads
-	* [ ] Create dataset
+	* [x] Create dataset
+	* [ ] Measurement
 	* [ ] Visualize
 * [ ] OSM dataset without roads (multiple simplification grades)
-	* [ ] Create dataset
+	* [x] Create dataset
+	* [ ] Measurement
 	* [ ] Visualize
 
 ### 3. Without obstacles
@@ -87,10 +94,12 @@ The import takes place but without obstacle considerstion. The dataset contains 
 Merging is performed and routing takes place on the resulting visisibility graph.
 
 * [ ] Full OSM dataset with roads
-	* [ ] Create dataset
+	* [x] Create dataset
+	* [ ] Measurement
 	* [ ] Visualize
 * [ ] OSM dataset without roads (multiple simplification grades)
-	* [ ] Create dataset
+	* [x] Create dataset
+	* [ ] Measurement
 	* [ ] Visualize
 
 ### 4. Optimizations
@@ -98,11 +107,23 @@ Merging is performed and routing takes place on the resulting visisibility graph
 Use the full OSM dataset and run it with different optimizations turned on/off:
 
 * [ ] Shadow areas
+	* [ ] Measurement
+	* [ ] Visualize
 * [ ] Convex hull (only consider vertices on convex hull)
+	* [ ] Measurement
+	* [ ] Visualize
 * [ ] Convex hull (only consider valid angle areas)
+	* [ ] Measurement
+	* [ ] Visualize
 * [ ] Convex hull (both)
+	* [ ] Measurement
+	* [ ] Visualize
 * [ ] BinTree instead of BinIndex
+	* [ ] Measurement
+	* [ ] Visualize
 * [ ] Normal NTS collision detection instead of my implementation
+	* [ ] Measurement
+	* [ ] Visualize
 
 ## Theoretic considerations
 
