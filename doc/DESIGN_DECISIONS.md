@@ -1,3 +1,5 @@
+**Parts regarding wavelets, wavefronts and geometric routing are DEPRECATED!**
+
 # Design decisions
 
 ## General

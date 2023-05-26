@@ -1,3 +1,5 @@
+**This document is DEPRECATED!**
+
 # Algorithms
 
 ## Preprocessing
