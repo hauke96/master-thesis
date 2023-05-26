@@ -1,5 +1,25 @@
 # Create an OSM based dataset
 
+There are two possible ways to prepare an OSM based dataset:
+
+1. The current one: Use a OSM-dump, extract everything within a polygon
+2. Old and kind of deprecated: Use QGIS to prepare a more detailed dataset
+
+## Prepare OSM dump
+
+This requires working `osmium` and `ogr2ogr` tools and is implemented for Hamburg in the `create-hamburg-dataset.sh` script.
+
+1. Download a dump file from https://download.geofabrik.de
+2. Convert the PBF to GeoJSON (this increases the file size by a factor of about 10): `osmium export hamburg-latest.osm.pbf -o hamburg-latest.geojson`
+2. Optional: Extract the desired area: `ogr2ogr hamburg-latest-clip.geojson hamburg-latest.geojson -clipsrc bounding-polygon.geojson -overwrite`
+3. Filter by tags (here only features that are not obviously underground): `ogr2ogr hamburg-latest-clip-filtered.geojson hamburg-latest-clip.geojson -where "\"level\" IS NULL OR \"level\"='0'" -overwrite`
+
+Use this GeoJSON file as input for the algorithm.
+
+## QGIS for more detailed dataset
+
+**Note:** These steps are not necessary anymore since the routing algorithm itself is capable of considerung road/ways through obstacles.
+
 **Requirements:**
 
 * Installed QGIS
@@ -33,9 +53,9 @@ Example: You reproject a layer "my layer" and get a layer "reprojected", then di
 	11. Export the two new obstacle layers to two GeoJSON files. QGIS cannot merge layers of different geometries, so we have to merge the two layers with an external tool.
 	12. Use the @mapbox/geojson-merge tool to merge the two GeoJSON files into one (usage: `geojson-merge file.geojson otherfile.geojson > combined.geojson`)
 
-## Problems
+### Problems
 
-### Level and layer attributes
+#### Level and layer attributes
 
 It's not easy (or nearly impossible) to evaluate the level and layer attributes correctly.
 
@@ -50,14 +70,15 @@ For simplicity I ignore all negative layer values (to not cover subway ways etc.
 
 Another problem is that highways with different level attributes interfere with each other. For example you can leave the Elphi-Plaza via the underground parking exit. That doesn't make any sense but it's hard to avoid.
 
-### Semicolon separated lists
+#### Semicolon separated lists
 
 Are not covered but would just affect tag evaluation in Overpass making it more complex and slow.
 
 # Simplify geometries
 
 I used `ogr2ogr` to do that.
-Here are the commands and remaining coordinates in the simplified datasets (datasets as of 2022-12-16):
+The `create-hamburg-dataset.sh` script already performs these steps.
+Here are the commands and remaining coordinates in the simplified datasets measured with the `../coordinate-count.py` script (datasets as of 2022-12-16 with only obstacle relevant features):
 
 * `ogr2ogr obstacles-final-simplified-1.geojson obstacles-final.geojson -simplify 0.0000001` → 17229
 * `ogr2ogr obstacles-final-simplified-2.geojson obstacles-final.geojson -simplify 0.000001` → 15243
@@ -67,3 +88,11 @@ Here are the commands and remaining coordinates in the simplified datasets (data
 * `ogr2ogr obstacles-final-simplified-6.geojson obstacles-final.geojson -simplify 0.0001` → 5278
 
 Note that these numbers differ from the really used number of vertices due to preprocessing steps and splitting of large obstacles.
+
+# Waypoints
+
+There are three waypoint sets of which the `100m-1000m` is used:
+
+* `waypoints-100m-1000m.geojson`: Segment lengths: 100m, 150m, 200m, ..., 950m, 1000m, 950m, ..., 200m, 150m, 100m
+* `waypoints-random.geojson`: Quite random distributed segment of differents lengths
+* `waypoints-three-bins.geojson`: Segments of three lengths: 250m, 500m, 1000m

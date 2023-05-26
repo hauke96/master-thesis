@@ -38,6 +38,13 @@ with open(sys.argv[1]) as f:
 				coordinates.extend(lineString)
 		elif geometry['type'] == "LineString":
 			coordinates.extend(geometry['coordinates'])
+		elif geometry['type'] == "Point":
+			coordinates.extend([geometry['coordinates']])
+		elif geometry['type'] == "Polygon":
+			allRings = geometry['coordinates']
+			geomCoordinates = []
+			for ring in allRings:
+				coordinates.extend(ring)
 		else:
 			print("Found other geometry of type %s" % geometry['type'])
 
