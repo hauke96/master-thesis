@@ -5,7 +5,7 @@ Plots the routing time per meter needed based on the number of input vertices.
 
 Parameters: {file-filter} {title}
 
-Example: ./plot-routing-time-per-length.py "../results/pattern-based-rectangles/pattern_*x*_performance_Routing.csv" "Routing - Rectangle dataset"
+Example: ./plot-routing-time-per-length.py "../results/pattern-based-rectangles/pattern_*x*_performance_Routing.csv" "Routing time per meter (rectangle dataset)"
 '''
 
 import common

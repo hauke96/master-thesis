@@ -5,7 +5,7 @@ Plots the memory usage (y) of routing requests relative to their length (x). Thi
 
 Parameters: {file-filter} {title}
 
-Example: ./plot-routing-memory.py "../results/pattern-based-rectangles/pattern_*x*_performance_Routing.csv" "Routing - Rectangle dataset"
+Example: ./plot-routing-memory.py "../results/pattern-based-rectangles/pattern_*x*_performance_Routing.csv" "Routing memory usage (rectangle dataset)"
 '''
 
 import common

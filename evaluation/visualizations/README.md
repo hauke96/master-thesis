@@ -7,3 +7,5 @@ This folder contains some python scripts to generate visualizations of the measu
 * `plot-routing-memory.py`: Plots the memory usage for routing requests of multiple datasets. This produces multiple colored plots on top of each other.
 * `plot-routing-time-per-length.py`: Plots the time per meter needed for a routing request based on the number of input vertices.
 * `plot-routing-time.py`: Plots the time needed for routing requests of multiple datasets. This produces multiple colored plots on top of each other.
+
+Usage example can be found in each script file.

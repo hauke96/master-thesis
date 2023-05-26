@@ -5,7 +5,7 @@ Plots the iteration time of the "iteration_time" column of the given dataset.
 
 Parameters: {file-filter} {title}
 
-Example: ./plot-iteration-time-per-vertices.py "../results/pattern-based-rectangles/pattern_*x*_performance_GenerateGraph.csv" "HybridVisibilityGraph generation"
+Example: ./plot-iteration-time-per-vertices.py "../results/pattern-based-rectangles/pattern_*x*_performance_GenerateGraph.csv" "Graph generation (rectangle dataset)"
 '''
 
 import common

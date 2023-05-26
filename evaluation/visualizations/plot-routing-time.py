@@ -5,7 +5,7 @@ Plots the time needed (y) for routing requests relative to their length (x). Thi
 
 Parameters: {file-filter} {title}
 
-Example: ./plot-routing-time.py "../results/pattern-based-rectangles/pattern_*x*_performance_Routing.csv" "Routing - Rectangle dataset"
+Example: ./plot-routing-time.py "../results/pattern-based-rectangles/pattern_*x*_performance_Routing.csv" "Routing time (rectangle dataset)"
 '''
 
 import common

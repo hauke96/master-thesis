@@ -42,67 +42,91 @@ The following things should be visualized:
 
 ### Tool
 
-TODO: Find and document visualization tool. Make the usage as automated as possible. Ideally one script should date all the input data and generate all necessary diagrams.
+Visualization is done by python scripts using the seaborn library. See the according [README](./visualization/README.md) for further details.
 
 ## Evaluation checklist
 
 This is a list of evaluations that should be performed categorized by dataset.
 Details on each dataset can be found below.
 
-### 1. Pure geometric routing
+### 1. Without roads
+
+The graph generation and routing is performed as is (without adjustments).
+This means the merging takes place (even though there are no roads) and routing is done on the resulting hybrid visisibility graph.
 
 * [ ] Maze like pattern
-	* [ ] Collect data
+	* [ ] Create dataset
 	* [ ] Visualize
 * [ ] Square pattern
-	* [ ] Collect data
+	* [ ] Create dataset
 	* [ ] Visualize
 * [ ] Circle pattern
-	* [ ] Collect data
+	* [ ] Create dataset
 	* [ ] Visualize
-* [ ] Full OSM dataset
-	* [ ] Collect data
+* [ ] Full OSM dataset without roads
+	* [ ] Create dataset
 	* [ ] Visualize
-* [ ] OSM dataset with 1/2 the objects
-	* [ ] Collect data
+* [ ] OSM dataset without roads (50% of the objects)
+	* [ ] Create dataset
 	* [ ] Visualize
-* [ ] OSM dataset with 1/4 the objects
-	* [ ] Collect data
-	* [ ] Visualize
-
-### 2. Pure network routing
-
-* [ ] Full OSM dataset
-	* [ ] Collect data
-	* [ ] Visualize
-* [ ] OSM dataset with 1/2 the objects
-	* [ ] Collect data
-	* [ ] Visualize
-* [ ] OSM dataset with 1/4 the objects
-	* [ ] Collect data
+* [ ] OSM dataset without roads (25% of the objects)
+	* [ ] Create dataset
 	* [ ] Visualize
 
-TODO Clearify the reduced dataset: Just make highways less accurate?
+Optional (maybe this strong vertex reduction distorts the obstacle too much):
 
-### 3. Hybrid routing
+* [ ] OSM dataset without roads (12% of the objects)
+	* [ ] Create dataset
+	* [ ] Visualize
+* [ ] OSM dataset without roads (7% of the objects)
+	* [ ] Create dataset
+	* [ ] Visualize
 
-* [ ] Maze like pattern
-	* [ ] Collect data
+### 2. With roads
+
+The import takes place as is, without adjustments. Merging is performed and routing takes place on the resulting visisibility graph.
+
+* [ ] Full OSM dataset with roads
+	* [ ] Create dataset
 	* [ ] Visualize
-* [ ] Square pattern
-	* [ ] Collect data
+* [ ] OSM dataset with roads (50% of the objects)
+	* [ ] Create dataset
 	* [ ] Visualize
-* [ ] Circle pattern
-	* [ ] Collect data
+* [ ] OSM dataset with roads (25% of the objects)
+	* [ ] Create dataset
 	* [ ] Visualize
-* [ ] Full OSM dataset
-	* [ ] Collect data
+
+Optional (maybe this strong vertex reduction distorts the obstacle too much):
+
+* [ ] OSM dataset without roads (12% of the objects)
+	* [ ] Create dataset
 	* [ ] Visualize
-* [ ] OSM dataset with 1/2 the objects
-	* [ ] Collect data
+* [ ] OSM dataset without roads (7% of the objects)
+	* [ ] Create dataset
 	* [ ] Visualize
-* [ ] OSM dataset with 1/4 the objects
-	* [ ] Collect data
+
+### 3. Without obstacles
+
+The import takes place but without obstacle considerstion. The dataset contains them, but `GetObstacles` is modified to return an empty set.
+Merging is performed and routing takes place on the resulting visisibility graph.
+
+* [ ] Full OSM dataset with roads
+	* [ ] Create dataset
+	* [ ] Visualize
+* [ ] OSM dataset with roads (50% of the objects)
+	* [ ] Create dataset
+	* [ ] Visualize
+* [ ] OSM dataset with roads (25% of the objects)
+	* [ ] Create dataset
+	* [ ] Visualize
+
+Optional (maybe this strong vertex reduction distorts the obstacle too much):
+
+* [ ] OSM dataset without roads (12% of the objects)
+	* [ ] Create dataset
+	* [ ] Visualize
+* [ ] OSM dataset without roads (7% of the objects)
+	* [ ] Create dataset
 	* [ ] Visualize
 
 ## Theoretic considerations
@@ -118,49 +142,47 @@ TODO: These considerations are still to be done.
 
 ## Create an OSM based dataset
 
-See [./datasets/osm-based/README.md](README) for osm-based datasets.
+See the [README](./datasets/osm-based/README.md) for osm-based datasets.
 
 ## Create an artificial pattern based datasets
 
-TODO: Maybe move this documentation to the `datasets/pattern-based` folder?
-
-There's the `DatasetCreator` project.
-Execute the `DatasetCreator.dll` without parameters to get usage information.
-
-This tool takes an area and the amount of pattern in x and y direction and the file `pattern.wkt` as input (see CLI argument description by just executing the tool without arguments).
-The pattern is then scaled and repeated to fit exactly within the given area.
-
-Coordinates will be snapped to each other (which connects near line strings) and coordinates near a line will be snapped to the closest point on that line (again connecting line strings).
+See the general [README](./datasets/README.md) for datasets.
 
 # Run the evaluation
-
-TODO Rework this and see if it still applies, is complete and correct.
 
 To run the evaluation, I used the CLI to be able to run the whole process using `sudo`.
 This allows the model to set the thread priority to "high" so that the evaluation process runs more or less on its own thread.
 
 ## Build the model
 
-1. Go into the `HikerModel` folder (or whatever model you want to use)
+1. Go into the `HikerModel` folder (the hole process is tailored for this project)
 2. Make sure the hiker has a good step size for the dataset you're using (see `StepSize` in the `Model/Hiker.cs` class)
 3. `dotnet build --configuration Release` (can also be executed from within the IDE)
 
 ## Run the model
 
-Here you have two options which are described in detail below:
+There are two options which are described in detail below:
 
-A: Use a script executing a hole bunch of datasets and collecting their results
-
-B: Manually execute the model with one dataset
+* A: Use a script executing a hole bunch of datasets and collecting their results
+* B: Manually execute the model with one dataset
 
 ### A: Using script
 
-The Script `./evaluation/execute.sh` accepts the model path and parameter for the models themselves (see `-h` parameter for more information).
+The Script `./evaluation/execute-evaluation.sh` accepts the model path and parameter for the models themselves (see `-h` parameter for more information).
 Running it like this uses the three smallest datasets from the pattern-datasets:
 
-`execute.sh ../code/HikerModel datasets/pattern-based-rectangle results/pattern-based-rectangle "pattern_1x1 pattern_2x2 pattern_3x3"`
+```
+execute-evaluation.sh ../code/HikerModel datasets/pattern-based-rectangles results/pattern-based-rectangles "pattern_1x1 pattern_2x2 pattern_3x3"
+```
 
-Note: You must use `sudo` on Linux to change the thread priority to "high".
+Little helper script to not manually copy-paste all dataset names:
+
+```
+DATASETS=$(ls datasets/pattern-based-rectangles/ | grep --color=never -P "pattern_\\d*x\\d*\.geojson" | sed "s/\.geojson//g")
+sudo ./execute-evaluation.sh ../code/HikerModel datasets/pattern-based-rectangles results/pattern-based-rectangles/ "$DATASETS"
+```
+
+**Note:** You must use `sudo` on Linux to change the thread priority to "high".
 
 #### Getting dataset files
 
@@ -172,9 +194,12 @@ Using `./execute.sh ... $DATASETS` is much easier.
 
 ### B: Manual execution
 
-4. Go into `bin/Release/net7.0/` of your model (or instead of `Release` and `net7.0` whatever configuration and .NET version you used)
-5. Make sure the correct dataset is in the correct location (e.g. the correct GeoJSON file at `Resources/obstacles.geojson` for the HikingModel)
-6. `sudo dotnet HikerModel.dll`
+Within the `code/HikerModel` folder:
+
+1. Go into `bin/Release/net7.0/` of your model (or instead of `Release` and `net7.0` whatever configuration and .NET version you used)
+2. Make sure the correct dataset is in the resources folder (i.e. the correct GeoJSON file at `Resources/obstacles.geojson` within the current `bin/...` folder)
+2. Make sure the correct waypoints are in the resources folder (i.e. the correct GeoJSON file at `Resources/waypoints.geojson` within the current `bin/...` folder)
+3. `sudo dotnet HikerModel.dll`
 
 # Visualize the results
 
