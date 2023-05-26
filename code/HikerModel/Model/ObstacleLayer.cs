@@ -37,7 +37,7 @@ namespace HikerModel.Model
                         // PerformanceMeasurement.IsActive = false;
                         HybridVisibilityGraphGenerator.Generate(features);
                     },
-                    "GenerateGraph", 5, 2);
+                    "GenerateGraph", 5, 3);
                 result.Print();
                 result.WriteToFile();
 
