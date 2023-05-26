@@ -124,6 +124,9 @@ Use the full OSM dataset and run it with different optimizations turned on/off:
 * [ ] Normal NTS collision detection instead of my implementation
 	* [ ] Measurement
 	* [ ] Visualize
+* [ ] Without knn restriction (= search for all visibility neighbors)
+	* [ ] Measurement
+	* [ ] Visualize
 
 ## Theoretic considerations
 
