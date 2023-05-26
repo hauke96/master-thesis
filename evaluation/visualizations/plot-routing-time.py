@@ -1,5 +1,13 @@
 #!/bin/python
 
+'''
+Plots the time needed (y) for routing requests relative to their length (x). This produces multiple plots on top of each other.
+
+Parameters: {file-filter} {title}
+
+Example: ./plot-routing-time.py "../results/pattern-based-rectangles/pattern_*x*_performance_Routing.csv" "Routing - Rectangle dataset"
+'''
+
 import common
 import os
 import sys
