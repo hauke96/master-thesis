@@ -1,4 +1,4 @@
-This document is as of: 2022-12-16 (commit 370041e514750494e6b41f14d6ceaefe9c6fe39a).
+This document is as of: 2023-05-26 (commit c9162b23c716c45e79d97c0183fa442f9ee8025e).
 
 # Idea and Strategy
 
@@ -66,19 +66,7 @@ This means the merging takes place (even though there are no roads) and routing 
 * [ ] Full OSM dataset without roads
 	* [ ] Create dataset
 	* [ ] Visualize
-* [ ] OSM dataset without roads (50% of the objects)
-	* [ ] Create dataset
-	* [ ] Visualize
-* [ ] OSM dataset without roads (25% of the objects)
-	* [ ] Create dataset
-	* [ ] Visualize
-
-Optional (maybe this strong vertex reduction distorts the obstacle too much):
-
-* [ ] OSM dataset without roads (12% of the objects)
-	* [ ] Create dataset
-	* [ ] Visualize
-* [ ] OSM dataset without roads (7% of the objects)
+* [ ] OSM dataset without roads (multiple simplification grades)
 	* [ ] Create dataset
 	* [ ] Visualize
 
@@ -89,19 +77,7 @@ The import takes place as is, without adjustments. Merging is performed and rout
 * [ ] Full OSM dataset with roads
 	* [ ] Create dataset
 	* [ ] Visualize
-* [ ] OSM dataset with roads (50% of the objects)
-	* [ ] Create dataset
-	* [ ] Visualize
-* [ ] OSM dataset with roads (25% of the objects)
-	* [ ] Create dataset
-	* [ ] Visualize
-
-Optional (maybe this strong vertex reduction distorts the obstacle too much):
-
-* [ ] OSM dataset without roads (12% of the objects)
-	* [ ] Create dataset
-	* [ ] Visualize
-* [ ] OSM dataset without roads (7% of the objects)
+* [ ] OSM dataset without roads (multiple simplification grades)
 	* [ ] Create dataset
 	* [ ] Visualize
 
@@ -113,21 +89,20 @@ Merging is performed and routing takes place on the resulting visisibility graph
 * [ ] Full OSM dataset with roads
 	* [ ] Create dataset
 	* [ ] Visualize
-* [ ] OSM dataset with roads (50% of the objects)
-	* [ ] Create dataset
-	* [ ] Visualize
-* [ ] OSM dataset with roads (25% of the objects)
+* [ ] OSM dataset without roads (multiple simplification grades)
 	* [ ] Create dataset
 	* [ ] Visualize
 
-Optional (maybe this strong vertex reduction distorts the obstacle too much):
+### 4. Optimizations
 
-* [ ] OSM dataset without roads (12% of the objects)
-	* [ ] Create dataset
-	* [ ] Visualize
-* [ ] OSM dataset without roads (7% of the objects)
-	* [ ] Create dataset
-	* [ ] Visualize
+Use the full OSM dataset and run it with different optimizations turned on/off:
+
+* [ ] Shadow areas
+* [ ] Convex hull (only consider vertices on convex hull)
+* [ ] Convex hull (only consider valid angle areas)
+* [ ] Convex hull (both)
+* [ ] BinTree instead of BinIndex
+* [ ] Normal NTS collision detection instead of my implementation
 
 ## Theoretic considerations
 
