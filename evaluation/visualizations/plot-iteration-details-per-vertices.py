@@ -65,10 +65,14 @@ common.create_lineplot(
 	ax=ax_abs
 )
 
+handles, labels = ax_abs.get_legend_handles_labels()
+handles=[h for h in handles if not isinstance(h, container.ErrorbarContainer)]
+
 sns.move_legend(
 	ax_abs,
 	"center left",
 	bbox_to_anchor=(1.025, 0.5),
+	handles=handles,
 	labels=dataset_labels,
 	title_fontsize=common.fontsize_small,
 	fontsize=common.fontsize_small,
@@ -100,10 +104,14 @@ common.create_lineplot(
 	ax=ax_rel
 )
 
+handles, labels = ax_abs.get_legend_handles_labels()
+handles=[h for h in handles if not isinstance(h, container.ErrorbarContainer)]
+
 sns.move_legend(
 	ax_rel,
 	"center left",
 	bbox_to_anchor=(1.025, 0.5),
+	handles=handles,
 	labels=dataset_labels,
 	title_fontsize=common.fontsize_small,
 	fontsize=common.fontsize_small,
