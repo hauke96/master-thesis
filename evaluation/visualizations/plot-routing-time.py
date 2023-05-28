@@ -11,31 +11,38 @@ Example: ./plot-routing-time.py "../results/pattern-based-rectangles/pattern_*x*
 import common
 import os
 import sys
+import seaborn as sns
 
 common.check_args(2)
 
 dataset_filter=sys.argv[1]
 title=sys.argv[2]
 dataset=common.load_dataset(dataset_filter, title)
-dataset["distance"]=dataset["distance"] / 1000
+dataset["distance_beeline"]=dataset["distance_beeline"] / 1000
 
 common.init_seaborn(
 	width=6,
 	height=4,
 	dpi=120,
-	palette="custom_blue-red"
 )
 
 plot=common.create_lineplot(
 	dataset,
 	title,
-	xcol="distance",
-	xlabel="Distance in km",
+	xcol="distance_beeline",
+	xlabel="Beeline distance in km",
 	ycol="avg_time",
 	ylabel="Average routing time in ms",
 	hue="total_vertices",
-	style="total_vertices",
 )
-common.set_legend(plot, "Amount vertices", dataset["total_vertices"])
+
+sns.move_legend(
+	plot,
+	"center left",
+	bbox_to_anchor=(1.025, 0.5),
+	title_fontsize=common.fontsize_small,
+	fontsize=common.fontsize_small,
+	title='Vertex count'
+)
 
 common.save_to_file(plot.get_figure(), os.path.basename(__file__))

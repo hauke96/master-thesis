@@ -10,11 +10,13 @@ from matplotlib.colors import ListedColormap
 import matplotlib.cm as cm
 
 color_palette_flare=sns.color_palette("flare", as_cmap=True)
-color_palette_blue_green=sns.color_palette("blend:#829cc8,#55784e", as_cmap=True)
-color_palette_blue_red=sns.color_palette("blend:#829cc8,#c86a6a", as_cmap=True)
-color_palette_selected_name=None
+color_palette_blue=sns.color_palette("blend:#2779b4", as_cmap=True)
+color_palette_blue_green=sns.color_palette("blend:#2779b4,#27b43e", as_cmap=True)
+color_palette_blue_red=sns.color_palette("blend:#2779b4,#b42727", as_cmap=True)
+color_palette_selected_name="custom_blue"
 
 cm.register_cmap("custom_flare", color_palette_flare)
+cm.register_cmap("custom_blue", color_palette_blue)
 cm.register_cmap("custom_blue-green", color_palette_blue_green)
 cm.register_cmap("custom_blue-red", color_palette_blue_red)
 
@@ -25,7 +27,8 @@ errorbars_minmax=lambda x: (x.nanmin(), x.nanmax())
 
 def check_args(expected_number):
 	if len(sys.argv) - 1 != expected_number:
-		print("ERROR: Wrong number of arguments: Expected %s, found %s" % expected_number, len(sys.argv))
+		print("ERROR: Wrong number of arguments: Expected %s, found %s" % (expected_number, len(sys.argv)))
+		print("  > %s" % sys.argv[1:])
 		print("Expexted parameters: {glob-pattern} {title}")
 		sys.exit(1)
 
@@ -43,7 +46,7 @@ def init_seaborn(
 		width=5,
 		height=4,
 		dpi=100,
-		palette=None,
+		palette='colorblind',
 	):
 
 	global color_palette_selected_name
@@ -79,6 +82,9 @@ def create_lineplot(
 		style=None,
 		errorbar=None,
 		yscale=None,
+		ax=None,
+		color=None,
+		marker="o",
 	):
 
 	err_style="bars" if errorbar != None else None
@@ -90,8 +96,9 @@ def create_lineplot(
 		y=ycol,
 		hue=hue,
 		style=style,
+		color=color,
 		palette=color_palette_selected_name,
-		marker='o',
+		marker=marker,
 		markersize=5,
 		err_style=err_style,
 		errorbar=errorbar,
@@ -99,6 +106,53 @@ def create_lineplot(
 		linewidth=1,
 		zorder=10,
 		clip_on=False,
+		ax=ax
+	)
+
+	if yscale == "log":
+		plot.set(yscale="log")
+	else:
+		plot.set_xlim(0, None)
+		plot.set_ylim(0, None)
+
+	plot.set_title(title, pad=12, fontsize=fontsize_large)
+	plot.set_xlabel(xlabel, labelpad=5, fontsize=fontsize_small)
+	plot.set_ylabel(ylabel, labelpad=5, fontsize=fontsize_small)
+	plot.tick_params(axis="both", which="major", labelsize=fontsize_small)
+
+	return plot
+
+def create_scatterplot(
+		dataset,
+		title="",
+		xcol="",
+		ycol="",
+		xlabel="",
+		ylabel="",
+		hue=None,
+		style=None,
+		yscale=None,
+		ax=None,
+		color=None,
+		marker="x",
+	):
+
+	plot=sns.scatterplot(
+		data=dataset,
+		x=xcol,
+		y=ycol,
+		hue=hue,
+		style=style,
+		palette=color_palette_selected_name,
+		marker=marker,
+		edgecolor=None,
+		color=color,
+		linewidth=1,
+		s=10,
+		legend = False,
+		zorder=10,
+		clip_on=False,
+		ax=ax
 	)
 
 	if yscale == "log":
@@ -115,10 +169,10 @@ def create_lineplot(
 	return plot
 
 '''
-This function selects the legend labels matching the given values and colors
-them according to color_palette_selected_name.
+This function selects the legend labels for the given column names
+"col_values" and colors them according to color_palette_selected_name.
 '''
-def set_legend(plot, title, col_values):
+def set_numeric_legend(plot, title, col_values):
 	col_values=col_values.unique()
 	col_values.sort()
 	col_values=[str(v) for v in col_values]
@@ -147,7 +201,7 @@ def set_legend(plot, title, col_values):
 		title_fontsize=fontsize_small,
 		fontsize=fontsize_small,
 		loc="center left",
-		bbox_to_anchor=(1, 0.5),
+		bbox_to_anchor=(1.025, 0.5),
 		#borderaxespad=0,
 	)
 

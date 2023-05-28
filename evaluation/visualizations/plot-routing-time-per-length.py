@@ -18,7 +18,7 @@ dataset_filter=sys.argv[1]
 title=sys.argv[2]
 dataset=common.load_dataset(dataset_filter, title)
 
-time_per_distance=dataset["avg_time"] / dataset["distance"]
+time_per_distance=dataset["avg_time"] / dataset["distance_beeline"]
 dataset["time_per_distance"]=time_per_distance
 
 common.init_seaborn()

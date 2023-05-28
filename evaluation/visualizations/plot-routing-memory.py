@@ -17,7 +17,7 @@ common.check_args(2)
 dataset_filter=sys.argv[1]
 title=sys.argv[2]
 dataset=common.load_dataset(dataset_filter, title)
-dataset["distance"]=dataset["distance"] / 1000
+dataset["distance_beeline"]=dataset["distance_beeline"] / 1000
 
 # Convert bytes to MiB
 mem_col="avg_mem"
@@ -37,13 +37,13 @@ common.init_seaborn(
 plot=common.create_lineplot(
 	dataset,
 	title,
-	xcol="distance",
-	xlabel="Distance in km",
+	xcol="distance_beeline",
+	xlabel="Beeline distance in km",
 	ycol=mem_col,
 	ylabel=mem_col_label,
 	hue="total_vertices",
 	style="total_vertices",
 )
-common.set_legend(plot, "Amount vertices", dataset["total_vertices"])
+common.set_numeric_legend(plot, "Amount vertices", dataset["total_vertices"])
 
 common.save_to_file(plot.get_figure(), os.path.basename(__file__))
