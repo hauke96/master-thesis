@@ -2,6 +2,7 @@ This folder contains some python scripts to generate visualizations of the measu
 
 # Scripts
 
+* `plot-all-for-pattern.sh`: Generates all images. Takes on argument, which is the name of the result folder (e.g. "pattern-based-rectangles").
 * `common.py`: This file contains shared code for the different rendering scripts.
 * `plot-iteration-time-per-vertices.py`: Plots the import time of multiple datasets relative to the number of input vertices.
 * `plot-routing-memory.py`: Plots the memory usage for routing requests of multiple datasets. This produces multiple colored plots on top of each other.

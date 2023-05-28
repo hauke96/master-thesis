@@ -1,11 +1,11 @@
 #!/bin/python
 
 '''
-Plots the time needed (y) for routing requests relative to their length (x). This produces multiple plots on top of each other.
+Plots the time needed time for routing requests (y) relative to their length (x). This produces multiple plots on top of each other.
 
-Parameters: {file-filter} {title}
+Parameters: {file-filter}
 
-Example: ./plot-routing-time.py "../results/pattern-based-rectangles/pattern_*x*_performance_Routing.csv" "Routing time (rectangle dataset)"
+Example: ./plot-routing-time.py "../results/pattern-based-rectangles/pattern_*x*_performance_Routing.csv"
 '''
 
 import common
@@ -13,11 +13,11 @@ import os
 import sys
 import seaborn as sns
 
-common.check_args(2)
+common.check_args(1)
 
 dataset_filter=sys.argv[1]
-title=sys.argv[2]
-dataset=common.load_dataset(dataset_filter, title)
+title="Routing - Durations"
+dataset=common.load_dataset(dataset_filter)
 dataset["distance_beeline"]=dataset["distance_beeline"] / 1000
 
 common.init_seaborn(

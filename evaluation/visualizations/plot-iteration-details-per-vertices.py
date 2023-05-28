@@ -3,9 +3,9 @@
 '''
 Plots detailed import times of the given dataset.
 
-Parameters: {file-filter} {title}
+Parameters: {file-filter}
 
-Example: ./plot-iteration-details-per-vertices.py "../results/pattern-based-rectangles/pattern_*x*_performance_GenerateGraph.csv" "Graph generation (rectangle dataset)"
+Example: ./plot-iteration-details-per-vertices.py "../results/pattern-based-rectangles/pattern_*x*_performance_GenerateGraph.csv"
 '''
 
 import common
@@ -15,15 +15,13 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-common.check_args(2)
+common.check_args(1)
 
 dataset_filter=sys.argv[1]
-title=sys.argv[2]
 
 dataset_cols=[
 	# Only when yscale='log':
 	#'iteration_time'
-	'total_vertices',
 	'knn_search_time',
 	'build_graph_time',
 	'get_obstacle_time',
@@ -40,9 +38,9 @@ dataset_labels=[
 	'Add attributed\nto POIs',
 ]
 
-dataset=common.load_dataset(dataset_filter, title)
-dataset=dataset[dataset_cols]
-dataset=dataset.melt('total_vertices', var_name='aspect', value_name='time')
+dataset_raw=common.load_dataset(dataset_filter)
+dataset_relevant=dataset_raw[dataset_cols + ["total_vertices"]]
+dataset=dataset_relevant.melt('total_vertices', var_name='aspect', value_name='time')
 
 common.init_seaborn(
 	width=7,
@@ -50,17 +48,25 @@ common.init_seaborn(
 	dpi=120,
 )
 
-plot=common.create_lineplot(
+#
+# Plot absolute numbers
+#
+
+title="HybridVisibilityGraph generation - Durations broken down"
+fig_abs, ax_abs = plt.subplots()
+
+common.create_lineplot(
 	dataset,
 	title,
 	ycol='time',
 	ylabel='Time in ms',
 	hue="aspect",
-	yscale='log'
+	yscale='log',
+	ax=ax_abs
 )
 
 sns.move_legend(
-	plot,
+	ax_abs,
 	"center left",
 	bbox_to_anchor=(1.025, 0.5),
 	labels=dataset_labels,
@@ -69,4 +75,39 @@ sns.move_legend(
 	title='Legend'
 )
 
-common.save_to_file(plot.get_figure(), os.path.basename(__file__), "png")
+common.save_to_file(fig_abs, os.path.basename(__file__) + "_absolute", "png")
+
+#
+# Plot relative numbers
+#
+
+title="HybridVisibilityGraph generation - Durations relative share"
+fig_rel, ax_rel = plt.subplots()
+
+#dataset_raw.reset_index(drop=True, inplace=True)
+#dataset_relevant.reset_index(drop=True, inplace=True)
+dataset_relevant=dataset_raw[dataset_cols + ["total_vertices"]]
+dataset_relevant[dataset_cols]=dataset_raw[dataset_cols].div(dataset_raw["iteration_time"], axis=0)
+dataset=dataset_relevant.melt('total_vertices', var_name='aspect', value_name='time')
+
+common.create_lineplot(
+	dataset,
+	title,
+	ycol='time',
+	ylabel='Share of total time',
+	hue="aspect",
+	yscale='log',
+	ax=ax_rel
+)
+
+sns.move_legend(
+	ax_rel,
+	"center left",
+	bbox_to_anchor=(1.025, 0.5),
+	labels=dataset_labels,
+	title_fontsize=common.fontsize_small,
+	fontsize=common.fontsize_small,
+	title='Legend'
+)
+
+common.save_to_file(fig_rel, os.path.basename(__file__) + "_relative", "png")

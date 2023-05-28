@@ -3,9 +3,9 @@
 '''
 Plots the ratio between real and beeline distance. The real route distance is always longer than the beeline distance by a factor of f>=1.
 
-Parameters: {file-filter} {title}
+Parameters: {file-filter}
 
-Example: ./plot-routing-length-factor.py "../results/pattern-based-rectangles/pattern_*x*_performance_Routing.csv" "Ratio between beeline and actual route distance"
+Example: ./plot-routing-length-factor.py "../results/pattern-based-rectangles/pattern_*x*_performance_Routing.csv"
 '''
 
 import common
@@ -14,11 +14,11 @@ import sys
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-common.check_args(2)
+common.check_args(1)
 
 dataset_filter=sys.argv[1]
-title=sys.argv[2]
-dataset=common.load_dataset(dataset_filter, title)
+title="Routing - Ratio between beeline and route distance"
+dataset=common.load_dataset(dataset_filter)
 dataset["distance_route"]=dataset["distance_route"] / 1000
 dataset["distance_beeline"]=dataset["distance_beeline"] / 1000
 dataset["distance_factor"]=dataset["distance_route"] / dataset["distance_beeline"]
@@ -37,14 +37,14 @@ common.init_seaborn(
 	dpi=120,
 )
 
-fig, ax=plt.subplots(figsize=(6, 4))
+fig, ax=plt.subplots()
 
 common.create_scatterplot(
 	dataset,
 	title,
 	ax=ax,
 	xcol="total_vertices",
-	xlabel="Beeline distance in km",
+	xlabel="Input vertices",
 	ycol="distance_factor",
 	ylabel="Beeline distance / route distance",
 	color="#2779b4",
@@ -55,8 +55,6 @@ common.create_lineplot(
 	dataset,
 	title,
 	ax=ax,
-	xcol="total_vertices",
-	xlabel="Beeline distance in km",
 	ycol="distance_factor",
 	ylabel="Beeline distance / route distance",
 	color="#b42727",

@@ -32,7 +32,7 @@ def check_args(expected_number):
 		print("Expexted parameters: {glob-pattern} {title}")
 		sys.exit(1)
 
-def load_dataset(dataset_filter, title):
+def load_dataset(dataset_filter):
 	dataset_files=glob.glob(dataset_filter)
 	dataset_container=[]
 	for file in dataset_files:
@@ -75,20 +75,20 @@ def create_lineplot(
 		dataset,
 		title="",
 		xcol="total_vertices",
-		ycol="iteration_time",
 		xlabel="Input vertices",
+		ycol="iteration_time",
 		ylabel="Time in ms",
 		hue=None,
 		style=None,
-		errorbar=None,
+		err_style="band",
+		errorbar=('pi', 90),
 		yscale=None,
 		ax=None,
 		color=None,
 		marker="o",
 	):
 
-	err_style="bars" if errorbar != None else None
-	err_kws={"elinewidth": 1} if errorbar != None else None
+	err_kws={"elinewidth": 1} if errorbar == "bars" else None
 
 	plot=sns.lineplot(
 		data=dataset,
@@ -125,10 +125,10 @@ def create_lineplot(
 def create_scatterplot(
 		dataset,
 		title="",
-		xcol="",
-		ycol="",
-		xlabel="",
-		ylabel="",
+		xcol=None,
+		ycol=None,
+		xlabel=None,
+		ylabel=None,
 		hue=None,
 		style=None,
 		yscale=None,

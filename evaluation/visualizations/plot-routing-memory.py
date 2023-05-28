@@ -3,20 +3,20 @@
 '''
 Plots the memory usage (y) of routing requests relative to their length (x). This produces multiple plots on top of each other.
 
-Parameters: {file-filter} {title}
+Parameters: {file-filter}
 
-Example: ./plot-routing-memory.py "../results/pattern-based-rectangles/pattern_*x*_performance_Routing.csv" "Routing memory usage (rectangle dataset)"
+Example: ./plot-routing-memory.py "../results/pattern-based-rectangles/pattern_*x*_performance_Routing.csv"
 '''
 
 import common
 import os
 import sys
 
-common.check_args(2)
+common.check_args(1)
 
 dataset_filter=sys.argv[1]
-title=sys.argv[2]
-dataset=common.load_dataset(dataset_filter, title)
+title="Routing - Memory usage"
+dataset=common.load_dataset(dataset_filter)
 dataset["distance_beeline"]=dataset["distance_beeline"] / 1000
 
 # Convert bytes to MiB
