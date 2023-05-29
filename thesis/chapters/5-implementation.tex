@@ -268,19 +268,21 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 	\subsection{Step 1: Obstacle filtering and feature preprocessing}
 	\label{subsec:step-1-preprocessing}
 			
-		First the features are filtered to get all relevant obstacle features, which are of arbitrary shape.
+		The first step is to filter all input features by their attributes to get all relevant obstacle features, regardless of their geometry.
+		
 		For performance reasons, multi-geometries, like \texttt{MultiPolygon} are split up into their separate geometries.
-		This is unproblematic for \texttt{MultiLineString} as well as \texttt{MultiPolygon} features, since holes in a polygon are not reachable in the first place and unwrapping the \texttt{MultiPolygon} will not change this.
+		Holes in a polygon are not reachable in the first place and unwrapping the \texttt{MultiPolygon} will not change this.
+		Unwrapping \texttt{MultiLineString} geometries is unproblematic as well, since the result are just multiple normal linestrings.
+		Features made of \texttt{Point} geometries are also considered so that visibility edges can reach \term*{points of interest}.
+		Visibility checks, which are performed in the next step of the algorithm, can ignore point features, since they have no spatial size.
 		
-		Point features are also considered so that visibility edges can reach \term*{points of interest}.
-		Of course the later performed visibility checks can ignore point features, since they have no spatial size.
-		
-		Another task within this first step is the triangulation of all polygonal shapes.
+		Another task within this first step is the triangulation of all polygonal shapes, which happens during the unwrapping of multi geometries.
 		The main reason is a better performance for intersection checks, which is an important operation when checking if an obstacle is between two vertices.
-		Details on this intersection check implementation are described \hyperref[subsubsec:intersection-checks]{below}.
+		Details on the intersection check implementation are given \hyperref[subsubsec:intersection-checks]{below}.
 		
-		Also worth mentioning is the determination of the convex hull of each obstacle.
-		Of course this is not a complex task, since all obstacles are either trianges, linestrings or points, but only vertices on the convex hull of obstacles are further processed.
+		Also worth mentioning is the determination of each obstacles' convex hull.
+		Of course this is not a complex task, since all obstacles are either triangles (due to the triangulation), linestrings or points.
+		As described \hyperref[subsubsec:convex-hull]{below}, only vertices on the convex hull of obstacles will be considered in the further processing, which is a simple performance enhancement.
 			
 	\subsection{Step 2: Determining $k$ nearest visible neighbors}
 	\label{subsec:step-2-knn-search}
@@ -321,6 +323,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			\end{description}
 			
 		\subsubsection{Convex hull}
+		\label{subsubsec:convex-hull}
 			
 			As mentioned above, only visibility neighbors of vertices lying on the convex hull of any obstacle are determined.
 			Such a visibility neighbors also has to be on any convex hull, which means vertices not being on any convex hull will never be connected to anything.
