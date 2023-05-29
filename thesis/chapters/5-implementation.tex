@@ -93,23 +93,14 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 	\subsection{Shadow areas}
 	\label{subsec:shadow-areas}
 		
-		Shadow areas are a method to quickly determine vertices that are definitely not visible to each other.
+		Shadow areas are a method to quickly determine and filter out vertices that are not visible to each other.
 		The idea of shadow areas is the following:
 		Let $v$ be the currently processed vertex and think of it as a light bulb illuminating its surroundings.
 		An obstacle $o$ casts a shadow outwards and everything within this shadow is definitely not visible from $v$.
 		
-		Each shadow is determined by three values: two values for the angular range and a third value for the minimum distance from which other vertices within the angular range are definitely not visible.
+		Each shadow is determined by three values: two values for the angular range (also referred to as \emph{angle area}) and a third value for the minimum distance from which other vertices within the angular range are definitely not visible.
 		This means each shadow is an interval with of certain distance, which turns the visibility problem into an interval intersection problem.
-		Latter one, specifically to check whether a point is within an angle area, can be solved using just a few arithmetic operations.
-		
-		The angular range of a shadow is determined by the two bounding vertices (marked in red in \cref{fig:shadow-area}) of the respective obstacle.
-		The furthest of these two bounding vertices determines the minimum distance of the shadow area.
-		
-		Keeping track of these shadow areas for each vertex significantly improves performance, especially with the use of the \texttt{BinIndex} data structure described \hyperref[subsec:binindex]{below}.
-		\todo[inline]{conrete numbers?}
-		
-		% NetworkRoutingPlayground->Jungfernstieg dataset with 7916 vertices: ~7.3s with and 67s without shadow areas -> speed up of factor ~9
-		% Hamburg inner city dataset with 67819 vertices: 382s with and ~31000s without shadow areas -> speed up of factor ~81
+		Checks on whether a certain coordinate is within any shadow area is a simple operation using just a few arithmetic operations.
 		
 		\begin{figure}[h]
 			\begin{figcenter}
@@ -149,38 +140,42 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 					\draw[gray,path fading=east] (shadow-arc-top-end) -- (shadow-arc-top-faded-end);
 					\draw[gray,path fading=east] (shadow-arc-bottom-end) -- (shadow-arc-bottom-faded-end);
 					
-					% Obstacle 1
-					\tikzDot[red]{(shadow-arc-top)}{o10}
-					\tikzDot{(3.5,2)}{o11}
-					\tikzDot[red]{($(v) +(-\angle:1.2)$)}{o12}
-					\node[above right = 0.5 and 1 of o12] {$o_1$};
+					% Obstacle
+					\tikzDot[red]{(shadow-arc-top)}{o0}
+					\tikzDot{(3.8,2)}{o1}
+					\tikzDot[red]{($(v) +(-\angle:1.2)$)}{o2}
+					\node[above right = 0.5 and 1.15 of o2] {$o$};
 					
-					% Obstacle 2
-					\tikzDot[label=right:$v'$]{(3.5,1.35)}{o20}
-					\tikzDot{(3.5,-0.25)}{o21}
+					% v' and v''
+					\tikzDot[label=right:$v'$]{(2.1,1.1)}{v'}
+					\tikzDot[label=right:$v''$]{(3.4,1.3)}{v''}
 					
-					% Obstacle 3
-					\tikzDot[label=right:$v''$]{(2.1,1.1)}{o30}
-					\tikzDot{(2.1,-0.5)}{o31}
+					\node[darkgray] at (4.7,1.5) {\huge$S$};
 					
-					\node[darkgray] at (4.65,1.5) {\huge$S$};
-					
-					\draw (o10) -- (o11) -- (o12) -- (o10);
-					\draw (o20) -- node[right] {$o_2$} (o21);
-					\draw (o30) -- node[left] {$o_3$} (o31);
+					\draw (o0) -- (o1) -- (o2) -- (o0);
 				\end{tikzpicture}
 			\end{figcenter}
-			\caption{Shadow area $S$ cast by obstacle $o_1$ seen from vertex $v$. The vertex $v'$ of obstacle $o_2$ is not visible from $v$ since it lies inside the shadow area. The two red vertices of obstacle $o_1$ are the bounding vertices determining angle range and distance of $S$. Note that $v''$ is not visible from $v$ even though it is not inside the shadow area.}
+			\caption{Shadow area $S$ cast by obstacle $o$ seen from vertex $v$. The two red vertices of obstacle $o$ are the bounding vertices determining angular range and distance of $S$. The vertex $v''$ is not visible from $v$ since it lies inside the shadow area. Note that $v'$ is not visible either even though it is not inside the shadow area.}
 			\label{fig:shadow-area}
 		\end{figure}
+		
+		The angular range of a shadow is determined by the two bounding vertices (marked in red in \cref{fig:shadow-area}) of the respective obstacle.
+		Of these two bounding vertices, the one further away determines the minimum distance of the shadow area.
+		
+		Keeping track of these shadow areas for each vertex significantly improves performance, especially with the use of the \texttt{BinIndex} data structure described \hyperref[subsec:binindex]{below}.
+		\todo[inline]{conrete numbers?}
+		
+		% NetworkRoutingPlayground->Jungfernstieg dataset with 7916 vertices: ~7.3s with and 67s without shadow areas -> speed up of factor ~9
+		% Hamburg inner city dataset with 67819 vertices: 382s with and ~31000s without shadow areas -> speed up of factor ~81
 		
 	\subsection{BinIndex data structure}
 	\label{subsec:binindex}
 		
 		The \texttt{BinIndex} class implements a linear bin based index structure to store and access intervals.
-		It contains $n$ many bins covering a certain range and consisting of a linked list.
-		When an item is added, it is added to each bin intersecting with the range of the item.
-		Due to the linked list as the underlying data structure for the bins, queries can be answered in linear time.
+		It contains $n$ many bins covering a certain range and each bin consists of a linked list.
+		Items are added to each bin that intersect with the range of the item.
+		Due to the linked list as the underlying data structure for the bins, point queries can be answered in constant and range queries in linear time.
+		However, range queries are not needed within the scope of this work, so they are not implemented.
 		\Cref{fig:bin-index} illustrates this data structure with a simple example.
 		
 		\begin{figure}[h]
@@ -190,35 +185,52 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 					\def\countX{9} % One more is added due to start at x=0
 					\def\countY{1} % One more is added due to start at x=0
 					
-					\def\itemBStartX{1.5}
+					\def\itemBStartX{1.6}
 					\def\itemBIndexStart{1}
-					\def\itemBLength{4.2}
+					\def\itemBLength{4.1}
 					
 					\def\itemAStartX{4}
 					\def\itemAIndexStart{4}
 					\def\itemALength{7.8}
 					
 					% Item A: Bins 1-5
-					\filldraw[pattern=north west lines,pattern color=Red2] (\itemBStartX*\l,\countY+4*\l) rectangle node[above right=0.125 and -1.3]{Item B: \itemBStartX\ - 5.7} ++(\itemBLength*\l,0.5*\l);
+					\draw[dotted,gray] (\itemBStartX*\l, \countY+4*\l) -- +(0, -\countY-4*\l);
+					\draw[dotted,gray] (\itemBStartX*\l+\itemBLength*\l, \countY+4*\l) -- +(0, -\countY-4*\l);
+					\filldraw[preaction={fill, white},pattern=north west lines,pattern color=Red2] (\itemBStartX*\l,\countY+4*\l) rectangle node[above right=0.125 and -1.3]{Item B: \itemBStartX\ - 5.7} ++(\itemBLength*\l,0.5*\l);
 					
 					% Item B: Bins 4-11(2)
-					\filldraw[pattern=crosshatch dots,pattern color=DodgerBlue3] (\itemAStartX*\l,\countY+3*\l) rectangle node[above right=0.125 and -0.5]{Item A: \itemAStartX\ - 10.8} ++(\itemALength*\l,0.5*\l);
+					\draw[dotted,gray] (\itemAStartX*\l, \countY+3*\l) -- +(0, -\countY-3*\l);
+					\draw[dotted,gray] (\itemAStartX*\l+\itemALength*\l, \countY+3*\l) -- +(0, -\countY-3*\l);
+					\filldraw[preaction={fill, white},pattern=crosshatch dots,pattern color=DodgerBlue3] (\itemAStartX*\l,\countY+3*\l) rectangle node[above right=0.125 and -0.5]{Item A: \itemAStartX\ - 10.8} ++(\itemALength*\l,0.5*\l);
 					
-					\draw[->] (0.5*\countX*\l,\countY+2.25*\l) -- +(0,-1*\l);
+					\draw[->] (\itemAStartX*\l+1.85,\countY+2.75*\l) -- node[right] {1.} +(0,-1.5*\l);
+					\draw[->] (\itemBStartX*\l+0.5,\countY+3.75*\l) -- node[right] {2.} +(0,-2.5*\l);
 					
 					% Draw pattern to bins
-					\fill[pattern=north west lines,pattern color=Red2] (\itemBIndexStart*\l,1.5*\l) rectangle ++(\l,\l);
-					\fill[pattern=north west lines,pattern color=Red2] (\itemBIndexStart*\l+1*\l,0) rectangle ++(2*\l,\l);
-					\fill[pattern=north west lines,pattern color=Red2] (\itemBIndexStart*\l+3*\l,1.5*\l) rectangle ++(\l,\l);
-					\fill[pattern=north west lines,pattern color=Red2] (\itemBIndexStart*\l+4*\l,1.5*\l) rectangle ++(\l,\l);
+					\fill[preaction={fill, white},pattern=north west lines,pattern color=Red2] (\itemBIndexStart*\l,1.5*\l) rectangle ++(\l,\l);
+					\fill[preaction={fill, white},pattern=north west lines,pattern color=Red2] (\itemBIndexStart*\l+1*\l,0) rectangle ++(2*\l,\l);
+					\fill[preaction={fill, white},pattern=north west lines,pattern color=Red2] (\itemBIndexStart*\l+3*\l,1.5*\l) rectangle ++(\l,\l);
+					\fill[preaction={fill, white},pattern=north west lines,pattern color=Red2] (\itemBIndexStart*\l+4*\l,1.5*\l) rectangle ++(\l,\l);
 					
-					\fill[pattern=crosshatch dots,pattern color=DodgerBlue3] (\itemAIndexStart*\l,0) rectangle ++(6*\l,\l);
-					\fill[pattern=crosshatch dots,pattern color=DodgerBlue3] (0,0) rectangle ++(2*\l,\l);
+					\fill[preaction={fill, white},pattern=crosshatch dots,pattern color=DodgerBlue3] (\itemAIndexStart*\l,0) rectangle ++(6*\l,\l);
+					\fill[preaction={fill, white},pattern=crosshatch dots,pattern color=DodgerBlue3] (0,0) rectangle ++(2*\l,\l);
+					
+					% Draw gray versions of filled bins
+					\fill[preaction={fill, white},pattern=north west lines,pattern color=lightgray] (\l*\countX+\l+\itemBIndexStart*\l+1*\l,0) rectangle ++(\l,\l);
+					\fill[preaction={fill, white},pattern=crosshatch dots,pattern color=lightgray] (\l*\countX+\l,0) rectangle ++(2*\l,\l);
+					
+					% Draw outlines of repeating gray bins
+					\foreach \x in {0,...,2}
+					{
+						\draw[lightgray] (\l*\countX+\l+\l*\x,0) rectangle ++(\l,\l);
+						\node[lightgray] at (\l*\countX+\l+\l*\x+0.5*\l,-0.35) {$\x$};
+					}
 					
 					% Draw outlines of bins
 					\foreach \x in {0,...,\countX}
 					{
 						\draw (\l*\x,0) rectangle ++(\l,\l);
+						\node at (\l*\x+0.5*\l,-0.35) {$\x$};
 					}
 					
 					\draw (\itemBIndexStart*\l,1.5*\l) rectangle ++(\l,\l);
@@ -230,22 +242,19 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 					\draw (\itemBIndexStart*\l+4*\l,1.5*\l) rectangle ++(\l,\l);
 					\draw[->] (\itemBIndexStart*\l+4.5*\l,\l) -- ++(0,0.5*\l);
 					
-					% Label
-					\foreach \x in {0,...,\countX}
-					{
-						\node at (\l*\x+0.5*\l,-0.35) {$\x$};
-					}
-					
 					\node at (0.5*\countX*\l,-0.875) {bins};
 					\node[align=right] at (-1.25,0.5*\countY*\l+\l) {Linked list\\of bins};
 				\end{tikzpicture}
 			\end{figcenter}
-			\caption{Bin index filled with two items A and B. Since item A was added first, B's entries in, which fall into a bin where en entry for item A already exists, are moved to a next item in the linked list of the bin. Each bin covers a range, which means non integer value are rounded down (for from-values) or up (for to-values).}
+			\caption{Bin index filled with two items A (added first) and B (added last). Since item A was added first, B's entries in, which fall into a bin where en entry for item A already exists, are moved to a next item in the linked list of the bin. Each bin covers a range, which means non integer value are rounded down (for from-values) or up (for to-values).}
 			\label{fig:bin-index}
 		\end{figure}
 		
 		The NetTopologySuite offers several indices specifically made for intervals, namely the \texttt{BinTree}, \texttt{SIRtree} and \texttt{SortedPackedIntervalRTree}, of which only the first one is dynamic and thus allows insertions and deletions after the first query was made.
-		Even though these three data structures are tree based and should offer a logarithmic query time complexity compared to the linear time complexity of the \texttt{BinIndex}, the simple and list based \texttt{BinIndex} is significantly faster even for larger datasets with tens of thousands of vertices.
+		This dynamic behavior is crucial for an efficient use of the shadow areas.
+		Otherwise, the shadow areas must be created in beforehand, added to and index and then be used, which results in a large number of unnecessary areas being added to the index.
+		
+		Even though these three data structures are tree based and should offer a logarithmic query time complexity, compared to the linear time complexity of the \texttt{BinIndex}, the simple and list based \texttt{BinIndex} is significantly faster even for larger datasets with tens of thousands of vertices.
 		It is thinkable that the logarithmic complexity is useful for even larger datasets with millions of vertices.
 		
 		\todo{Performance analysis (maybe in evaluation chapter?)}
