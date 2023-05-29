@@ -240,9 +240,10 @@ Finally, an overview of the separate components is given as well as a descriptio
 \label{sec:components}
 
 	% Generator classes, HybridVisibilityGrahp class and helper functions
-	Since this works resides in a rather technical and algorithmic oriented context, there are not many separate components needed to implement a hybrid routing approach.
-	The two most important components are the graph generation and handling of routing requests.
-	A third component is the hybrid visibility graph itself, containing additional procedures to answer routing queries.
+	Since this works resides in a rather technical and algorithmically oriented context, there are not many separate components needed to implement a hybrid routing approach.
+	One component if the so called \term{hybrid visibility graph}, which is the final output graph consisting of the merged road and visibility edges.
+	These edges are created by the according generator component.
+	Finally, the merging and creation of the hybrid visibility graph takes place in a third component.
 	
 	\begin{figure}[h]
 		\begin{figcenter}
@@ -252,17 +253,17 @@ Finally, an overview of the separate components is given as well as a descriptio
 		\label{fig:components}
 	\end{figure}
 	
-	The first step for a consumer of the system, in the context of this thesis an agent based simulation, is to generate the hybrid visibility graph.
-	Hence, the \texttt{HybridVisibilityGraphGenerator} (abbreviated as \enquote{H.V.GraphGenerator} in \cref{fig:components}) presents a public interface to create such hybrid visibility graph.
-	The result of the graph generation is an instance of the \texttt{HybridVisibilityGraph} class offering public methods to answer shortest path requests, such as \texttt{ShortestPath} returning a list of positions (i.e. coordinates) representing the shortest path between the two input locations.
-	More details on the graph generation can be found in \cref{sec:graph-generation}.
+	The first step for a consumer of the system, e.g. an agent based simulation, is to generate the hybrid visibility graph.
+	Hence, the \texttt{HybridVisibilityGraphGenerator} (abbreviated as \enquote{H.V.GraphGenerator} in \cref{fig:components}) presents a public interface for this task.
+	The result of the graph generation is an instance of the \texttt{HybridVisibilityGraph} class offering public methods to answer shortest path requests, such as the \texttt{ShortestPath} method returning a list of positions (i.e. coordinates) representing the shortest path between two input coordinates.
+%	More details on the graph generation can be found in \cref{sec:graph-generation}.
 	
-	For convenience and consistency with the other graphs in the MARS framework, routing queries are put to the hybrid visibility graph.
-	Each routing query should be able to start and end at arbitrary locations, thus, there is no guarantee that the source and destination locations of the query are on any vertex in the graph.
+	For convenience and due to required preparations, routing queries are put to the hybrid visibility graph.
+	To fulfill the overall concept of this work, it must be possible to start and end at arbitrary locations, thus, there is no guarantee that the source and destination locations of the query are on any vertex in the graph.
 	Therefore, the hybrid visibility graph has to temporarily connect these locations to the graph.
 	This is done by determining all visible neighbors of the source and destination locations and then merging the resulting edges to the underlying graph.
 	To perform this task, the hybrid visibility graph uses the interface of the \texttt{VisibilityGraphGenerator} to determine visibility neighbors of a single vertex.
-	\Cref{sec:answering-queries} covers the process of answering routing queries in more details.
+	\Cref{sec:answering-queries} covers the process of answering routing queries in more details, including the clean up step that is performed after the shortest path has been found.
 
 \section{Deployment view}
 
