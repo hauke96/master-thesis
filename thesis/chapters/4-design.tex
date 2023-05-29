@@ -67,7 +67,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 %	Only the last and further pursued approach uses visibility graphs for routing.
 	
 	% Ad-hoc creation of edges by stopping A* and continuing with wavefront algorithm
-	\subsection{Approach 1: Ad hoc generation of edges}
+	\subsection{Approach candidate 1: Ad hoc generation of edges}
 	
 		The idea of an ad hoc generation of edges is the following:
 		Whenever the graph routing algorithm reaches a road junction, it's paused and the continuous Dijkstra algorithm is started.
@@ -110,66 +110,71 @@ Finally, an overview of the separate components is given as well as a descriptio
 %		Even though, this is not a formal proof, generating a preprocessed graph and using a normal routing algorithm is probably as least as good as using the ad hoc generation approach.
 	
 	% Concurrent routing: Use A* and wavefront in parallel and merge the results
-	\subsection{Approach 2: Concurrent routing}
+	\subsection{Approach candidate 2: Concurrent routing}
 	
-		A different approach would be two concurrent routing queries, one on the normal road graph and one using a visibility or otherwise structured graph.
-		Having the two shortest paths, one could merge them into one path, which results in segments with alternating source graph.
-		To merge them, first determine the intersection points and then choose the better segments based on a weight function.
+		A different approach would be two concurrent routing queries, one on the normal road graph and one using a visibility or otherwise generated graph.
+		Having the two shortest paths, they could be merged into one path, which results in segments with alternating source graph.
+		To merge them, first the intersection points need to be determined and then the better segments have to be chosen based on a weight function.
 		
 		The most prominent advantage is the simplicity of the routing requests, since known routing algorithms could be used.
 		Therefore, it would be rather simple to implement and speed up techniques could be used.
 		
-		However, there is a major disadvantage, which is the uncertainty, that the two paths are actually intersecting at any point.
-		Even if they are intersecting, too few intersections on a long route are not very helpful, because the longer a segment gets, the less accurate the weighting becomes.
+		However, there are two major disadvantages.
+		First, it is uncertain that the two paths are actually intersecting at any point.
+		Second, even if they are intersecting, too few intersections on a long route result in suboptimal paths, because the longer a segment gets, the less accurate the weighting becomes.
 		Only if the two routes are intersecting frequently enough, the selection of segments based on the weight function could actually result in good routes.
 	
 	% Concurrent routing for segments (e.g. start new routing calls every 100m)
-	\subsection{Approach 3: Concurrent routing on smaller segments}
+	\subsection{Approach candidate 3: Concurrent routing on smaller segments}
 	
-		This approach is very similar to the one above, however, it tries to fix the uncertainty of intersections between the two resulting paths.
-		There are multiple ways to ensure that there are enough intersections or to otherwise guarantee small enough segments to merge.
+		This approach is very similar to the one above, but it tries to fix the uncertainty of intersections between the two resulting paths.
+		Multiple ways are conceivable to ensure that there are enough intersections or to otherwise guarantee that segments are small enough to be merged.
 		
 		One way is to stop the routing after a certain distance stopping at the next available vertex.
-		After stopping for the first time, there are two such vertices, one where the graph based routing stopped and one where the routing on the generated graph stopped.
-		From each vertex, two new routing queries start and stop after a certain distance.
-		This is continued until one query reaches the target.
+		After stopping for the first time, there are two such vertices, one where the road network based routing stopped and one where the routing on the generated graph stopped.
+		From each vertex, two new routing queries start and stop again after a certain distance.
+		This continues until one query reaches the target.
 		On the one hand, this would guarantee small enough segments for later merging, on the other hand, this results in $\bigo{2^n}$ many routing queries.
-		Even though each query is short, this approach would probably not scale very well.
+		Even though each query is short, this approach would probably, even with the help of heuristics or other helping mechanisms, not scale very well.
 		
-		A different approach for smaller segments would be to first get the shortest path on the road graph.
-		Having this path, it is split up into $n$ segments of certain length.
-		From the end vertex of each segment $s_i$, a shortest path query to the start of all other segments $s_{i+1}, s_{i+2}, ..., s_n$ is performed including one query from the end of $s_i$ to the target vertex.
-		Unfortunately this results in $O(n^2)$ more routing queries.
-		Finally, all these queries on the generated graph can be merged together with the query result of the road graph to form a new intermediate graph.
-		Finally, one last routing query on this intermediate graph is performed to get the final optimal routing result.
+		A different approach to obtain smaller segments would be to first get the shortest path on the road graph.
+		Having this path, it is split up into $n$ segments of certain length connecting the vertices $v_0, v_1, ..., v_n$ with $v_n$ being the destination.
+		In a next step, shortest paths from each vertex to following vertices are calculates.
+		Meaning from $v_i$ paths to $v_{i+1}, v_{i+2}, ..., v_n$ are determined, which unfortunately results in $O(n^2)$ many routing queries.
+		Finally, all these paths on the generated graph can be merged together with the query result of the road graph to form a new intermediate graph..
+		Finally, one last routing query on this intermediate graph is performed to get the final optimal routing result by using a weight function analogous to the previous approach.
+		Instead of an intermediate graph, other combinatorial approaches can be used as well since the shortest path problem can be solved using linear programming \cite{handler-zang-lp-duality}.
 		
-		There are probably more possible ways to ensure a sufficient amount of segments or intersection, however, this idea was not further continued.
+		There are probably more possible ways to ensure a sufficient amount of segments or intersections, however, this idea was not further pursued.
 		
 		Unfortunately, both approaches have a worse time complexity than any popular routing algorithms including pure geometric routing.
 		Even though the second idea might work well for appropriate segments lengths, the complexity and definite time overhead make it an unfavorable choice.
 	
 	% Merge of networks
-	\subsection{Approach 4: Merge an existing network with a visibility graph}
+	\subsection{Approach candidate 4: Merge an existing network with a visibility graph}
 	
-		The last approach, which is the currently used one, generates a visibility graph and merges it with the existing road graph.
+		Previous approach candidates tried to first calculate shortest paths and then merge their results.
+		This last approach, which is the currently used one, first merges a generated visibility graph with an existing road graph.
 		The actual merge operation is very simple:
-		Whenever a road edge and a visibility edge intersect, split the edges, create a new vertex there and connect the split edges accordingly.
+		Whenever a road edge and a visibility edge intersect, split the edges, create a new vertex at the intersection point and connect the split edges accordingly.
 		
-		Even though, this approach is simple and still fast, there is the disadvantage of the graph size.
+		Even though, this approach is simple and still fast, the main disadvantage is the graph size.
 		A visibility graph is large and in most cases it will contain many more edges than the road graph, which negatively affects the routing performance.
 		
 		Another disadvantage is the time complexity of the merge operation.
-		All edges have to be considered and most edges will even be considered multiple times, depending on the number of intersections.
-		This leads to a time complexity of $\Omega(|E_R| + |E_V|)$ for the routing graph edges $E_R$ and visibility edges $E_V$.
-		However, a complete graph has the highest number of edge crossings, which gives the upper bound of $\bigo{|E|^2}$ for the merge operation.
-		Fortunately, road networks are very sparse and often have a node degree between three and six \cite{zhao-analysis-osm-bejing}\cite{boeing-osmnx}, resulting in a much better runtime behavior.
+		All edges have to be considered and, depending on the number of intersections, edges might be processed multiple times (e.g. one visibility edge might intersect with all road edges).
+		This leads to at most $|E_R| \cdot |E_V|$ many merge operations for the routing graph edges $E_R$ and visibility edges $E_V$.
+		Complete graphs have the highest number of edges and therefore the highest number of intersections, which gives the upper bound of $\bigo{|E|^2}$ for the merge operation given all edges $E$.
+		Fortunately, road networks are very sparse and often have a node degree between three and six \cite{zhao-analysis-osm-bejing}\cite{boeing-osmnx}, resulting in a probably much better runtime behavior in practice.
 		\todo[inline]{Maybe analyze this myself for e.g. Germany?}
 		\todo[inline]{Link to possible optimizations discussed in later chapters}
 		
 		Despite the disadvantages of this approach, I considered the advantages to be more important.
-		As already mentioned, this strategy is not only simple and fast, compared to the time complexities above, but it is the only strategy that enables the use of speed up methods for routing queries.
+		As already mentioned, this strategy is not only simple and fast, compared to some time complexities mentioned previously, but it also allows the use of speed up methods for routing queries.
+		Moreover, the resulting path is definitely optimal, based on the given weight function, and no complex postprocessing is needed.
 		
-		Taken all aspects into account, this strategy seemed to be the most promising with the least disadvantages and was chosen to be implemented.
+		Taken all aspects into account, this strategy seemed to be the simplest and most promising with the least disadvantages .
+		It was therefore chosen to be implemented.
 
 \section{Design decisions}
 \label{sec:design-decisions}
