@@ -173,66 +173,68 @@ Finally, an overview of the separate components is given as well as a descriptio
 		As already mentioned, this strategy is not only simple and fast, compared to some time complexities mentioned previously, but it also allows the use of speed up methods for routing queries.
 		Moreover, the resulting path is definitely optimal, based on the given weight function, and no complex postprocessing is needed.
 		
-		Taken all aspects into account, this strategy seemed to be the simplest and most promising with the least disadvantages .
+		Taken all aspects into account, this strategy seemed to be the simplest and most promising with the least disadvantages.
 		It was therefore chosen to be implemented.
 
 \section{Design decisions}
 \label{sec:design-decisions}
 
-	The choice of the merge strategy being the approach of combining two different routing algorithms, several design decisions were made.
-	Because some decisions did not influence the overall architecture and were just made to enhance performance or simplify the implementation, this section only covers fundamental decisions relevant for the overall architecture.
+	With the choice of the merge strategy being the approach of combining two different routing algorithms, several design decisions were made.
+	Some decisions did not influence the overall architecture and were just made to enhance performance or simplify the implementation, this section only covers fundamental decisions relevant for the overall architecture.
+	\Cref{chap:implementation} covers those decisions that are independent of the overall architecture.
 	
-	\subsection{Decision against existing approaches}
-	\label{subsec:decision-against-existing-approaches}
+	In this work I implemented the visibility graph without the use of algorithms presented in the according \hyperref[subsec:related-work:visibility-graph]{related work section}.
+	None of the existing approach would have been easy to implement without problems.
+	Details on these problems and the exact reasons that led to the decision of a custom implementation are presented in this section.
 	
-		In this work I implemented the visibility graph without the use of algorithms presented in the \hyperref[chap:related-work]{related work chapter}.
-		No implementation of any existing approach would have been easy and without problems.
-		Details on these problems and the exact reasons that led to the decision of a custom implementation are presented in this section.
-		
-		\subsubsection{Requirements and considerations for the visibility graph creation}
-		
-			One key requirement for the visibility graph creation is the ability to work in arbitrary obstacles, which primarily includes point, linestring and polygon geometries.
-			Assumptions about the collinearity, position of obstacles and intersections between them cannot be made.
-			
-			An important special case arises for linestring obstacles consisting of more than two points.
-			Simply determining visibility edges to and from both sides of the obstacle would result in shortest paths leading right through this linestring.
-			Of course, this is the opposite of the desired behavior of a shortest path leading \emph{around} the linestring.
-			The same situation would arise with obstacles, including polygonal ones, touching in a single node.
-			
-			Since the visibility graph is solely used to determine shortest paths, some assumptions and optimizations can be made.
-			\todo{Reference to optimizations in later sections/chapters}
-			
-			A core aspect of the routing algorithm is the reachability of arbitrary locations not located on the graph.
-			Therefore, it must be possible to add visibility edges after the complete graph has been created.
-			Implementing this is necessary regardless of the chosen approach to generate the complete visibility graph.
-			
-			One very important reason why no highly optimized approach was chosen and also why only a limited amount of effort went into he optimization of my own approach, is the fact that generating the graph is separated from its use.
-			Far more significant is the routing behavior itself as it directly affects the simulation time.
-			Creating the graph in a preprocessing step has, especially when persisting the graph for multiple uses, no direct effect on the simulation.
-			
-			All these requirements and considerations, including with the problems and efforts outlined below, lead to the decision to implement a simple graph generation approach including some effective optimizations that were easy to implement.
-		
-		\subsubsection{Suitability of existing approaches}
+	\subsection{Requirements and considerations for the visibility graph creation}
 	
-			The largest and most influential design decision was the decision against an approach from the literature as presented in \cref{subsec:related-work:visibility-graph}.
-			Several approaches from the literature have either restrictions on the geometric structures or assume a certain preprocessing of the data was already performed.
-			
-			The approach by Welzl \cite{welzl-visibility-graph}, for example, explicitly assumes that there are not collinear vertices, i.e. at least three vertices forming a straight line.
-			Even though this might seem to be a very unlikely case, it's at least very common in OpenStreetMap data at touching buildings and other straight obstacles like walls.
-			
-			An optimization of Welzls approach, by Overmars and Welzl \cite{overmars-weizl-visibility-graph}, only works on non-intersecting line segments.
-			Real world data is unfortunately too diverse to fulfill this criterion as polygons, longer linestrings and other more complex data structures exist.
-			Preprocessing the data, i.e. cutting all geometries into such non-intersecting line segments, would cause new special cases to solve.
-			For example, cutting a polygon into line segments would add visibility edges within the former polygon, which needs to be avoided.
-			Handling all those special cases, preventing unwanted edges and still using the approach by Overmars and Welzl would be possible but would also increase the complexity of their approach.
-			
-			Another approach with the limitation of no collinear vertices was the plain-sweep algorithm by Ghosh and Mount \cite{ghosh-output-sensitive-vgraph}.
-			Next to the limitation on collinear vertices, they assume x-coordinates to be unique, which, even though it is very likely fulfilled in real world datasets, needs to be handled as well.
-			
-			Kapoor and Maheshwari presented a visibility creation as well \cite{kapoor-shortest-path-vgraph} but assumed a triangulation of the open space between the obstacles.
-			Such a triangulation can be done quite fast, algorithms with time complexities of $\bigo{n \log{n}}$ and better are known \cite[58-60]{de-berg-computational-geometry}, but libraries such as MARS or the NetTopologySuite do not implement this.
-			They only provide triangulation methods for polygons but not for the space between them.
-			Even though it would probably not be a significant effort, implementing an algorithm for this task would be needed in addition to the visibility graph creation itself.
+		One key requirement for the visibility graph creation is the ability to work in arbitrary obstacles, which primarily includes the fundamental point, linestring and polygon geometries.
+		To work with arbitrary real world datasets, assumptions about the collinearity, position of obstacles and intersections between them cannot be made.
+		
+		An important special case arises for linestring obstacles consisting of more than two points.
+		Simply determining visibility edges to and from both sides of the linestring would result in shortest paths leading right through it.
+		Of course, this is the opposite of the desired behavior of a shortest path leading \emph{around} the linestring.
+		The same situation would arise with obstacles, including polygonal ones, touching in a single node.
+		
+		Since the visibility graph is solely used to determine shortest paths, some assumptions and optimizations can still be made.
+		However, these considerations are not relevant for the overall architecture and are therefore covered in \cref{sec:visibility-graph-creation}.
+		
+		A core aspect of the routing algorithm is the reachability of arbitrary locations not located on the graph.
+		Adding visibility edges after the complete graph has been created must therefore be possible.
+		Implementing this is necessary regardless of the chosen algorithm for the visibility graph creation.
+		
+		One very important reason why no highly optimized approach was chosen and also why only a limited amount of effort went into the optimization of my own approach is the fact that generating the graph is separated from its use.
+		Far more significant is the routing behavior itself as it directly affects the simulation time.
+		Creating the graph in a preprocessing step has, especially when persisting the graph for multiple uses, no direct effect on the simulation.
+		
+		All these requirements and considerations, including problems and efforts outlined below, lead to the decision of implementing a simple graph generation approach with some easy but effective optimizations.
+	
+	\subsection{Suitability of existing approaches}
+
+		The largest and most influential design decision was the decision against an approach from the literature as presented in \cref{subsec:related-work:visibility-graph}.
+		Several approaches from the literature have either restrictions on the geometric structures or assume that a certain preprocessing of the data was already performed.
+		
+		The approach by Welzl \cite{welzl-visibility-graph}, for example, explicitly assumes that there are not collinear vertices, i.e. at least three vertices forming a straight line.
+		It may seem unlikely at first that collinear vertices occur in real world datasets, but in fact, at least in OpenStreetMap, it is very common to align touching buildings and other straight obstacles like walls.
+		
+		An optimization of Welzls approach, by Overmars and Welzl \cite{overmars-weizl-visibility-graph}, only works on non-intersecting line segments.
+		Real world data is unfortunately too diverse to fulfill this criterion as polygons, longer linestrings and other more complex data structures exist.
+		Preprocessing the data, i.e. cutting all geometries into such non-intersecting line segments, would cause new special cases to solve.
+		For example, cutting a polygon into line segments would add visibility edges within the former polygon, which needs to be avoided e.g. by storing metadata about the relations of these line segment to each other.
+		Handling all those special cases, preventing unwanted edges and still using the approach by Overmars and Welzl would be possible but would also increase the complexity of their approach.
+		
+		Another approach with the limitation of no collinear vertices was the plain-sweep algorithm by Ghosh and Mount \cite{ghosh-output-sensitive-vgraph}.
+		Next to the limitation on collinear vertices, they assume x-coordinates to be unique, which, even though it is very likely fulfilled in real world datasets, would need to be handled as well.
+		
+		Kapoor and Maheshwari presented a visibility graph creation as well \cite{kapoor-shortest-path-vgraph} but assumed a triangulation of the open space between the obstacles.
+		Such a triangulation can be done quite fast, algorithms with time complexities of $\bigo{n \log{n}}$ and better are known \cite[58-60]{de-berg-computational-geometry}, but libraries such as MARS or the NetTopologySuite do not implement this.
+		They only provide triangulation methods for polygons but not for the space between them.
+		Implementing an algorithm for this task would be needed in addition to the visibility graph creation itself.
+		
+		Probably all approaches from the literature would work but preprocessing, restrictions on the input data or adjustments to the approaches would be necessary.
+		Since this work focuses more on the overall concept of a hybrid routing algorithm, the choice on the graph generation algorithm was of less importance.
+		Therefore, the implementation is much simpler and independent of the above mentioned approaches.
 	
 \section{Components}
 \label{sec:components}

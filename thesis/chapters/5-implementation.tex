@@ -32,7 +32,7 @@ After that, the main sections of this chapter show details of each algorithmic s
 		Before investing larger efforts into the implementation of a more complex approach, like the one presented by Hershberger and Suri\cite{hershberger-suri}, a simple preprocessing was introduced and lead to a major performance improvement.
 		This preprocessing determined the visibility between all vertices, which was later used to create events for the collision between wavelets and vertices.
 		Such predetermined visibilities are the core of a visibility graph, thus moving to an actual visibility graph based approach was not a big step.
-		Deciding on the exact approach to generate a working visibility graph was discussed in \cref{subsec:decision-against-existing-approaches}.
+		Deciding on the exact approach to generate a working visibility graph was discussed in \cref{sec:design-decisions}.
 		
 		The second reason to actually move towards a visibility graph was the difficulty and the disadvantages of combining the network based routing with the continuous dijkstra algorithm implemented so far, as described in \cref{sec:combining-routing-algorithms}.
 		Therefore, the decision fell in favor of implementing and optimizing the creation of a routable visibility graph.
