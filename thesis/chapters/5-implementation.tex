@@ -54,31 +54,37 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			
 	\subsection{Algorithm steps}
 	\label{subsec:algorithm-steps}
+	
+		In the following, the main steps of the two parts of this algorithm are outlined:
+		The graph generation and the answering of routing requests.
 		
-		As describes in \cref{sec:components}, the \texttt{HybridVisibilityGraphGenerator} class provides a factory method to create a \texttt{HybridVisibilityGraph} from a given collection of features.
-		This factory method consists of the following top level steps, which are all described in \cref{sec:visibility-graph-creation} in more detail:
-		\begin{enumerate}
-			\item Filter the given features for obstacles
-			\item Determine the visibility neighbors
-			\item Use this visibility relation to create a visibility graph
-			\item Merge the existing road network into this graph
-		\end{enumerate}
-		The graph then allows to route between existing nodes.
-		So far, routing queries between arbitrary locations cannot be answered, since this graph based approach only allows routing between existing nodes.
-		To enable answering routing requests between arbitrary locations the resulting graph needs to be extended with edges from and to the given start and end locations.
-		These edges are themselves visibility edges and can therefore be created just like the visibility edges before. The process is further described in \cref{sec:answering-queries} and contains the following steps:
-		\begin{enumerate}
-			\item Connect the source coordinate to the graph:
+		\subsubsection{Graph generation}
+		
+			The \texttt{HybridVisibilityGraphGenerator} class provides a factory method to create an instance of the \texttt{HybridVisibilityGraph} class from a given collection of features.
+			This factory method consists of the following top level steps, which are all described in \cref{sec:visibility-graph-creation} in more detail:
 			\begin{enumerate}
-				\item Add a node to the graph at the source coordinate
-				\item Determine the visibility edges to and from the source coordinate
+				\item \hyperref[subsec:step-1-preprocessing]{Filter the given features for obstacles}
+				\item \hyperref[subsec:step-2-knn-search]{Determine the visibility neighbors}
+				\item \hyperref[subsec:step-3-graph-creation]{Use this visibility relation to create a visibility graph}
+				\item \hyperref[subsec:step-4-graph merging]{Merge the existing road network into this graph}
 			\end{enumerate}
-			\item Repeat the steps for the destination coordinate
-			\item Route along the resulting graph
-			\item Restore the original graph by removing all added nodes and edges
-		\end{enumerate}
-		The last step ensures that subsequent routing queries are answered based on the original graph and not on a previously altered version.
-		It also prevents an uncontrolled growth of the graph.
+			The resulting hybrid visibility graph then allows to route between existing nodes.
+			So far, routing queries between arbitrary locations cannot be answered, only between existing nodes.
+			Handling arbitrary location is part of the next step.
+		
+		\subsubsection{Answering routing queries}
+		
+			To enable answering routing requests between arbitrary locations the resulting graph needs to be extended with edges from and to the given start and end locations.
+			These edges themselves are visibility edges and can therefore be created and merged just like the visibility edges before.
+			Further details are given in \cref{sec:answering-queries} describing the following steps:
+			\begin{enumerate}
+				\item Determine visibility edges for source and destination coordinates\label{itm:step-merging-source-dest}
+				\item Merge these edges into the graph such that they can be removed afterwards
+				\item Route along the resulting graph (e.g. by using the A* algorithm)
+				\item Restore the original graph by removing all nodes and edges added in step \ref{itm:step-merging-source-dest}
+			\end{enumerate}
+			The last step ensures that subsequent routing queries are answered based on the original graph and not on an altered version of it.
+			It also prevents an uncontrolled growth of the graph.
 	
 \section{Data structures}
 	
@@ -267,6 +273,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			Of course this is not a complex task, since all obstacles are either trianges, linestrings or points, but only vertices on the convex hull of obstacles are further processed.
 			
 	\subsection{Step 2: Determining $k$ nearest visible neighbors}
+	\label{subsec:step-2-knn-search}
 			
 			After having all preprocessed obstacles, the main task of the visibility graph creation is performed, namely the determination of all $k$ many visible neighbors.
 			Determining all visible neighbors would also be possible, but this parameter is an easy way to increase performance with the downside of not having all possible edges in the final routing graph.
@@ -696,6 +703,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 		It contains the final spatial graph, as an instance of the \texttt{SpatialGraph} class contained in the MARS framework, along with all information needed to correctly add and connect new nodes, more precisely nodes for the start and target locations of a routing query.
 		
 	\subsection{Step 4: Merging a road network into the visibility graph}
+	\label{subsec:step-4-graph merging}
 	
 		To allow a routing algorithm to switch between the road network and visibility edges, the road network needs to be merged into the visibility graph.
 		This happens not just by adding the road segments to the graph but by introducing and connecting new nodes at all intersections between road network and visibility edges.
