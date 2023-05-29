@@ -1,41 +1,50 @@
 % !TEX root = ../thesis.tex
 % !TeX spellcheck = en_US
 
-This section describes more implementation details of the previously described approach.
-First, an overview of the algorithm with a short description of used frameworks and technologies is given.
-After that, the main sections of this chapter show details of each algorithmic step.
+This section covers details on the implementation of the previously described design.
+First, an overview of the algorithm is given including a short description of used frameworks and technologies.
+Second, two new and important data structures are described in detail.
+Finally, each algorithmic step of the graph generation but also of the query answering is described in the main sections of this chapter.
 
 \section{Algorithm overview}
+
+	Before technical details are covered, this section gives a broad overview of the implementation.
 
 	\subsection{Frameworks and technology}
 	
 		As mentioned in \cref{subsec:constrains} about the constrains, the used programming language is C\# due to the dependency to the MARS framework.
 		The MARS framework is based on the widely used C\# library \term{NetTopologySuite} (\term*{NTS}), which contains numerous data structures, algorithms and helper function to handle and process geospatial data.
 		
-		The NTS was primarily used for basic data structures like features and geometries.
-		Writing data to files is also done using NTS functions to serialize the geospatial data into GeoJSON files.
+		Primarily, the NTS was used for basic data structures like coordinates, geometries and features but also for simple operations, e.g. the calculation of distances.
+		Writing data to files is also done with the help of the NTS, namely to serialize the geospatial data into the GeoJSON format.
 		
-		The \term*{MARS} framework was also used for basic data structures, like the \texttt{Position} class.
-		However, higher level structures like quadtrees and mathematical calculations were used as well.
+		The \term*{MARS} framework was also used for basic data structures, for example the \texttt{Position} class.
+		However, higher level structures were used as well, such as \texttt{SpatialGraph} or \texttt{QuadTree} classes.
 		
 		Not all data structures and algorithms already existed to create the hybrid routing graph.
-		Most notably, a fast line intersection check was implemented as well as a bin based index structure.
-		Several other helper functions and simpler structures, like a separate class for vertices, were added as well.
+		Most notably, a \hyperref[subsubsec:intersection-checks]{fast line intersection check}, a \hyperref[subsec:binindex]{bin based index} and a fast \hyperref[subsec:shadow-areas]{vertex filtering method} were implemented.
+		The latter one refers to the so called \emph{shadow areas} in the sections below.
+		Several other helper functions and simpler structures, for instance separate classes for vertices and obstacles, were added as well.
 
 	\subsection{Early implementation based on the continuous dijkstra paradigm}
 	
-		An early implementation was not creating a visibility graph but instead it was based on the \term*{continuous dijkstra} paradigm with wavelets propagating through open spaces.
+		An early implementation, before the final decision for a strategy fell, was not creating a visibility graph but instead it was based on the \term*{continuous dijkstra} paradigm with wavelets propagating through open spaces.
 		However, there were two reasons why this first approach was replaced by a visibility graph based algorithm.
 		
-		The first reason was a bad performance.
-		Early stages of the continuous dijsktra approach used a very naive and simple implementation without optimizations mentioned in recent literature on this topic.
-		Before investing larger efforts into the implementation of a more complex approach, like the one presented by Hershberger and Suri\cite{hershberger-suri}, a simple preprocessing was introduced and lead to a major performance improvement.
-		This preprocessing determined the visibility between all vertices, which was later used to create events for the collision between wavelets and vertices.
-		Such predetermined visibilities are the core of a visibility graph, thus moving to an actual visibility graph based approach was not a big step.
-		Deciding on the exact approach to generate a working visibility graph was discussed in \cref{sec:design-decisions}.
+		The main reason was the overall strategy decision on the visibility graph approach.
+		The other reason were performance enhancement made to the naive continuous dijkstra implementation.
 		
-		The second reason to actually move towards a visibility graph was the difficulty and the disadvantages of combining the network based routing with the continuous dijkstra algorithm implemented so far, as described in \cref{sec:combining-routing-algorithms}.
-		Therefore, the decision fell in favor of implementing and optimizing the creation of a routable visibility graph.
+		Early stages of the continuous dijsktra approach used a very naive and simple implementation without optimizations mentioned in recent literature on this topic.
+		Wavelets did not move continuously but instead they snapped to the next \enquote{event}, i.e. the next visible vertex where new wavelets can spawn.
+		Because the strategy decision was not yet made at that time, no larger efforts went into optimizing the implementation, e.g. by implementing the approach presented by Hershberger and Suri\cite{hershberger-suri}.
+		Instead, a simple preprocessing was introduced and lead to a major performance improvement.
+		This preprocessing determined the visibility between all vertices used for the above mentioned events.
+		Such predetermined visibilities are the core idea of a visibility graph, thus moving to an approach using an actual visibility graph was only a small step.
+		Design decisions regarding the implementation and concrete algorithm were discussed in \cref{sec:design-decisions}.
+		
+		A third reason against this early continuous dijkstra implementation were the difficulties and the disadvantages of combining the network based routing with the continuous dijkstra algorithm, as described in \cref{sec:combining-routing-algorithms}.
+		
+		Therefore, this first continuous dijkstra approach was not further pursued but converted to a generator for a routable visibility graph.
 	
 %	\subsection{Chosen approach and potentially faster known algorithms}
 %
@@ -76,6 +85,7 @@ After that, the main sections of this chapter show details of each algorithmic s
 	Before the separate steps of the graph generation are described in detail, the newly created data structures are presented.
 		
 	\subsection{Shadow areas}
+	\label{subsec:shadow-areas}
 		
 		Shadow areas are a method to quickly determine vertices that are definitely not visible to each other.
 		The idea of shadow areas is the following:
