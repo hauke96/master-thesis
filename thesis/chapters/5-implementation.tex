@@ -287,9 +287,11 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 	\subsection{Step 2: Determining $k$ nearest visible neighbors}
 	\label{subsec:step-2-knn-search}
 			
-		This step performs the main task of the visibility graph creation, namely the determination of all $k$ many visible neighbors.
-		Determining not only $k$ but all visible neighbors would also be possible, but the parameter $k$ is an easy way to increase performance with the downside of not having all possible edges in the final routing graph.
-		The fact of potential suboptimal routes is discussed in the following.
+		This step performs the main task of the visibility graph creation, namely the determination of all $k$ many visible neighbors for each vertex.
+%		Determining not only $k$ but all visible neighbors would also be possible, but the parameter $k$ is an easy way to increase performance with the downside of not having all possible edges in the final routing graph.
+%		The fact of potential suboptimal routes is discussed in the following.
+		Before the actual algorithm is presented, some concepts and optimizations are described to understand the implemented algorithm.
+		Then an overview of the performed steps is given followed by details on each of these steps.
 		
 		\subsubsection{Terminology}
 		
@@ -423,27 +425,86 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			Since this is solely a performance optimization, the same considerations apply as in the above shown convex hull filtering.
 			As soon as the weighting function is not creating a shortest path, this optimization might lead to suboptimal paths.
 			Again, removing this optimization solves this problem.
+			
+		\subsubsection{Intersection checks}
+		\label{subsubsec:intersection-checks}
+			
+			All intersections are checked using own implementations no not rely on the generalized and therefore slower intersection checks of the NetTopologySuite.
+			In fact, there are two types of intersection checks implemented:
+			One check for intersection between two arbitrary line segments and one checks if a point lies within a triangle.
+			This triangle check is used for closed obstacles, which got triangulated during \hyperref[subsec:step-1-preprocessing]{preprocessing}.
+			
+			The line segment intersection check uses a cross product based approach described in \emph{Introduction to algorithms} by Thomas H Cormen et al \cite[1018]{cormen-introduction-to-alg}.
+			Even though this method only works on single line segments, it is significantly faster than general purpose checks provided by the NetTopologySuite.
+			
+			\begin{figure}[h]
+				\begin{figcenter}
+					\begin{tikzpicture}
+						\tikzDot[label={below left:$(1,0,0)$}]{(0,0)}{a}
+						\tikzDot[label={below right:$(0,1,0)$}]{(4,0)}{b}
+						\tikzDot[label={above:$(0,0,1)$}]{(2,3)}{c}
+						
+						\coordinate[between={a and c}] (ac);
+						\coordinate[between={b and c}] (bc);
+						\coordinate[between={a and b}] (ab);
+						
+						\draw (a) -- (b);
+						\draw (a) -- (c);
+						\draw (b) -- (c);
+						
+						\draw[dotted] (a) -- (bc);
+						\draw[dotted] (b) -- (ac);
+						\draw[dotted] (c) -- (ab);
+						
+						\tikzDot{(intersection of a--bc and b--ac)}{center};
+						\node[below=1mm of center,inner sep=0mm,fill=white] {$c=(\nicefrac{1}{3},\nicefrac{1}{3},\nicefrac{1}{3})$};
+						
+						\tikzDot[label={left:$a=(0.5,0,0.5)$}]{(ac)}{left}
+						\tikzDot[label={right:$b=(-0.2,0.5,0.7)$}]{(3.4,2.1)}{right}
+					\end{tikzpicture}
+				\end{figcenter}
+				\caption{A triangle with barycentric coordinates and dotted lines for the three coordinate axes. Noteworthy is coordinate $b$ as it is outside the triangle, which can be directly seen from the negative value $-0.2$.}
+				\label{fig:barycentric-triangle}
+			\end{figure}
+			
+			Checking if a vertex lies inside a triangle is done by a barycentric collision check.
+			This method creates a barycentric coordinate system where each coordinate has the form $(\lambda_1,\lambda_2,\lambda_3)$ of which one value is one and the other two are zero for each corner vertex of the triangle.
+			\Cref{fig:barycentric-triangle} illustrates this with some exemplary points.
+			Due to the properties of this coordinate system, a point $p$ is inside the triangle when the condition $0 < \lambda_i < 1$ is satisfied for each of the three values.
+			Even though it sounds complex to create a whole coordinate system for a single collision check, this method only uses a few basic arithmetic operations and is therefore very fast.
+			
+		\subsubsection{Shadow area operations}
+			
+			The shadow areas are stored in the previously described \hyperref[subsec:binindex]{BinIndex} data structure.
+			Inserting of the intervals therefore works as described in \cref{subsec:binindex}.
+			
+			Shadow areas are always determined for a single vertex $v$.
+			Checking if a different vertex $u$ is within any shadow area, and therefore not visible from $v$, is quite simple.
+			First, all shadow areas are queried that fall into the bin of the $u$'s angle.
+			Second, for each shadow area $s$ it is checked whether $u$ is at least a far away from $v$ as the minimum distance of $s$ and whether the vertex is exactly within the angle area of $s$.
+			If both holds true for any such shadow area $s$, then $u$ is not visible from $v$.
 		
 		\subsubsection{Visibility graph generation overview}
 		
 			The performed steps of determining the visible neighbors are the following.
 			Each step is described with more details sections below.
-			\begin{enumerate}
+			\begin{enumerate}[leftmargin=2.25em+\widthof{2.},label={2.\arabic*.}]
 				\item Determine the obstacle neighbors for each vertex.
-				\item For each vertex $v$ lying on the convex hull of any obstacle, determine its visibility neighbors as follows.
-				\begin{enumerate}
-					\item For each other vertex $u$, do the following:
-					\begin{enumerate}
-						\item Is $u$ in any shadow area \emph{or} not on any convex hull \emph{or} not in any valid angle area? If so: $u$ is not relevant, move to the next other vertex.
-						\item Query all obstacles between $v$ and $u$. This is done by the bounding box spanned by $v$ and $u$.
-						\item Create and store the shadow area of each such obstacle $o$.
-						\item Check if $u$ is a visibility neighbor, which is true if $u$ is a) still not in any shadow area and b) the line segment from $v$ to $u$ intersects with none of the above queries obstacles.
-					\end{enumerate}
-					\item Sort visibility neighbors into bins based on the obstacle neighbors.
-				\end{enumerate}
+				\item For each vertex $v$ lying on the convex hull of any obstacle, determine its visibility neighbors.
+%				\begin{enumerate}
+%					\item For each other vertex $u$, do the following:
+%					\begin{enumerate}
+%						\item Is $u$ in any shadow area \emph{or} not on any convex hull \emph{or} not in any valid angle area? If so: $u$ is not relevant, move to the next other vertex.
+%						\item Query all obstacles between $v$ and $u$. This is done by the bounding box spanned by $v$ and $u$.
+%						\item Create and store the shadow area of each such obstacle $o$.
+%						\item Check if $u$ is a visibility neighbor, which is true if $u$ is a) still not in any shadow area and b) the line segment from $v$ to $u$ intersects with none of the above queries obstacles.
+%					\end{enumerate}
+%				\end{enumerate}
+				\item Sort visibility neighbors into bins based on the obstacle neighbors.
 			\end{enumerate}
+			The three main steps are covers in details in the following, using operations and data structures described above.
 		
-		\subsubsection{Determining obstacle neighbors}
+		\subsubsection{Step 2.1: Determining obstacle neighbors}
 			
 			% TODO Revise this and maybe add more details
 			Determining the obstacle neighbors is relatively simple and straight forward.
@@ -496,66 +557,8 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 					\caption{The black lines show the obstacle neighbors of $v_1$, which are $v_0$ and $v_2$. The vertex $v_3$ is a neighbor as well, but hidden due to the touching obstacles $o_1$ and $o_2$.}
 				\end{minipage}
 			\end{figure}
-		
-		\subsubsection{Line segment intersection checks}
-		\label{subsubsec:intersection-checks}
-		
-			All intersections are checked using own implementations no not rely on the generalized and therefore slower intersection checks of the NetTopologySuite.
-			In fact, there are two types of intersection checks implemented:
-			One check for intersection between two arbitrary line segments and one checks if a point lies within a triangle.
-			This triangle check is used for closed obstacles, which got triangulated during \hyperref[subsec:step-1-preprocessing]{preprocessing}.
 			
-			The line segment intersection check uses a cross product based approach described in \emph{Introduction to algorithms} by Thomas H Cormen et al \cite[1018]{cormen-introduction-to-alg}.
-			Even though this method only works on single line segments, it is significantly faster than general purpose checks provided by the NetTopologySuite.
-			
-			\begin{figure}[h]
-				\begin{figcenter}
-					\begin{tikzpicture}
-						\tikzDot[label={below left:$(1,0,0)$}]{(0,0)}{a}
-						\tikzDot[label={below right:$(0,1,0)$}]{(4,0)}{b}
-						\tikzDot[label={above:$(0,0,1)$}]{(2,3)}{c}
-						
-						\coordinate[between={a and c}] (ac);
-						\coordinate[between={b and c}] (bc);
-						\coordinate[between={a and b}] (ab);
-						
-						\draw (a) -- (b);
-						\draw (a) -- (c);
-						\draw (b) -- (c);
-						
-						\draw[dotted] (a) -- (bc);
-						\draw[dotted] (b) -- (ac);
-						\draw[dotted] (c) -- (ab);
-						
-						\tikzDot{(intersection of a--bc and b--ac)}{center};
-						\node[below=1mm of center,inner sep=0mm,fill=white] {$c=(\nicefrac{1}{3},\nicefrac{1}{3},\nicefrac{1}{3})$};
-						
-						\tikzDot[label={left:$a=(0.5,0,0.5)$}]{(ac)}{left}
-						\tikzDot[label={right:$b=(-0.2,0.5,0.7)$}]{(3.4,2.1)}{right}
-					\end{tikzpicture}
-				\end{figcenter}
-				\caption{A triangle with barycentric coordinates and dotted lines for the three coordinate axes. Noteworthy is coordinate $b$ as it is outside the triangle, which can be directly seen from the negative value $-0.2$.}
-				\label{fig:barycentric-triangle}
-			\end{figure}
-			
-			\noindent Checking if a vertex lies inside a triangle is done by a barycentric collision check.
-			This method creates a barycentric coordinate system where each coordinate has the form $(\lambda_1,\lambda_2,\lambda_3)$ of which one value is one and the other two are zero for each corner vertex of the triangle.
-			\Cref{fig:barycentric-triangle} illustrates this with some exemplary points.
-			Due to the properties of this coordinate system, a point $p$ is inside the triangle when the condition $0 < \lambda_i < 1$ is satisfied for each of the three values.
-			Even though it sounds complex to create a whole coordinate system for a single collision check, this method only uses a few basic arithmetic operations and is therefore very fast.
-			
-		\subsubsection{Shadow area operations}
-			
-			The shadow areas are stored in the previously described \hyperref[subsec:binindex]{BinIndex} data structure.
-			Inserting therefore works as describes above.
-			
-			Shadow areas are always relative to a central vertex $v$.
-			Checking if a different vertex $u$ is within any shadow area, and therefore not visible from $v$, is quite simple.
-			First, all shadow areas are queried that fall into the bin of the vertex's angle.
-			Second, for each shadow area $s$ it is checked whether $u$ is at least a far away from $v$ as the minimum distance of $s$ and whether the vertex is exactly within the angle area of $s$.
-			If both holds true for any such shadow area, then $u$ is not visible from $v$.
-			
-		\subsubsection{Determining visibility neighbors}
+		\subsubsection{Step 2.2: Determining visibility neighbors}
 		
 			The \texttt{VisibilityGraphGenerator} class contains the above described method and structures to determine the visibility neighbors for every vertex.
 			Essential to this process is the \texttt{GetVisibilityNeighborsForVertex} method determining the visibility neighbors for a single vertex.
@@ -564,14 +567,14 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 %				Additionally, all obstacles casting a shadow are separately stored, simply to check whether or not a obstacle already casts a shadow.
 %				Since querying of obstacles is necessary, they are stored in a QuadTree.
 			
-			For a given vertex $v$ any other vertex $u$ is checked for visibility by executing the following steps:
-			\begin{enumerate}
-				\item Check if $u$ is in a shadow area \emph{or} if $u$ is outside a valid angle area and continue with the next vertex if this is the case.
+			The following steps are performed for every vertex $v$ being part of any convex hull.
+			\begin{enumerate}[leftmargin=2.25em+\widthof{2.2.},label={2.2.\arabic*.}]
+				\item Continue with the next vertex if any of these conditions is true (otherwise process with the next step): Vertex $u$ is in a shadow area \emph{or} $u$ is outside a valid angle area \emph{or} $u$ is not on any convex hull
 				\item Query all obstacles in the extent spanned by $v$ and $u$. For each obstacle $o$ the following steps are performed:
-				\begin{enumerate}
+				\begin{enumerate}[leftmargin=2.25em+\widthof{2.2.}-1em]
 					\item Get or create the shadow area for $o$.
 					\item If $u$ is not part of $o$ \emph{and} a new shadow area $S$ was just created, check if $u$ is in $S$:\label{itm:if-u-not-on-obstacle}
-					\begin{enumerate}
+					\begin{enumerate}[leftmargin=2.25em+\widthof{2.2.}-2em]
 						\item If so, mark $u$ as hidden and skip all subsequent checks and obstacles.
 						\item If not, mark $u$ as hidden if $u$ is within the angle area of the obstacle \emph{and} an intersection check was positive (using the methods described above in \emph{\nameref{subsubsec:intersection-checks}}).\label{itm:real-visibilty-check}
 					\end{enumerate}
@@ -588,7 +591,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			Having all visibility neighbors according to the amount and size of the bins, they are sorted in new bins based on the obstacle neighbors.
 			This procedure is described in the following section and its result is stored for the graph creation, which is described below in \cref{subsec:step-3-graph-creation}.
 		
-		\subsubsection{Sort resulting visibility neighbors into bins}
+		\subsubsection{Step 2.3: Sort resulting visibility neighbors into bins}
 		
 			A naive approach to create a visibility graph would be to create edges between vertices that are visible to each other.
 			This would make routing through line based obstacles possible as \cref{fig:routing-through-line-obstacle} illustrates.
