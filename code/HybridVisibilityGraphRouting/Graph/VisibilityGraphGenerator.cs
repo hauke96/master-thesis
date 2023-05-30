@@ -436,8 +436,9 @@ public static class VisibilityGraphGenerator
         }
         else if (vertex.ObstacleNeighbors.Count >= 2)
         {
-            // Only up to one angle between two adjacent obstacle neighbors can be >180°. This means only none or one
-            // valid angle areas exist.
+            // We only need to search for two obstacle neighbors with an angle area of >180°. All other angle areas
+            // form concave parts and are therefore irrelevant. Only up to one angle between two adjacent obstacle
+            // neighbors can be >180°. This means none or two valid angle areas exist.
             vertex.ObstacleNeighbors
                 .Each((thisIndex, neighbor) =>
                 {
