@@ -429,13 +429,13 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 		\subsubsection{Intersection checks}
 		\label{subsubsec:intersection-checks}
 			
-			All intersections are checked using own implementations no not rely on the generalized and therefore slower intersection checks of the NetTopologySuite.
+			All intersection checks are performed using own implementations instead of method from the the NetTopologySuite, which are more generalized and therefore slower.
 			In fact, there are two types of intersection checks implemented:
-			One check for intersection between two arbitrary line segments and one checks if a point lies within a triangle.
-			This triangle check is used for closed obstacles, which got triangulated during \hyperref[subsec:step-1-preprocessing]{preprocessing}.
+			One function to check for an intersection between two arbitrary line segments and one to check if a point lies within a triangle.
 			
-			The line segment intersection check uses a cross product based approach described in \emph{Introduction to algorithms} by Thomas H Cormen et al \cite[1018]{cormen-introduction-to-alg}.
+			The line segment intersection check uses a cross product based approach described in \emph{Introduction to algorithms} by Thomas H Cormen et al. \cite[1018]{cormen-introduction-to-alg}.
 			Even though this method only works on single line segments, it is significantly faster than general purpose checks provided by the NetTopologySuite.
+			This is still true when checking if a single line segments intersects any of multiple obstacles.
 			
 			\begin{figure}[h]
 				\begin{figcenter}
@@ -467,8 +467,9 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 				\label{fig:barycentric-triangle}
 			\end{figure}
 			
-			Checking if a vertex lies inside a triangle is done by a barycentric collision check.
-			This method creates a barycentric coordinate system where each coordinate has the form $(\lambda_1,\lambda_2,\lambda_3)$ of which one value is one and the other two are zero for each corner vertex of the triangle.
+			Checking if a vertex lies inside a triangle is done by a barycentric collision check and used for closed obstacles, which got triangulated during \hyperref[subsec:step-1-preprocessing]{preprocessing}.
+			This method creates a barycentric coordinate system in which each coordinate has the form $(\lambda_1,\lambda_2,\lambda_3)$.
+			For each corner of the triangle, exactly one value of the coordinate is one and the other two values are zero.
 			\Cref{fig:barycentric-triangle} illustrates this with some exemplary points.
 			Due to the properties of this coordinate system, a point $p$ is inside the triangle when the condition $0 < \lambda_i < 1$ is satisfied for each of the three values.
 			Even though it sounds complex to create a whole coordinate system for a single collision check, this method only uses a few basic arithmetic operations and is therefore very fast.
