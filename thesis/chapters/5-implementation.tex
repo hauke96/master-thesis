@@ -332,17 +332,23 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 		\subsubsection{Convex hull}
 		\label{subsubsec:convex-hull}
 			
-			As mentioned above, only visibility neighbors of vertices lying on the convex hull of any obstacle are determined.
-			Such a visibility neighbors also has to be on any convex hull, which means vertices not being on any convex hull will never be connected to anything.
+			As mentioned in \hyperref[subsec:step-1-preprocessing]{step 1}, only visibility neighbors for vertices lying on the convex hull of any obstacle are determined.
+			The visibility neighbors themselves also have to be on any convex hull, which means vertices not being on any convex hull will never be connected to other vertices.
+			This filtering strategy is a simple performance enhancement with some implications on the route quality as discussed below.
 			
 			The reason for this filtering is quite simple:
-			Vertices not being on a convex hull will never be part of a route since the convex hull itself is by definition the smallest set of points which area completely contains all other points \cite[2]{de-berg-computational-geometry}.
-			Interpreting the convex hull as path around a shape and together with the triangle inequality, this implies that the convex hull is the shortest path around the shape.
+			Vertices not being on a convex hull will never be part of a shortest path.
+			This is the case, since the convex hull itself is by definition the smallest set of points that creates an areas, which in turn contains all other points of the geometry \cite[2]{de-berg-computational-geometry}.
+			Interpreting the convex hull as one possible path around a shape, the triangle inequality implies that this path is in deed the shortest path around the shape.
 			When determining shortest paths, the part of a route bending around an obstacle will therefore always be a subset of its convex hull.
 			
 			Of course, a routing query might start within a concave part of the obstacle or somewhere completely else.
 			This case, however, is independent of the graph generation and belongs to answering routing queries, which is covered later in \cref{sec:answering-queries}.
 			
+			Also, the weighting function for the routing queries might not determine shortest, but for example fastest routes.
+			In such case, the above filtering might result in inaccurate and suboptimal paths.
+			Since this is just a performance enhancement and therefore an optional step, deactivating this filtering increases preprocessing time but solves this inaccuracy problem.
+						
 		\subsubsection{Valid angle areas}
 			
 			As mentioned above, a subsection of a shortest path bending around an obstacle always follows a part of the obstacle's convex hull.
