@@ -352,12 +352,13 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 		\subsubsection{Valid angle areas}
 			
 			As mentioned above, a subsection of a shortest path bending around an obstacle always follows a part of the obstacle's convex hull.
-			Eventually the path switches from following the convex hull to following a visibility edge.
+			Eventually the path switches from following the convex hull to following a visibility edge, which leads to another obstacle and therefore another convex hull part.
 			
 			This means, a shortest path consists of many convex hull parts that either are connected by straight lines or touch each other.
-			Connecting lines between two convex hull parts always follow the clockwise or counter clockwise rotation of the convex hull segments being part of the shortest path as illustrated in \cref{fig:convex-hull}.
+			Connecting lines between two convex hull parts always follow the clockwise or counter clockwise direction of the convex hull line segments being part of the shortest path as illustrated in \cref{fig:convex-hull}.
+			If the convex hull part bends in counter clockwise direction, the connecting line leading to the next convex hull also goes into a counter clockwise direction.
 			In other words, if the destination vertex of the connecting line would be part of the source obstacle, then the connecting line would be part of the convex hull as well.
-			Adding this target vertex would therefore enlarge the convex hull in a way that the source vertex, where the connecting line starts, will still be part of the obstacle's convex hull.
+			Adding this destination vertex would therefore enlarge the convex hull in a way that the source vertex, where the connecting line starts, would still be part of the obstacle's convex hull.
 
 			\begin{figure}[h]
 				\begin{figcenter}
@@ -407,15 +408,21 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 					The segment from $v_0$ to $v_1$ is a connecting line between the hull parts.
 					% Suppose $v_1$ would be part of $o_1$, then the path from $s$ via $v_0$ to $v_1$ would be on its convex hull. Same holds true for $v_0$ and $o_2$ respectively.
 					\\
-					The green angle at $v_0$ indicates the angle area in which all visibility neighbors of $v_0$, in case they would be added to $o_1$, would enlarge $o_1$'s convex hull without removing $v_0$ from it. Same applies to the blue angle for $o_2$ and $v_1$ respectively.
+					The green angle at $v_0$ indicates one angle area in which all visibility neighbors of $v_0$, in case they would be added to $o_1$, would expand $o_1$'s convex hull without removing $v_0$ from it. Same applies to the blue angle for $o_2$ and $v_1$ respectively.
 					\\
 					Vertex $v_2$, however, is not a potential neighbor for $v_0$.
-					Adding it to $o_1$ would not only remove $v_0$ from its convex hull but also from the shortest path.}
+					Adding it to $o_1$ would not only remove $v_0$ from $o_1$'s convex hull but would also remove $v_0$ from the shortest path.}
 				\label{fig:convex-hull}
 			\end{figure}
+			Connecting vertices against the bending direction would result in edges that will never be part of a shortest path.
+			For example, connecting $v_0$ to $v_2$ in \cref{fig:convex-hull} would result in two line segments never being part of a shortest path, namely the segment leading into $v_0$ and the segment from $v_0$ to $v_2$. 
+			Only connecting vertices fulfilling the above described convex hull expansion criterion need to be considered, which includes all vertices within certain angular ranges.
+			The marked green and blue angle areas in \cref{fig:convex-hull} represent these \term{valid angle areas} for potential visibility neighbors.
+			Vertices at other angles will be ignored since the resulting edges will never be part of any shortest path.
 			
-			The marked green and blue angle areas in \cref{fig:convex-hull} represent the \term{valid angle areas} for potential visibility neighbors.
-			Vertices at other angles will be ignored since the resulting edges will never be part of a shortest path.
+			Since this is solely a performance optimization, the same considerations apply as in the above shown convex hull filtering.
+			As soon as the weighting function is not creating a shortest path, this optimization might lead to suboptimal paths.
+			Again, removing this optimization solves this problem.
 		
 		\subsubsection{Visibility graph generation overview}
 		
