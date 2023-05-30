@@ -331,7 +331,6 @@ public class VisibilityGraphGeneratorTest
         {
             obstacles[0].Coordinates[0],
             obstacles[1].Coordinates[2],
-            obstacles[2].Coordinates[1],
         };
         CollectionAssert.AreEquivalent(expectedCoordinates, actualCoordinates);
     }

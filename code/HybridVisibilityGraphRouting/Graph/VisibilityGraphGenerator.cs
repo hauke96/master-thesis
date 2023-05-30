@@ -302,8 +302,6 @@ public static class VisibilityGraphGenerator
                     return;
                 }
 
-                var vertexIsOnThisObstacle = obstacle.Vertices.Contains(vertex);
-
                 ShadowArea? shadowArea;
                 bool obstacleIsAlreadyCastingShadow;
                 if (obstacleToShadowArea.TryGetValue(obstacle, out var value))
@@ -314,17 +312,17 @@ public static class VisibilityGraphGenerator
                 else
                 {
                     shadowArea = obstacle.GetShadowAreaOfObstacle(vertex);
-                    obstacleToShadowArea[obstacle] = shadowArea;
                     obstacleIsAlreadyCastingShadow = false;
                 }
 
                 // Only consider obstacles not belonging to this vertex (could lead to false shadows) and also just
                 // consider new obstacles, since a shadow test with existing obstacles was already performed earlier.
-                if (!vertexIsOnThisObstacle && !obstacleIsAlreadyCastingShadow)
+                if (!obstacleIsAlreadyCastingShadow)
                 {
                     if (shadowArea.IsValid)
                     {
                         shadowAreas.Add(shadowArea.From, shadowArea.To, shadowArea);
+                        obstacleToShadowArea[obstacle] = shadowArea;
 
                         if (IsInShadowArea(shadowAreas, angle, distanceToOtherVertex))
                         {
