@@ -287,40 +287,47 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 	\subsection{Step 2: Determining $k$ nearest visible neighbors}
 	\label{subsec:step-2-knn-search}
 			
-		After having all preprocessed obstacles, the main task of the visibility graph creation is performed, namely the determination of all $k$ many visible neighbors.
-		Determining all visible neighbors would also be possible, but this parameter is an easy way to increase performance with the downside of not having all possible edges in the final routing graph.
-		
-		\subsubsection{Parameter $k$ and consequences on the shortest paths}
-		
-			The $k$, however, is not just a single parameter, but rather consists of two separate values:
-			The number of bins $k_b$ and the number of maximum neighbors per bin $k_n$.
-			This means a maximum of $k_b \cdot k_n$ many neighbors are considered.
-			
-			Each bin covers a certain angle area of each vertex, for example for a bin count of 36, each bin would cover a 10° area.
-			In fact, the chosen default values of 36 bins with ten neighbors per bin worked well in all and usages of the implementation.
-			When a bin is filled and a new edge should be inserted, an existing edge might be removed from the bin.
-			The criterion on which edge to remove is its length such that only the $k_n$ shortest edges per angle area of the bin remain.
-			
-			Without this subdivision and by only considering a static maximum number of neighbors, it is possible to only have edges to complex and close objects but no edges to obstacles further away.
-			An example for this would be a large and open park where the $k$ nearest neighbors are probably all at the side of the park where the currently processed vertex is, even though the far away other side of the park is clearly visibly.
-			This subdivision into bins ensures that there will definitely be connections to the other side of the park.
-			
-			Not considering exactly all edges leads to less accurate routing results, i.e. to suboptimal non-shortest paths.
-			As mentioned above, a bin only contains the $k_n$ shortest edges.
-			In the case of using the above mentioned default values of ten edges per 10° range, an omitted edge led to a similar direction as at least nine other edges did.
-			The negative influence of a detour to the total route length by using the second-best edge towards the destination is most likely not significant.
-			\todo{Check this in evaluation! Test: ca. 17\% of edges are removed with $(36,10)$ compared to $(3600,1000)$ with only 13\% longer calculation time}
+		This step performs the main task of the visibility graph creation, namely the determination of all $k$ many visible neighbors.
+		Determining not only $k$ but all visible neighbors would also be possible, but the parameter $k$ is an easy way to increase performance with the downside of not having all possible edges in the final routing graph.
+		The fact of potential suboptimal routes is discussed in the following.
 		
 		\subsubsection{Terminology}
 		
 			Before describing the details on determining the $k$ nearest neighbors, there are some terms that need to be defined.
 			
 			\begin{description}
-				\item[obstacle] An obstacle is a geometry that should be avoided when determining shortest paths. It can be any type of geometry, not only a polygon.
-				\item[\term*{visibility neighbor}] A visibility neighbor of a vertex $v$ is another vertex $u$, which is visible. In other words a linestring from $v$ to $u$ does not intersect with any obstacle. Sometimes $u$ is just called a \emph{visible neighbor}.
-				\item[\term*{obstacle neighbor}] This is a vertex $u$ with an existing edge to or from the currently processed vertex $v$. In other words, $u$ is visible from $v$ but via an existing obstacle edge.
-				\item[\term*{valid angle area}] Certain angle areas around a vertex in which potential visibility neighbors are checked.
+				\item[obstacle] An \term{obstacle} is a geometry that should be avoided when determining shortest paths. It can be any type of geometry, not only a polygon.
+				\item[visibility neighbor] A \term{visibility neighbor} (sometimes also \emph{visible neighbor}) of a vertex $v$ is another vertex $u$, which is visible to $v$ and vice versa. In other words an imaginary linestring from $v$ to $u$ does not intersect with any obstacle. Sometimes $u$ is just called a \emph{visible neighbor}.
+				\item[obstacle neighbor] An \term{obstacle neighbor} of a vertex $v$ is another vertex $u$ with the property that an (undirected) edge $\{v, u\}$ exists. In other words, $u$ is visible from $v$ but via an existing edge that is part of an obstacle.
+				\item[valid angle area] A \term{valid angle area} describes a specially determined angular range around a vertex in which potential visibility neighbors are checked.
 			\end{description}
+		
+		\subsubsection{Parameter $k$ and consequences on the shortest paths}
+		
+			The $k$, however, is not just a single parameter, but rather a tuple of two separate values:
+			The number of bins $k_b$ and the number of maximum neighbors per bin $k_n$.
+			This means a maximum of $k_b \cdot k_n$ many neighbors are considered.
+			
+			Each bin covers a certain angle area of the currently processed vertex, for example for a bin count of 36, each bin would cover a 10° area.
+			In fact, the chosen default values of 36 bins with ten neighbors per bin worked well in all and usages of the implementation.
+			When a bin is full and a new edge should be inserted, an existing edge might be removed from the bin.
+			The criterion on which edge to remove is its length such that only the $k_n$ shortest edges per angle area of the bin remain.
+			Since shortest paths are wanted, storing the $k_n$ longest edges would result paths that are too long.
+			
+			Without this subdivision into bins and by only considering a static maximum number of neighbors, i.e. with $k$ being a single value, it is possible to only have edges to complex and close objects but no edges to obstacles further away.
+			In other words, the edges would not be distributed evenly around a vertex.
+			
+			An example for this would be a building next to a large and open park.
+			The $n$ nearest neighbors of the house are probably quite close, for example vertices of other houses, hedges or fences.
+			This means that the far away other side of the park is not withing the set of neighbors, even though the other side of the park is clearly visible.
+			Subdividing the neighbors into bins ensures that there will definitely be connections to the other side of the park.
+			
+			Generally restricting the number of neighbors and therefore reducing the number of edges leads to less accurate routing results, i.e. to suboptimal paths, which are not shortest.
+			As mentioned above, one bin only contains the $k_n$ shortest edges to its neighbors.
+			The significance of the negative impact due to this restriction, however, is debatable.
+			In the case of using the above mentioned default values of ten edges per 10° range, an omitted edge led to a similar direction as at least nine other edges did.
+			The negative influence of a detour to the total route length by using the next best edge towards the destination is most likely not significant.
+			\todo{Check this in evaluation! Test: ca. 17\% of edges are removed with $(36,10)$ compared to $(3600,1000)$ with only 13\% longer calculation time}
 			
 		\subsubsection{Convex hull}
 		\label{subsubsec:convex-hull}
