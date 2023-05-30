@@ -562,36 +562,29 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 				\end{minipage}
 			\end{figure}
 			
+			Because the step of determining the obstacle neighbors is very important for finding all relevant visibility neighbors, the implementation is within the \texttt{VisibilityGraphGenerator} class, namely the \texttt{AddObstacleNeighborsForObstacles} method.
+			Each of the following steps is within this class as well, due to the close relationship.
+			
 		\subsubsection{Step 2.2: Determining visibility neighbors}
 		
-			The \texttt{VisibilityGraphGenerator} class contains the above described method and structures to determine the visibility neighbors for every vertex.
+			As mentioned above, the \texttt{VisibilityGraphGenerator} class also contains the necessary methods to determine the visibility neighbors for every vertex.
 			Essential to this process is the \texttt{GetVisibilityNeighborsForVertex} method determining the visibility neighbors for a single vertex.
-			
 			This method uses the concept of shadow areas stored in a BinIndex structure with a bin count of 360, each bin covering a 1° area.
 %				Additionally, all obstacles casting a shadow are separately stored, simply to check whether or not a obstacle already casts a shadow.
 %				Since querying of obstacles is necessary, they are stored in a QuadTree.
 			
 			The following steps are performed for every vertex $v$ being part of any convex hull.
 			\begin{enumerate}[leftmargin=2.25em+\widthof{2.2.},label={2.2.\arabic*.}]
-				\item Continue with the next vertex if any of these conditions is true (otherwise process with the next step): Vertex $u$ is in a shadow area \emph{or} $u$ is outside a valid angle area \emph{or} $u$ is not on any convex hull
+				\item Continue with the next vertex if any of these conditions is true (otherwise process with the next step): Vertex $u$ is in a shadow area \emph{or} $u$ is outside a valid angle area \emph{or} $u$ is not part of any convex hull.
 				\item Query all obstacles in the extent spanned by $v$ and $u$. For each obstacle $o$ the following steps are performed:
 				\begin{enumerate}[leftmargin=2.25em+\widthof{2.2.}-1em]
 					\item Get or create the shadow area for $o$.
-					\item If $u$ is not part of $o$ \emph{and} a new shadow area $S$ was just created, check if $u$ is in $S$:\label{itm:if-u-not-on-obstacle}
-					\begin{enumerate}[leftmargin=2.25em+\widthof{2.2.}-2em]
-						\item If so, mark $u$ as hidden and skip all subsequent checks and obstacles.
-						\item If not, mark $u$ as hidden if $u$ is within the angle area of the obstacle \emph{and} an intersection check was positive (using the methods described above in \emph{\nameref{subsubsec:intersection-checks}}).\label{itm:real-visibilty-check}
-					\end{enumerate}
+					\item If a new shadow area $S$ was just created \emph{and} $u \in S$, \emph{then} mark $u$ as hidden and skip all subsequent obstacles and continue with the next vertex.\label{itm:if-u-not-on-obstacle}
+					\item At this point $u \not\in S$, so if $u$ is within the angular range of the obstacle as seen from $v$ \emph{and} there is an intersection of $o$ with the line segment $(v, u)$ (using the methods described above in \emph{\nameref{subsubsec:intersection-checks}}), \emph{then} mark $u$ as hidden.
 				\end{enumerate}
 				\item If $u$ has been marked as hidden, continue with the next vertex.
-				\item If $u$ is visible, store it in a bin for its angle and continue with the next vertex
+				\item If $u$ is visible, store it in the according bin for its angle and continue with the next vertex
 			\end{enumerate}
-			Most steps are relatively straightforward, however, step \ref{itm:if-u-not-on-obstacle} might not be obvious.
-			For a potential neighbor $u$ being part of the current obstacle $o$, the visibility from $v$ cannot solely be determined by the shadow area of $o$.
-			Imagine $o$ being a zig-zag line and $u$ being one vertex in the middle of it such that it is not visible from $v$.
-			In such case, the shadow area of $o$ might start behind $u$, which means $u$ is not within the shadow area and therefore might appear visible to $v$, even though its not, when just checking via the shadow area.
-			To avoid such false positive results, vertices on a current obstacle $o$ are always checked with a full visibility check in step \ref{itm:real-visibilty-check}.
-		
 			Having all visibility neighbors according to the amount and size of the bins, they are sorted in new bins based on the obstacle neighbors.
 			This procedure is described in the following section and its result is stored for the graph creation, which is described below in \cref{subsec:step-3-graph-creation}.
 		
