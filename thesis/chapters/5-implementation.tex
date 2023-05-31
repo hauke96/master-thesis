@@ -592,7 +592,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 		
 			A naive approach to create a visibility graph would be to create edges between vertices that are visible to each other.
 			This would make routing through line based obstacles possible as \cref{fig:routing-through-line-obstacle} illustrates.
-			Such routing behavior is of course not correct.
+			Such routing behavior is, of course, not desired.
 			
 			\begin{figure}[h]
 				\begin{figcenter}
@@ -652,28 +652,20 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 					\end{tikzpicture}
 				\end{figcenter}
 				\caption{
-					Both illustrations show two neighboring vertices $n_a$ and $n_b$ around a vertical obstacle with one vertex in the middle through which routing should \emph{not} be possible.
-					The dotted edges are visibility edges added during graph generation.
+					Both illustrations show two of $v$'s visibility neighbors $n_a$ and $n_b$ next to a vertical obstacle. Routing through this obstacle should \emph{not} be possible.
+					The dotted edges are visibility edges, the solid edges normal line segments of the obstacle.
 					\\
 					\underline{Left}:
 					Visibility graph with naive connections.
-					The two dotted visibility edges $(n_a, u)$ and $(u, n_b)$ allow the shortest path to go through the obstacle from $n_a$ via $u$ to $n_b$.
+					The two visibility edges at $v$ allow the shortest path to go through the obstacle from $n_a$ via $v$ to $n_b$.
 					\\
 					\underline{Right}:
-					The visibility graph with connection respecting the obstacles. Instead of a single node $u$, two nodes $v_a$ and $v_b$ are created.
-					All gabs are for illustration purposes only, the two created nodes have the exact same location, which holds true for the parallel vertical edges.
-					The node $v_a$ is connected to $n_a$ and $v_b$ to $n_b$ but $v_a$ and $v_b$ are not connected.
+					The visibility graph with connection respecting the obstacle. Vertex $v$ is split into two, $v_a$ and $v_b$, with exact same location. All gabs are for illustration purposes only.
+					Vertex $v_a$ is connected to $n_a$ and $v_b$ to $n_b$ but $v_a$ and $v_b$ are not connected.
 					This ensures that the shortest path from $n_a$ to $n_b$ does not lead through the middle vertex of the obstacle anymore.
 				}
 				\label{fig:routing-through-line-obstacle}
 			\end{figure}
-			
-			It must therefore be known which visibility relations are between which obstacle neighbors.
-			Knowing this enables the graph generation to distinguish between all the edges and makes a correct routing results possible.
-			More on this in the \cref{subsec:step-3-graph-creation} below.
-			
-			Each of the resulting bins of a vertex $v$ covers the area between two adjacent obstacle neighbors.
-			All visibility neighbors are sorted into these bins, which is a simple and easy process.
 			
 			\begin{figure}[h]
 				\begin{figcenter}
@@ -718,6 +710,12 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 				\caption{All visible neighbors of $v$ colored by their resulting bin. The neighbors $n_1$, $n_2$ and $n_3$ are also sorted into bins but they occur in each adjacent bin. The means $n_2$ is in the bin for area $n_1$/$n_2$ as well as in the bin for $n_2$/$n_3$.}
 				\label{fig:visibility-bin-sorting}
 			\end{figure}
+			
+			To correctly split and connect vertices, as illustrated for vertex $v$ in \cref{fig:routing-through-line-obstacle}, it must be known which visibility neighbors are within the angular range of which adjacent obstacle neighbors.
+			Knowing this enables the graph generation to sort all visibility neighbors into bins, as shown in \cref{fig:visibility-bin-sorting}.
+			Each of the resulting bins of a vertex $v$ covers the area between two adjacent obstacle neighbors.
+			Later, in \hyperref[subsec:step-3-graph-creation]{step 3}, each bin leads to one new vertex.
+			In the mentioned illustration, there would be two bins, one containing $n_a$ and one containing $n_b$, leading to two new vertices $v_a$ and $v_b$.
 			
 	\subsection{Step 3: Graph creation with visibility edges}
 	\label{subsec:step-3-graph-creation}
