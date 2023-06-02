@@ -1,0 +1,83 @@
+% !TEX root = ../thesis.tex
+% !TeX spellcheck = en_US
+
+The previously shown design and implementation of the hybrid routing algorithm was evaluated regarding performance and usefulness.
+This chapter covers the two aspects of performance and usefulness separately.
+For both parts, method and design details are given followed by the respective results of the evaluations.
+
+\section{Performance evaluation}
+
+	The performance evaluation uses different datasets to measure graph generation and routing times.
+	Each of these two steps is measured more fine-grained by measuring the execution times of separate method calls.
+	The datasets have different properties and sizes and consist of artificial and real world data.
+
+	\subsection{Methods \& Measurements}
+
+		% what was measured?
+		\subsubsection{Collected data}
+		
+			The collected data consists of time measurement, many of them on the level of separate methods.
+			Also, the amount of data is measures, namely the number of edges and vertices at various steps in the process.
+			
+			As a result, two CSV files are written per dataset containing measurement data for the import (including graph generation) and routing.
+			The measurement for the routing requests also contains information about the lengths of the routes, especially beeline and actual route distances.
+			
+			% TODO table with all columns of the measured data including a description and example value?
+		
+		% datasets
+		\subsubsection{Datasets}
+		
+			There are multiple categories of datasets that were used:
+			
+			\begin{description}
+				\item[Maze pattern] A set of datasets containing maze like geometries, namely only connected linestrings forming a seamless pattern tile that can arbitrarily often be repeated. Many of the contained line obstacles are collinear. No roads are within these datasets.
+				\item[Rectangle pattern] Also a set of pattern based datasets, which contain simple rectangles of different sizes. No roads are within these datasets.
+				\item[Circle pattern] Like the rectangle datasets but with circles. These datasets have large number of vertices.
+				\item[OSM export] Based on real world data from the OpenStreetMap project within the inner city of Hamburg, Germany. The data has been filtered to remove all over- and underground features since the hybrid routing algorithm has no handling of three dimensional data. This dataset also contains all roads and ways in the respective region.
+				\item[OSM export without roads] Same data from the above OSM export, but without the roads. This is used to show the overhead of the road on the graph generation and routing times.
+				\item[OSM export without obstacles] Same data from the above OSM export, but without the obstacles, i.e. buildings, walls and water areas. This is used to show the overhead of the obstacles on the graph generation and routing times.
+			\end{description}
+			
+			The pattern datasets exist in different sizes, since the pattern can arbitrarily often be repeated.
+			
+			\todo{Illustrate this as a diagram or list? Also list the number of raw vertices within the datasets.}
+			
+			\todo{List sizes/statistics of datasets?}
+		
+		% optimizations
+		\subsubsection{Optimizations}
+		
+			As \cref{chap:implementation} already mentioned, there were several optimizations made to the implementation.
+			Some of which are on the level of data structures, some on the algorithmic level.
+			The effectiveness of these optimization was also evaluated using the OSM dataset.
+			Each of the following optimizations was deactivated for the evaluation:
+
+			\begin{description}
+				\item[Shadow areas] Instead, every visibility check was performed using the custom intersection check described in \cref{subsubsec:intersection-checks}.
+				\item[Custom intersection check] The custom intersection check was replaced by the \texttt{RobustLineIntersector} class from the NTS to determine intersections between line segments.
+				\item[BinIndex] Instead, the \texttt{BinTree} from the NTS was used.
+				\item[Convex hull] The restriction to only consider vertices on the convex hull of obstacles was removed.
+				\item[Valid angle areas] Considering only potential visibility neighbors within certain angular ranges was deactivated.
+				\item[$k$-NN search] The $k$ of the k-NN search was deactivated to determine all visibility neighbors in all directions.
+			\end{description}			
+		
+		% changes to the code
+		% difficulties in C#
+		% how were times measured? HikerModel
+		\subsubsection{Measurement method}
+		
+		% my system
+		\subsubsection{System specifications}
+	
+	\subsection{Results}
+	
+\section{Routing evaluation}
+
+	\subsection{Correctness}
+	
+		% is the shortest route really the shortest
+
+	\subsection{Usefulness of routes}
+	
+		% How realistic are the routes (= can I go there in real life)? If not: Why not?
+		% How much shorter are the routes?
