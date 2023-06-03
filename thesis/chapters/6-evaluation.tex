@@ -60,11 +60,35 @@ For both parts, method and design details are given followed by the respective r
 				\item[Valid angle areas] Considering only potential visibility neighbors within certain angular ranges was deactivated.
 				\item[$k$-NN search] The $k$ of the k-NN search was deactivated to determine all visibility neighbors in all directions.
 			\end{description}			
+		% how were times measured? HikerModel
+		\subsubsection{Measurement method}
+		
+			Measuring the performance was done by a small agent based simulation project called \texttt{HikerModel}, which consists of one agent, a list of coordinates and the input dataset.
+			Each coordinate from the input list is visited by the agent using the hybrid routing algorithm to determine the path to the next location.
+			The time of the graph generation as well as the time of each routing request are measured.
 		
 		% changes to the code
 		% difficulties in C#
-		% how were times measured? HikerModel
-		\subsubsection{Measurement method}
+		\subsubsection{Technical considerations}
+		
+			The measurement was done by a helper class \texttt{PerformanceMeasurement} providing a method that accepts an arbitrary function which execution time should be measured.
+			
+			Unfortunately, C\# does not provide any method to disable the garbage collector.
+			Also, the just-in-time (JIT) compilation cannot be turned of for normal .NET executions via \texttt{dotnet program.dll}.
+			The alternative would be an ahead-of-time (AOT) compilation, which slows down LINQ operations.
+			\todo[inline]{source on that + test it}
+
+			Because both compilation strategies have disadvantages, the normal .NET based execution was chosen, even though it contains JIT compilation.			
+			To mitigate this dynamic behavior and to generally get resilient results, three warm-up iterations were performed before measuring the times of five actual execution iterations.
+			Even though only the results from the five actual iterations were part of the result, the times from the warm-up iterations showed that three iterations are enough to prepare the runtime and garbage collector.
+			
+			Additionally, the garbage collector was triggered during each of the eight iterations just before calling the function to measure.
+			This is done by the \texttt{GC.Collect()} and \texttt{GC.WaitForPendingFinalizers()} from the \texttt{GC} class of the .NET framework.
+			Using these two methods forces a garbage collection and waits for it to finish \cite{ms-gc}.
+			
+			To prevent the garbage collection from interfering with the execution, a 256 MiB large no-GC-region is placed around the function call via \texttt{GC.TryStartNoGCRegion(256 * 1024 * 1024)}.
+			Although this only works if enough memory is available \cite{ms-no-gc-region}, the system had this memory and introduction this no-GC-region significantly stabilized the results.
+			\todo[inline]{test this and maybe give an example result (standard deviation or so?)}
 		
 		% my system
 		\subsubsection{System specifications}
