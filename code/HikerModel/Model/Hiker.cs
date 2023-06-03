@@ -9,6 +9,7 @@ using Mars.Interfaces.Agents;
 using Mars.Interfaces.Annotations;
 using Mars.Interfaces.Environments;
 using Mars.Interfaces.Layers;
+using Mars.Numerics;
 using NetTopologySuite.Geometries;
 using Position = Mars.Interfaces.Environments.Position;
 
@@ -140,15 +141,64 @@ namespace HikerModel.Model
 
                 _routingPerformanceResult.AddRow(new Dictionary<string, object>
                 {
+                    // Geometry statistics
                     {
-                        "total_vertices",
-                        ObstacleLayer.totalVertices.ToString(numberFormat, invariantCulture)
+                        "obstacles_input",
+                        ObstacleLayer.GraphGenerationResult.ObstacleCountInput.ToString(numberFormat, invariantCulture)
                     },
                     {
-                        "total_vertices_after_preprocessing",
-                        ObstacleLayer.totalVerticesAfterPreprocessing.ToString(numberFormat,
+                        "obstacles_after_unwrapping",
+                        ObstacleLayer.GraphGenerationResult.ObstacleCountAfterUnwrapping.ToString(numberFormat,
                             invariantCulture)
                     },
+
+                    {
+                        "obstacle_vertices_input",
+                        ObstacleLayer.GraphGenerationResult.ObstacleVertices.ToString(numberFormat, invariantCulture)
+                    },
+                    {
+                        "obstacle_vertices_after_unwrapping",
+                        ObstacleLayer.GraphGenerationResult.ObstacleVerticesAfterPreprocessing.ToString(numberFormat,
+                            invariantCulture)
+                    },
+
+                    {
+                        "road_vertices_input",
+                        ObstacleLayer.GraphGenerationResult.RoadVertices.ToString(numberFormat, invariantCulture)
+                    },
+                    {
+                        "road_vertices_after_merging",
+                        ObstacleLayer.GraphGenerationResult.RoadVerticesAfterMerging.ToString(numberFormat,
+                            invariantCulture)
+                    },
+                    {
+                        "road_edges_input",
+                        ObstacleLayer.GraphGenerationResult.RoadEdges.ToString(numberFormat, invariantCulture)
+                    },
+                    {
+                        "road_edges_after_merging",
+                        ObstacleLayer.GraphGenerationResult.RoadEdgesAfterMerging.ToString(numberFormat,
+                            invariantCulture)
+                    },
+
+                    {
+                        "other_vertices_input",
+                        ObstacleLayer.GraphGenerationResult.AllInputVertices.ToString(numberFormat, invariantCulture)
+                    },
+
+                    {
+                        "visibility_edges_before_merging",
+                        ObstacleLayer.GraphGenerationResult.VisibilityEdgesBeforeMerging.ToString(numberFormat,
+                            invariantCulture)
+                    },
+                    {
+                        "visibility_edges_after_merging",
+                        ObstacleLayer.GraphGenerationResult.VisibilityEdgesAfterMerging.ToString(numberFormat,
+                            invariantCulture)
+                    },
+
+                    // Routing statistics
+
                     {
                         "from",
                         from.X.ToString(numberFormat, invariantCulture) + " " +
@@ -176,9 +226,30 @@ namespace HikerModel.Model
                     { "add_positions_to_graph_avg_time", addPositionToGraphAvgTime },
                     { "restore_avg_time", restoreAvgTime },
 
-                    { "min_mem", performanceMeasurementResult.MinMemory.ToString(numberFormat, invariantCulture) },
-                    { "max_mem", performanceMeasurementResult.MaxMemory.ToString(numberFormat, invariantCulture) },
-                    { "avg_mem", performanceMeasurementResult.AvgMemory.ToString(numberFormat, invariantCulture) },
+                    {
+                        "min_mem_before",
+                        performanceMeasurementResult.MinMemoryBefore.ToString(numberFormat, invariantCulture)
+                    },
+                    {
+                        "max_mem_before",
+                        performanceMeasurementResult.MaxMemoryBefore.ToString(numberFormat, invariantCulture)
+                    },
+                    {
+                        "avg_mem_before",
+                        performanceMeasurementResult.AvgMemoryBefore.ToString(numberFormat, invariantCulture)
+                    },
+                    {
+                        "min_mem_after",
+                        performanceMeasurementResult.MinMemoryAfter.ToString(numberFormat, invariantCulture)
+                    },
+                    {
+                        "max_mem_after",
+                        performanceMeasurementResult.MaxMemoryAfter.ToString(numberFormat, invariantCulture)
+                    },
+                    {
+                        "avg_mem_after",
+                        performanceMeasurementResult.AvgMemoryAfter.ToString(numberFormat, invariantCulture)
+                    },
                 });
 
                 if (routingResult.Count == 0)

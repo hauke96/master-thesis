@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime;
@@ -21,22 +22,53 @@ public class PerformanceMeasurement
     {
         private const string IterationNumberKey = "iteration_number";
         private const string IterationTimeKey = "iteration_time";
-        private const string MemoryKey = "memory";
-        private const string TotalVerticesKey = "total_vertices";
-        private const string TotalVerticesAfterPreprocessingKey = "total_vertices_after_preprocessing";
+
+        private const string ObstacleCountInputKey = "obstacles_input";
+        private const string ObstacleCountAfterUnwrappingKey = "obstacles_after_unwrapping";
+
+        private const string ObstacleVerticesKey = "obstacle_vertices_input";
+        private const string ObstacleVerticesAfterPreprocessingKey = "obstacle_vertices_after_unwrapping";
+
+        private const string RoadVerticesKey = "road_vertices_input";
+        private const string RoadVerticesAfterMergingKey = "road_vertices_after_merging";
+        private const string RoadEdgesKey = "road_edges_input";
+        private const string RoadEdgesAfterMergingKey = "road_edges_after_merging";
+
+        private const string AllInputVerticesKey = "other_vertices_input";
+
+        private const string VisibilityEdgesBeforeMergingKey = "visibility_edges_before_merging";
+        private const string VisibilityEdgesAfterMergingKey = "visibility_edges_after_merging";
 
         public List<double> Iterations => Values[IterationTimeKey].Map(v => (double)v);
 
-        private List<long> MemUsage => Values[MemoryKey].Map(v => (long)v);
-        public double MinMemory => MemUsage.Min();
-        public double MaxMemory => MemUsage.Max();
-        public double AvgMemory => MemUsage.Average();
+        public double MinMemoryBefore => _memUsageBefore.Min();
+        public double MaxMemoryBefore => _memUsageBefore.Max();
+        public double AvgMemoryBefore => _memUsageBefore.Average();
+        public double MinMemoryAfter => _memUsageAfter.Min();
+        public double MaxMemoryAfter => _memUsageAfter.Max();
+        public double AvgMemoryAfter => _memUsageAfter.Average();
 
-        public int TotalVertices = -1;
-        public int TotalVerticesAfterPreprocessing = -1;
+        public double ObstacleCountInput = -1;
+        public double ObstacleCountAfterUnwrapping = -1;
+
+        public double ObstacleVertices = -1;
+        public double ObstacleVerticesAfterPreprocessing = -1;
+
+        public double RoadVertices = -1;
+        public double RoadVerticesAfterMerging = -1;
+        public double RoadEdges = -1;
+        public double RoadEdgesAfterMerging = -1;
+
+        public double AllInputVertices = -1;
+
+        public double VisibilityEdgesBeforeMerging = -1;
+        public double VisibilityEdgesAfterMerging = -1;
 
         public double IterationCount => RowCount;
         public double TotalTime => Iterations.Sum();
+
+        private readonly List<long> _memUsageBefore = new();
+        private readonly List<long> _memUsageAfter = new();
 
         public Result(string name) : base(name)
         {
@@ -48,8 +80,9 @@ public class PerformanceMeasurement
             {
                 { IterationNumberKey, IterationCount },
                 { IterationTimeKey, iterationDuration },
-                { MemoryKey, memAfterIteration - memBeforeIteration },
             });
+            _memUsageBefore.Add(memBeforeIteration);
+            _memUsageAfter.Add(memAfterIteration);
         }
 
         /// <summary>
@@ -58,24 +91,36 @@ public class PerformanceMeasurement
         /// </summary>
         public void Close()
         {
-            var rowCount = RowCount;
-            AddRows(new Dictionary<string, List<object>>
-            {
-                {
-                    TotalVerticesKey,
-                    Enumerable.Range(0, rowCount)
-                        .Map(x => ToString(TotalVertices))
-                        .Cast<object>()
-                        .ToList()
-                },
-                {
-                    TotalVerticesAfterPreprocessingKey,
-                    Enumerable.Range(0, rowCount)
-                        .Map(x => ToString(TotalVerticesAfterPreprocessing))
-                        .Cast<object>()
-                        .ToList()
-                }
-            });
+            var rows = new Dictionary<string, List<object>>();
+
+            ToColumn(rows, ObstacleCountInputKey, ObstacleCountInput);
+            ToColumn(rows, ObstacleCountAfterUnwrappingKey, ObstacleCountAfterUnwrapping);
+
+            ToColumn(rows, ObstacleVerticesKey, ObstacleVertices);
+            ToColumn(rows, ObstacleVerticesAfterPreprocessingKey, ObstacleVerticesAfterPreprocessing);
+
+            ToColumn(rows, RoadVerticesKey, RoadVertices);
+            ToColumn(rows, RoadVerticesAfterMergingKey, RoadVerticesAfterMerging);
+            ToColumn(rows, RoadEdgesKey, RoadEdges);
+            ToColumn(rows, RoadEdgesAfterMergingKey, RoadEdgesAfterMerging);
+
+            ToColumn(rows, AllInputVerticesKey, AllInputVertices);
+
+            ToColumn(rows, VisibilityEdgesBeforeMergingKey, VisibilityEdgesBeforeMerging);
+            ToColumn(rows, VisibilityEdgesAfterMergingKey, VisibilityEdgesAfterMerging);
+
+            AddRows(rows);
+        }
+
+        private void ToColumn(Dictionary<string, List<object>> dict, string key, object value)
+        {
+            dict.Add(
+                key,
+                Enumerable.Range(0, RowCount)
+                    .Map(x => ToString(value))
+                    .Cast<object>()
+                    .ToList()
+            );
         }
 
         public override string ToString()
@@ -89,9 +134,7 @@ public class PerformanceMeasurement
   Iterations: {IterationCount}
   Tot time  : {TotalTime}ms
   Time range: {minTime} - {maxTime} ms
-  Avg time  : {avgTime}ms
-  Mem range : {MinMemory} - {MaxMemory} bytes
-  Avg mem   : {AvgMemory} bytes"
+  Avg time  : {avgTime}ms"
                 ;
         }
     }
@@ -102,7 +145,7 @@ public class PerformanceMeasurement
 
         protected readonly string Name;
         protected int RowCount;
-        
+
         public readonly Dictionary<string, List<object>> Values;
 
         public RawResult(string name)

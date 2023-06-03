@@ -39,6 +39,12 @@ public static class HybridVisibilityGraphGenerator
         SpatialGraph? spatialGraph = null;
         double time;
 
+        if (PerformanceMeasurement.CurrentRun != null)
+        {
+            PerformanceMeasurement.CurrentRun.AllInputVertices =
+                features.SelectMany(f => f.Geometry.Coordinates).Distinct().Count();
+        }
+
         // GetObstacles
         time = PerformanceMeasurement.AddFunctionDurationToCurrentRun(
             () => { obstacles = GetObstacles(features, obstacleKeys); },
@@ -49,8 +55,11 @@ public static class HybridVisibilityGraphGenerator
 
         // DetermineVisibilityNeighbors
         time = PerformanceMeasurement.AddFunctionDurationToCurrentRun(
-            () => { vertexNeighbors = VisibilityGraphGenerator.CalculateVisibleKnn(obstacles, visibilityNeighborBinCount,
-                visibilityNeighborsPerBin); },
+            () =>
+            {
+                vertexNeighbors = VisibilityGraphGenerator.CalculateVisibleKnn(obstacles, visibilityNeighborBinCount,
+                    visibilityNeighborsPerBin);
+            },
             "knn_search_time"
         );
         Log.D($"{nameof(HybridVisibilityGraphGenerator)}: get_knn_search_time done after {time}ms");
@@ -68,12 +77,38 @@ public static class HybridVisibilityGraphGenerator
         ArgumentNullException.ThrowIfNull(hybridVisibilityGraph);
         ArgumentNullException.ThrowIfNull(spatialGraph);
 
+        if (PerformanceMeasurement.CurrentRun != null)
+        {
+            PerformanceMeasurement.CurrentRun.VisibilityEdgesBeforeMerging =
+                spatialGraph.Edges.Values.Count(e => e.Data.IsEmpty());
+        }
+
         // MergeRoadsIntoGraph
+        if (PerformanceMeasurement.CurrentRun != null)
+        {
+            var roadFeatures = FeatureHelper.FilterFeaturesByKeys(features, roadKeys!).ToList();
+            var roadSegments = FeatureHelper.SplitFeaturesToSegments(roadFeatures);
+
+            PerformanceMeasurement.CurrentRun.RoadEdges = roadFeatures.Count;
+            PerformanceMeasurement.CurrentRun.RoadVertices =
+                roadSegments.SelectMany(s => s.Geometry.Coordinates).Distinct().Count();
+        }
+
         time = PerformanceMeasurement.AddFunctionDurationToCurrentRun(
             () => { MergeRoadsIntoGraph(features, hybridVisibilityGraph, roadKeys); },
             "merge_road_graph_time"
         );
         Log.D($"{nameof(HybridVisibilityGraphGenerator)}: merge_road_graph_time done after {time}ms");
+
+        if (PerformanceMeasurement.CurrentRun != null)
+        {
+            PerformanceMeasurement.CurrentRun.VisibilityEdgesAfterMerging =
+                spatialGraph.Edges.Values.Count(e => e.Data.IsEmpty());
+            PerformanceMeasurement.CurrentRun.RoadEdgesAfterMerging =
+                spatialGraph.Edges.Values.Count(e => !e.Data.IsEmpty());
+            PerformanceMeasurement.CurrentRun.RoadVerticesAfterMerging =
+                spatialGraph.Edges.Values.Where(e => !e.Data.IsEmpty()).SelectMany(e => e.Geometry).Distinct().Count();
+        }
 
         // AddAttributesToPoiNodes
         time = PerformanceMeasurement.AddFunctionDurationToCurrentRun(

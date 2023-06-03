@@ -11,8 +11,7 @@ namespace HikerModel.Model
 {
     public class ObstacleLayer : VectorLayer
     {
-        public long totalVertices = -1;
-        public long totalVerticesAfterPreprocessing = -1;
+        public PerformanceMeasurement.Result GraphGenerationResult;
 
         public HybridVisibilityGraph HybridVisibilityGraph { get; private set; }
 
@@ -34,7 +33,7 @@ namespace HikerModel.Model
             // any internal calls, since measurement is disabled.
             if (PerformanceMeasurement.IsActive)
             {
-                var result = PerformanceMeasurement.NewMeasurementForFunction(
+                GraphGenerationResult = PerformanceMeasurement.NewMeasurementForFunction(
                     () =>
                     {
                         // Deactivate measurement within constructor:
@@ -42,11 +41,8 @@ namespace HikerModel.Model
                         HybridVisibilityGraphGenerator.Generate(features);
                     },
                     "GenerateGraph", 5, 3);
-                result.Print();
-                result.WriteToFile();
-
-                totalVertices = result.TotalVertices;
-                totalVerticesAfterPreprocessing = result.TotalVerticesAfterPreprocessing;
+                GraphGenerationResult.Print();
+                GraphGenerationResult.WriteToFile();
 
                 // PerformanceMeasurement.IsActive = true;
             }

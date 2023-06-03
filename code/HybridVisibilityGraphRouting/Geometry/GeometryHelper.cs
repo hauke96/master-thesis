@@ -53,7 +53,8 @@ public class GeometryHelper
                           geometriesToIgnore.Sum(o => o.Value.Coordinates.Length);
         if (PerformanceMeasurement.CurrentRun != null)
         {
-            PerformanceMeasurement.CurrentRun.TotalVertices = vertexCount;
+            PerformanceMeasurement.CurrentRun.ObstacleVertices = vertexCount;
+            PerformanceMeasurement.CurrentRun.ObstacleCountInput = geometriesToTriangulate.Count + geometriesToIgnore.Count;
         }
 
         Log.D($"Amount of features before triangulating: {geometriesToTriangulate.Count + geometriesToIgnore.Count}");
@@ -72,7 +73,8 @@ public class GeometryHelper
                       geometriesToIgnore.Sum(o => o.Key.Coordinates.Length);
         if (PerformanceMeasurement.CurrentRun != null)
         {
-            PerformanceMeasurement.CurrentRun.TotalVerticesAfterPreprocessing = vertexCount;
+            PerformanceMeasurement.CurrentRun.ObstacleVerticesAfterPreprocessing = vertexCount;
+            PerformanceMeasurement.CurrentRun.ObstacleCountAfterUnwrapping = triangulatedGeometries.Count + geometriesToIgnore.Count;
         }
 
         Log.D($"Amount of features after triangulating: {triangulatedGeometries.Count + geometriesToIgnore.Count}");
