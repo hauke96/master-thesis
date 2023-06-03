@@ -90,8 +90,13 @@ For both parts, method and design details are given followed by the respective r
 			Although this only works if enough memory is available \cite{ms-no-gc-region}, the system had this memory and introduction this no-GC-region significantly stabilized the results.
 			\todo[inline]{test this and maybe give an example result (standard deviation or so?)}
 		
-		% my system
-		\subsubsection{System specifications}
+		\subsubsection{System and hardware}
+		
+			The measurements were performed on an up-to-date Arch Linux operating system with .NET Core 7.0.105 and MARS framework 4.5.2.
+			Apart from necessary operating system processes and the desktop environment, no other load intensive processes ran during the performance measurements.
+			
+			The hardware consisted of an octa core Intel\textregistered\ Xeon\textregistered\ E3-1231 v3 CPU at 3.40 GHz, a total of 16GB DDR3 1333 MHz RAM and a Samsung EVO 850 SSD.
+			However, the whole algorithm and the \texttt{HikerModel} simulation are single threaded and file system operations are only performed to initially read the input data and to write the measurement results at the end.
 	
 	\subsection{Results}
 	
