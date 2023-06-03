@@ -1,0 +1,112 @@
+% !TEX root = ../thesis.tex
+% !TeX spellcheck = en_US
+
+The previously shown design and implementation of the hybrid routing algorithm was evaluated regarding performance and usefulness.
+This chapter covers the two aspects of performance and usefulness separately.
+For both parts, method and design details are given followed by the respective results of the evaluations.
+
+\section{Performance evaluation}
+
+	The performance evaluation uses different datasets to measure graph generation and routing times.
+	Each of these two steps is measured more fine-grained by measuring the execution times of separate method calls.
+	The datasets have different properties and sizes and consist of artificial and real world data.
+
+	\subsection{Methods \& Measurements}
+
+		% what was measured?
+		\subsubsection{Collected data}
+		
+			The collected data consists of time measurement, many of them on the level of separate methods.
+			Also, the amount of data is measures, namely the number of edges and vertices at various steps in the process.
+			
+			As a result, two CSV files are written per dataset containing measurement data for the import (including graph generation) and routing.
+			The measurement for the routing requests also contains information about the lengths of the routes, especially beeline and actual route distances.
+			
+			% TODO table with all columns of the measured data including a description and example value?
+		
+		% datasets
+		\subsubsection{Datasets}
+		
+			There are multiple categories of datasets that were used:
+			
+			\begin{description}
+				\item[Maze pattern] A set of datasets containing maze like geometries, namely only connected linestrings forming a seamless pattern tile that can arbitrarily often be repeated. Many of the contained line obstacles are collinear. No roads are within these datasets.
+				\item[Rectangle pattern] Also a set of pattern based datasets, which contain simple rectangles of different sizes. No roads are within these datasets.
+				\item[Circle pattern] Like the rectangle datasets but with circles. These datasets have large number of vertices.
+				\item[OSM export] Based on real world data from the OpenStreetMap project within the inner city of Hamburg, Germany. The data has been filtered to remove all over- and underground features since the hybrid routing algorithm has no handling of three dimensional data. This dataset also contains all roads and ways in the respective region.
+				\item[OSM export without roads] Same data from the above OSM export, but without the roads. This is used to show the overhead of the road on the graph generation and routing times.
+				\item[OSM export without obstacles] Same data from the above OSM export, but without the obstacles, i.e. buildings, walls and water areas. This is used to show the overhead of the obstacles on the graph generation and routing times.
+			\end{description}
+			
+			The pattern datasets exist in different sizes, since the pattern can arbitrarily often be repeated.
+			
+			\todo{Illustrate this as a diagram or list? Also list the number of raw vertices within the datasets.}
+			
+			\todo{List sizes/statistics of datasets?}
+		
+		% optimizations
+		\subsubsection{Optimizations}
+		
+			As \cref{chap:implementation} already mentioned, there were several optimizations made to the implementation.
+			Some of which are on the level of data structures, some on the algorithmic level.
+			The effectiveness of these optimization was also evaluated using the OSM dataset.
+			Each of the following optimizations was deactivated for the evaluation:
+
+			\begin{description}
+				\item[Shadow areas] Instead, every visibility check was performed using the custom intersection check described in \cref{subsubsec:intersection-checks}.
+				\item[Custom intersection check] The custom intersection check was replaced by the \texttt{RobustLineIntersector} class from the NTS to determine intersections between line segments.
+				\item[BinIndex] Instead, the \texttt{BinTree} from the NTS was used.
+				\item[Convex hull] The restriction to only consider vertices on the convex hull of obstacles was removed.
+				\item[Valid angle areas] Considering only potential visibility neighbors within certain angular ranges was deactivated.
+				\item[$k$-NN search] The $k$ of the k-NN search was deactivated to determine all visibility neighbors in all directions.
+			\end{description}			
+		% how were times measured? HikerModel
+		\subsubsection{Measurement method}
+		
+			Measuring the performance was done by a small agent based simulation project called \texttt{HikerModel}, which consists of one agent, a list of coordinates and the input dataset.
+			Each coordinate from the input list is visited by the agent using the hybrid routing algorithm to determine the path to the next location.
+			The time of the graph generation as well as the time of each routing request are measured.
+		
+		% changes to the code
+		% difficulties in C#
+		\subsubsection{Technical considerations}
+		
+			The measurement was done by a helper class \texttt{PerformanceMeasurement} providing a method that accepts an arbitrary function which execution time should be measured.
+			
+			Unfortunately, C\# does not provide any method to disable the garbage collector.
+			Also, the just-in-time (JIT) compilation cannot be turned of for normal .NET executions via \texttt{dotnet program.dll}.
+			The alternative would be an ahead-of-time (AOT) compilation, which slows down LINQ operations.
+			\todo[inline]{source on that + test it}
+
+			Because both compilation strategies have disadvantages, the normal .NET based execution was chosen, even though it contains JIT compilation.			
+			To mitigate this dynamic behavior and to generally get resilient results, three warm-up iterations were performed before measuring the times of five actual execution iterations.
+			Even though only the results from the five actual iterations were part of the result, the times from the warm-up iterations showed that three iterations are enough to prepare the runtime and garbage collector.
+			
+			Additionally, the garbage collector was triggered during each of the eight iterations just before calling the function to measure.
+			This is done by the \texttt{GC.Collect()} and \texttt{GC.WaitForPendingFinalizers()} from the \texttt{GC} class of the .NET framework.
+			Using these two methods forces a garbage collection and waits for it to finish \cite{ms-gc}.
+			
+			To prevent the garbage collection from interfering with the execution, a 256 MiB large no-GC-region is placed around the function call via \texttt{GC.TryStartNoGCRegion(256 * 1024 * 1024)}.
+			Although this only works if enough memory is available \cite{ms-no-gc-region}, the system had this memory and introduction this no-GC-region significantly stabilized the results.
+			\todo[inline]{test this and maybe give an example result (standard deviation or so?)}
+		
+		\subsubsection{System and hardware}
+		
+			The measurements were performed on an up-to-date Arch Linux operating system with .NET Core 7.0.105 and MARS framework 4.5.2.
+			Apart from necessary operating system processes and the desktop environment, no other load intensive processes ran during the performance measurements.
+			
+			The hardware consisted of an octa core Intel\textregistered\ Xeon\textregistered\ E3-1231 v3 CPU at 3.40 GHz, a total of 16GB DDR3 1333 MHz RAM and a Samsung EVO 850 SSD.
+			However, the whole algorithm and the \texttt{HikerModel} simulation are single threaded and file system operations are only performed to initially read the input data and to write the measurement results at the end.
+	
+	\subsection{Results}
+	
+\section{Routing evaluation}
+
+	\subsection{Correctness}
+	
+		% is the shortest route really the shortest
+
+	\subsection{Usefulness of routes}
+	
+		% How realistic are the routes (= can I go there in real life)? If not: Why not?
+		% How much shorter are the routes?

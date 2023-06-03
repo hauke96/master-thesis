@@ -1,41 +1,50 @@
 % !TEX root = ../thesis.tex
 % !TeX spellcheck = en_US
 
-This section describes more implementation details of the previously described approach.
-First, an overview of the algorithm with a short description of used frameworks and technologies is given.
-After that, the main sections of this chapter show details of each algorithmic step.
+This section covers details on the implementation of the previously described design.
+First, an overview of the algorithm is given including a short description of used frameworks and technologies.
+Second, two new and important data structures are described in detail.
+Finally, each algorithmic step of the graph generation but also of the query answering is described in the main sections of this chapter.
 
 \section{Algorithm overview}
+
+	Before technical details are covered, this section gives a broad overview of the implementation.
 
 	\subsection{Frameworks and technology}
 	
 		As mentioned in \cref{subsec:constrains} about the constrains, the used programming language is C\# due to the dependency to the MARS framework.
 		The MARS framework is based on the widely used C\# library \term{NetTopologySuite} (\term*{NTS}), which contains numerous data structures, algorithms and helper function to handle and process geospatial data.
 		
-		The NTS was primarily used for basic data structures like features and geometries.
-		Writing data to files is also done using NTS functions to serialize the geospatial data into GeoJSON files.
+		Primarily, the NTS was used for basic data structures like coordinates, geometries and features but also for simple operations, e.g. the calculation of distances.
+		Writing data to files is also done with the help of the NTS, namely to serialize the geospatial data into the GeoJSON format.
 		
-		The \term*{MARS} framework was also used for basic data structures, like the \texttt{Position} class.
-		However, higher level structures like quadtrees and mathematical calculations were used as well.
+		The \term*{MARS} framework was also used for basic data structures, for example the \texttt{Position} class.
+		However, higher level structures were used as well, such as \texttt{SpatialGraph} or \texttt{QuadTree} classes.
 		
 		Not all data structures and algorithms already existed to create the hybrid routing graph.
-		Most notably, a fast line intersection check was implemented as well as a bin based index structure.
-		Several other helper functions and simpler structures, like a separate class for vertices, were added as well.
+		Most notably, a \hyperref[subsubsec:intersection-checks]{fast line intersection check}, a \hyperref[subsec:binindex]{bin based index} and a fast \hyperref[subsec:shadow-areas]{vertex filtering method} were implemented.
+		The latter one refers to the so called \emph{shadow areas} in the sections below.
+		Several other helper functions and simpler structures, for instance separate classes for vertices and obstacles, were added as well.
 
 	\subsection{Early implementation based on the continuous dijkstra paradigm}
 	
-		An early implementation was not creating a visibility graph but instead it was based on the \term*{continuous dijkstra} paradigm with wavelets propagating through open spaces.
+		An early implementation, before the final decision for a strategy fell, was not creating a visibility graph but instead it was based on the \term*{continuous dijkstra} paradigm with wavelets propagating through open spaces.
 		However, there were two reasons why this first approach was replaced by a visibility graph based algorithm.
 		
-		The first reason was a bad performance.
-		Early stages of the continuous dijsktra approach used a very naive and simple implementation without optimizations mentioned in recent literature on this topic.
-		Before investing larger efforts into the implementation of a more complex approach, like the one presented by Hershberger and Suri\cite{hershberger-suri}, a simple preprocessing was introduced and lead to a major performance improvement.
-		This preprocessing determined the visibility between all vertices, which was later used to create events for the collision between wavelets and vertices.
-		Such predetermined visibilities are the core of a visibility graph, thus moving to an actual visibility graph based approach was not a big step.
-		Deciding on the exact approach to generate a working visibility graph was discussed in \cref{subsec:decision-against-existing-approaches}.
+		The main reason was the overall strategy decision on the visibility graph approach.
+		The other reason were performance enhancement made to the naive continuous dijkstra implementation.
 		
-		The second reason to actually move towards a visibility graph was the difficulty and the disadvantages of combining the network based routing with the continuous dijkstra algorithm implemented so far, as described in \cref{sec:combining-routing-algorithms}.
-		Therefore, the decision fell in favor of implementing and optimizing the creation of a routable visibility graph.
+		Early stages of the continuous dijsktra approach used a very naive and simple implementation without optimizations mentioned in recent literature on this topic.
+		Wavelets did not move continuously but instead they snapped to the next \enquote{event}, i.e. the next visible vertex where new wavelets can spawn.
+		Because the strategy decision was not yet made at that time, no larger efforts went into optimizing the implementation, e.g. by implementing the approach presented by Hershberger and Suri\cite{hershberger-suri}.
+		Instead, a simple preprocessing was introduced and lead to a major performance improvement.
+		This preprocessing determined the visibility between all vertices used for the above mentioned events.
+		Such predetermined visibilities are the core idea of a visibility graph, thus moving to an approach using an actual visibility graph was only a small step.
+		Design decisions regarding the implementation and concrete algorithm were discussed in \cref{sec:design-decisions}.
+		
+		A third reason against this early continuous dijkstra implementation were the difficulties and the disadvantages of combining the network based routing with the continuous dijkstra algorithm, as described in \cref{sec:combining-routing-algorithms}.
+		
+		Therefore, this first continuous dijkstra approach was not further pursued but converted to a generator for a routable visibility graph.
 	
 %	\subsection{Chosen approach and potentially faster known algorithms}
 %
@@ -45,55 +54,54 @@ After that, the main sections of this chapter show details of each algorithmic s
 			
 	\subsection{Algorithm steps}
 	\label{subsec:algorithm-steps}
+	
+		In the following, the main steps of the two parts of this algorithm are outlined:
+		The graph generation and the answering of routing requests.
 		
-		As describes in \cref{sec:components}, the \texttt{HybridVisibilityGraphGenerator} class provides a factory method to create a \texttt{HybridVisibilityGraph} from a given collection of features.
-		This factory method consists of the following top level steps, which are all described in \cref{sec:visibility-graph-creation} in more detail:
-		\begin{enumerate}
-			\item Filter the given features for obstacles
-			\item Determine the visibility neighbors
-			\item Use this visibility relation to create a visibility graph
-			\item Merge the existing road network into this graph
-		\end{enumerate}
-		The graph then allows to route between existing nodes.
-		So far, routing queries between arbitrary locations cannot be answered, since this graph based approach only allows routing between existing nodes.
-		To enable answering routing requests between arbitrary locations the resulting graph needs to be extended with edges from and to the given start and end locations.
-		These edges are themselves visibility edges and can therefore be created just like the visibility edges before. The process is further described in \cref{sec:answering-queries} and contains the following steps:
-		\begin{enumerate}
-			\item Connect the source coordinate to the graph:
+		\subsubsection{Graph generation}
+		\label{subsubsec:graph-generation}
+		
+			The \texttt{HybridVisibilityGraphGenerator} class provides a factory method to create an instance of the \texttt{HybridVisibilityGraph} class from a given collection of features.
+			This factory method consists of the following top level steps, which are all described in \cref{sec:visibility-graph-creation} in more detail:
 			\begin{enumerate}
-				\item Add a node to the graph at the source coordinate
-				\item Determine the visibility edges to and from the source coordinate
+				\item \hyperref[subsec:step-1-preprocessing]{Filter the given features for obstacles}
+				\item \hyperref[subsec:step-2-knn-search]{Determine the visibility neighbors}
+				\item \hyperref[subsec:step-3-graph-creation]{Use this visibility relation to create a visibility graph}
+				\item \hyperref[subsec:step-4-graph merging]{Merge the existing road network into this graph}
 			\end{enumerate}
-			\item Repeat the steps for the destination coordinate
-			\item Route along the resulting graph
-			\item Restore the original graph by removing all added nodes and edges
-		\end{enumerate}
-		The last step ensures that subsequent routing queries are answered based on the original graph and not on a previously altered version.
-		It also prevents an uncontrolled growth of the graph.
+			The resulting hybrid visibility graph then allows to route between existing nodes.
+			So far, routing queries between arbitrary locations cannot be answered, only between existing nodes.
+			Handling arbitrary location is part of the next step.
+		
+		\subsubsection{Answering routing queries}
+		
+			To enable answering routing requests between arbitrary locations the resulting graph needs to be extended with edges from and to the given start and end locations.
+			These edges themselves are visibility edges and can therefore be created and merged just like the visibility edges before.
+			Further details are given in \cref{sec:answering-queries} describing the following steps:
+			\begin{enumerate}
+				\item Determine visibility edges for source and destination coordinates\label{itm:step-merging-source-dest}
+				\item Merge these edges into the graph such that they can be removed afterwards
+				\item Route along the resulting graph (e.g. by using the A* algorithm)
+				\item Restore the original graph by removing all nodes and edges added in step \ref{itm:step-merging-source-dest}
+			\end{enumerate}
+			The last step ensures that subsequent routing queries are answered based on the original graph and not on an altered version of it.
+			It also prevents an uncontrolled growth of the graph.
 	
 \section{Data structures}
 	
 	Before the separate steps of the graph generation are described in detail, the newly created data structures are presented.
 		
 	\subsection{Shadow areas}
+	\label{subsec:shadow-areas}
 		
-		Shadow areas are a method to quickly determine vertices that are definitely not visible to each other.
+		Shadow areas are a method to quickly determine and filter out vertices that are not visible to each other.
 		The idea of shadow areas is the following:
 		Let $v$ be the currently processed vertex and think of it as a light bulb illuminating its surroundings.
 		An obstacle $o$ casts a shadow outwards and everything within this shadow is definitely not visible from $v$.
 		
-		Each shadow is determined by three values: two values for the angular range and a third value for the minimum distance from which other vertices within the angular range are definitely not visible.
+		Each shadow is determined by three values: two values for the angular range (also referred to as \emph{angle area}) and a third value for the minimum distance from which other vertices within the angular range are definitely not visible.
 		This means each shadow is an interval with of certain distance, which turns the visibility problem into an interval intersection problem.
-		Latter one, specifically to check whether a point is within an angle area, can be solved using just a few arithmetic operations.
-		
-		The angular range of a shadow is determined by the two bounding vertices (marked in red in \cref{fig:shadow-area}) of the respective obstacle.
-		The furthest of these two bounding vertices determines the minimum distance of the shadow area.
-		
-		Keeping track of these shadow areas for each vertex significantly improves performance, especially with the use of the \texttt{BinIndex} data structure described \hyperref[subsec:binindex]{below}.
-		\todo[inline]{conrete numbers?}
-		
-		% NetworkRoutingPlayground->Jungfernstieg dataset with 7916 vertices: ~7.3s with and 67s without shadow areas -> speed up of factor ~9
-		% Hamburg inner city dataset with 67819 vertices: 382s with and ~31000s without shadow areas -> speed up of factor ~81
+		Checks on whether a certain coordinate is within any shadow area is a simple operation using just a few arithmetic operations.
 		
 		\begin{figure}[h]
 			\begin{figcenter}
@@ -133,38 +141,42 @@ After that, the main sections of this chapter show details of each algorithmic s
 					\draw[gray,path fading=east] (shadow-arc-top-end) -- (shadow-arc-top-faded-end);
 					\draw[gray,path fading=east] (shadow-arc-bottom-end) -- (shadow-arc-bottom-faded-end);
 					
-					% Obstacle 1
-					\tikzDot[red]{(shadow-arc-top)}{o10}
-					\tikzDot{(3.5,2)}{o11}
-					\tikzDot[red]{($(v) +(-\angle:1.2)$)}{o12}
-					\node[above right = 0.5 and 1 of o12] {$o_1$};
+					% Obstacle
+					\tikzDot[red]{(shadow-arc-top)}{o0}
+					\tikzDot{(3.8,2)}{o1}
+					\tikzDot[red]{($(v) +(-\angle:1.2)$)}{o2}
+					\node[above right = 0.5 and 1.15 of o2] {$o$};
 					
-					% Obstacle 2
-					\tikzDot[label=right:$v'$]{(3.5,1.35)}{o20}
-					\tikzDot{(3.5,-0.25)}{o21}
+					% v' and v''
+					\tikzDot[label=right:$v'$]{(2.1,1.1)}{v'}
+					\tikzDot[label=right:$v''$]{(3.4,1.3)}{v''}
 					
-					% Obstacle 3
-					\tikzDot[label=right:$v''$]{(2.1,1.1)}{o30}
-					\tikzDot{(2.1,-0.5)}{o31}
+					\node[darkgray] at (4.7,1.5) {\huge$S$};
 					
-					\node[darkgray] at (4.65,1.5) {\huge$S$};
-					
-					\draw (o10) -- (o11) -- (o12) -- (o10);
-					\draw (o20) -- node[right] {$o_2$} (o21);
-					\draw (o30) -- node[left] {$o_3$} (o31);
+					\draw (o0) -- (o1) -- (o2) -- (o0);
 				\end{tikzpicture}
 			\end{figcenter}
-			\caption{Shadow area $S$ cast by obstacle $o_1$ seen from vertex $v$. The vertex $v'$ of obstacle $o_2$ is not visible from $v$ since it lies inside the shadow area. The two red vertices of obstacle $o_1$ are the bounding vertices determining angle range and distance of $S$. Note that $v''$ is not visible from $v$ even though it is not inside the shadow area.}
+			\caption{Shadow area $S$ cast by obstacle $o$ seen from vertex $v$. The two red vertices of obstacle $o$ are the bounding vertices determining angular range and distance of $S$. The vertex $v''$ is not visible from $v$ since it lies inside the shadow area. Note that $v'$ is not visible either even though it is not inside the shadow area.}
 			\label{fig:shadow-area}
 		\end{figure}
+		
+		The angular range of a shadow is determined by the two bounding vertices (marked in red in \cref{fig:shadow-area}) of the respective obstacle.
+		Of these two bounding vertices, the one further away determines the minimum distance of the shadow area.
+		
+		Keeping track of these shadow areas for each vertex significantly improves performance, especially with the use of the \texttt{BinIndex} data structure described \hyperref[subsec:binindex]{below}.
+		\todo[inline]{conrete numbers?}
+		
+		% NetworkRoutingPlayground->Jungfernstieg dataset with 7916 vertices: ~7.3s with and 67s without shadow areas -> speed up of factor ~9
+		% Hamburg inner city dataset with 67819 vertices: 382s with and ~31000s without shadow areas -> speed up of factor ~81
 		
 	\subsection{BinIndex data structure}
 	\label{subsec:binindex}
 		
 		The \texttt{BinIndex} class implements a linear bin based index structure to store and access intervals.
-		It contains $n$ many bins covering a certain range and consisting of a linked list.
-		When an item is added, it is added to each bin intersecting with the range of the item.
-		Due to the linked list as the underlying data structure for the bins, queries can be answered in linear time.
+		It contains $n$ many bins covering a certain range and each bin consists of a linked list.
+		Items are added to each bin that intersect with the range of the item.
+		Due to the linked list as the underlying data structure for the bins, point queries can be answered in constant and range queries in linear time.
+		However, range queries are not needed within the scope of this work, so they are not implemented.
 		\Cref{fig:bin-index} illustrates this data structure with a simple example.
 		
 		\begin{figure}[h]
@@ -174,35 +186,52 @@ After that, the main sections of this chapter show details of each algorithmic s
 					\def\countX{9} % One more is added due to start at x=0
 					\def\countY{1} % One more is added due to start at x=0
 					
-					\def\itemBStartX{1.5}
+					\def\itemBStartX{1.6}
 					\def\itemBIndexStart{1}
-					\def\itemBLength{4.2}
+					\def\itemBLength{4.1}
 					
 					\def\itemAStartX{4}
 					\def\itemAIndexStart{4}
 					\def\itemALength{7.8}
 					
 					% Item A: Bins 1-5
-					\filldraw[pattern=north west lines,pattern color=Red2] (\itemBStartX*\l,\countY+4*\l) rectangle node[above right=0.125 and -1.3]{Item B: \itemBStartX\ - 5.7} ++(\itemBLength*\l,0.5*\l);
+					\draw[dotted,gray] (\itemBStartX*\l, \countY+4*\l) -- +(0, -\countY-4*\l);
+					\draw[dotted,gray] (\itemBStartX*\l+\itemBLength*\l, \countY+4*\l) -- +(0, -\countY-4*\l);
+					\filldraw[preaction={fill, white},pattern=north west lines,pattern color=Red2] (\itemBStartX*\l,\countY+4*\l) rectangle node[above right=0.125 and -1.3]{Item B: \itemBStartX\ - 5.7} ++(\itemBLength*\l,0.5*\l);
 					
 					% Item B: Bins 4-11(2)
-					\filldraw[pattern=crosshatch dots,pattern color=DodgerBlue3] (\itemAStartX*\l,\countY+3*\l) rectangle node[above right=0.125 and -0.5]{Item A: \itemAStartX\ - 10.8} ++(\itemALength*\l,0.5*\l);
+					\draw[dotted,gray] (\itemAStartX*\l, \countY+3*\l) -- +(0, -\countY-3*\l);
+					\draw[dotted,gray] (\itemAStartX*\l+\itemALength*\l, \countY+3*\l) -- +(0, -\countY-3*\l);
+					\filldraw[preaction={fill, white},pattern=crosshatch dots,pattern color=DodgerBlue3] (\itemAStartX*\l,\countY+3*\l) rectangle node[above right=0.125 and -0.5]{Item A: \itemAStartX\ - 10.8} ++(\itemALength*\l,0.5*\l);
 					
-					\draw[->] (0.5*\countX*\l,\countY+2.25*\l) -- +(0,-1*\l);
+					\draw[->] (\itemAStartX*\l+1.85,\countY+2.75*\l) -- node[right] {1.} +(0,-1.5*\l);
+					\draw[->] (\itemBStartX*\l+0.5,\countY+3.75*\l) -- node[right] {2.} +(0,-2.5*\l);
 					
 					% Draw pattern to bins
-					\fill[pattern=north west lines,pattern color=Red2] (\itemBIndexStart*\l,1.5*\l) rectangle ++(\l,\l);
-					\fill[pattern=north west lines,pattern color=Red2] (\itemBIndexStart*\l+1*\l,0) rectangle ++(2*\l,\l);
-					\fill[pattern=north west lines,pattern color=Red2] (\itemBIndexStart*\l+3*\l,1.5*\l) rectangle ++(\l,\l);
-					\fill[pattern=north west lines,pattern color=Red2] (\itemBIndexStart*\l+4*\l,1.5*\l) rectangle ++(\l,\l);
+					\fill[preaction={fill, white},pattern=north west lines,pattern color=Red2] (\itemBIndexStart*\l,1.5*\l) rectangle ++(\l,\l);
+					\fill[preaction={fill, white},pattern=north west lines,pattern color=Red2] (\itemBIndexStart*\l+1*\l,0) rectangle ++(2*\l,\l);
+					\fill[preaction={fill, white},pattern=north west lines,pattern color=Red2] (\itemBIndexStart*\l+3*\l,1.5*\l) rectangle ++(\l,\l);
+					\fill[preaction={fill, white},pattern=north west lines,pattern color=Red2] (\itemBIndexStart*\l+4*\l,1.5*\l) rectangle ++(\l,\l);
 					
-					\fill[pattern=crosshatch dots,pattern color=DodgerBlue3] (\itemAIndexStart*\l,0) rectangle ++(6*\l,\l);
-					\fill[pattern=crosshatch dots,pattern color=DodgerBlue3] (0,0) rectangle ++(2*\l,\l);
+					\fill[preaction={fill, white},pattern=crosshatch dots,pattern color=DodgerBlue3] (\itemAIndexStart*\l,0) rectangle ++(6*\l,\l);
+					\fill[preaction={fill, white},pattern=crosshatch dots,pattern color=DodgerBlue3] (0,0) rectangle ++(2*\l,\l);
+					
+					% Draw gray versions of filled bins
+					\fill[preaction={fill, white},pattern=north west lines,pattern color=lightgray] (\l*\countX+\l+\itemBIndexStart*\l+1*\l,0) rectangle ++(\l,\l);
+					\fill[preaction={fill, white},pattern=crosshatch dots,pattern color=lightgray] (\l*\countX+\l,0) rectangle ++(2*\l,\l);
+					
+					% Draw outlines of repeating gray bins
+					\foreach \x in {0,...,2}
+					{
+						\draw[lightgray] (\l*\countX+\l+\l*\x,0) rectangle ++(\l,\l);
+						\node[lightgray] at (\l*\countX+\l+\l*\x+0.5*\l,-0.35) {$\x$};
+					}
 					
 					% Draw outlines of bins
 					\foreach \x in {0,...,\countX}
 					{
 						\draw (\l*\x,0) rectangle ++(\l,\l);
+						\node at (\l*\x+0.5*\l,-0.35) {$\x$};
 					}
 					
 					\draw (\itemBIndexStart*\l,1.5*\l) rectangle ++(\l,\l);
@@ -214,22 +243,19 @@ After that, the main sections of this chapter show details of each algorithmic s
 					\draw (\itemBIndexStart*\l+4*\l,1.5*\l) rectangle ++(\l,\l);
 					\draw[->] (\itemBIndexStart*\l+4.5*\l,\l) -- ++(0,0.5*\l);
 					
-					% Label
-					\foreach \x in {0,...,\countX}
-					{
-						\node at (\l*\x+0.5*\l,-0.35) {$\x$};
-					}
-					
 					\node at (0.5*\countX*\l,-0.875) {bins};
 					\node[align=right] at (-1.25,0.5*\countY*\l+\l) {Linked list\\of bins};
 				\end{tikzpicture}
 			\end{figcenter}
-			\caption{Bin index filled with two items A and B. Since item A was added first, B's entries in, which fall into a bin where en entry for item A already exists, are moved to a next item in the linked list of the bin. Each bin covers a range, which means non integer value are rounded down (for from-values) or up (for to-values).}
+			\caption{Bin index filled with two items A (added first) and B (added last). Since item A was added first, B's entries in, which fall into a bin where en entry for item A already exists, are moved to a next item in the linked list of the bin. Each bin covers a range, which means non integer value are rounded down (for from-values) or up (for to-values).}
 			\label{fig:bin-index}
 		\end{figure}
 		
 		The NetTopologySuite offers several indices specifically made for intervals, namely the \texttt{BinTree}, \texttt{SIRtree} and \texttt{SortedPackedIntervalRTree}, of which only the first one is dynamic and thus allows insertions and deletions after the first query was made.
-		Even though these three data structures are tree based and should offer a logarithmic query time complexity compared to the linear time complexity of the \texttt{BinIndex}, the simple and list based \texttt{BinIndex} is significantly faster even for larger datasets with tens of thousands of vertices.
+		This dynamic behavior is crucial for an efficient use of the shadow areas.
+		Otherwise, the shadow areas must be created in beforehand, added to and index and then be used, which results in a large number of unnecessary areas being added to the index.
+		
+		Even though these three data structures are tree based and should offer a logarithmic query time complexity, compared to the linear time complexity of the \texttt{BinIndex}, the simple and list based \texttt{BinIndex} is significantly faster even for larger datasets with tens of thousands of vertices.
 		It is thinkable that the logarithmic complexity is useful for even larger datasets with millions of vertices.
 		
 		\todo{Performance analysis (maybe in evaluation chapter?)}
@@ -237,452 +263,484 @@ After that, the main sections of this chapter show details of each algorithmic s
 \section{Routing graph creation}
 \label{sec:visibility-graph-creation}
 		
-	This section describes the steps given in \cref{subsec:algorithm-steps}, generating a visibility graph and merging it with a road network, in more detail.
+	This section presents implementation details on the steps given in \cref{subsubsec:graph-generation} for graph generation, which includes generating a visibility graph and merging it with a road network.
 
 	\subsection{Step 1: Obstacle filtering and feature preprocessing}
 	\label{subsec:step-1-preprocessing}
 			
-			First the features are filtered to get all relevant obstacle features, which are of arbitrary shape.
-			For performance reasons, multi-geometries, like \texttt{MultiPolygon} are split up into their separate geometries.
-			This is unproblematic for \texttt{MultiLineString} as well as \texttt{MultiPolygon} features, since holes in a polygon are not reachable in the first place and unwrapping the \texttt{MultiPolygon} will not change this.
-			
-			Point features are also considered so that visibility edges can reach \term*{points of interest}.
-			Of course the later performed visibility checks can ignore point features, since they have no spatial size.
-			
-			Another task within this first step is the triangulation of all polygonal shapes.
-			The main reason is a better performance for intersection checks, which is an important operation when checking if an obstacle is between two vertices.
-			Details on this intersection check implementation are described \hyperref[subsubsec:intersection-checks]{below}.
-			
-			Also worth mentioning is the determination of the convex hull of each obstacle.
-			Of course this is not a complex task, since all obstacles are either trianges, linestrings or points, but only vertices on the convex hull of obstacles are further processed.
+		The first step is to filter all input features by their attributes to get all relevant obstacle features, regardless of their geometry.
+		
+		For performance reasons, multi-geometries, like \texttt{MultiPolygon} are split up into their separate geometries.
+		Holes in a polygon are not reachable in the first place and unwrapping the \texttt{MultiPolygon} will not change this.
+		Unwrapping \texttt{MultiLineString} geometries is unproblematic as well, since the result are just multiple normal linestrings.
+		Features made of \texttt{Point} geometries are also considered so that visibility edges can reach \term*{points of interest}.
+		Visibility checks, which are performed in the next step of the algorithm, can ignore point features, since they have no spatial size.
+		
+		Another task within this first step is the triangulation of all polygonal shapes, which happens during the unwrapping of multi geometries.
+		The main reason is a better performance for intersection checks, which is an important operation when checking if an obstacle is between two vertices.
+		Details on the intersection check implementation are given \hyperref[subsubsec:intersection-checks]{below}.
+		
+		Also worth mentioning is the determination of each obstacles' convex hull.
+		Of course this is not a complex task, since all obstacles are either triangles (due to the triangulation), linestrings or points.
+		As described \hyperref[subsubsec:convex-hull]{below}, only vertices on the convex hull of obstacles will be considered in the further processing, which is a simple performance enhancement.
 			
 	\subsection{Step 2: Determining $k$ nearest visible neighbors}
+	\label{subsec:step-2-knn-search}
 			
-			After having all preprocessed obstacles, the main task of the visibility graph creation is performed, namely the determination of all $k$ many visible neighbors.
-			Determining all visible neighbors would also be possible, but this parameter is an easy way to increase performance with the downside of not having all possible edges in the final routing graph.
+		This step performs the main task of the visibility graph creation, namely the determination of all $k$ many visible neighbors for each vertex.
+%		Determining not only $k$ but all visible neighbors would also be possible, but the parameter $k$ is an easy way to increase performance with the downside of not having all possible edges in the final routing graph.
+%		The fact of potential suboptimal routes is discussed in the following.
+		Before the actual algorithm is presented, some concepts and optimizations are described to understand the implemented algorithm.
+		Then an overview of the performed steps is given followed by details on each of these steps.
+		
+		\subsubsection{Terminology}
+		
+			Before describing the details on determining the $k$ nearest neighbors, there are some terms that need to be defined.
 			
-			\subsubsection{Parameter $k$ and consequences on the shortest paths}
+			\begin{description}
+				\item[obstacle] An \term{obstacle} is a geometry that should be avoided when determining shortest paths. It can be any type of geometry, not only a polygon.
+				\item[visibility neighbor] A \term{visibility neighbor} (sometimes also \emph{visible neighbor}) of a vertex $v$ is another vertex $u$, which is visible to $v$ and vice versa. In other words an imaginary linestring from $v$ to $u$ does not intersect with any obstacle. Sometimes $u$ is just called a \emph{visible neighbor}.
+				\item[obstacle neighbor] An \term{obstacle neighbor} of a vertex $v$ is another vertex $u$ with the property that an (undirected) edge $\{v, u\}$ exists. In other words, $u$ is visible from $v$ but via an existing edge that is part of an obstacle.
+				\item[valid angle area] A \term{valid angle area} describes a specially determined angular range around a vertex in which potential visibility neighbors are checked.
+			\end{description}
+		
+		\subsubsection{Parameter $k$ and consequences on the shortest paths}
+		
+			The $k$, however, is not just a single parameter, but rather a tuple of two separate values:
+			The number of bins $k_b$ and the number of maximum neighbors per bin $k_n$.
+			This means a maximum of $k_b \cdot k_n$ many neighbors are considered.
 			
-				The $k$, however, is not just a single parameter, but rather consists of two separate values:
-				The number of bins $k_b$ and the number of maximum neighbors per bin $k_n$.
-				This means a maximum of $k_b \cdot k_n$ many neighbors are considered.
-				
-				Each bin covers a certain angle area of each vertex, for example for a bin count of 36, each bin would cover a 10° area.
-				In fact, the chosen default values of 36 bins with ten neighbors per bin worked well in all and usages of the implementation.
-				When a bin is filled and a new edge should be inserted, an existing edge might be removed from the bin.
-				The criterion on which edge to remove is its length such that only the $k_n$ shortest edges per angle area of the bin remain.
-				
-				Without this subdivision and by only considering a static maximum number of neighbors, it is possible to only have edges to complex and close objects but no edges to obstacles further away.
-				An example for this would be a large and open park where the $k$ nearest neighbors are probably all at the side of the park where the currently processed vertex is, even though the far away other side of the park is clearly visibly.
-				This subdivision into bins ensures that there will definitely be connections to the other side of the park.
-				
-				Not considering exactly all edges leads to less accurate routing results, i.e. to suboptimal non-shortest paths.
-				As mentioned above, a bin only contains the $k_n$ shortest edges.
-				In the case of using the above mentioned default values of ten edges per 10° range, an omitted edge led to a similar direction as at least nine other edges did.
-				The negative influence of a detour to the total route length by using the second-best edge towards the destination is most likely not significant.
-				\todo{Check this in evaluation! Test: ca. 17\% of edges are removed with $(36,10)$ compared to $(3600,1000)$ with only 13\% longer calculation time}
+			Each bin covers a certain angle area of the currently processed vertex, for example for a bin count of 36, each bin would cover a 10° area.
+			In fact, the chosen default values of 36 bins with ten neighbors per bin worked well in all and usages of the implementation.
+			When a bin is full and a new edge should be inserted, an existing edge might be removed from the bin.
+			The criterion on which edge to remove is its length such that only the $k_n$ shortest edges per angle area of the bin remain.
+			Since shortest paths are wanted, storing the $k_n$ longest edges would result paths that are too long.
 			
-			\subsubsection{Terminology}
+			Without this subdivision into bins and by only considering a static maximum number of neighbors, i.e. with $k$ being a single value, it is possible to only have edges to complex and close objects but no edges to obstacles further away.
+			In other words, the edges would not be distributed evenly around a vertex.
 			
-				Before describing the details on determining the $k$ nearest neighbors, there are some terms that need to be defined.
-				
-				\begin{description}
-					\item[obstacle] An obstacle is a geometry that should be avoided when determining shortest paths. It can be any type of geometry, not only a polygon.
-					\item[\term*{visibility neighbor}] A visibility neighbor of a vertex $v$ is another vertex $u$, which is visible. In other words a linestring from $v$ to $u$ does not intersect with any obstacle. Sometimes $u$ is just called a \emph{visible neighbor}.
-					\item[\term*{obstacle neighbor}] This is a vertex $u$ with an existing edge to or from the currently processed vertex $v$. In other words, $u$ is visible from $v$ but via an existing obstacle edge.
-					\item[\term*{valid angle area}] Certain angle areas around a vertex in which potential visibility neighbors are checked.
-				\end{description}
-				
-			\subsubsection{Convex hull}
-				
-				As mentioned above, only visibility neighbors of vertices lying on the convex hull of any obstacle are determined.
-				Such a visibility neighbors also has to be on any convex hull, which means vertices not being on any convex hull will never be connected to anything.
-				
-				The reason for this filtering is quite simple:
-				Vertices not being on a convex hull will never be part of a route since the convex hull itself is by definition the smallest set of points which area completely contains all other points \cite[2]{de-berg-computational-geometry}.
-				Interpreting the convex hull as path around a shape and together with the triangle inequality, this implies that the convex hull is the shortest path around the shape.
-				When determining shortest paths, the part of a route bending around an obstacle will therefore always be a subset of its convex hull.
-				
-				Of course, a routing query might start within a concave part of the obstacle or somewhere completely else.
-				This case, however, is independent of the graph generation and belongs to answering routing queries, which is covered later in \cref{sec:answering-queries}.
-				
-			\subsubsection{Valid angle areas}
-				
-				As mentioned above, a subsection of a shortest path bending around an obstacle always follows a part of its convex hull.
-				Eventually the path follows a visibility edge or reaches its destination vertex on the obstacle.
-				
-				This means, a shortest path consists of many convex hull parts that either are connected by straight lines or touch each other.
-				Connecting lines between two convex hull parts always follow the clockwise or counter clockwise rotation of the convex hull segments being part of the shortest path as illustrated in \cref{fig:convex-hull}.
-				In other words, if the destination vertex of the connecting line would be part of the source obstacle, then the connecting line would be part of the convex hull as well.
+			An example for this would be a building next to a large and open park.
+			The $n$ nearest neighbors of the house are probably quite close, for example vertices of other houses, hedges or fences.
+			This means that the far away other side of the park is not withing the set of neighbors, even though the other side of the park is clearly visible.
+			Subdividing the neighbors into bins ensures that there will definitely be connections to the other side of the park.
+			
+			Generally restricting the number of neighbors and therefore reducing the number of edges leads to less accurate routing results, i.e. to suboptimal paths, which are not shortest.
+			As mentioned above, one bin only contains the $k_n$ shortest edges to its neighbors.
+			The significance of the negative impact due to this restriction, however, is debatable.
+			In the case of using the above mentioned default values of ten edges per 10° range, an omitted edge led to a similar direction as at least nine other edges did.
+			The negative influence of a detour to the total route length by using the next best edge towards the destination is most likely not significant.
+			\todo{Check this in evaluation! Test: ca. 17\% of edges are removed with $(36,10)$ compared to $(3600,1000)$ with only 13\% longer calculation time}
+			
+		\subsubsection{Convex hull}
+		\label{subsubsec:convex-hull}
+			
+			As mentioned in \hyperref[subsec:step-1-preprocessing]{step 1}, only visibility neighbors for vertices lying on the convex hull of any obstacle are determined.
+			The visibility neighbors themselves also have to be on any convex hull, which means vertices not being on any convex hull will never be connected to other vertices.
+			This filtering strategy is a simple performance enhancement with some implications on the route quality as discussed below.
+			
+			The reason for this filtering is quite simple:
+			Vertices not being on a convex hull will never be part of a shortest path.
+			This is the case, since the convex hull itself is by definition the smallest set of points that creates an areas, which in turn contains all other points of the geometry \cite[2]{de-berg-computational-geometry}.
+			Interpreting the convex hull as one possible path around a shape, the triangle inequality implies that this path is in deed the shortest path around the shape.
+			When determining shortest paths, the part of a route bending around an obstacle will therefore always be a subset of its convex hull.
+			
+			Of course, a routing query might start within a concave part of the obstacle or somewhere completely else.
+			This case, however, is independent of the graph generation and belongs to answering routing queries, which is covered later in \cref{sec:answering-queries}.
+			
+			Also, the weighting function for the routing queries might not determine shortest, but for example fastest routes.
+			In such case, the above filtering might result in inaccurate and suboptimal paths.
+			Since this is just a performance enhancement and therefore an optional step, deactivating this filtering increases preprocessing time but solves this inaccuracy problem.
+						
+		\subsubsection{Valid angle areas}
+			
+			As mentioned above, a subsection of a shortest path bending around an obstacle always follows a part of the obstacle's convex hull.
+			Eventually the path switches from following the convex hull to following a visibility edge, which leads to another obstacle and therefore another convex hull part.
+			
+			This means, a shortest path consists of many convex hull parts that either are connected by straight lines or touch each other.
+			Connecting lines between two convex hull parts always follow the clockwise or counter clockwise direction of the convex hull line segments being part of the shortest path as illustrated in \cref{fig:convex-hull}.
+			If the convex hull part bends in counter clockwise direction, the connecting line leading to the next convex hull also goes into a counter clockwise direction.
+			In other words, if the destination vertex of the connecting line would be part of the source obstacle, then the connecting line would be part of the convex hull as well.
+			Adding this destination vertex would therefore enlarge the convex hull in a way that the source vertex, where the connecting line starts, would still be part of the obstacle's convex hull.
 
-				\begin{figure}[h]
-					\begin{figcenter}
-						\begin{tikzpicture}
-							\coordinate (c00) at (0,0.2);
-							\draw (c00)
-								-- ++(2.75,0) coordinate (c01)
-								-- ++(0.8,0.4) coordinate (c02)
-								-- ++(0.1,0.8) coordinate (c03)
-								-- ++(-2,0) coordinate (c04)
-								-- ++(-1.25,-0.35) coordinate (c05)
-								-- (c00);
-							\node[above right = 0.3 and 1.6 of c00] {$o_1$};
-								
-							\coordinate (c10) at (2.5,3.85);
-							\draw (c10)
-								-- ++(-0.4,-0.4) coordinate (c11)
-								-- ++(0.1,-0.6) coordinate (c12)
-								-- ++(2.3,0) coordinate (c13)
-								-- ++(-0.4,1) coordinate (c14)
-								-- (c10);
-							\node[below right = 0.3 and 0.5 of c10] {$o_2$};
+			\begin{figure}[h]
+				\begin{figcenter}
+					\begin{tikzpicture}
+						\coordinate (c00) at (0,0.4);
+						\draw (c00)
+							-- ++(2.75,-0.2) coordinate (c01)
+							-- ++(0.8,0.4) coordinate (c02)
+							-- ++(0.1,0.8) coordinate (c03)
+							-- ++(-2,0) coordinate (c04)
+							-- ++(-1.4,-0.35) coordinate (c05)
+							-- (c00);
+						\node[above right = 0.3 and 1.6 of c00] {$o_1$};
 							
-							\filldraw[thin,Green4!35!white] ($(c03)+(0,0.015)$) -- +(180:0.35) arc [start angle=180, delta angle=-97.126, radius=0.35];
-							\draw[thin,Green4] (c03) -- (intersection of c03--[shift=(c03)]82.874:3 and c12--c13);
-							\draw[thin,Green4] ($(c03)+(0,0.015)$) -- +(180:4);
+						\coordinate (c10) at (2.5,3.85);
+						\draw (c10)
+							-- ++(-0.4,-0.4) coordinate (c11)
+							-- ++(0.1,-0.6) coordinate (c12)
+							-- ++(2.8,0) coordinate (c13)
+							-- ++(-0.4,1.2) coordinate (c14)
+							-- (c10);
+						\node[below right = 0.3 and 0.5 of c10] {$o_2$};
+						
+						\def\d{1.5\pgflinewidth}
+						\filldraw[thin,Green4!35!white] ($(c03)+(0,\d)$) -- +(180:0.35) arc [start angle=180, delta angle=-97.126, radius=0.35];
+						\draw[thin,Green4] (c03) -- (intersection of c03--[shift=(c03)]82.874:3 and c12--c13);
+						\draw[thin,Green4] ($(c03)+(0,\d)$) -- +(180:4);
 %							
-							\filldraw[thin,DodgerBlue3!35!white] ($(c12)+(0,-0.015)$) -- +(279.462:0.4) arc [start angle=279.462, delta angle=80.538, radius=0.4];
-							\draw[thin,DodgerBlue3] (c12) -- (intersection of c12--[shift=(c12)]279.462:1 and c03--c04);
-							\draw[thin,DodgerBlue3] ($(c12)+(0,-0.015)$) -- +(0:4);
-							
-							\tikzDot[label={right:$s$}]{(c01)}{s}
-							\tikzDot[label={right:$v_0$}]{(c03)}{v0}
-							\tikzDot[label={left:$v_1$}]{(c12)}{v1}
-							\tikzDot[label={left:$t$}]{(c10)}{t}
-							
-							\draw[->,Red2,thick] (s) -- (c02);
-							\draw[->,Red2,thick] (c02) -- (v0);
-							\draw[->,Red2,thick] (v0) -- (v1);
-							\draw[->,Red2,thick] (v1) -- (c11);
-							\draw[->,Red2,thick] (c11) -- (t);
-						\end{tikzpicture}
-					\end{figcenter}
-					\caption{The path from $s$ via $v_0$ and $v_1$ to $t$ bends along the convex hulls of $o_1$ and $o_2$.
-						\\
-						The segment from $v_0$ to $v_1$ is a connecting line between the hull parts. Suppose $v_1$ would be part of $o_1$, then the path from $s$ via $v_0$ to $v_1$ would be on its convex hull. Same holds true for $v_0$ and $o_2$ respectively.
-						\\
-						The green angle at $v_0$ indicates the angle area in which all visibility neighbors of $v_0$, in case they would be added to $o_1$, would be part of $o_1$'s convex hull. Same applies to the blue angle for $o_2$ and $v_1$ respectively.}
-					\label{fig:convex-hull}
-				\end{figure}
-				
-				The marked green and blue angles area in \cref{fig:convex-hull} represent the \emph{valid angle areas} for potential visibility neighbors.
-				Vertices at other angles will be ignored since the resulting edges will never be part of a shortest path.
+						\filldraw[thin,DodgerBlue3!35!white] ($(c12)+(0,-\d)$) -- +(279.462:0.4) arc [start angle=279.462, delta angle=80.538, radius=0.4];
+						\draw[thin,DodgerBlue3] (c12) -- (intersection of c12--[shift=(c12)]279.462:1 and c03--c04);
+						\draw[thin,DodgerBlue3] ($(c12)+(0,-\d)$) -- +(0:4);
+						
+						\tikzDot[label={right:$s$}]{(c01)}{s}
+						\tikzDot[label={right:$v_0$}]{(c03)}{v0}
+						\tikzDot[label={left:$v_1$}]{(c12)}{v1}
+						\tikzDot[label={below:$v_2$}]{(c13)}{v2}
+						\tikzDot[label={left:$t$}]{(c10)}{t}
+						
+						\draw[->,Red2,thick] (s) -- (c02);
+						\draw[->,Red2,thick] (c02) -- (v0);
+						\draw[->,Red2,thick] (v0) -- (v1);
+						\draw[->,Red2,thick] (v1) -- (c11);
+						\draw[->,Red2,thick] (c11) -- (t);
+					\end{tikzpicture}
+				\end{figcenter}
+				\caption{The path from $s$ via $v_0$ and $v_1$ to $t$ bends along the convex hulls of $o_1$ and $o_2$.
+					The segment from $v_0$ to $v_1$ is a connecting line between the hull parts.
+					% Suppose $v_1$ would be part of $o_1$, then the path from $s$ via $v_0$ to $v_1$ would be on its convex hull. Same holds true for $v_0$ and $o_2$ respectively.
+					\\
+					The green angle at $v_0$ indicates one angle area in which all visibility neighbors of $v_0$, in case they would be added to $o_1$, would expand $o_1$'s convex hull without removing $v_0$ from it. Same applies to the blue angle for $o_2$ and $v_1$ respectively.
+					\\
+					Vertex $v_2$, however, is not a potential neighbor for $v_0$.
+					Adding it to $o_1$ would not only remove $v_0$ from $o_1$'s convex hull but would also remove $v_0$ from the shortest path.}
+				\label{fig:convex-hull}
+			\end{figure}
+			Connecting vertices against the bending direction would result in edges that will never be part of a shortest path.
+			For example, connecting $v_0$ to $v_2$ in \cref{fig:convex-hull} would result in two line segments never being part of a shortest path, namely the segment leading into $v_0$ and the segment from $v_0$ to $v_2$. 
+			Only connecting vertices fulfilling the above described convex hull expansion criterion need to be considered, which includes all vertices within certain angular ranges.
+			The marked green and blue angle areas in \cref{fig:convex-hull} represent these \term{valid angle areas} for potential visibility neighbors.
+			Vertices at other angles will be ignored since the resulting edges will never be part of any shortest path.
 			
-			\subsubsection{Visibility graph generation overview}
+			Since this is solely a performance optimization, the same considerations apply as in the above shown convex hull filtering.
+			As soon as the weighting function is not creating a shortest path, this optimization might lead to suboptimal paths.
+			Again, removing this optimization solves this problem.
 			
-				The performed steps of determining the visible neighbors are the following.
-				Each step is described with more details sections below.
-				\begin{enumerate}
-					\item Determine the obstacle neighbors for each vertex.
-					\item For each vertex $v$ lying on the convex hull of any obstacle, determine its visibility neighbors as follows.
-					\begin{enumerate}
-						\item For each other vertex $u$, do the following:
-						\begin{enumerate}
-							\item Is $u$ in any shadow area \emph{or} not on any convex hull \emph{or} not in any valid angle area? If so: $u$ is not relevant, move to the next other vertex.
-							\item Query all obstacles between $v$ and $u$. This is done by the bounding box spanned by $v$ and $u$.
-							\item Create and store the shadow area of each such obstacle $o$.
-							\item Check if $u$ is a visibility neighbor, which is true if $u$ is a) still not in any shadow area and b) the line segment from $v$ to $u$ intersects with none of the above queries obstacles.
-						\end{enumerate}
-						\item Sort visibility neighbors into bins based on the obstacle neighbors.
-					\end{enumerate}
-				\end{enumerate}
+		\subsubsection{Intersection checks}
+		\label{subsubsec:intersection-checks}
 			
-			\subsubsection{Determining obstacle neighbors}
-				
-				% TODO Revise this and maybe add more details
-				Determining the obstacle neighbors is relatively simple and straight forward.
-				Each coordinate $c$ of an obstacle $o$ is processed by looking at the previous and next coordinates $c_p$ and $c_n$ on that obstacle, which are the potential neighbors.
-				If the line segment $(c, c_p)$ to the previous coordinate, for $c_n$ respectively, does not intersect with any obstacle, it is considered an obstacle neighbor.
-				
-				\begin{figure}[h]
-					\begin{minipage}[t]{0.475\textwidth}
-						\begin{figcenter}
-							\begin{tikzpicture}
-								\tikzDot[label={[text=gray]below:$v_0$},gray]{(0,0)}{v0}
-								\tikzDot[label=above:$v_1$]{(1,1.5)}{v1}
-								\tikzDot[label=below:$v_2$]{(2,0)}{v2}
-								\tikzDot[label=above:$v_3$]{(3,1.5)}{v3}
-								\tikzDot[label={[text=gray]below:$v_4$},gray]{(4,0)}{v4}
-								
-								\draw[gray] (v0) -- (v1);
-								\draw[->] (v2) -- (v1);
-								\draw[->] (v2) -- (v3);
-								\draw[gray] (v3) -- (v4);
-							\end{tikzpicture}
-						\end{figcenter}
-						\caption{The black lines show the obstacle neighbors of $v_2$, which are $v_1$ and $v_3$.}
-					\end{minipage}
-					\hfill
-					\begin{minipage}[t]{0.475\textwidth}
-						\begin{figcenter}
-							\begin{tikzpicture}
-								\def\d{1.5}
-								
-								\tikzDot[gray]{(0,0)}{c00}
-								\tikzDot[label=above:$v_0$]{(0,\d)}{v0}
-								\tikzDot[label=above:$v_1$]{(\d,\d)}{v1}
-								\tikzDot[label=above:$v_2$]{(2*\d,\d)}{v2}
-								\tikzDot[label={[text=gray]below:$v_3$},gray]{(\d,0)}{v3}
-								\tikzDot[gray]{(2*\d,0)}{c20}
-								
-								\node at (0.5*\d,0.5*\d) {$o_1$};
-								\node at (1.5*\d,0.5*\d) {$o_2$};
-								
-								\draw[gray] (c00) -- (v0);
-								\draw[gray] (c00) -- (v3);
-								\draw[->] (v1) -- (v0);
-								\draw[->] (v1) -- (v2);
-								\draw[->,gray] (v1) -- (v3);
-								\draw[gray] (c20) -- (v3);
-								\draw[gray] (c20) -- (v2);
-							\end{tikzpicture}
-						\end{figcenter}
-						\caption{The black lines show the obstacle neighbors of $v_1$, which are $v_0$ and $v_2$. The vertex $v_3$ is a neighbor as well, but hidden due to the touching obstacles $o_1$ and $o_2$.}
-					\end{minipage}
-				\end{figure}
+			All intersection checks are performed using own implementations instead of method from the the NetTopologySuite, which are more generalized and therefore slower.
+			In fact, there are two types of intersection checks implemented:
+			One function to check for an intersection between two arbitrary line segments and one to check if a point lies within a triangle.
 			
-			\subsubsection{Line segment intersection checks}
-			\label{subsubsec:intersection-checks}
+			The line segment intersection check uses a cross product based approach described in \emph{Introduction to algorithms} by Thomas H Cormen et al. \cite[1018]{cormen-introduction-to-alg}.
+			Even though this method only works on single line segments, it is significantly faster than general purpose checks provided by the NetTopologySuite.
+			This is still true when checking if a single line segments intersects any of multiple obstacles.
 			
-				All intersections are checked using own implementations no not rely on the generalized and therefore slower intersection checks of the NetTopologySuite.
-				In fact, there are two types of intersection checks implemented:
-				One check for intersection between two arbitrary line segments and one checks if a point lies within a triangle.
-				This triangle check is used for closed obstacles, which got triangulated during \hyperref[subsec:step-1-preprocessing]{preprocessing}.
-				
-				The line segment intersection check uses a cross product based approach described in \emph{Introduction to algorithms} by Thomas H Cormen et al \cite[1018]{cormen-introduction-to-alg}.
-				Even though this method only works on single line segments, it is significantly faster than general purpose checks provided by the NetTopologySuite.
-				
-				\begin{figure}[h]
+			\begin{figure}[h]
+				\begin{figcenter}
+					\begin{tikzpicture}
+						\tikzDot[label={below left:$(1,0,0)$}]{(0,0)}{a}
+						\tikzDot[label={below right:$(0,1,0)$}]{(4,0)}{b}
+						\tikzDot[label={above:$(0,0,1)$}]{(2,3)}{c}
+						
+						\coordinate[between={a and c}] (ac);
+						\coordinate[between={b and c}] (bc);
+						\coordinate[between={a and b}] (ab);
+						
+						\draw (a) -- (b);
+						\draw (a) -- (c);
+						\draw (b) -- (c);
+						
+						\draw[dotted] (a) -- (bc);
+						\draw[dotted] (b) -- (ac);
+						\draw[dotted] (c) -- (ab);
+						
+						\tikzDot{(intersection of a--bc and b--ac)}{center};
+						\node[below=1mm of center,inner sep=0mm,fill=white] {$c=(\nicefrac{1}{3},\nicefrac{1}{3},\nicefrac{1}{3})$};
+						
+						\tikzDot[label={left:$a=(0.5,0,0.5)$}]{(ac)}{left}
+						\tikzDot[label={right:$b=(-0.2,0.5,0.7)$}]{(3.4,2.1)}{right}
+					\end{tikzpicture}
+				\end{figcenter}
+				\caption{A triangle with barycentric coordinates and dotted lines for the three coordinate axes. Noteworthy is coordinate $b$ as it is outside the triangle, which can be directly seen from the negative value $-0.2$.}
+				\label{fig:barycentric-triangle}
+			\end{figure}
+			
+			Checking if a vertex lies inside a triangle is done by a barycentric collision check and used for closed obstacles, which got triangulated during \hyperref[subsec:step-1-preprocessing]{preprocessing}.
+			This method creates a barycentric coordinate system in which each coordinate has the form $(\lambda_1,\lambda_2,\lambda_3)$.
+			For each corner of the triangle, exactly one value of the coordinate is one and the other two values are zero.
+			\Cref{fig:barycentric-triangle} illustrates this with some exemplary points.
+			Due to the properties of this coordinate system, a point $p$ is inside the triangle when the condition $0 < \lambda_i < 1$ is satisfied for each of the three values.
+			Even though it sounds complex to create a whole coordinate system for a single collision check, this method only uses a few basic arithmetic operations and is therefore very fast.
+			
+		\subsubsection{Shadow area operations}
+			
+			The shadow areas are stored in the previously described \hyperref[subsec:binindex]{BinIndex} data structure.
+			Inserting of the intervals therefore works as described in \cref{subsec:binindex}.
+			
+			Shadow areas are always determined for a single vertex $v$.
+			Checking if a different vertex $u$ is within any shadow area, and therefore not visible from $v$, is quite simple.
+			First, all shadow areas are queried that fall into the bin of the $u$'s angle.
+			Second, for each shadow area $s$ it is checked whether $u$ is at least a far away from $v$ as the minimum distance of $s$ and whether the vertex is exactly within the angle area of $s$.
+			If both holds true for any such shadow area $s$, then $u$ is not visible from $v$.
+		
+		\subsubsection{Visibility graph generation overview}
+		
+			The performed steps of determining the visibility neighbors are the following.
+			Each step is described with more details in the sections below.
+			\begin{enumerate}[leftmargin=2.25em+\widthof{2.},label={2.\arabic*.}]
+				\item Determine the obstacle neighbors for each vertex.
+				\item For each vertex $v$ lying on any convex hull, determine its visibility neighbors.
+%				\begin{enumerate}
+%					\item For each other vertex $u$, do the following:
+%					\begin{enumerate}
+%						\item Is $u$ in any shadow area \emph{or} not on any convex hull \emph{or} not in any valid angle area? If so: $u$ is not relevant, move to the next other vertex.
+%						\item Query all obstacles between $v$ and $u$. This is done by the bounding box spanned by $v$ and $u$.
+%						\item Create and store the shadow area of each such obstacle $o$.
+%						\item Check if $u$ is a visibility neighbor, which is true if $u$ is a) still not in any shadow area and b) the line segment from $v$ to $u$ intersects with none of the above queries obstacles.
+%					\end{enumerate}
+%				\end{enumerate}
+				\item Sort the visibility neighbors into bins based on the obstacle neighbors.
+			\end{enumerate}
+		
+		\subsubsection{Step 2.1: Determining obstacle neighbors}
+			
+			Obstacle neighbors are needed to correctly handle the closed surface of obstacles, especially when two obstacles tough each other.
+			This handling of neighbors is then used to form the valid angle areas, which in turn are used to determine whether a distant vertex is relevant for visibility checks.
+			
+			Determining the obstacle neighbors is relatively simple and straight forward.
+			Each vertex $v$ of an obstacle $o$ is processed by looking at the previous and next vertices $v_p$ and $v_n$ on the same obstacle, which are both potential obstacle neighbors.
+			If the line segment $(v, v_p)$, same applies to $v_n$, does not intersect with any other obstacle and is not an edge on any other obstacle, it is considered an obstacle neighbor.
+			Latter case can be seen in \cref{fig:obstacle-neighbors-touching} at the line segment $(v_1, v_3)$, which is part of two touching obstacles.
+						
+			\begin{figure}[h]
+				\begin{minipage}[t]{0.475\textwidth}
 					\begin{figcenter}
 						\begin{tikzpicture}
-							\tikzDot[label={below left:$(1,0,0)$}]{(0,0)}{a}
-							\tikzDot[label={below right:$(0,1,0)$}]{(4,0)}{b}
-							\tikzDot[label={above:$(0,0,1)$}]{(2,3)}{c}
+							\tikzDot[label={[text=gray]below:$v_0$},gray]{(0,0)}{v0}
+							\tikzDot[label=above:$v_1$]{(1,1.5)}{v1}
+							\tikzDot[label=below:$v_2$]{(2,0)}{v2}
+							\tikzDot[label=above:$v_3$]{(3,1.5)}{v3}
+							\tikzDot[label={[text=gray]below:$v_4$},gray]{(4,0)}{v4}
 							
-							\coordinate[between={a and c}] (ac);
-							\coordinate[between={b and c}] (bc);
-							\coordinate[between={a and b}] (ab);
-							
-							\draw (a) -- (b);
-							\draw (a) -- (c);
-							\draw (b) -- (c);
-							
-							\draw[dotted] (a) -- (bc);
-							\draw[dotted] (b) -- (ac);
-							\draw[dotted] (c) -- (ab);
-							
-							\tikzDot{(intersection of a--bc and b--ac)}{center};
-							\node[below=1mm of center,inner sep=0mm,fill=white] {$c=(\nicefrac{1}{3},\nicefrac{1}{3},\nicefrac{1}{3})$};
-							
-							\tikzDot[label={left:$a=(0.5,0,0.5)$}]{(ac)}{left}
-							\tikzDot[label={right:$b=(-0.2,0.5,0.7)$}]{(3.4,2.1)}{right}
+							\draw[gray] (v0) -- (v1);
+							\draw[->,very thick] (v2) -- (v1);
+							\draw[->,very thick] (v2) -- (v3);
+							\draw[gray] (v3) -- (v4);
 						\end{tikzpicture}
 					\end{figcenter}
-					\caption{A triangle with barycentric coordinates and dotted lines for the three coordinate axes. Noteworthy is coordinate $b$ as it is outside the triangle, which can be directly seen from the negative value $-0.2$.}
-					\label{fig:barycentric-triangle}
-				\end{figure}
-				
-				\noindent Checking if a vertex lies inside a triangle is done by a barycentric collision check.
-				This method creates a barycentric coordinate system where each coordinate has the form $(\lambda_1,\lambda_2,\lambda_3)$ of which one value is one and the other two are zero for each corner vertex of the triangle.
-				\Cref{fig:barycentric-triangle} illustrates this with some exemplary points.
-				Due to the properties of this coordinate system, a point $p$ is inside the triangle when the condition $0 < \lambda_i < 1$ is satisfied for each of the three values.
-				Even though it sounds complex to create a whole coordinate system for a single collision check, this method only uses a few basic arithmetic operations and is therefore very fast.
-				
-			\subsubsection{Shadow area operations}
-				
-				The shadow areas are stored in the previously described \hyperref[subsec:binindex]{BinIndex} data structure.
-				Inserting therefore works as describes above.
-				
-				Shadow areas are always relative to a central vertex $v$.
-				Checking if a different vertex $u$ is within any shadow area, and therefore not visible from $v$, is quite simple.
-				First, all shadow areas are queried that fall into the bin of the vertex's angle.
-				Second, for each shadow area $s$ it is checked whether $u$ is at least a far away from $v$ as the minimum distance of $s$ and whether the vertex is exactly within the angle area of $s$.
-				If both holds true for any such shadow area, then $u$ is not visible from $v$.
-				
-			\subsubsection{Determining visibility neighbors}
+					\caption{The black lines show the obstacle neighbors of $v_2$, which are $v_1$ and $v_3$.}
+				\end{minipage}
+				\hfill
+				\begin{minipage}[t]{0.475\textwidth}
+					\begin{figcenter}
+						\begin{tikzpicture}
+							\def\d{1.5}
+							
+							\tikzDot[gray]{(0,0)}{c00}
+							\tikzDot[label=above:$v_0$]{(0,\d)}{v0}
+							\tikzDot[label=above:$v_1$]{(\d,\d)}{v1}
+							\tikzDot[label=above:$v_2$]{(2*\d,\d)}{v2}
+							\tikzDot[label={[text=gray]below:$v_3$},gray]{(\d,0)}{v3}
+							\tikzDot[gray]{(2*\d,0)}{c20}
+							
+							\node at (0.5*\d,0.5*\d) {$o_1$};
+							\node at (1.5*\d,0.5*\d) {$o_2$};
+							
+							\draw[gray] (c00) -- (v0);
+							\draw[gray] (c00) -- (v3);
+							\draw[->,very thick] (v1) -- (v0);
+							\draw[->,very thick] (v1) -- (v2);
+							\draw[->,gray] (v1) -- (v3);
+							\draw[gray] (c20) -- (v3);
+							\draw[gray] (c20) -- (v2);
+						\end{tikzpicture}
+					\end{figcenter}
+					\caption{The black lines show the obstacle neighbors of $v_1$, which are $v_0$ and $v_2$. The vertex $v_3$ is a neighbor as well, but hidden due to the touching obstacles $o_1$ and $o_2$ and therefore not an obstacle neighbor.}
+					\label{fig:obstacle-neighbors-touching}
+				\end{minipage}
+			\end{figure}
 			
-				The \texttt{VisibilityGraphGenerator} class contains the above described method and structures to determine the visibility neighbors for every vertex.
-				Essential to this process is the \texttt{GetVisibilityNeighborsForVertex} method determining the visibility neighbors for a single vertex.
-				
-				This method uses the concept of shadow areas stored in a BinIndex structure with a bin count of 360, each bin covering a 1° area.
+			Because the step of determining the obstacle neighbors is very important for finding all relevant visibility neighbors, the implementation is within the \texttt{VisibilityGraphGenerator} class, namely the \texttt{AddObstacleNeighborsForObstacles} method.
+			Each of the following steps is within this class as well, due to the close relationship.
+			
+		\subsubsection{Step 2.2: Determining visibility neighbors}
+		
+			As mentioned above, the \texttt{VisibilityGraphGenerator} class also contains the necessary methods to determine the visibility neighbors for every vertex.
+			Essential to this process is the \texttt{GetVisibilityNeighborsForVertex} method determining the visibility neighbors for a single vertex.
+			This method uses the concept of shadow areas stored in a BinIndex structure with a bin count of 360, each bin covering a 1° area.
 %				Additionally, all obstacles casting a shadow are separately stored, simply to check whether or not a obstacle already casts a shadow.
 %				Since querying of obstacles is necessary, they are stored in a QuadTree.
-				
-				For a given vertex $v$ any other vertex $u$ is checked for visibility by executing the following steps:
-				\begin{enumerate}
-					\item Check if $u$ is in a shadow area \emph{or} if $u$ is outside a valid angle area and continue with the next vertex if this is the case.
-					\item Query all obstacles in the extent spanned by $v$ and $u$. For each obstacle $o$ the following steps are performed:
-					\begin{enumerate}
-						\item Get or create the shadow area for $o$.
-						\item If $u$ is not part of $o$ \emph{and} a new shadow area $S$ was just created, check if $u$ is in $S$:\label{itm:if-u-not-on-obstacle}
-						\begin{enumerate}
-							\item If so, mark $u$ as hidden and skip all subsequent checks and obstacles.
-							\item If not, mark $u$ as hidden if $u$ is within the angle area of the obstacle \emph{and} an intersection check was positive (using the methods described above in \emph{\nameref{subsubsec:intersection-checks}}).\label{itm:real-visibilty-check}
-						\end{enumerate}
-					\end{enumerate}
-					\item If $u$ has been marked as hidden, continue with the next vertex.
-					\item If $u$ is visible, store it in a bin for its angle and continue with the next vertex
+			
+			The following steps are performed for every vertex $v$ being part of any convex hull.
+			\begin{enumerate}[leftmargin=2.25em+\widthof{2.2.},label={2.2.\arabic*.}]
+				\item Continue with the next vertex if any of these conditions is true (otherwise process with the next step): Vertex $u$ is in a shadow area \emph{or} $u$ is outside a valid angle area \emph{or} $u$ is not part of any convex hull.
+				\item Query all obstacles in the extent spanned by $v$ and $u$. For each obstacle $o$ the following steps are performed:
+				\begin{enumerate}[leftmargin=2.25em+\widthof{2.2.}-1em]
+					\item Get or create the shadow area for $o$.
+					\item If a new shadow area $S$ was just created \emph{and} $u \in S$, \emph{then} mark $u$ as hidden and skip all subsequent obstacles and continue with the next vertex.\label{itm:if-u-not-on-obstacle}
+					\item At this point $u \not\in S$, so if $u$ is within the angular range of the obstacle as seen from $v$ \emph{and} there is an intersection of $o$ with the line segment $(v, u)$ (using the methods described above in \emph{\nameref{subsubsec:intersection-checks}}), \emph{then} mark $u$ as hidden.
 				\end{enumerate}
-				Most steps are relatively straightforward, however, step \ref{itm:if-u-not-on-obstacle} might not be obvious.
-				For a potential neighbor $u$ being part of the current obstacle $o$, the visibility from $v$ cannot solely be determined by the shadow area of $o$.
-				Imagine $o$ being a zig-zag line and $u$ being one vertex in the middle of it such that it is not visible from $v$.
-				In such case, the shadow area of $o$ might start behind $u$, which means $u$ is not within the shadow area and therefore might appear visible to $v$, even though its not, when just checking via the shadow area.
-				To avoid such false positive results, vertices on a current obstacle $o$ are always checked with a full visibility check in step \ref{itm:real-visibilty-check}.
+				\item If $u$ has been marked as hidden, continue with the next vertex.
+				\item If $u$ is visible, store it in the according bin for its angle and continue with the next vertex
+			\end{enumerate}
+			Having all visibility neighbors according to the amount and size of the bins, they are sorted in new bins based on the obstacle neighbors.
+			This procedure is described in the following section and its result is stored for the graph creation, which is described below in \cref{subsec:step-3-graph-creation}.
+		
+		\subsubsection{Step 2.3: Sort resulting visibility neighbors into bins}
+		
+			A naive approach to create a visibility graph would be to create edges between vertices that are visible to each other.
+			This would make routing through line based obstacles possible as \cref{fig:routing-through-line-obstacle} illustrates.
+			Such routing behavior is, of course, not desired.
 			
-				Having all visibility neighbors according to the amount and size of the bins, they are sorted in new bins based on the obstacle neighbors.
-				This procedure is described in the following section and its result is stored for the graph creation, which is described below in \cref{subsec:step-3-graph-creation}.
-			
-			\subsubsection{Sort resulting visibility neighbors into bins}
-			
-				A naive approach to create a visibility graph would be to create edges between vertices that are visible to each other.
-				This would make routing through line based obstacles possible as \cref{fig:routing-through-line-obstacle} illustrates.
-				Such routing behavior is of course not correct.
-				
-				\begin{figure}[h]
-					\begin{figcenter}
-						\begin{tikzpicture}
-							\tikzDot{(2,0)}{vo0};
-							\tikzDot[label={[label distance=-1.25mm]above right:$v $}]{(2,1)}{vo1};
-							\tikzDot{(2,2)}{vo2};
-							
-							\draw (vo0) -- (vo1);
-							\draw (vo1) -- (vo2);
-							
-							\tikzDot[label=left:$n_a$,outer sep=0.5mm]{(0.5,1.3)}{n1};
-							\tikzDot[label=right:$n_b$,outer sep=0.5mm]{(3.5,1)}{n2};
-							
-							\draw[dotted] (n1) -- (vo1);
-							\draw[dotted] (vo1) -- (n2);
-							
-							\draw[dotted] (n1) -- (vo0);
-							\draw[dotted] (n1) -- (vo2);
-							\draw[dotted] (n2) -- (vo0);
-							\draw[dotted] (n2) -- (vo2);
-						\end{tikzpicture}
-						\hspace{2cm}
-						\begin{tikzpicture}
-							\def\r{0.85mm}
-							\def\rMargin{1.1mm} % = r + 0.25mm
-							\def\gap{0.1875mm}
-							
-							\tikzDot{(2,0)}{vo0};
-							\node (vo1) at (2,1) {};
-							\node[label={[label distance=-1.25mm]above left:$v_a$}] at (vo1) {};
-							\node[label={[label distance=-1.25mm]above right:$v_b$}] at (vo1) {};
-							\coordinate (vo11) at ($(vo1)+(180:\rMargin)$);
-							\coordinate (vo12) at ($(vo1)+(0:\rMargin)$);
-							\tikzDot{(2,2)}{vo2};
-							
-							\filldraw (vo1)++(-\gap,0)++(90:\r) arc (90:270:\r);
-							\filldraw (vo1)++( \gap,0)++(90:\r) arc (90:-90:\r);
-							
+			\begin{figure}[h]
+				\begin{figcenter}
+					\begin{tikzpicture}
+						\tikzDot{(2,0)}{vo0};
+						\tikzDot[label={[label distance=-1.25mm]above right:$v $}]{(2,1)}{vo1};
+						\tikzDot{(2,2)}{vo2};
+						
+						\draw (vo0) -- (vo1);
+						\draw (vo1) -- (vo2);
+						
+						\tikzDot[label=left:$n_a$,outer sep=0.5mm]{(0.5,1.3)}{n1};
+						\tikzDot[label=right:$n_b$,outer sep=0.5mm]{(3.5,1)}{n2};
+						
+						\draw[dotted] (n1) -- (vo1);
+						\draw[dotted] (vo1) -- (n2);
+						
+						\draw[dotted] (n1) -- (vo0);
+						\draw[dotted] (n1) -- (vo2);
+						\draw[dotted] (n2) -- (vo0);
+						\draw[dotted] (n2) -- (vo2);
+					\end{tikzpicture}
+					\hspace{2cm}
+					\begin{tikzpicture}
+						\def\r{0.85mm}
+						\def\rMargin{1.1mm} % = r + 0.25mm
+						\def\gap{0.1875mm}
+						
+						\tikzDot{(2,0)}{vo0};
+						\node (vo1) at (2,1) {};
+						\node[label={[label distance=-1.25mm]above left:$v_a$}] at (vo1) {};
+						\node[label={[label distance=-1.25mm]above right:$v_b$}] at (vo1) {};
+						\coordinate (vo11) at ($(vo1)+(180:\rMargin)$);
+						\coordinate (vo12) at ($(vo1)+(0:\rMargin)$);
+						\tikzDot{(2,2)}{vo2};
+						
+						\filldraw (vo1)++(-\gap,0)++(90:\r) arc (90:270:\r);
+						\filldraw (vo1)++( \gap,0)++(90:\r) arc (90:-90:\r);
+						
 %							\draw (vo1)++(270:\rMargin) -- (vo0);
-							\draw ($(vo1)+(270:\r)+(-0.275mm,0)$) -- ($(vo0)+(-0.275mm,2mm)$) -- (vo0.north);
-							\draw ($(vo1)+(270:\r)+( 0.275mm,0)$) -- ($(vo0)+( 0.275mm,2mm)$) -- (vo0.north);
+						\draw ($(vo1)+(270:\r)+(-0.275mm,0)$) -- ($(vo0)+(-0.275mm,2mm)$) -- (vo0.north);
+						\draw ($(vo1)+(270:\r)+( 0.275mm,0)$) -- ($(vo0)+( 0.275mm,2mm)$) -- (vo0.north);
 %							\draw (vo1)++(90:\rMargin) -- (vo2);
-							\draw ($(vo1)+(90:\r)+(-0.275mm,0)$) -- ($(vo2)+(-0.275mm,-2mm)$) -- (vo2.south);
-							\draw ($(vo1)+(90:\r)+( 0.275mm,0)$) -- ($(vo2)+( 0.275mm,-2mm)$) -- (vo2.south);
-							
-							\tikzDot[label=left:$n_a$,outer sep=0.5mm]{(0.5,1.3)}{n1};
-							\tikzDot[label=right:$n_b$,outer sep=0.5mm]{(3.5,1)}{n2};
-							
-							\draw[dotted] (n1) -- (vo11);
-							\draw[dotted] (vo12) -- (n2);
-							
-							\draw[dotted] (n1) -- (vo0);
-							\draw[dotted] (n1) -- (vo2);
-							\draw[dotted] (n2) -- (vo0);
-							\draw[dotted] (n2) -- (vo2);
-						\end{tikzpicture}
-					\end{figcenter}
-					\caption{
-						Both illustrations show two neighboring vertices $n_a$ and $n_b$ around a vertical obstacle with one vertex in the middle through which routing should \emph{not} be possible.
-						The dotted edges are visibility edges added during graph generation.
-						\\
-						\underline{Left}:
-						Visibility graph with naive connections.
-						The two dotted visibility edges $(n_a, u)$ and $(u, n_b)$ allow the shortest path to go through the obstacle from $n_a$ via $u$ to $n_b$.
-						\\
-						\underline{Right}:
-						The visibility graph with connection respecting the obstacles. Instead of a single node $u$, two nodes $v_a$ and $v_b$ are created.
-						All gabs are for illustration purposes only, the two created nodes have the exact same location, which holds true for the parallel vertical edges.
-						The node $v_a$ is connected to $n_a$ and $v_b$ to $n_b$ but $v_a$ and $v_b$ are not connected.
-						This ensures that the shortest path from $n_a$ to $n_b$ does not lead through the middle vertex of the obstacle anymore.
-					}
-					\label{fig:routing-through-line-obstacle}
-				\end{figure}
-				
-				It must therefore be known which visibility relations are between which obstacle neighbors.
-				Knowing this enables the graph generation to distinguish between all the edges and makes a correct routing results possible.
-				More on this in the \cref{subsec:step-3-graph-creation} below.
-				
-				Each of the resulting bins of a vertex $v$ covers the area between two adjacent obstacle neighbors.
-				All visibility neighbors are sorted into these bins, which is a simple and easy process.
-				
-				\begin{figure}[h]
-					\begin{figcenter}
-						\begin{tikzpicture}
-							\def\d{0.03}
-							
-							\tikzDot[label=below:$v$]{(0,0)}{v}
-							
-							\tikzDot[label=left:$n_1$]{(-2.25,0)}{n1}
-							\tikzDot[label=above:$n_2$]{(0,2)}{n2}
-							\tikzDot[label=right:$n_3$]{(2.25,0)}{n3}
-							
-							\draw[lightgray] (v) -- (n1);
-							\draw[lightgray] (v) -- (n3);
-							\draw[lightgray] (v) -- (n2);
-							
-							% Visibility edges to n1
-							\tikzDot[DodgerBlue3]{(-1.1,-0.25)}{vn1}
-							\tikzDot[DodgerBlue3]{(-1.6,-0.9)}{vn2}
-							\tikzDot[DodgerBlue3]{(1.6,-0.5)}{vn3}
-							\draw[DodgerBlue3,densely dashed,->] (v) -- (vn1);
-							\draw[DodgerBlue3,densely dashed,->] (v) -- (vn2);
-							\draw[DodgerBlue3,densely dashed,->] (v) -- (vn3);
+						\draw ($(vo1)+(90:\r)+(-0.275mm,0)$) -- ($(vo2)+(-0.275mm,-2mm)$) -- (vo2.south);
+						\draw ($(vo1)+(90:\r)+( 0.275mm,0)$) -- ($(vo2)+( 0.275mm,-2mm)$) -- (vo2.south);
+						
+						\tikzDot[label=left:$n_a$,outer sep=0.5mm]{(0.5,1.3)}{n1};
+						\tikzDot[label=right:$n_b$,outer sep=0.5mm]{(3.5,1)}{n2};
+						
+						\draw[dotted] (n1) -- (vo11);
+						\draw[dotted] (vo12) -- (n2);
+						
+						\draw[dotted] (n1) -- (vo0);
+						\draw[dotted] (n1) -- (vo2);
+						\draw[dotted] (n2) -- (vo0);
+						\draw[dotted] (n2) -- (vo2);
+					\end{tikzpicture}
+				\end{figcenter}
+				\caption{
+					Both illustrations show two of $v$'s visibility neighbors $n_a$ and $n_b$ next to a vertical obstacle. Routing through this obstacle should \emph{not} be possible.
+					The dotted edges are visibility edges, the solid edges normal line segments of the obstacle.
+					\\
+					\underline{Left}:
+					Visibility graph with naive connections.
+					The two visibility edges at $v$ allow the shortest path to go through the obstacle from $n_a$ via $v$ to $n_b$.
+					\\
+					\underline{Right}:
+					The visibility graph with connection respecting the obstacle. Vertex $v$ is split into two, $v_a$ and $v_b$, with exact same location. All gabs are for illustration purposes only.
+					Vertex $v_a$ is connected to $n_a$ and $v_b$ to $n_b$ but $v_a$ and $v_b$ are not connected.
+					This ensures that the shortest path from $n_a$ to $n_b$ does not lead through the middle vertex of the obstacle anymore.
+				}
+				\label{fig:routing-through-line-obstacle}
+			\end{figure}
+			
+			\begin{figure}[h]
+				\begin{figcenter}
+					\begin{tikzpicture}
+						\def\d{0.03}
+						
+						\tikzDot[label=below:$v$]{(0,0)}{v}
+						
+						\tikzDot[label=left:$n_1$]{(-2.25,0)}{n1}
+						\tikzDot[label=above:$n_2$]{(0,2)}{n2}
+						\tikzDot[label=right:$n_3$]{(2.25,0)}{n3}
+						
+						\draw[lightgray] (v) -- (n1);
+						\draw[lightgray] (v) -- (n3);
+						\draw[lightgray] (v) -- (n2);
+						
+						% Visibility edges to n1
+						\tikzDot[DodgerBlue3]{(-1.1,-0.25)}{vn1}
+						\tikzDot[DodgerBlue3]{(-1.6,-0.9)}{vn2}
+						\tikzDot[DodgerBlue3]{(1.6,-0.5)}{vn3}
+						\draw[DodgerBlue3,densely dashed,->] (v) -- (vn1);
+						\draw[DodgerBlue3,densely dashed,->] (v) -- (vn2);
+						\draw[DodgerBlue3,densely dashed,->] (v) -- (vn3);
 %							\draw[DodgerBlue3,densely dashed,->] ($(v)+(-0.075,-\d)$) -- ($(n1)+(0.075,-\d)$);
 %							\draw[DodgerBlue3,densely dashed,->] ($(v)+(0.075,-\d)$) -- ($(n3)+(-0.075,-\d)$);
-							
-							% Visibility edges to n3
-							\tikzDot[Red2]{(0.7,1.4)}{vn4}
-							\tikzDot[Red2]{(2,1)}{vn5}
-							\draw[Red2,densely dotted,->] (v) -- (vn4);
-							\draw[Red2,densely dotted,->] (v) -- (vn5);
+						
+						% Visibility edges to n3
+						\tikzDot[Red2]{(0.7,1.4)}{vn4}
+						\tikzDot[Red2]{(2,1)}{vn5}
+						\draw[Red2,densely dotted,->] (v) -- (vn4);
+						\draw[Red2,densely dotted,->] (v) -- (vn5);
 %							\draw[Red2,densely dotted,->] ($(v)+(0.075,\d)$) -- ($(n3)+(-0.075,\d)$);
 %							\draw[Red2,densely dotted,->] ($(v)+(\d,0.075)$) -- ($(n2)+(\d,-0.075)$);
-							
-							% Visibility edges to n2
-							\tikzDot[Green4]{(-2,1.3)}{vn6}
-							\draw[Green4,dashdotted,->] (v) -- (vn6);
+						
+						% Visibility edges to n2
+						\tikzDot[Green4]{(-2,1.3)}{vn6}
+						\draw[Green4,dashdotted,->] (v) -- (vn6);
 %							\draw[Green4,dashdotted,->] ($(v)+(-\d,0.075)$) -- ($(n2)+(-\d,-0.075)$);
 %							\draw[Green4,dashdotted,->] ($(v)+(-0.075,\d)$) -- ($(n1)+(0.075,\d)$);
-						\end{tikzpicture}
-					\end{figcenter}
-					\caption{All visible neighbors of $v$ colored by their resulting bin. The neighbors $n_1$, $n_2$ and $n_3$ are also sorted into bins but they occur in each adjacent bin. The means $n_2$ is in the bin for area $n_1$/$n_2$ as well as in the bin for $n_2$/$n_3$.}
-					\label{fig:visibility-bin-sorting}
-				\end{figure}
+					\end{tikzpicture}
+				\end{figcenter}
+				\caption{All visible neighbors of $v$ colored by their resulting bin. The neighbors $n_1$, $n_2$ and $n_3$ are also sorted into bins but they occur in each adjacent bin. The means $n_2$ is in the bin for area $n_1$/$n_2$ as well as in the bin for $n_2$/$n_3$.}
+				\label{fig:visibility-bin-sorting}
+			\end{figure}
 			
-	\subsection{Step 3: Graph creation with visibility edges}
+			To correctly split and connect vertices, as illustrated for vertex $v$ in \cref{fig:routing-through-line-obstacle}, it must be known which visibility neighbors are within the angular range of which adjacent obstacle neighbors.
+			Knowing this enables the graph generation to sort all visibility neighbors into bins, as shown in \cref{fig:visibility-bin-sorting}.
+			Each of the resulting bins of a vertex $v$ covers the area between two adjacent obstacle neighbors.
+			Later, in \hyperref[subsec:step-3-graph-creation]{step 3}, each bin leads to one new vertex.
+			In the mentioned illustration, there would be two bins, one containing $n_a$ and one containing $n_b$, leading to two new vertices $v_a$ and $v_b$.
+			
+	\subsection{Step 3: Visibility graph creation}
 	\label{subsec:step-3-graph-creation}
 	
 		The previous step created the raw data that is needed to generate a routable visibility graph, which is done in this third step.
 		Since the \texttt{SpatialGraph} class in the NetTopologySuite uses the term \emph{node}, the term \emph{vertex} in this section refers to the vertices in the result of step 2.
 		
-		Because one node is created for each bin of neighboring vertices, mappings between nodes, vertices and neighbor bins have to be created.
-		Two iterations over all vertices are used to first create these mappings and then use them to connect all nodes correctly.
+		As described at the end of the previous step, one node is created for each bin of neighboring vertices.
+		Therefore, mappings between nodes, vertices and neighbor bins have to be created.
+		For an example, consider the right side of \cref{fig:routing-through-line-obstacle} where neighbor vertex $n_a$ should be connected to $v$.
+		Since $v$ is split into two vertices, two nodes are created in the graph and therefore a mapping from node to bin is needed in order to connect the right nodes with each other.
+		Two iterations over all vertices are used to first create the nodes with the respective bin-mapping and then, in the second iteration, this mapping is used to correctly connect all nodes.
 		
-		Without the mappings, it would not be clear to what node to connect.
-		An example is shown in \cref{fig:visibility-bin-sorting}:
-		Without a mapping between visibility neighbor bins and nodes, it is unclear whether to connect $n_a$ to $v_a$ or to $v_b$ because they both are on the exact same location.
+		Without this mapping, it would not be clear to what node to connect.
+		As the example in \cref{fig:routing-through-line-obstacle} shows, without a mapping between visibility neighbor bins and nodes, it is unclear whether to connect $n_a$ to $v_a$ or to $v_b$ because they both are on the exact same location.
 		
-		The resulting spatial graph together with some of the mappings, which will be used when \hyperref[sec:answering-queries]{answering routing queries}, are used to create an instance of the \texttt{HybridVisibilityGraph} class.
-		It contains the final spatial graph, as an instance of the \texttt{SpatialGraph} class contained in the MARS framework, along with all information needed to correctly add and connect new nodes, more precisely nodes for the start and target locations of a routing query.
+		The resulting spatial graph together with some of the mappings, which will be used to \hyperref[sec:answering-queries]{answer routing queries}, are stored in an instance of the \texttt{HybridVisibilityGraph} class.
+		It contains the final spatial graph, as an instance of the \texttt{SpatialGraph} class provided by the MARS framework, along with all information needed to correctly add and connect new nodes.
+		Adding nodes is only used for the start and destination locations of a routing query.
 		
 	\subsection{Step 4: Merging a road network into the visibility graph}
+	\label{subsec:step-4-graph merging}
 	
 		To allow a routing algorithm to switch between the road network and visibility edges, the road network needs to be merged into the visibility graph.
-		This happens not just by adding the road segments to the graph but by introducing and connecting new nodes at all intersections between road network and visibility edges.
+		This happens not just by adding the road segments to the graph but by introducing and connecting new nodes at all intersections between road and visibility edges.
 		\Cref{fig:merging-edges} illustrates this process for one road segment and two visibility edges.
 		
 		\begin{figure}[h]
@@ -729,38 +787,42 @@ After that, the main sections of this chapter show details of each algorithmic s
 			\caption{
 				Merging the road edge $r$ with two bidirectional visibility edges $v$ and $u$.
 				\\
-				\underline{Left: } Before merging $r$ into the graph with a total of six nodes and six edges.
+				\underline{Left:} Before merging $r$ into the graph with a total of six nodes and six edges.
 				\\
-				\underline{Right: } After merging $r$. Two new vertices have been created and all edges are split on the intersection point. The graph size therefore increased by two nodes and eight edges (since all edges are bidirectional) to eight nodes and 14 edges.
+				\underline{Right:} After merging $r$. Two new vertices have been created and all edges are split on the intersection points. The graph size therefore increased by two nodes and eight edges (since all edges are bidirectional) to eight nodes and 14 edges.
 			}
 			\label{fig:merging-edges}
 		\end{figure}
 	
-		This final graph allows any routing algorithm to switch between road edges and visibility edges without further instructions or adjustments to the routing algorithm.
-
-		Assuming the road networks edges $E_R$ are segments, which only connect two nodes in a straight line, and are not larger line strings, the resulting graph size grows linear.
-		More precisely, it is in $\bigo{|E_R| \cdot |E_V|}$ with $|E_R|$ many road segments and $|E_V|$ many visibility edges.
+		This final graph allows any routing algorithm to switch between road and visibility edges without further instructions or adjustments to the routing algorithm.
 		
-		This complexity arises from the fact that a road segment intersecting with $n$ visibility edges leads to $n+1$ new road segments, $n$ new visibility edges and $n$ new nodes at the intersection points.
-		Therefore, in the worst case, where a road segments intersects with all visibility edges, $2 \cdot |E_V| + 1$ edges and $|E_V|$ nodes are added to the graph.
-		Even though it does not scale worse than linear, the size of the output graph is significantly higher than the input road network, which are typically quite sparse networks.
 
-		Effects on the routing performance are discussed in later sections. \todo[inline]{ref}
+		With $E_R$ containing all road and $E_V$ all visibility edges, the complexity of the merge operation is within $\bigo{|E_R| \cdot |E_V|}$.
+		This complexity arises from the fact that a road segment intersecting with $n$ visibility edges leads to $n+1$ new road segments, $n$ new intersection points and $n$ new visibility edges connecting them.
+		In the worst case of a road segment intersecting with all visibility edges, $2 \cdot |E_V| + 1$ edges and $|E_V|$ nodes are added to the graph.
+		Therefore, up to $|E_R| \cdot (2 \cdot |E_V| + 1)$ new edges and $|E_R| \cdot |E_V|$ new nodes are created.
+		Even though it does not scale worse than linear in the input size $|E_R|$ of the road edges, the size of the output graph is significantly higher than the input road network, which are typically quite sparse networks.
+
+		Measured graph sizes and effects on the routing performance are presented and discussed in \cref{chap:evaluation}.
 	
 \section{Answering shortest path queries}
 \label{sec:answering-queries}
 
-	The process of answering shortest path queries, or routing queries in general, is the following simple routine:
+	The process of answering shortest path queries, or routing queries in general, is directly implemented in the \texttt{HybridVisibilityGraph} class.
+	Arbitrary weighting functions can be passed to customize the routing behavior.
+	Implementing the core idea of determining routes between arbitrary location is, with the help of the above described techniques, rather simple:
 	\begin{enumerate}
-		\item \label{itm:answering-queries-add-nodes} Add the source and target nodes $s$ and $t$ to the graph.
-		\item \label{itm:answering-queries-vis-edges} Determine visibility edges of these nodes and add these new edges to the graph.
+		\item \label{itm:answering-queries-add-nodes} Add nodes $s$ and $t$ for the source and target locations of the routing query to the graph.
+		\item \label{itm:answering-queries-vis-edges} Determine visibility edges of each of the two nodes and merge these new edges into the graph.
 		\item \label{itm:answering-queries-routing} Use a normal shortest path algorithm, such as A*, to find the path between $s$ and $t$.
 		\item \label{itm:answering-queries-cleanup} Remove all previously added nodes and edges to get a clean graph for future routing requests.
 	\end{enumerate}
-	Fortunately, the \texttt{SpatialGraph.RemoveNode(int)} method removes the node given by its ID and also removes all edges, which are connected to the given node.
-	This makes step \ref{itm:answering-queries-cleanup} very easy since step \ref{itm:answering-queries-add-nodes} yields the node IDs needed for the cleanup.
+	Step \ref{itm:answering-queries-add-nodes} creates two new nodes in the spatial graph as far as no node already exists at the respective location.
 	
 	Because step \ref{itm:answering-queries-vis-edges} is already implemented for the general graph generation, the core method \texttt{VisibilityGraphGenerator.GetVisibilityNeighborsForVertex()} can be reused without further adjustments.
 	The most complex part is to determine the correct node to connect to.
-	Thanks to the mappings of neighbor bins and their covered angle areas, as introduced in \cref{subsec:step-3-graph-creation}, the correct bin for a location must be determined and a bidirectional edge be created.
-	All are simple filtering operations on the bins and can be implemented with very little code.
+	Thanks to the mappings of neighbor bins and their covered angle areas, as introduced in \cref{subsec:step-3-graph-creation}, the correct bin for a location can be determined and a bidirectional edge be created.
+	These are mostly simple filtering operations on the bins and can be implemented with very little code.
+	
+	Fortunately, the \texttt{SpatialGraph.RemoveNode(int)} method removes the node given by its ID and also removes all edges, which are connected to the given node.
+	This makes step \ref{itm:answering-queries-cleanup} very easy since step \ref{itm:answering-queries-add-nodes} and \ref{itm:answering-queries-vis-edges} yield the IDs of created nodes, which are needed for the cleanup.
