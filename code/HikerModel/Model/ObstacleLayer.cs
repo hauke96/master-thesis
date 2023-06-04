@@ -38,7 +38,10 @@ namespace HikerModel.Model
                     {
                         // Deactivate measurement within constructor:
                         // PerformanceMeasurement.IsActive = false;
-                        HybridVisibilityGraphGenerator.Generate(features);
+                        HybridVisibilityGraph = HybridVisibilityGraphGenerator.Generate(
+                            features: features,
+                            roadKeys: HybridVisibilityGraphGenerator.DefaultRoadKeys
+                        );
                     },
                     "GenerateGraph", 5, 3);
                 GraphGenerationResult.Print();
@@ -46,8 +49,13 @@ namespace HikerModel.Model
 
                 // PerformanceMeasurement.IsActive = true;
             }
-
-            HybridVisibilityGraph = HybridVisibilityGraphGenerator.Generate(features);
+            else
+            {
+                HybridVisibilityGraph = HybridVisibilityGraphGenerator.Generate(
+                    features: features,
+                    roadKeys: HybridVisibilityGraphGenerator.DefaultRoadKeys
+                );
+            }
 
             return true;
         }
