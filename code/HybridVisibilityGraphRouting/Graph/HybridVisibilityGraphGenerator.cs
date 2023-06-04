@@ -13,9 +13,9 @@ namespace HybridVisibilityGraphRouting.Graph;
 
 public static class HybridVisibilityGraphGenerator
 {
-    private static readonly string[] DefaultObstacleKeys = { "building", "barrier", "natural", "poi", "obstacle" };
-    private static readonly string[] DefaultPoiKeys = { "poi" };
-    private static readonly string[] DefaultRoadKeys = { "highway" };
+    public static readonly string[] DefaultObstacleKeys = { "building", "barrier", "natural", "poi", "obstacle" };
+    public static readonly string[] DefaultPoiKeys = { "poi" };
+    public static readonly string[] DefaultRoadKeys = { "highway" };
 
     /// <summary>
     /// Generates the complete hybrid visibility graph based on the obstacles in the given feature collection. This
@@ -40,7 +40,7 @@ public static class HybridVisibilityGraphGenerator
         var (hybridVisibilityGraph, spatialGraph) = AddVisibilityVerticesAndEdges(vertexNeighbors, obstacles);
 
         MergeRoadsIntoGraph(features, hybridVisibilityGraph, roadKeys);
-        AddAttributesToPoiNodes(features, spatialGraph, default, poiKeys);
+        AddAttributesToPoiNodes(features, spatialGraph, 0.001, poiKeys);
 
         Log.D($"{nameof(HybridVisibilityGraphGenerator)}: Done after {watch.ElapsedMilliseconds}ms");
         return hybridVisibilityGraph;

@@ -102,7 +102,7 @@ namespace HikerModel.Model
         {
             try
             {
-                var routingResult = ObstacleLayer.HybridVisibilityGraph.ShortestPath(from, to);
+                var routingResult = ObstacleLayer.HybridVisibilityGraph.WeightedShortestPath(from, to);
                 if (routingResult.Count == 0)
                 {
                     throw new Exception($"No route found from {from} to {to}");
