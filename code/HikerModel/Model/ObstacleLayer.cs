@@ -6,6 +6,7 @@ using ServiceStack;
 using HybridVisibilityGraphRouting;
 using HybridVisibilityGraphRouting.Geometry;
 using HybridVisibilityGraphRouting.Graph;
+using HybridVisibilityGraphRouting.IO;
 
 namespace HikerModel.Model
 {
@@ -56,6 +57,8 @@ namespace HikerModel.Model
                     roadKeys: HybridVisibilityGraphGenerator.DefaultRoadKeys
                 );
             }
+            
+            Exporter.WriteGraphToFile(HybridVisibilityGraph.Graph);
 
             return true;
         }
