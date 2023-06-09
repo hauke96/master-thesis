@@ -137,6 +137,7 @@ public class HybridVisibilityGraph
 
         visibilityNeighborVertices
             .Map(v => _vertexToNodes[v])
+            .Where(nodeCandidates => !nodeCandidates.IsEmpty()) // can happen due to convex-hull filtering so that not every vertex is represented by a node 
             .Map(nodeCandidates => GetNodeForAngle(positionToAdd, nodeCandidates))
             .Each(node =>
             {
@@ -285,17 +286,17 @@ public class HybridVisibilityGraph
 
         // 2. Split the segment at existing edges.
 
-        // Find or create from-node and to-node of the unsplitted segment
-        var (fromNodes, createdFromNode) = hybridGraph.GetOrCreateNodeAt(hybridGraph.Graph, segmentFromPosition);
+        // Find or create from-node and to-node of the unsplit segment
+        var (fromNodes, fromNodeHasBeenCreated) = hybridGraph.GetOrCreateNodeAt(hybridGraph.Graph, segmentFromPosition);
         var fromNode = Graph.NodesMap[GetNodeForAngle(segmentToPosition, fromNodes)];
-        if (createdFromNode)
+        if (fromNodeHasBeenCreated)
         {
             newNodes.Add(fromNode);
         }
 
-        var (toNodes, createdToNode) = hybridGraph.GetOrCreateNodeAt(hybridGraph.Graph, segmentToPosition);
+        var (toNodes, toNodeHasBeenCreated) = hybridGraph.GetOrCreateNodeAt(hybridGraph.Graph, segmentToPosition);
         var toNode = Graph.NodesMap[GetNodeForAngle(segmentFromPosition, toNodes)];
-        if (createdToNode)
+        if (toNodeHasBeenCreated)
         {
             newNodes.Add(toNode);
         }
@@ -334,6 +335,7 @@ public class HybridVisibilityGraph
         else
         {
             newEdges.Add(hybridGraph.AddEdge(fromNode.Key, toNode.Key, segmentAttributes));
+            newEdges.Add(hybridGraph.AddEdge(toNode.Key, fromNode.Key, segmentAttributes));
         }
 
         return (

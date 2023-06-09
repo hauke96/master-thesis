@@ -91,14 +91,13 @@ public static class Exporter
             });
             graph.Edges.Values.Each((key, edgeData) =>
             {
+                var tags = edgeData.Data.CreateCopy();
+                tags.Add("edge_id", key);
+                tags.Add("node_from", edgeData.From);
+                tags.Add("node_to", edgeData.To);
                 graphFeatures.Add(new Feature(
                     new LineString(edgeData.Geometry.Map(p => p.ToCoordinate()).ToArray()),
-                    new AttributesTable(new Dictionary<string, object>()
-                    {
-                        { "edge_id", key },
-                        { "node_from", edgeData.From },
-                        { "node_to", edgeData.To }
-                    })));
+                    new AttributesTable(tags)));
             });
             WriteFeatures(graphFeatures, fileName);
         }

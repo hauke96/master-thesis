@@ -1,4 +1,3 @@
-using Mars.Interfaces.Layers;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using ServiceStack;
