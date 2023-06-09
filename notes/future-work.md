@@ -5,3 +5,5 @@ Here are some thoughts on future work:
 * 3D data or at least "level" of OSM data
 * Self-intersecting polygons (triangulation fails because convex hull cannot be determined correctly or something)
 * Persist graph to not import it everytime
+* Adding attributes to visibility edges (e.g. "surface=grass" when traversing grass area)
+* Better routing profiles for more realistic routes
