@@ -18,7 +18,7 @@ public static class Exporter
 {
     public static async Task WriteFeaturesToFile(FeatureCollection features, string filename)
     {
-        if (PerformanceMeasurement.IsActive)
+        if (PerformanceMeasurement.CurrentRun != null)
         {
             return;
         }
@@ -46,7 +46,7 @@ public static class Exporter
     public static async void WriteVertexNeighborsToFile(Dictionary<Coordinate, HashSet<Position>> positionToNeighbors,
         string filename = "vertex-neighbors.geojson")
     {
-        if (PerformanceMeasurement.IsActive)
+        if (PerformanceMeasurement.CurrentRun != null)
         {
             return;
         }
@@ -84,7 +84,7 @@ public static class Exporter
 
     public static void WriteGraphToFile(SpatialGraph graph, string fileName = "./graph.geojson")
     {
-        if (PerformanceMeasurement.IsActive)
+        if (PerformanceMeasurement.CurrentRun != null)
         {
             return;
         }
@@ -127,7 +127,7 @@ public static class Exporter
 
     public static void WriteFeatures(FeatureCollection vectorFeatures, string fileName = "./NetworkLayer.geojson")
     {
-        if (PerformanceMeasurement.IsActive)
+        if (PerformanceMeasurement.CurrentRun != null)
         {
             return;
         }
