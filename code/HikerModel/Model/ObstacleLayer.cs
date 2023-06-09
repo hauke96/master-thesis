@@ -27,18 +27,11 @@ namespace HikerModel.Model
 
             var features = Features.Map(f => f.VectorStructured).ToList();
 
-            // When performance measurement active -> Turn off performance measurements within the constructor call.
-            // Below this if-block, the performance measurement is reactivated and the calls within the constructor will
-            // be measured as intended.
-            // When performance measurement inactive -> Skip this and just call the constructor below. It'll not measure
-            // any internal calls, since measurement is disabled.
             if (PerformanceMeasurement.IsActive)
             {
                 GraphGenerationResult = PerformanceMeasurement.NewMeasurementForFunction(
                     () =>
                     {
-                        // Deactivate measurement within constructor:
-                        // PerformanceMeasurement.IsActive = false;
                         HybridVisibilityGraph = HybridVisibilityGraphGenerator.Generate(
                             features: features,
                             roadKeys: HybridVisibilityGraphGenerator.DefaultRoadKeys
@@ -47,8 +40,6 @@ namespace HikerModel.Model
                     "GenerateGraph", 5, 3);
                 GraphGenerationResult.Print();
                 GraphGenerationResult.WriteToFile();
-
-                // PerformanceMeasurement.IsActive = true;
             }
             else
             {
