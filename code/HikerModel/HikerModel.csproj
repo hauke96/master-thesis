@@ -17,16 +17,14 @@
     <Content Include="Resources\obstacles.geojson">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <None Remove="Resources\waypoints.geojson" />
+    <Content Include="Resources\waypoints.geojson">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\HybridVisibilityGraphRouting\HybridVisibilityGraphRouting.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Resources\waypoints.geojson">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>
