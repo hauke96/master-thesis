@@ -34,7 +34,7 @@ namespace HikerModel.Model
                     {
                         HybridVisibilityGraph = HybridVisibilityGraphGenerator.Generate(
                             features: features,
-                            roadKeys: HybridVisibilityGraphGenerator.DefaultRoadKeys
+                            roadExpressions: HybridVisibilityGraphGenerator.DefaultRoadKeys
                         );
                     },
                     "GenerateGraph");
