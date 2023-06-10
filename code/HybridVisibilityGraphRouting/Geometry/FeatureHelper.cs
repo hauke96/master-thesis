@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using ServiceStack;
@@ -32,15 +33,52 @@ public class FeatureHelper
             .ToList();
     }
 
-    public static IEnumerable<IFeature> FilterFeaturesByKeys(IEnumerable<IFeature> features, params string[] wantedKeys)
+    /*
+     * Syntax for the filter expression strings. The regex is used to exclude features.
+     * 
+     *   <key>
+     *   <key>!=<regex>
+     *
+     *  Examples:
+     *   barrier
+     *   barrier!=^(kerb|bollard|*gate|cycle_barrier|no)$
+     */
+    /// <summary>
+    /// The "filterExpressionStrings" can contain simple keys or regular expressions to exclude features.
+    ///
+    /// Syntax:
+    /// <ul>
+    ///   <li>{key}</li>
+    ///   <li>{key}!={regex}</li>
+    /// </ul>
+    /// 
+    /// Examples:
+    /// <ul>
+    ///   <li>barrier</li>
+    ///   <li>barrier!=^(kerb|bollard|*gate|cycle_barrier|no)$</li>
+    /// </ul>
+    /// </summary>
+    /// <param name="features"></param>
+    /// <param name="filterExpressionStrings"></param>
+    /// <returns></returns>
+    public static IEnumerable<IFeature> FilterFeaturesByExpressions(IEnumerable<IFeature> features,
+        params string[] filterExpressionStrings)
     {
+        var filterExpressions = filterExpressionStrings
+            .ToDictionary(
+                expr => expr.Split("!=")[0],
+                expr => new Regex(expr.Split("!=")[1..].Join("!="))
+            );
+
         return features
             .Where(f =>
             {
                 return f.Attributes.GetNames().Any(name =>
                 {
                     var lowerName = name.ToLower();
-                    return wantedKeys.Any(key => key.Equals(lowerName));
+                    return filterExpressions.Any(pair =>
+                        pair.Key.Equals(lowerName) && (pair.Value.ToString().IsEmpty() ||
+                                                       !pair.Value.IsMatch(f.Attributes[name].ToString() ?? "")));
                 });
             });
     }

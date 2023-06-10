@@ -103,7 +103,7 @@ public class FeatureHelperTest
     }
 
     [Test]
-    public void FilterFeaturesByKeys()
+    public void FilterFeaturesByExpressions()
     {
         var features = new List<IFeature>();
         features.Add(new Feature(
@@ -142,15 +142,74 @@ public class FeatureHelperTest
         // Act & Assert
         List<IFeature> filteredFeatures;
 
-        filteredFeatures = FeatureHelper.FilterFeaturesByKeys(features, "highway").ToList();
+        filteredFeatures = FeatureHelper.FilterFeaturesByExpressions(features, "highway").ToList();
         Assert.AreEqual(1, filteredFeatures.Count);
         Assert.AreEqual(features[0], filteredFeatures[0]);
 
-        filteredFeatures = FeatureHelper.FilterFeaturesByKeys(features, "foo").ToList();
+        filteredFeatures = FeatureHelper.FilterFeaturesByExpressions(features, "foo").ToList();
         Assert.AreEqual(1, filteredFeatures.Count);
         Assert.AreEqual(features[1], filteredFeatures[0]);
 
-        filteredFeatures = FeatureHelper.FilterFeaturesByKeys(features, "something-else").ToList();
+        filteredFeatures = FeatureHelper.FilterFeaturesByExpressions(features, "something-else").ToList();
+        Assert.AreEqual(0, filteredFeatures.Count);
+    }
+
+    [Test]
+    public void FilterFeaturesByExpressions_Regex()
+    {
+        var features = new List<IFeature>();
+        features.Add(new Feature(
+                new LineString(
+                    new[]
+                    {
+                        new Coordinate(0, 0),
+                        new Coordinate(1, 0)
+                    }
+                ),
+                new AttributesTable(
+                    new Dictionary<string, object>
+                    {
+                        { "highway", "road" }
+                    }
+                )
+            )
+        );
+        features.Add(new Feature(
+                new LineString(
+                    new[]
+                    {
+                        new Coordinate(1, 0),
+                        new Coordinate(2, 0)
+                    }
+                ),
+                new AttributesTable(
+                    new Dictionary<string, object>
+                    {
+                        { "foo", "bar" }
+                    }
+                )
+            )
+        );
+
+        // Act & Assert
+        List<IFeature> filteredFeatures;
+
+        filteredFeatures = FeatureHelper.FilterFeaturesByExpressions(features, "highway!=.o.*").ToList();
+        Assert.AreEqual(0, filteredFeatures.Count);
+
+        filteredFeatures = FeatureHelper.FilterFeaturesByExpressions(features, "highway!=^(motorway|road|cycleway)$")
+            .ToList();
+        Assert.AreEqual(0, filteredFeatures.Count);
+
+        filteredFeatures = FeatureHelper.FilterFeaturesByExpressions(features, "highway!=^(motorway|cycleway)$")
+            .ToList();
+        Assert.AreEqual(1, filteredFeatures.Count);
+        Assert.AreEqual(features[0], filteredFeatures[0]);
+
+        filteredFeatures = FeatureHelper.FilterFeaturesByExpressions(features, "foo!=bar").ToList();
+        Assert.AreEqual(0, filteredFeatures.Count);
+
+        filteredFeatures = FeatureHelper.FilterFeaturesByExpressions(features, "something-else!=.*").ToList();
         Assert.AreEqual(0, filteredFeatures.Count);
     }
 }

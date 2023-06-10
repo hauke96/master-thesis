@@ -13,9 +13,24 @@ namespace HybridVisibilityGraphRouting.Graph;
 
 public static class HybridVisibilityGraphGenerator
 {
-    public static readonly string[] DefaultObstacleKeys = { "building", "barrier", "natural", "poi", "obstacle" };
+    // See method FilterFeaturesByKeys for documentation on filter expression strings
+    public static readonly string[] DefaultObstacleKeys =
+    {
+        "barrier!=^no$",
+        "building!=^(demolished|no|roof)$",
+        "natural!=.*grass.*",
+        "obstacle",
+        "poi",
+        "railway",
+        "waterway"
+    };
+
     public static readonly string[] DefaultPoiKeys = { "poi" };
-    public static readonly string[] DefaultRoadKeys = { "highway" };
+
+    public static readonly string[] DefaultRoadKeys =
+    {
+        "highway!=^(motorway|trunk|motorway_link|trunk_link|bus_guideway|raceway)$"
+    };
 
     /// <summary>
     /// Generates the complete hybrid visibility graph based on the obstacles in the given feature collection. This
@@ -24,23 +39,23 @@ public static class HybridVisibilityGraphGenerator
     public static HybridVisibilityGraph Generate(IEnumerable<IFeature> features,
         int visibilityNeighborBinCount = 36,
         int visibilityNeighborsPerBin = 10,
-        string[]? obstacleKeys = null,
-        string[]? poiKeys = null,
-        string[]? roadKeys = null)
+        string[]? obstacleExpressions = null,
+        string[]? poiExpressions = null,
+        string[]? roadExpressions = null)
     {
         var watch = Stopwatch.StartNew();
 
         // Prevent multiple enumerations
         features = features.ToList();
 
-        var obstacles = GetObstacles(features, obstacleKeys);
+        var obstacles = GetObstacles(features, obstacleExpressions);
         var vertexNeighbors =
             VisibilityGraphGenerator.CalculateVisibleKnn(obstacles, visibilityNeighborBinCount,
                 visibilityNeighborsPerBin);
         var (hybridVisibilityGraph, spatialGraph) = AddVisibilityVerticesAndEdges(vertexNeighbors, obstacles);
 
-        MergeRoadsIntoGraph(features, hybridVisibilityGraph, roadKeys);
-        AddAttributesToPoiNodes(features, spatialGraph, 0.001, poiKeys);
+        MergeRoadsIntoGraph(features, hybridVisibilityGraph, roadExpressions);
+        AddAttributesToPoiNodes(features, spatialGraph, 0.001, poiExpressions);
 
         Log.D($"{nameof(HybridVisibilityGraphGenerator)}: Done after {watch.ElapsedMilliseconds}ms");
         return hybridVisibilityGraph;
@@ -50,11 +65,11 @@ public static class HybridVisibilityGraphGenerator
     /// Takes all obstacle features and calculates for each vertex the visibility neighbors.
     /// </summary>
     /// <returns>A map from each vertex to the bins of visibility neighbors.</returns>
-    public static QuadTree<Obstacle> GetObstacles(IEnumerable<IFeature> features, string[]? obstacleKeys = null)
+    public static QuadTree<Obstacle> GetObstacles(IEnumerable<IFeature> features, string[]? obstacleExpressions = null)
     {
-        obstacleKeys ??= DefaultObstacleKeys;
+        obstacleExpressions ??= DefaultObstacleKeys;
 
-        var importedObstacles = FeatureHelper.FilterFeaturesByKeys(features, obstacleKeys);
+        var importedObstacles = FeatureHelper.FilterFeaturesByExpressions(features, obstacleExpressions);
 
         var watch = Stopwatch.StartNew();
 
@@ -176,13 +191,13 @@ public static class HybridVisibilityGraphGenerator
     /// an existing edge, both edges will be split at the intersection point where a new node is added.
     /// </summary>
     public static void MergeRoadsIntoGraph(IEnumerable<IFeature> features, HybridVisibilityGraph hybridGraph,
-        string[]? roadKeys = null)
+        string[]? roadExpressions = null)
     {
-        roadKeys ??= DefaultRoadKeys;
+        roadExpressions ??= DefaultRoadKeys;
 
         var watch = Stopwatch.StartNew();
 
-        var roadFeatures = FeatureHelper.FilterFeaturesByKeys(features, roadKeys);
+        var roadFeatures = FeatureHelper.FilterFeaturesByExpressions(features, roadExpressions);
         var roadSegments = FeatureHelper.SplitFeaturesToSegments(roadFeatures);
 
         roadSegments.Each((i, roadSegment) =>
@@ -202,11 +217,11 @@ public static class HybridVisibilityGraphGenerator
     /// node (within the given distance) in the graph.
     /// </summary>
     public static void AddAttributesToPoiNodes(IEnumerable<IFeature> features, ISpatialGraph graph,
-        double nodeDistanceTolerance = 0.001, string[]? poiKeys = null)
+        double nodeDistanceTolerance = 0.001, string[]? poiExpressions = null)
     {
-        poiKeys ??= DefaultPoiKeys;
+        poiExpressions ??= DefaultPoiKeys;
 
-        features.Where(f => poiKeys.Any(poiKey => f.Attributes.Exists(poiKey)))
+        FeatureHelper.FilterFeaturesByExpressions(features, poiExpressions)
             .Each(f =>
             {
                 var featurePosition = f.Geometry.Coordinates[0].ToPosition();
