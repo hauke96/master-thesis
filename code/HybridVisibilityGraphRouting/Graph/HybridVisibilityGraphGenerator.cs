@@ -14,7 +14,7 @@ namespace HybridVisibilityGraphRouting.Graph;
 public static class HybridVisibilityGraphGenerator
 {
     // See method FilterFeaturesByKeys for documentation on filter expression strings
-    public static readonly string[] DefaultObstacleKeys =
+    public static readonly string[] DefaultObstacleExpressions =
     {
         "barrier!=^no$",
         "building!=^(demolished|no|roof)$",
@@ -25,9 +25,9 @@ public static class HybridVisibilityGraphGenerator
         "waterway"
     };
 
-    public static readonly string[] DefaultPoiKeys = { "poi" };
+    public static readonly string[] DefaultPoiExpressions = { "poi" };
 
-    public static readonly string[] DefaultRoadKeys =
+    public static readonly string[] DefaultRoadExpressions =
     {
         "highway!=^(motorway|trunk|motorway_link|trunk_link|bus_guideway|raceway)$"
     };
@@ -142,7 +142,7 @@ public static class HybridVisibilityGraphGenerator
     /// <returns>A map from each vertex to the bins of visibility neighbors.</returns>
     public static QuadTree<Obstacle> GetObstacles(IEnumerable<IFeature> features, string[]? obstacleExpressions = null)
     {
-        obstacleExpressions ??= DefaultObstacleKeys;
+        obstacleExpressions ??= DefaultObstacleExpressions;
 
         var importedObstacles = FeatureHelper.FilterFeaturesByExpressions(features, obstacleExpressions);
 
@@ -268,7 +268,7 @@ public static class HybridVisibilityGraphGenerator
     public static void MergeRoadsIntoGraph(IEnumerable<IFeature> features, HybridVisibilityGraph hybridGraph,
         string[]? roadExpressions = null)
     {
-        roadExpressions ??= DefaultRoadKeys;
+        roadExpressions ??= DefaultRoadExpressions;
 
         var watch = Stopwatch.StartNew();
 
@@ -294,7 +294,7 @@ public static class HybridVisibilityGraphGenerator
     public static void AddAttributesToPoiNodes(IEnumerable<IFeature> features, ISpatialGraph graph,
         double nodeDistanceTolerance = 0.001, string[]? poiExpressions = null)
     {
-        poiExpressions ??= DefaultPoiKeys;
+        poiExpressions ??= DefaultPoiExpressions;
 
         FeatureHelper.FilterFeaturesByExpressions(features, poiExpressions)
             .Each(f =>
