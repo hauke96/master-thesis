@@ -1,4 +1,4 @@
-This document is as of: 2023-05-26 (commit c9162b23c716c45e79d97c0183fa442f9ee8025e).
+This document is as of: 2023-06-09 (commit 1b64146857cc69089fa11d1f56b458f35d6ded9f).
 
 # Idea and Strategy
 
@@ -66,11 +66,11 @@ This means the merging takes place (even though there are no roads) and routing 
 	* [x] Create dataset
 	* [ ] Measurement
 	* [ ] Visualize
-* [ ] Full OSM dataset without roads
+* [ ] OSM "city" dataset without roads (multiple area sizes)
 	* [x] Create dataset
 	* [ ] Measurement
 	* [ ] Visualize
-* [ ] OSM dataset without roads (multiple simplification grades)
+* [ ] OSM "rural" dataset without roads (multiple area sizes)
 	* [x] Create dataset
 	* [ ] Measurement
 	* [ ] Visualize
@@ -79,11 +79,11 @@ This means the merging takes place (even though there are no roads) and routing 
 
 The import takes place as is, without adjustments. Merging is performed and routing takes place on the resulting visisibility graph.
 
-* [ ] Full OSM dataset with roads
+* [ ] OSM "city" dataset with roads (multiple area sizes)
 	* [x] Create dataset
 	* [ ] Measurement
 	* [ ] Visualize
-* [ ] OSM dataset without roads (multiple simplification grades)
+* [ ] OSM "rural" dataset with roads (multiple area sizes)
 	* [x] Create dataset
 	* [ ] Measurement
 	* [ ] Visualize
@@ -93,11 +93,11 @@ The import takes place as is, without adjustments. Merging is performed and rout
 The import takes place but without obstacle considerstion. The dataset contains them, but `GetObstacles` is modified to return an empty set.
 Merging is performed and routing takes place on the resulting visisibility graph.
 
-* [ ] Full OSM dataset with roads
+* [ ] OSM "city" dataset without obstacles (multiple area sizes)
 	* [x] Create dataset
 	* [ ] Measurement
 	* [ ] Visualize
-* [ ] OSM dataset without roads (multiple simplification grades)
+* [ ] OSM "rural" dataset without obstacles (multiple area sizes)
 	* [x] Create dataset
 	* [ ] Measurement
 	* [ ] Visualize
