@@ -14,6 +14,7 @@ import sys
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+from matplotlib import container
 
 common.check_args(1)
 
@@ -21,7 +22,7 @@ dataset_filter=sys.argv[1]
 
 dataset_cols=[
 	# Only when yscale='log':
-	#'iteration_time'
+	'iteration_time',
 	'knn_search_time',
 	'build_graph_time',
 	'get_obstacle_time',
@@ -30,7 +31,7 @@ dataset_cols=[
 ]
 dataset_labels=[
 	# Only when yscale='log':
-	#'Total time'
+	'Total time',
 	'Find all $k$\nnearest visibility\nneighbors',
 	'Building the\ngraph from\nvisibility neighbors',
 	'Getting and\npreparing all\nobstacles',
@@ -39,8 +40,8 @@ dataset_labels=[
 ]
 
 dataset_raw=common.load_dataset(dataset_filter)
-dataset_relevant=dataset_raw[dataset_cols + ["total_vertices"]]
-dataset=dataset_relevant.melt('total_vertices', var_name='aspect', value_name='time')
+dataset_relevant=dataset_raw[dataset_cols + ["obstacle_vertices_input"]]
+dataset=dataset_relevant.melt('obstacle_vertices_input', var_name='aspect', value_name='time')
 
 common.init_seaborn(
 	width=7,
@@ -90,9 +91,9 @@ fig_rel, ax_rel = plt.subplots()
 
 #dataset_raw.reset_index(drop=True, inplace=True)
 #dataset_relevant.reset_index(drop=True, inplace=True)
-dataset_relevant=dataset_raw[dataset_cols + ["total_vertices"]]
+dataset_relevant=dataset_raw[dataset_cols + ["obstacle_vertices_input"]]
 dataset_relevant[dataset_cols]=dataset_raw[dataset_cols].div(dataset_raw["iteration_time"], axis=0)
-dataset=dataset_relevant.melt('total_vertices', var_name='aspect', value_name='time')
+dataset=dataset_relevant.melt('obstacle_vertices_input', var_name='aspect', value_name='time')
 
 common.create_lineplot(
 	dataset,

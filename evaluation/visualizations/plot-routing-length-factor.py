@@ -39,28 +39,14 @@ common.init_seaborn(
 
 fig, ax=plt.subplots()
 
-common.create_scatterplot(
+common.create_scatter_lineplot(
 	dataset,
 	title,
 	ax=ax,
-	xcol="total_vertices",
-	xlabel="Input vertices",
+	xcol="obstacle_vertices_input",
+	xlabel="Input obstacle vertices",
 	ycol="distance_factor",
 	ylabel="Beeline distance / route distance",
-	color="#2779b4",
-	#hue="outlier",
-	#yscale="log",
-)
-common.create_lineplot(
-	dataset,
-	title,
-	ax=ax,
-	ycol="distance_factor",
-	ylabel="Beeline distance / route distance",
-	color="#b42727",
-	marker=None,
-	#hue="outlier",
-	#yscale="log",
 )
 ax.set_ylim(1, None)
 

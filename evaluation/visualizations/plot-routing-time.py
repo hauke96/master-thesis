@@ -41,7 +41,7 @@ common.create_lineplot(
 	xlabel="Beeline distance in km",
 	ycol="avg_time",
 	ylabel="Average routing time in ms",
-	hue="total_vertices",
+	hue="obstacle_vertices_input",
 )
 
 sns.move_legend(
@@ -65,30 +65,30 @@ common.init_seaborn(
 	dpi=120,
 	palette="custom_blue-red"
 )
-title="Routing - Duration of equally long requests"
+title="Routing - Time per input vertex"
 fig, ax=plt.subplots()
 
-dataset["avg_time_per_vertex"]=dataset["avg_time"].div(dataset["total_vertices"], axis=0)
+dataset["avg_time_per_vertex"]=dataset["avg_time"].div(dataset["obstacle_vertices_input"], axis=0)
 
-common.create_lineplot(
+common.create_scatter_lineplot(
 	dataset,
 	title,
 	ax=ax,
+	xcol="obstacle_vertices_input",
+	xlabel="Input obstacle vertices",
 	ycol="avg_time_per_vertex",
 	ylabel="Average routing time in ms per vertex",
-	hue="distance_beeline",
-	marker=None,
 )
 #ax.set_xlim(3000, None)
 #ax.set_ylim(0.003, 0.013)
 
-sns.move_legend(
-	ax,
-	"center left",
-	bbox_to_anchor=(1.025, 0.5),
-	title_fontsize=common.fontsize_small,
-	fontsize=common.fontsize_small,
-	title='Distance'
-)
+#sns.move_legend(
+#	ax,
+#	"center left",
+#	bbox_to_anchor=(1.025, 0.5),
+#	title_fontsize=common.fontsize_small,
+#	fontsize=common.fontsize_small,
+#	title='Distance'
+#)
 
 common.save_to_file(fig, os.path.basename(__file__) + "_vertices", "png")

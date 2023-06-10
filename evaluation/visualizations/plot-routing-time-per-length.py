@@ -25,30 +25,18 @@ common.init_seaborn(width=6, height=4, dpi=120)
 #
 
 title="Routing - Durations per distance"
-avg_time_per_distance=dataset["avg_time"] / dataset["distance_beeline"]
-dataset["avg_time_per_distance"]=avg_time_per_distance
+dataset["avg_time_per_distance"]=dataset["avg_time"] / dataset["distance_beeline"]
 
 fig, ax=plt.subplots()
 
-common.create_scatterplot(
+common.create_scatter_lineplot(
 	dataset,
 	title,
 	ax=ax,
-	xcol="total_vertices",
-	xlabel="Input vertices",
+	xcol="obstacle_vertices_input",
+	xlabel="Input obstacle vertices",
 	ycol="avg_time_per_distance",
 	ylabel="Time per meter in ms",
-	color="#2779b4",
-	#yscale="log",
-)
-common.create_lineplot(
-	dataset,
-	title,
-	ax=ax,
-	ycol="avg_time_per_distance",
-	ylabel="Time per meter in ms",
-	color="#b42727",
-	#yscale="log",
 )
 
 common.save_to_file(fig, os.path.basename(__file__) + "_avg-time", "png")
@@ -58,30 +46,18 @@ common.save_to_file(fig, os.path.basename(__file__) + "_avg-time", "png")
 #
 
 title="Routing - Duration of A* per distance"
-astar_avg_time=dataset["astar_avg_time"] / dataset["distance_beeline"]
-dataset["astar_avg_time"]=astar_avg_time
+dataset["astar_avg_time"]=dataset["astar_avg_time"] / dataset["distance_beeline"]
 
 fig, ax=plt.subplots()
 
-common.create_scatterplot(
+common.create_scatter_lineplot(
 	dataset,
 	title,
 	ax=ax,
-	xcol="total_vertices",
-	xlabel="Input vertices",
+	xcol="obstacle_vertices_input",
+	xlabel="Input obstacle vertices",
 	ycol="astar_avg_time",
 	ylabel="A* time per meter in ms",
-	color="#2779b4",
-	#yscale="log",
-)
-common.create_lineplot(
-	dataset,
-	title,
-	ax=ax,
-	ycol="astar_avg_time",
-	ylabel="A* time per meter in ms",
-	color="#b42727",
-	#yscale="log",
 )
 
 common.save_to_file(fig, os.path.basename(__file__) + "_astar-time", "png")
@@ -91,30 +67,18 @@ common.save_to_file(fig, os.path.basename(__file__) + "_astar-time", "png")
 #
 
 title="Routing - Duration of connecting positions per distance"
-add_positions_to_graph_avg_time=dataset["add_positions_to_graph_avg_time"] / dataset["distance_beeline"]
-dataset["add_positions_to_graph_avg_time"]=add_positions_to_graph_avg_time
+dataset["add_positions_to_graph_avg_time"]=dataset["add_positions_to_graph_avg_time"] / dataset["distance_beeline"]
 
 fig, ax=plt.subplots()
 
-common.create_scatterplot(
+common.create_scatter_lineplot(
 	dataset,
 	title,
 	ax=ax,
-	xcol="total_vertices",
-	xlabel="Input vertices",
+	xcol="obstacle_vertices_input",
+	xlabel="Input obstacle vertices",
 	ycol="add_positions_to_graph_avg_time",
 	ylabel="Time per meter in ms",
-	color="#2779b4",
-	#yscale="log",
-)
-common.create_lineplot(
-	dataset,
-	title,
-	ax=ax,
-	ycol="add_positions_to_graph_avg_time",
-	ylabel="Time per meter in ms",
-	color="#b42727",
-	#yscale="log",
 )
 
 common.save_to_file(fig, os.path.basename(__file__) + "_add-pos-time", "png")

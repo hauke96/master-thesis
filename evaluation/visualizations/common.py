@@ -9,10 +9,14 @@ import matplotlib.lines as mlines
 from matplotlib.colors import ListedColormap
 import matplotlib.cm as cm
 
+color_blue="#2779b4"
+color_red="#b42727"
+color_green="#27b43e"
+
 color_palette_flare=sns.color_palette("flare", as_cmap=True)
-color_palette_blue=sns.color_palette("blend:#2779b4", as_cmap=True)
-color_palette_blue_green=sns.color_palette("blend:#2779b4,#27b43e", as_cmap=True)
-color_palette_blue_red=sns.color_palette("blend:#2779b4,#b42727", as_cmap=True)
+color_palette_blue=sns.color_palette("blend:"+color_blue, as_cmap=True)
+color_palette_blue_green=sns.color_palette("blend:"+color_blue+","+color_green, as_cmap=True)
+color_palette_blue_red=sns.color_palette("blend:"+color_blue+","+color_blue, as_cmap=True)
 color_palette_selected_name="custom_blue"
 
 cm.register_cmap("custom_flare", color_palette_flare)
@@ -65,7 +69,7 @@ def init_seaborn(
 
 #plot=sns.boxplot(
 #	data=dataset,
-#	x="total_vertices",
+#	x="obstacle_vertices_input",
 #	y="iteration_time",
 #	whis=10,
 #)
@@ -74,8 +78,8 @@ def init_seaborn(
 def create_lineplot(
 		dataset,
 		title="",
-		xcol="total_vertices",
-		xlabel="Input vertices",
+		xcol="obstacle_vertices_input",
+		xlabel="Input obstacle vertices",
 		ycol="iteration_time",
 		ylabel="Time in ms",
 		hue=None,
@@ -88,7 +92,7 @@ def create_lineplot(
 		marker="o",
 	):
 
-	err_kws={"elinewidth": 1} if errorbar == "bars" else None
+	err_kws={"elinewidth": 1} if err_style == "bars" else None
 
 	plot=sns.lineplot(
 		data=dataset,
@@ -167,6 +171,40 @@ def create_scatterplot(
 	plot.tick_params(axis="both", which="major", labelsize=fontsize_small)
 
 	return plot
+
+def create_scatter_lineplot(
+		dataset,
+		title="",
+		xcol=None,
+		ycol=None,
+		xlabel=None,
+		ylabel=None,
+		ax=None,
+		color_scatter=color_blue,
+		color_line=color_red,
+		marker=None,
+	):
+	create_scatterplot(
+		dataset,
+		title,
+		ax=ax,
+		xcol=xcol,
+		xlabel=xlabel,
+		ycol=ycol,
+		ylabel=ylabel,
+		color=color_scatter,
+	)
+	create_lineplot(
+		dataset,
+		title,
+		ax=ax,
+		xcol=xcol,
+		xlabel=xlabel,
+		ycol=ycol,
+		ylabel=ylabel,
+		color=color_line,
+		marker=marker,
+	)
 
 '''
 This function selects the legend labels for the given column names
