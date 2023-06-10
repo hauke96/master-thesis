@@ -113,7 +113,7 @@ namespace HikerModel.Model
             try
             {
                 List<Position> routingResult = null;
-                
+
                 Log.I($"Calculate route from {from} to {to}");
 
                 var performanceMeasurementResult = PerformanceMeasurement.NewMeasurementForFunction(
@@ -226,11 +226,11 @@ namespace HikerModel.Model
                                 .ToString(numberFormat, invariantCulture)
                         },
 
-                        { "min_time", averageTimeString },
-                        { "max_time", minTimeString },
-                        { "avg_time", maxTimeString },
+                        { "min_time", minTimeString },
+                        { "max_time", maxTimeString },
+                        { "avg_time", averageTimeString },
                         {
-                            "total_time",
+                            "total_time_of_all_iterations",
                             performanceMeasurementResult.TotalTime.ToString(numberFormat, invariantCulture)
                         },
                         { "astar_avg_time", astarAvgTime },
