@@ -37,7 +37,7 @@ namespace HikerModel.Model
                             roadKeys: HybridVisibilityGraphGenerator.DefaultRoadKeys
                         );
                     },
-                    "GenerateGraph", 5, 3);
+                    "GenerateGraph");
                 GraphGenerationResult.Print();
                 GraphGenerationResult.WriteToFile();
             }

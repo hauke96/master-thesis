@@ -90,7 +90,11 @@ public class HybridVisibilityGraph
             "add_positions_to_graph_time"
         );
         Log.D($"{nameof(HybridVisibilityGraph)}: add_positions_to_graph_time done after {time}ms");
-        Exporter.WriteGraphToFile(Graph, "graph-with-source-target.geojson");
+
+        if (!PerformanceMeasurement.IsActive)
+        {
+            Exporter.WriteGraphToFile(Graph, $"graph-with-source-target_{source}-to-{target}.geojson");
+        }
 
         // AddVisibilityVerticesAndEdges
         IList<EdgeData> routingResult = new List<EdgeData>();
@@ -113,8 +117,6 @@ public class HybridVisibilityGraph
             "restore_graph"
         );
         Log.D($"{nameof(HybridVisibilityGraph)}: restore_graph done after {time}ms");
-
-        Exporter.WriteGraphToFile(Graph, "graph-restored.geojson");
 
         return routingResult
             .Aggregate(new List<Position>(), (list, edge) =>

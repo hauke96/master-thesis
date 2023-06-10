@@ -13,8 +13,8 @@ public class PerformanceMeasurement
 {
     public static bool IsActive = false;
 
-    public const int DefaultIterationCount = 10;
-    public const int DefaultWarmupCount = 5;
+    public const int DefaultIterationCount = 5;
+    public const int DefaultWarmupCount = 3;
 
     public static Result? CurrentRun;
 
