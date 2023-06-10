@@ -51,6 +51,9 @@ echo "Load model $MODEL from $MODEL_DIR"
 echo "Use datasets from $DATASET_DIR"
 echo "Save results into $RESULT_DIR when done"
 
+echo "Ensure result folder exists"
+mkdir -p $RESULT_DIR
+
 echo "Go into model dir $MODEL_DIR"
 cd "$MODEL_DIR"
 
