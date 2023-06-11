@@ -320,6 +320,7 @@ public class HybridVisibilityGraphGeneratorTest
             Assert.AreEqual(15, originalNodeMap.Count);
             Assert.AreEqual(46, originalEdges.Count);
 
+            // TODO Source and destination location see each other -> Test case not working anymore -> Fix this (e.g. by a routing profile?) 
             var shortestPath = hybridVisibilityGraph.ShortestPath(new Position(-0.5, 1.55), new Position(3, 1.45));
 
             CollectionAssert.AreEqual(
