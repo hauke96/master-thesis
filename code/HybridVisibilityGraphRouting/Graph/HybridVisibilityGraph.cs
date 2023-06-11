@@ -77,13 +77,13 @@ public class HybridVisibilityGraph
 
         IList<NodeData> newCreatedNodesForSource = new List<NodeData>();
         IList<EdgeData> newEdgedForSource = new List<EdgeData>();
+        IList<NodeData> newCreatedNodesForDestination = new List<NodeData>();
+        IList<EdgeData> newEdgedForDestination = new List<EdgeData>();
+        
         if (sourceNodeHasBeenCreated)
         {
             (newCreatedNodesForSource, newEdgedForSource) = ConnectNodeToGraph(sourceNode);
         }
-
-        IList<NodeData> newCreatedNodesForDestination = new List<NodeData>();
-        IList<EdgeData> newEdgedForDestination = new List<EdgeData>();
         if (destinationNodeHasBeenCreated)
         {
             (newCreatedNodesForDestination, newEdgedForDestination) = ConnectNodeToGraph(destinationNode);
