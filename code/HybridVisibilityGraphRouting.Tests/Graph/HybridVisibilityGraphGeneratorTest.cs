@@ -153,14 +153,17 @@ public class HybridVisibilityGraphGeneratorTest
         public void AddPositionToGraph()
         {
             var positionToAdd = new Position(0.75, 0.75);
-            var (nodeForPosition, newNodes, newEdges) = hybridVisibilityGraph.AddPositionToGraph(positionToAdd);
+            var (nodeForPosition, _) = hybridVisibilityGraph.AddPositionToGraph(positionToAdd);
+            var (newNodes, newEdges) = hybridVisibilityGraph.ConnectNodeToGraph(nodeForPosition);
             var obstacle2Coord1 = GetNodeForNeighbor(hybridVisibilityGraph,
                 featureObstacle2.Geometry.Coordinates[1], positionToAdd.ToCoordinate());
 
-            Assert.AreEqual(positionToAdd, hybridVisibilityGraph.Graph.NodesMap[nodeForPosition].Position);
-            CollectionAssert.AreEquivalent(new[] { nodeForPosition }, newNodes.Map(n => n.Key));
-            CollectionAssert.AreEquivalent(new[] { nodeForPosition, 2, obstacle2Coord1, 5 }, newEdges.Map(e => e.From).Distinct());
-            CollectionAssert.AreEquivalent(new[] { nodeForPosition, 2, obstacle2Coord1, 5 }, newEdges.Map(e => e.To).Distinct());
+            Assert.AreEqual(positionToAdd, hybridVisibilityGraph.Graph.NodesMap[nodeForPosition.Key].Position);
+            CollectionAssert.AreEquivalent(new[] { nodeForPosition.Key }, newNodes.Map(n => n.Key));
+            CollectionAssert.AreEquivalent(new[] { nodeForPosition.Key, 2, obstacle2Coord1, 5 },
+                newEdges.Map(e => e.From).Distinct());
+            CollectionAssert.AreEquivalent(new[] { nodeForPosition.Key, 2, obstacle2Coord1, 5 },
+                newEdges.Map(e => e.To).Distinct());
             Assert.AreEqual(6, newEdges.Count);
         }
 
@@ -168,21 +171,21 @@ public class HybridVisibilityGraphGeneratorTest
         public void AddPositionToGraph_existingPosition()
         {
             var positionToAdd = new Position(0, 1);
-            var (nodeForPosition, newNodes, newEdges) = hybridVisibilityGraph.AddPositionToGraph(positionToAdd);
+            var (nodeForPosition, nodeCreated) = hybridVisibilityGraph.AddPositionToGraph(positionToAdd);
 
-            Assert.AreEqual(positionToAdd, hybridVisibilityGraph.Graph.NodesMap[nodeForPosition].Position);
-            CollectionAssert.IsEmpty(newNodes);
-            CollectionAssert.IsEmpty(newEdges);
+            Assert.IsFalse(nodeCreated);
+            Assert.AreEqual(positionToAdd, hybridVisibilityGraph.Graph.NodesMap[nodeForPosition.Key].Position);
         }
 
         [Test]
         public void AddPositionToGraph_intersectionExactlyOnExistingNode()
         {
             var positionToAdd = new Position(2.5, 1);
-            var (nodeForPosition, newNodes, newEdges) = hybridVisibilityGraph.AddPositionToGraph(positionToAdd);
+            var (nodeForPosition, _) = hybridVisibilityGraph.AddPositionToGraph(positionToAdd);
+            var (newNodes, newEdges) = hybridVisibilityGraph.ConnectNodeToGraph(nodeForPosition);
 
-            Assert.AreEqual(positionToAdd, hybridVisibilityGraph.Graph.NodesMap[nodeForPosition].Position);
-            CollectionAssert.AreEquivalent(new[] { nodeForPosition, 16, 17 }, newNodes.Map(n => n.Key));
+            Assert.AreEqual(positionToAdd, hybridVisibilityGraph.Graph.NodesMap[nodeForPosition.Key].Position);
+            CollectionAssert.AreEquivalent(new[] { nodeForPosition.Key, 16, 17 }, newNodes.Map(n => n.Key));
             Assert.AreEqual(new Position(1.5, 0.33333333333333337), hybridVisibilityGraph.Graph.NodesMap[16].Position);
             Assert.AreEqual(new Position(2.25, 1.5), hybridVisibilityGraph.Graph.NodesMap[17].Position);
             // Assert new edges between existing intersection nodes 9 and 13
@@ -338,6 +341,22 @@ public class HybridVisibilityGraphGeneratorTest
             CollectionAssert.AreEquivalent(originalNodeMap, hybridVisibilityGraph.Graph.NodesMap);
             CollectionAssert.AreEquivalent(originalEdges, hybridVisibilityGraph.Graph.Edges);
         }
+
+        [Test]
+        public void RouteSourceAndTargetVisibleToEachOther()
+        {
+            var originalNodeMap = hybridVisibilityGraph.Graph.NodesMap.CreateCopy();
+            var originalEdges = hybridVisibilityGraph.Graph.Edges.CreateCopy();
+            Assert.AreEqual(15, originalNodeMap.Count);
+            Assert.AreEqual(46, originalEdges.Count);
+
+            var shortestPath = hybridVisibilityGraph.ShortestPath(new Position(1.5, 1.75), new Position(2.5, 1.75));
+
+            CollectionAssert.AreEqual(new List<Position> { new(1.5, 1.75), new(2.5, 1.75) }, shortestPath);
+
+            CollectionAssert.AreEquivalent(originalNodeMap, hybridVisibilityGraph.Graph.NodesMap);
+            CollectionAssert.AreEquivalent(originalEdges, hybridVisibilityGraph.Graph.Edges);
+        }
     }
 
     [Test]
@@ -362,7 +381,8 @@ public class HybridVisibilityGraphGeneratorTest
             )
         );
 
-        var obstacles = HybridVisibilityGraphGenerator.GetObstacles(new[] { featureObstacle, featureNonObstacle, featurePoint })
+        var obstacles = HybridVisibilityGraphGenerator
+            .GetObstacles(new[] { featureObstacle, featureNonObstacle, featurePoint })
             .QueryAll();
 
         Assert.AreEqual(1, obstacles.Count);

@@ -72,20 +72,31 @@ public class HybridVisibilityGraph
 
     public List<Position> OptimalPath(Position source, Position destination, Func<EdgeData, NodeData, double> heuristic)
     {
-        // TODO: This is highly inefficient but the KdTree implementation has no ".Remove()" method. Implementing my own method should solve this issue.
-        InitNodeIndex();
-
-        int sourceNode = -1;
+        int sourceNodeKey = -1;
         IList<NodeData>? newCreatedNodesForSource = null;
         IList<EdgeData>? newEdgedForSource = null;
-        int destinationNode = -1;
+        int destinationNodeKey = -1;
         IList<NodeData>? newCreatedNodesForDestination = null;
         IList<EdgeData>? newEdgedForDestination = null;
+
         var time = PerformanceMeasurement.AddFunctionDurationToCurrentRun(
             () =>
             {
-                (sourceNode, newCreatedNodesForSource, newEdgedForSource) = AddPositionToGraph(source);
-                (destinationNode, newCreatedNodesForDestination, newEdgedForDestination) = AddPositionToGraph(destination);
+                var (sourceNode, sourceNodeHasBeenCreated) = AddPositionToGraph(source);
+                var (destinationNode, destinationNodeHasBeenCreated) = AddPositionToGraph(destination);
+
+                if (sourceNodeHasBeenCreated)
+                {
+                    (newCreatedNodesForSource, newEdgedForSource) = ConnectNodeToGraph(sourceNode);
+                }
+
+                if (destinationNodeHasBeenCreated)
+                {
+                    (newCreatedNodesForDestination, newEdgedForDestination) = ConnectNodeToGraph(destinationNode);
+                }
+
+                sourceNodeKey = sourceNode.Key;
+                destinationNodeKey = destinationNode.Key;
             },
             "add_positions_to_graph_time"
         );
@@ -99,7 +110,7 @@ public class HybridVisibilityGraph
         // AddVisibilityVerticesAndEdges
         IList<EdgeData> routingResult = new List<EdgeData>();
         time = PerformanceMeasurement.AddFunctionDurationToCurrentRun(
-            () => { routingResult = Graph.AStarAlgorithm(sourceNode, destinationNode, heuristic); },
+            () => { routingResult = Graph.AStarAlgorithm(sourceNodeKey, destinationNodeKey, heuristic); },
             "astar_time"
         );
         Log.D($"{nameof(HybridVisibilityGraph)}: astar_time done after {time}ms");
@@ -140,40 +151,55 @@ public class HybridVisibilityGraph
     /// Adds the given position to the graph, if not already exists. When a new node was created, visibility edges are
     /// determined and connected to the graph.
     /// </summary>
-    /// <returns>A tuple with the node for the given location and a list of all newly added nodes, which can be removed after the routing request.</returns>
-    public (int, IList<NodeData>, IList<EdgeData>) AddPositionToGraph(Position positionToAdd,
-        int visibilityNeighborBinCount = 36,
-        int visibilityNeighborsPerBin = 10)
+    /// <returns>The node and a flag which is true when the node is new (false when the node already existed).</returns>
+    public (NodeData, bool) AddPositionToGraph(Position positionToAdd)
     {
         var existingNodeCandidates = _nodeIndex.Nearest(positionToAdd.PositionArray, 0.000001);
         if (existingNodeCandidates.Any())
         {
-            return (existingNodeCandidates[0].Node.Value.Key, new List<NodeData>(), new List<EdgeData>());
+            return (existingNodeCandidates[0].Node.Value, false);
         }
 
-        var nodeToAdd = Graph.AddNode(positionToAdd.X, positionToAdd.Y);
-        var vertexToAdd = new Vertex(positionToAdd.ToCoordinate());
+        var addedNode = Graph.AddNode(positionToAdd.X, positionToAdd.Y);
         InitNodeIndex();
 
-        var newNodes = new List<NodeData> { nodeToAdd };
+        var vertex = new Vertex(addedNode.Position.ToCoordinate(), true);
+        _vertexToNodes[vertex] = new[] { addedNode.Key };
+
+        return (addedNode, true);
+    }
+
+    /// <summary>
+    /// Determines all visibility edges for the given node and adds them to the graph. The node itself will be part of
+    /// the returned result set and therefore might be removed in other steps.
+    /// </summary>
+    /// <returns>A tuple with a list of all newly added nodes (including the given nodeToConnect) and edges.</returns>
+    public (IList<NodeData>, IList<EdgeData>) ConnectNodeToGraph(NodeData nodeToConnect,
+        int visibilityNeighborBinCount = 36,
+        int visibilityNeighborsPerBin = 10)
+    {
+        var vertexToConnect = _vertexToNodes.First(pair => pair.Value.Contains(nodeToConnect.Key)).Key;
+        var newNodes = new List<NodeData> { nodeToConnect };
         var newEdges = new List<EdgeData>();
 
         // TODO If performance too bad: Pass multiple positions to not calculate certain things twice.
         var allVertices = _vertexToNodes.Keys.ToList();
         var visibilityNeighborVertices = VisibilityGraphGenerator.GetVisibilityNeighborsForVertex(_obstacles,
-            allVertices, new Dictionary<Coordinate, List<Obstacle>>(), vertexToAdd, visibilityNeighborBinCount,
+            allVertices, new Dictionary<Coordinate, List<Obstacle>>(), vertexToConnect, visibilityNeighborBinCount,
             visibilityNeighborsPerBin)[0];
 
         visibilityNeighborVertices
             .Map(v => _vertexToNodes[v])
-            .Where(nodeCandidates => !nodeCandidates.IsEmpty()) // can happen due to convex-hull filtering so that not every vertex is represented by a node 
-            .Map(nodeCandidates => GetNodeForAngle(positionToAdd, nodeCandidates))
+            .Where(nodeCandidates =>
+                !nodeCandidates
+                    .IsEmpty()) // can happen due to convex-hull filtering so that not every vertex is represented by a node 
+            .Map(nodeCandidates => GetNodeForAngle(nodeToConnect.Position, nodeCandidates))
             .Each(node =>
             {
                 // Create the bi-directional edge between node to add and this visibility node and collect its IDs for
                 // later clean up.
-                newEdges.Add(Graph.AddEdge(nodeToAdd.Key, node));
-                newEdges.Add(Graph.AddEdge(node, nodeToAdd.Key));
+                newEdges.Add(Graph.AddEdge(nodeToConnect.Key, node));
+                newEdges.Add(Graph.AddEdge(node, nodeToConnect.Key));
             });
 
         newEdges.CreateCopy().ForEach(edge =>
@@ -191,7 +217,7 @@ public class HybridVisibilityGraph
             newNodes.AddRange(nodes);
         });
 
-        return (nodeToAdd.Key, newNodes, newEdges);
+        return (newNodes, newEdges);
     }
 
     /// <summary>
