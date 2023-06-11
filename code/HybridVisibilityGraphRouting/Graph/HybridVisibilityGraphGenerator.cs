@@ -7,6 +7,7 @@ using Mars.Common.Collections.Graph;
 using Mars.Common.Core.Collections;
 using Mars.Interfaces.Environments;
 using NetTopologySuite.Features;
+using NetTopologySuite.Geometries;
 using ServiceStack;
 
 namespace HybridVisibilityGraphRouting.Graph;
@@ -137,14 +138,17 @@ public static class HybridVisibilityGraphGenerator
     }
 
     /// <summary>
-    /// Takes all obstacle features and calculates for each vertex the visibility neighbors.
+    /// Takes all obstacle features and calculates for each vertex the visibility neighbors. The obstacles are filtered
+    /// by the passed expressions and additionally by their geometry type. Only non-point obstacles (because they
+    /// have no spatial size) are considered.
     /// </summary>
     /// <returns>A map from each vertex to the bins of visibility neighbors.</returns>
     public static QuadTree<Obstacle> GetObstacles(IEnumerable<IFeature> features, string[]? obstacleExpressions = null)
     {
         obstacleExpressions ??= DefaultObstacleExpressions;
 
-        var importedObstacles = FeatureHelper.FilterFeaturesByExpressions(features, obstacleExpressions);
+        var importedObstacles = FeatureHelper.FilterFeaturesByExpressions(features, obstacleExpressions)
+            .Where(feature => feature.Geometry.OgcGeometryType != OgcGeometryType.Point);
 
         var watch = Stopwatch.StartNew();
 

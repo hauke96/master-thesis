@@ -10,6 +10,8 @@ nupkg/
 
 # Rider
 .idea
+.run
+*.DotSettings
 
 # User-specific files
 *.suo
