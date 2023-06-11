@@ -355,8 +355,14 @@ public class HybridVisibilityGraphGeneratorTest
                 new Dictionary<string, object> { { "foo", "bar" } }
             )
         );
+        var featurePoint = new Feature(
+            new Point(new Coordinate(0, 2)),
+            new AttributesTable(
+                new Dictionary<string, object> { { "foo", "bar" } }
+            )
+        );
 
-        var obstacles = HybridVisibilityGraphGenerator.GetObstacles(new[] { featureObstacle, featureNonObstacle })
+        var obstacles = HybridVisibilityGraphGenerator.GetObstacles(new[] { featureObstacle, featureNonObstacle, featurePoint })
             .QueryAll();
 
         Assert.AreEqual(1, obstacles.Count);
