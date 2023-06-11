@@ -60,33 +60,33 @@ public class HybridVisibilityGraph
         Graph.NodesMap.Values.Each(node => { _nodeIndex.Add(node.Position, node); });
     }
 
-    public List<Position> WeightedShortestPath(Position source, Position target)
+    public List<Position> WeightedShortestPath(Position source, Position destination)
     {
-        return OptimalPath(source, target, WeightedHeuristic);
+        return OptimalPath(source, destination, WeightedHeuristic);
     }
 
-    public List<Position> ShortestPath(Position source, Position target)
+    public List<Position> ShortestPath(Position source, Position destination)
     {
-        return OptimalPath(source, target, ShortestHeuristic);
+        return OptimalPath(source, destination, ShortestHeuristic);
     }
 
-    public List<Position> OptimalPath(Position source, Position target, Func<EdgeData, NodeData, double> heuristic)
+    public List<Position> OptimalPath(Position source, Position destination, Func<EdgeData, NodeData, double> heuristic)
     {
         // TODO: This is highly inefficient but the KdTree implementation has no ".Remove()" method. Implementing my own method should solve this issue.
         InitNodeIndex();
 
         var (sourceNode, newCreatedNodesForSource, newEdgedForSource) = AddPositionToGraph(source);
-        var (targetNode, newCreatedNodesForTarget, newEdgedForTarget) = AddPositionToGraph(target);
-        Exporter.WriteGraphToFile(Graph, "graph-with-source-target.geojson");
+        var (destinationNode, newCreatedNodesForDestination, newEdgedForDestination) = AddPositionToGraph(destination);
+        Exporter.WriteGraphToFile(Graph, "graph-with-source-destination.geojson");
 
-        var routingResult = Graph.AStarAlgorithm(sourceNode, targetNode, heuristic);
+        var routingResult = Graph.AStarAlgorithm(sourceNode, destinationNode, heuristic);
 
         // Remove temporarily created nodes (which automatically removes the edges too) to have a clean graph for
         // further routing requests.
         newEdgedForSource.Each(RemoveEdge);
-        newEdgedForTarget.Each(RemoveEdge);
+        newEdgedForDestination.Each(RemoveEdge);
         newCreatedNodesForSource.Each(RemoveNode);
-        newCreatedNodesForTarget.Each(RemoveNode);
+        newCreatedNodesForDestination.Each(RemoveNode);
 
         Exporter.WriteGraphToFile(Graph, "graph-restored.geojson");
 

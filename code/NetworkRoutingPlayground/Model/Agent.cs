@@ -89,7 +89,7 @@ namespace NetworkRoutingPlayground.Model
 
         private void Kill()
         {
-            Console.WriteLine("Agent reached target");
+            Console.WriteLine("Agent reached its destination");
             _agentLayer.Environment.Remove(this);
             UnregisterHandle.Invoke(NetworkLayer, this);
         }

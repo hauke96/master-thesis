@@ -14,7 +14,7 @@ Open the solution. There should be at least the following three projects:
 
 ## The `GeoJsonRouting` project
 
-This projects expects an `obstacle.geojson` file in the `Resources` folder. This GeoJSON file must have one node tagged with `start=...` and one different node with `target=...` (replace `...` with anything, the exact value here is irrelevant). The agent created in this project will then travel from the start to the target node.
+This projects expects an `obstacle.geojson` file in the `Resources` folder. This GeoJSON file must have one node tagged with `start=...` and one different node with `destination=...` (replace `...` with anything, the exact value here is irrelevant). The agent created in this project will then travel from the start to the destination node.
 
 ### Run it
 

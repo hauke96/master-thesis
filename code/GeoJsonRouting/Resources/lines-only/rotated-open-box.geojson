@@ -31,7 +31,7 @@
         {
             "type": "Feature",
             "properties": {
-                "target": "yes"
+                "destination": "yes"
             },
             "geometry": {
                 "type": "Point",

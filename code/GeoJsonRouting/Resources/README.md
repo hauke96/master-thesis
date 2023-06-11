@@ -19,7 +19,7 @@ The `osm-exports` folder contains real OpenStreetMap exports, see the license fi
 4. Click "Export" and download the result as GeoJSON
 5. Open the file in an editor of your choice (QGIS, JOSM, ...)
 6. Add start node with the attribute `start=...` (the value is irrelevant, the key will be used in the import of this file)
-7. Do the same for the target with `target=...`
+7. Do the same for the destination with `destination=...`
 8. Save the file somewhere here and you're done
 
 ### Query examples

@@ -14,7 +14,7 @@ namespace GeoJsonRouting.Layer
     public class ObstacleLayer : VectorLayer
     {
         private List<Position> _startPositions;
-        private List<Position> _targetPositions;
+        private List<Position> _destinationPositions;
 
         private readonly Random _random = new(DateTime.Now.ToString().GetHashCode());
 
@@ -23,7 +23,7 @@ namespace GeoJsonRouting.Layer
         public ObstacleLayer()
         {
             _startPositions = new List<Position>();
-            _targetPositions = new List<Position>();
+            _destinationPositions = new List<Position>();
         }
 
         public override bool InitLayer(
@@ -38,7 +38,7 @@ namespace GeoJsonRouting.Layer
             }
 
             _startPositions = FindLocationsByKey("start");
-            _targetPositions = FindLocationsByKey("target");
+            _destinationPositions = FindLocationsByKey("dest");
 
             var watch = Stopwatch.StartNew();
             HybridVisibilityGraph = HybridVisibilityGraphGenerator.Generate(Features.Map(f => f.VectorStructured));
@@ -52,9 +52,9 @@ namespace GeoJsonRouting.Layer
             return _startPositions[_random.Next(_startPositions.Count)].Copy();
         }
 
-        public Position GetRandomTarget()
+        public Position GetRandomDestination()
         {
-            return _targetPositions[_random.Next(_targetPositions.Count)].Copy();
+            return _destinationPositions[_random.Next(_destinationPositions.Count)].Copy();
         }
 
         private List<Position> FindLocationsByKey(string attributeName)
