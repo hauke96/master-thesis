@@ -34,17 +34,17 @@ namespace GeoJsonRouting.Model
         public Guid ID { get; set; } = Guid.NewGuid();
         public double Extent { get; set; } = 0.0002; // -> Umrechnung in lat/lon-differenz für Euklidische Distanz
 
-        private Position? _targetPosition;
+        private Position? _destinationPosition;
         private Queue<Position> _waypoints = new();
 
         public void Init(VectorLayer layer)
         {
             Position = ObstacleLayer.GetRandomStart();
-            _targetPosition = ObstacleLayer.GetRandomTarget();
+            _destinationPosition = ObstacleLayer.GetRandomDestination();
 
-            while (_targetPosition.Equals(Position))
+            while (_destinationPosition.Equals(Position))
             {
-                _targetPosition = ObstacleLayer.GetRandomTarget();
+                _destinationPosition = ObstacleLayer.GetRandomDestination();
             }
 
             DetermineNewWaypoints();
@@ -68,8 +68,8 @@ namespace GeoJsonRouting.Model
         {
             var currentWaypoint = _waypoints.Peek();
 
-            var distanceToTarget = Distance.Euclidean(currentWaypoint.PositionArray, Position.PositionArray);
-            if (distanceToTarget <= STEP_SIZE)
+            var distanceToDestination = Distance.Euclidean(currentWaypoint.PositionArray, Position.PositionArray);
+            if (distanceToDestination <= STEP_SIZE)
             {
                 _waypoints.Dequeue();
 
@@ -111,7 +111,7 @@ namespace GeoJsonRouting.Model
 
         private void Kill()
         {
-            Console.WriteLine("Agent reached target");
+            Console.WriteLine("Agent reached its destination");
             SharedEnvironment.Environment.Remove(this);
             UnregisterHandle.Invoke(ObstacleLayer, this);
         }
@@ -121,13 +121,13 @@ namespace GeoJsonRouting.Model
             try
             {
                 var watch = Stopwatch.StartNew();
-                var routingResult = ObstacleLayer.HybridVisibilityGraph.ShortestPath(Position, _targetPosition);
+                var routingResult = ObstacleLayer.HybridVisibilityGraph.ShortestPath(Position, _destinationPosition);
                 watch.Stop();
                 Console.WriteLine($"Routing duration: {watch.ElapsedMilliseconds}ms");
 
                 if (routingResult.IsEmpty())
                 {
-                    throw new Exception($"No route found from {Position} to {_targetPosition}");
+                    throw new Exception($"No route found from {Position} to {_destinationPosition}");
                 }
 
                 _waypoints = new Queue<Position>(routingResult);

@@ -292,7 +292,7 @@ public class HybridVisibilityGraphGeneratorTest
         }
 
         [Test]
-        public void RouteBetweenArbitraryLocations_existingStartAndTarget()
+        public void RouteBetweenArbitraryLocations_existingStartAndDestination()
         {
             var shortestPath = hybridVisibilityGraph.ShortestPath(new Position(0, 1), new Position(3, 1.5));
 

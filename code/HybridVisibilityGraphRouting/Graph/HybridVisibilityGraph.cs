@@ -60,17 +60,17 @@ public class HybridVisibilityGraph
         Graph.NodesMap.Values.Each(node => { _nodeIndex.Add(node.Position, node); });
     }
 
-    public List<Position> WeightedShortestPath(Position source, Position target)
+    public List<Position> WeightedShortestPath(Position source, Position destination)
     {
-        return OptimalPath(source, target, WeightedHeuristic);
+        return OptimalPath(source, destination, WeightedHeuristic);
     }
 
-    public List<Position> ShortestPath(Position source, Position target)
+    public List<Position> ShortestPath(Position source, Position destination)
     {
-        return OptimalPath(source, target, ShortestHeuristic);
+        return OptimalPath(source, destination, ShortestHeuristic);
     }
 
-    public List<Position> OptimalPath(Position source, Position target, Func<EdgeData, NodeData, double> heuristic)
+    public List<Position> OptimalPath(Position source, Position destination, Func<EdgeData, NodeData, double> heuristic)
     {
         // TODO: This is highly inefficient but the KdTree implementation has no ".Remove()" method. Implementing my own method should solve this issue.
         InitNodeIndex();
@@ -78,14 +78,14 @@ public class HybridVisibilityGraph
         int sourceNode = -1;
         IList<NodeData>? newCreatedNodesForSource = null;
         IList<EdgeData>? newEdgedForSource = null;
-        int targetNode = -1;
-        IList<NodeData>? newCreatedNodesForTarget = null;
-        IList<EdgeData>? newEdgedForTarget = null;
+        int destinationNode = -1;
+        IList<NodeData>? newCreatedNodesForDestination = null;
+        IList<EdgeData>? newEdgedForDestination = null;
         var time = PerformanceMeasurement.AddFunctionDurationToCurrentRun(
             () =>
             {
                 (sourceNode, newCreatedNodesForSource, newEdgedForSource) = AddPositionToGraph(source);
-                (targetNode, newCreatedNodesForTarget, newEdgedForTarget) = AddPositionToGraph(target);
+                (destinationNode, newCreatedNodesForDestination, newEdgedForDestination) = AddPositionToGraph(destination);
             },
             "add_positions_to_graph_time"
         );
@@ -93,13 +93,13 @@ public class HybridVisibilityGraph
 
         if (!PerformanceMeasurement.IsActive)
         {
-            Exporter.WriteGraphToFile(Graph, $"graph-with-source-target_{source}-to-{target}.geojson");
+            Exporter.WriteGraphToFile(Graph, $"graph-with-source-destination_{source}-to-{destination}.geojson");
         }
 
         // AddVisibilityVerticesAndEdges
         IList<EdgeData> routingResult = new List<EdgeData>();
         time = PerformanceMeasurement.AddFunctionDurationToCurrentRun(
-            () => { routingResult = Graph.AStarAlgorithm(sourceNode, targetNode, heuristic); },
+            () => { routingResult = Graph.AStarAlgorithm(sourceNode, destinationNode, heuristic); },
             "astar_time"
         );
         Log.D($"{nameof(HybridVisibilityGraph)}: astar_time done after {time}ms");
@@ -110,9 +110,9 @@ public class HybridVisibilityGraph
             () =>
             {
                 newEdgedForSource.Each(RemoveEdge);
-                newEdgedForTarget.Each(RemoveEdge);
+                newEdgedForDestination.Each(RemoveEdge);
                 newCreatedNodesForSource.Each(RemoveNode);
-                newCreatedNodesForTarget.Each(RemoveNode);
+                newCreatedNodesForDestination.Each(RemoveNode);
             },
             "restore_graph"
         );

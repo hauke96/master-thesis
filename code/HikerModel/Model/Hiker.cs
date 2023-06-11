@@ -29,8 +29,8 @@ namespace HikerModel.Model
         private HikerLayer _hikerLayer;
 
         // Locations the hiker wants to visit
-        private IEnumerator<Coordinate> _targetWaypoints;
-        private Coordinate NextTargetWaypoint => _targetWaypoints.Current;
+        private IEnumerator<Coordinate> _destinationWaypoints;
+        private Coordinate NextDestinationWaypoint => _destinationWaypoints.Current;
 
         // Locations the routing engine determined
         private IEnumerator<Position> _routeWaypoints;
@@ -40,12 +40,12 @@ namespace HikerModel.Model
 
         public void Init(HikerLayer layer)
         {
-            _targetWaypoints = WaypointLayer.TrackPoints.GetEnumerator();
+            _destinationWaypoints = WaypointLayer.TrackPoints.GetEnumerator();
             _routeWaypoints = new List<Position>().GetEnumerator();
 
-            _targetWaypoints.MoveNext();
-            Position = NextTargetWaypoint.ToPosition();
-            _targetWaypoints.MoveNext();
+            _destinationWaypoints.MoveNext();
+            Position = NextDestinationWaypoint.ToPosition();
+            _destinationWaypoints.MoveNext();
 
             _hikerLayer = layer;
             _hikerLayer.InitEnvironment(ObstacleLayer.Features, this);
@@ -68,7 +68,7 @@ namespace HikerModel.Model
 
         private void TickInternal()
         {
-            if (NextTargetWaypoint == null)
+            if (NextDestinationWaypoint == null)
             {
                 Log.I("No next waypoint");
                 return;
@@ -76,8 +76,8 @@ namespace HikerModel.Model
 
             if (NextRouteWaypoint == null)
             {
-                Log.I("Hiker has target but no route. Calculate route to next target.");
-                CalculateRoute(Position, NextTargetWaypoint.ToPosition());
+                Log.I("Hiker knows its destination but no route to it. Calculate route to next destination.");
+                CalculateRoute(Position, NextDestinationWaypoint.ToPosition());
             }
             else if (NextRouteWaypoint.DistanceInMTo(Position) < StepSize * 2)
             {
@@ -85,11 +85,11 @@ namespace HikerModel.Model
 
                 if (NextRouteWaypoint == null)
                 {
-                    Log.I("Hiker reached end of route, choose next target and calculate new route.");
-                    var previousWaypoint = NextTargetWaypoint;
-                    _targetWaypoints.MoveNext();
+                    Log.I("Hiker reached end of route, choose next destination and calculate new route.");
+                    var previousWaypoint = NextDestinationWaypoint;
+                    _destinationWaypoints.MoveNext();
 
-                    if (NextTargetWaypoint == null)
+                    if (NextDestinationWaypoint == null)
                     {
                         Log.I("Hiker reached last waypoint. He will now die of exhaustion. Farewell dear hiker.");
                         _routingPerformanceResult.WriteToFile();
@@ -100,7 +100,7 @@ namespace HikerModel.Model
                         return;
                     }
 
-                    CalculateRoute(previousWaypoint.ToPosition(), NextTargetWaypoint.ToPosition());
+                    CalculateRoute(previousWaypoint.ToPosition(), NextDestinationWaypoint.ToPosition());
                 }
             }
 

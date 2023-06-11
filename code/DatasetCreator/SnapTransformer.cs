@@ -13,7 +13,7 @@ License information: https://github.com/NetTopologySuite/NetTopologySuite/blob/d
 
 This is a copy of the internal GeometrySnapper.SnapTransformer class from the NetTopologySuite. The original class
 is used via the GeometrySnapper.SnapTo method. However, this method calls the very inefficient
-GeometrySnapper.ExtractTargetCoordinates method, which causes a huge performance overhead. 
+GeometrySnapper.ExtractDestinationCoordinates method, which causes a huge performance overhead. 
 */
 
 using NetTopologySuite.Geometries;
