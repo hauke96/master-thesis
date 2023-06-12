@@ -279,6 +279,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			This can have multiple reasons.
 			
 			First, some data is too detailed and therefore people will not invest the time necessary to create or maintain that data.
+			For example a tree can have tags specifying its genus, species, taxon, wikipedia and wikidata references to each of these, leaf type, leaf cycle, protection, circumference, height, an image and even more. Some, especially older, protected or locally important trees, do have some of these tags, but the vast majority has none of these tags apart from the necessary \texttt{natural=tree}.
 			
 			Second, OSM follows some strategies on what to add and what not.
 			One important strategy is the verifiability of objects on the ground.
@@ -301,14 +302,20 @@ Hence, the topic of agents and simulations will be covered as well.
 		\subsubsection{Data used in this thesis}
 		
 			This thesis uses OSM data for routing purposes.
-			Since geometric routing is the major topic, certain features in OSM are used as obstacles to navigate between them.
-			
+			Since geometric routing is the major topic, not only the road network is used, but also certain features in OSM, which represent obstacles to navigate between.
 			The following features are considered as obstalces:
 			\begin{itemize}
-				\item \textbf{Buildings}: Anything with the \texttt{building} tag.
-				\item \textbf{Water areas}: This mainly includes lakes and rivers.
-				\item \textbf{Barriers}: The \texttt{barrier}-tag not only describes non-passable barriers but also passable structures like gates. Thus, only specific barriers (mainly fences and walls) are considered.
+				\item \textbf{Barriers}: The \texttt{barrier}-tags not only describe non-passable barriers but also passable structures like gates. Thus, only specific barriers (mainly fences and walls) are considered.
+				\item \textbf{Buildings}: The \texttt{building} tag as it represents buildings. However, some values, such as \texttt{building=roof}, \texttt{=no} and \texttt{=demolished}, are considered passable.
+				\item \textbf{Natural areas}: Areas with the \texttt{natural}-key describe areas filled with a specific form of vegetation as well as water areas. All natural areas, which are not representing grass covered land, are considered impassable.
+				\item \textbf{Railway}: Any type of railway infrastructure, especially tracks.
+				\item \textbf{Waterways}: This includes any type of waterway, such as rivers, streams, canals, ditches or drains.
 			\end{itemize}
+			The exact choice on the passable and impassable features is debatable and depends on the domain of the simulation.
+			For example, train tracks might be passable in an evacuation scenario.
+			
+			The road network is also used, which is done by importing all features with a \texttt{highway} key.
+			Filtering out irrelevant features is not done as these features have either no effect, which is for example the case for \texttt{highway=street\_lamp} for street lamps on unconnected point geometries, or contain useful information for routing, for example \texttt{highway=stop} for stop signs.
 
 \section{Graph based routing}
 \label{sec:graph-routing}
