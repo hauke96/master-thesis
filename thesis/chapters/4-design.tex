@@ -71,7 +71,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 	
 		The idea of an ad hoc generation of edges is the following:
 		Whenever the graph routing algorithm reaches a road junction, it's paused and the continuous Dijkstra algorithm is started.
-		No target vertex is defined, which means the geometric routing will be stopped after the furthest wavelet reached a certain distance.
+		No destination vertex is defined, which means the geometric routing will be stopped after the furthest wavelet reached a certain distance.
 		The continuous Dijkstra approach actually creates a shortest path map, so the shortest paths to all reached vertices are calculated.
 		All shortest path edges are then added to the graph for the paused graph based routing algorithm.
 		
@@ -133,7 +133,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 		One way is to stop the routing after a certain distance stopping at the next available vertex.
 		After stopping for the first time, there are two such vertices, one where the road network based routing stopped and one where the routing on the generated graph stopped.
 		From each vertex, two new routing queries start and stop again after a certain distance.
-		This continues until one query reaches the target.
+		This continues until one query reaches the destination.
 		On the one hand, this would guarantee small enough segments for later merging, on the other hand, this results in $\bigo{2^n}$ many routing queries.
 		Even though each query is short, this approach would probably, even with the help of heuristics or other helping mechanisms, not scale very well.
 		

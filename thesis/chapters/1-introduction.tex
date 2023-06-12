@@ -4,7 +4,7 @@
 \section{Motivation}
 	
 	% finding good routes is difficult, solved using A*/Dijkstra on networks
-	Traveling through a network of roads and paths often requires the use of a computer systems determining the optimal route from a source to a target location.
+	Traveling through a network of roads and paths often requires the use of a computer systems determining the optimal route from a source to a destination location.
 	The software used to solve this problem is often called a \emph{routing engine} and uses shortest-path algorithms on graphs to find the shortest path.
 	A graph is used as the central data structure to abstract the real world into vertices and edges, which are points connected by lines representing roads and ways.
 	Such graphs can represent non-physical networks as well, for example trading relationships between countries, social media networks or routers in the internet.
@@ -28,7 +28,7 @@
 	Both strategies are covered below but also described in detail in following chapters.
 	
 	% problem: Most real world destinations are not on the network
-	Another problem, similar to routing through open spaces, arises with the source and target locations of real world routing.
+	Another problem, similar to routing through open spaces, arises with the source and destination locations of real world routing.
 	Because things like addresses, \term*{points of interest} (POIs) and manually chosen locations are not part of roads or ways, they are rarely part of the underlying routing graph.
 	Even though there are algorithmic approaches to connect points to a graph (e.g. by searching for the nearest vertex or by taking some intermediate location on an edge), these simple approaches are often inaccurate.
 	Such inaccuracies exist due to the space between an arbitrary location and the actual road network, which can contain numerous obstacles, such as walls or buildings.
@@ -45,14 +45,14 @@
 	
 	The second approach does not create such a graph but stores its shortest path information for each source vertex in a map.
 	It therefore subdivides the plain into regions with each region having one common predecessor vertex on a shortest path from the source to every location in this region.
-	In other words, all paths from the source to any location inside one region go from the source via other vertices to that predecessor and from there directly to the target location.
+	In other words, all paths from the source to any location inside one region go from the source via other vertices to that predecessor and from there directly to the destination location.
 	Following all predecessors back to the source gives the shortest path to a given location.
 	This approach is also called the \term{continuous dijkstra} paradigm and will be described in detail in \cref{subsec:continuous-dijkstra}.
 	
 \section{Problem and contributions}
 
 	The previous section mentions one of the disadvantages of network based routing:
-	Source and target locations are probably not on the graph.
+	Source and destination locations are probably not on the graph.
 	Furthermore, trajectories of pedestrians in the real world are often not following edges on routing graphs, which is especially the case for insufficiently connected open spaces.
 	Routes strictly following the edges of a graph are therefore inaccurate for pedestrian routing \cite{graser-osm-open-spaces}.
 	Such inaccurate routes significantly affect the user experience of real world programs as well as numerous other use cases like agent based simulations.

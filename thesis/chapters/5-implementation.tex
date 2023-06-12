@@ -812,9 +812,9 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 	Arbitrary weighting functions can be passed to customize the routing behavior.
 	Implementing the core idea of determining routes between arbitrary location is, with the help of the above described techniques, rather simple:
 	\begin{enumerate}
-		\item \label{itm:answering-queries-add-nodes} Add nodes $s$ and $t$ for the source and target locations of the routing query to the graph.
+		\item \label{itm:answering-queries-add-nodes} Add nodes for the source and destination locations of the routing query to the graph.
 		\item \label{itm:answering-queries-vis-edges} Determine visibility edges of each of the two nodes and merge these new edges into the graph.
-		\item \label{itm:answering-queries-routing} Use a normal shortest path algorithm, such as A*, to find the path between $s$ and $t$.
+		\item \label{itm:answering-queries-routing} Use a normal shortest path algorithm, such as A*, to find the path from the source to the destination.
 		\item \label{itm:answering-queries-cleanup} Remove all previously added nodes and edges to get a clean graph for future routing requests.
 	\end{enumerate}
 	Step \ref{itm:answering-queries-add-nodes} creates two new nodes in the spatial graph as far as no node already exists at the respective location.

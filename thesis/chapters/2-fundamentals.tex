@@ -341,7 +341,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		
 		\subsubsection{\term*[single-pair shortest path]{Single-pair shortest paths}}
 		
-			Like the single-source but shortest paths from one source to one target vertex are requested.
+			Like the single-source but shortest paths from one source to one destination vertex are requested.
 			Even though algorithms like TRANSIT (described in \cref{subsubsec:transit}) solve this problem efficiently, approaches solving the single-source problem, like Dijkstra or algorithms based on it, are used more often.
 		
 		\subsubsection{\term*[all-pair shortest path]{All-pair shortest paths}}
@@ -357,7 +357,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		A \term{routing engine} is software built to create routes but might perform other operations as well, such as map matching or calculation of isochrones.
 		In all cases, finding optimal paths is the central algorithmic task.
 		
-		To find desirable paths, the weight function $w$ mentioned in \cref{subsec:routing-theoretic-considerations} needs to be carefully chosen based on the domain of the application, target vehicles, personal preferences and other influencing factors.
+		To find desirable paths, the weight function $w$ mentioned in \cref{subsec:routing-theoretic-considerations} needs to be carefully chosen based on the domain of the application, vehicle type, personal preferences and other influencing factors.
 		Applications in our everyday life bundle these aspects into a \term{routing profile}, which maps attributed from the input data to a certain weight.
 		The input data can consist of multiple data sources like a road network graph and a digital elevation model (DEM).
 		Common types of weight functions predict the expected speed on an edge \cite{graphhopper-profile-bike-speeds}, use the length of an edge \cite{graphhopper-profile-shortest} or numerically represent a combination of attributes \cite{graphhopper-profile-short-fastest}.
@@ -583,7 +583,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		
 		Alternatives to the visibility method are based on Voronoi diagrams or skeletonization methods.
 		However, routing results on such graphs are not be optimal anymore, since a straight edge between visible vertices is the shortest possible connection and those alternatives so not always create such direct edges \cite{graser-osm-open-spaces}.
-		Another property of graph generating methods is, that the start and target locations must still be on the graph to be precisely reachable by routing algorithms.
+		Another property of graph generating methods is, that the start and destination locations must still be on the graph to be precisely reachable by routing algorithms.
 	
 	\subsection{Continuous Dijkstra}
 	\label{subsec:continuous-dijkstra}
@@ -596,8 +596,8 @@ Hence, the topic of agents and simulations will be covered as well.
 		Due to this similarity, this strategy is also called the \term{continuous dijkstra} paradigm \cite{mitchell-discrete-geodesic}.
 		
 		To precisely determine these regions, one popular approach is to create \term[wavefront]{wavefronts} (sometimes also called \term[wavelet]{wavelets}) propagating through open spaces.
-		A well fitting analogy for this approach is the propagation of sound or water waves traveling through space, folding around obstacles and finally reaching the target.
-		Recursively following each wave back to its origin yields the shortest path from the source to the target.
+		A well fitting analogy for this approach is the propagation of sound or water waves traveling through space, folding around obstacles and finally reaching the destination location.
+		Recursively following each wave back to its origin yields the shortest path from the source to the destination.
 		
 		Each wavefront can interact with edges and vertices but also with other wavelets.
 		Interactions in this case are collisions creating the borders of the regions.
