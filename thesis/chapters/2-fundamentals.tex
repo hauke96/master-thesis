@@ -493,34 +493,29 @@ Hence, the topic of agents and simulations will be covered as well.
 		\subsubsection{Transit nodes}
 		\label{subsubsec:transit}
 		
-			Due to the name of the approach and the terminology in the original paper, this section uses the term \emph{node} instead of \emph{vertex}.
-			The routing algorithm called \term{TRANSIT} uses specially selected nodes, so called \term[transit node]{transit nodes}, and the distances to all other nodes in the graph to find shortest paths very quickly \cite{bast-transit}.
+			The routing algorithm called \term{TRANSIT} uses specially selected vertices, so called \term[transit node]{transit nodes}, and the distances to all other vertices in the graph to find shortest paths very quickly \cite{bast-transit}.
 		
 			First, the graph is divided into smaller rectangular cells and Dijkstra queries are then used to determine the transit nodes.
 			For each cell, the neighboring cells of a $5 \times 5$ (inner neighbors) and $9 \times 9$ (outer neighbors) neighborhood are determined.
 			Determining transit nodes in a naive way works as follows:
-			For every vertex in the center cell, shortest paths to all vertices in the outer cells are determined.
-			A vertex being on the edge between an inner and outer cell and lying on one of the shortest paths is considered a transit node.
-			Since Dijkstra solves the single-source shortest paths problem (described in \cref{subsubsec:single-source-shortest-path}), the distances from any normal node to all its nearest transit nodes can be stored.
-			The final step of the preprocessing is the calculation of the distances between all transit nodes, which means solving the all-pair shortest path problem as described in \cref{subsubsec:all-pair-shortest-path}.
+			For every vertex within the center cell, shortest paths to all vertices in the outer cells are determined.
+			A vertex being on an shortest path edge leading from an inner into an outer cell is considered a transit node.
+			Since Dijkstra solves the \hyperref[subsubsec:single-source-shortest-path]{single-source shortest paths problem}, all distances from a normal vertex to its nearest transit nodes are stored.
+			The final step of the preprocessing is the calculation of the distances between all transit nodes, which means solving the \hyperref[subsubsec:all-pair-shortest-path]{all-pair shortest path problem}.
 			
-			Having the distances between transit nodes and the distances between any normal nodes to its closest transit nodes makes it easy to compute distances between arbitrary nodes.
-			Finding shortest paths is done by the following two routines.
+			For a source vertex $src \in V$ and destination vertex $dst \in V$, the distances from $src$ to its transit nodes $T_{src} \subset V$, the distances from $dst$ to it transit nodes $T_{dst} \subset V$ and also the distances between the vertices from $T_{src}$ and $T_{dst}$ are known.
+			To determine the shortest path, these distances are used including the total shortest path distance $d(src, dst)$.
 			
-			The first routine calculates just the distance of the shortest path using the precomputed values from above.
-			Given a start node $src \in V$ and target node $trg \in V$, the distance $d(src, trg)$ needs to be known.
+			The first routine calculates this distance $d(src, dst)$.
 			For each closest transit node $t_{src} \in T_{src}$ of $src$, all distances $d(src, t_{src})$ were already precomputed an known.
-			Same holds for all distances $d(t_{trg}, trg)$ from each closest transit node $t_{trg} \in T_{trg}$ to $trg$.
-			The minimal distance between $src$ and $trg$ can be found by going through all pairs of the closest transit nodes $t_{src} \in T_{src}$ and $t_{trg} \in T_{trg}$ and calculating $d(src, trg) = d(src, t_{src}) + d(t_{src}, t_{trg}) + d(t_{trg}, trg)$.
+			Same holds for all distances $d(t_{dst}, dst)$ from each closest transit node $t_{dst} \in T_{dst}$ to $dst$.
+			The minimal distance between $src$ and $dst$ can be found by going through all pairs of the closest transit nodes $t_{src} \in T_{src}$ and $t_{dst} \in T_{dst}$ and calculating $d(src, dst) = d(src, t_{src}) + d(t_{src}, t_{dst}) + d(t_{dst}, dst)$.
 			
-			The second routine actually determines the shortest path, is quite simple and therefore very fast:
-			First, calculate $d(src, trg)$, as described above, and let $u$ be the currently visited node, with $u = src$ initially.
-			The distance from $u$ to the target can be calculated by $d(u, trg) = d(src, trg) - d(src, u)$ of which $d(src, u)$ is known since we started at $src$ and can simply remember the distance traveled so far.
-			Next, find the adjacent node $v$ of $u$ for which $d(u, trg) = d(u, v) + d(v, trg)$ holds.
-			The distance $d(v, trg)$ can easily be computed with the routine described above.
-			Finally, store $u$ to a list, set $u = v$ and repeat the described steps.
-			
-			After reaching the target, the list of stored nodes build the shortest path.
+			With the total distance $d(src, dst)$ of the shortest path, it is possible to iteratively pick the next vertex in the shortest path.
+			For each vertex $v$ on the shortest path, the next vertex $v'$ on that path can be found as follows:
+			the one neighbor vertex $v'$ for which $d(src, v) + d(v, v') + d(v', dst) = d(src, dst)$ holds is the next vertex on the shortest path.
+			Therefore, it is essential to know the distance $d(src, dst)$.
+			After reaching $dst$, the list of stored vertices build the shortest path.
 		
 		\subsubsection{Hub labels}
 		
