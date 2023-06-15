@@ -8,13 +8,18 @@ Finally, an overview of the separate components is given as well as a descriptio
 
 \section{Requirements and constrains}
 
-	% Used by agents for wayfinding
-	The primary goal of the hybrid routing algorithm is to provide a path planning algorithm that is integrated into the MARS framework and offers more accurate paths compared to common graph based algorithms on road datasets, thus, enhancing agent based simulations.
-	Such a major goal implies several constrains on the architecture and design of the software.
+	As mentioned in the introductory motivation, the developed hybrid routing algorithm has to find optimal paths through open spaces and must also be able to connect arbitrary start and destination locations.
+	Current routing approaches are not capable of either correctly connecting arbitrary locations or enabling the use of speed up techniques.
+	Additionally, none of the existing approaches uses both, the open spaces between obstacle and the existing road network, which is still relevant to simulate pedestrian movements.
+	The resulting hybrid routing algorithm does not suffer from these disadvantages and therefore offers a fast and accurate routing.
+	
+	This primary goal of creating more accurate routes than common graph-based routing algorithms helps agent-based simulations to become more realistic.
+	Being able to easily use the resulting algorithm within a MARS-based project is another important goal of this work.
+	To achieve these goals, several requirements and constrains on the architecture and design of the software exist and are presented in the following.
 	
 	\subsection{Requirements}
 	
-		Functional requirements of the resulting software can be formulated quite easily, since this is not a large commercial product.
+		Functional requirements of the resulting software can be formulated quite easily, since this is not a large commercial product but a single algorithm with a distinct task.
 		The hybrid routing algorithm should determine an optimal path between two locations following ways and traversing open spaces while avoiding obstacles.
 		A configurable weight function should be used to assign a weight to each edge in order to find the path with the minimum weight.
 		Processing of geospatial data must consider existing road network data as well as obstacles, which are features that will be avoided on paths traversing open spaces.

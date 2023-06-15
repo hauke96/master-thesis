@@ -48,7 +48,7 @@ This section gives an overview about closely related work from these areas.
 		To do so, they developed a metric to detect holes in an existing graph based on the following idea:
 		If the shortest path between two vertices is much longer than the euclidean distance, there is probably a hole in the network.
 		However, this metric leads to false positives when large obstacles, such as a river, is between the two vertices.
-		In this case, the euclidean and shortest path distances differ a lot, which is in deed correct in such cases.
+		In this case, the euclidean and shortest path distances differ a lot, which is indeed correct in such cases.
 		To handle such problems caused by obstacles, they discussed the use of Mitchells wavefront propagation algorithm as discussed \hyperref[related-work:mitchell]{above}.
 		Due to the complexity and lower performance, they decided to use a dense grid instead, cutting out edges intersecting obstacles and use this remaining grid for navigation.
 		Unfortunately, the use of other graph generation algorithms (for example generating a visibility graph) was not discussed.
