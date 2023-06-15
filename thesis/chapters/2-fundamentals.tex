@@ -101,6 +101,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			A standardization strategy based on democratic votes is used by \term*{OpenStreetMap} (\term*{OSM}), a crowdsourced spatial database (covered in \cref{subsec:osm} with more details).
 			The standardization of OSM takes place in the projects wiki, which defines certain keys and values but also explicitly allows arbitrary tags (key-value pairs) to ensure a high degree of flexibility \cite{osm-wiki-proposal-process}.
 			
+	% TODO kürzen
 	\subsection{File formats}
 	\label{subsec:file-formats}
 	
@@ -349,6 +350,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		
 			Like the single-source but shortest paths from one source to one destination vertex are requested.
 			Even though algorithms like TRANSIT (described in \cref{subsubsec:transit}) solve this problem efficiently, approaches solving the single-source problem, like Dijkstra or algorithms based on it, are used more often.
+			% TODO source on that
 		
 		\subsubsection{\term*[all-pair shortest path]{All-pair shortest paths}}
 		\label{subsubsec:all-pair-shortest-path}
@@ -360,8 +362,13 @@ Hence, the topic of agents and simulations will be covered as well.
 	\subsection{Routing engines and shortest path algorithms}
 	\label{subsec:routing-engines}
 		
-		A \term{routing engine} is software built to create routes but might perform other operations as well, such as map matching or calculation of isochrones.
-		In all cases, finding optimal paths is the central algorithmic task.
+		A \term{routing engine} is software built to create an optimal route between a source and destination location.
+		The optimality of this route is determined by a routing profile, which is a weighting function assigning a weight to each edge in the input graph.
+		Routing engines might perform other operations as well, such as map matching or calculation of isochrones.
+		Map matching is a technique to determine equal features in different datasets, for example one dataset is a recorded bicycle tour, the other dataset is an OSM dump and all OSM-ways used in the bicycle tour should be determined \cite{saki-map-matching}.
+		Isochrones are a way to visualize the reachability of a region \cite{allen-isochrones}.
+		Each isochrone is an area reachable from a given source location within the same amount of time, thus isochrones often form ring like structures.
+		Depending on the underlying algorithm, finding optimal paths might be a central algorithmic task to perform map matching or to create isochrones.
 		
 		To find desirable paths, the weight function $w$ mentioned in \cref{subsec:routing-theoretic-considerations} needs to be carefully chosen based on the domain of the application, vehicle type, personal preferences and other influencing factors.
 		Applications in our everyday life bundle these aspects into a \term{routing profile}, which maps attributed from the input data to a certain weight.
