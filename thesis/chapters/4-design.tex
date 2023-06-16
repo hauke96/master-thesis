@@ -195,13 +195,14 @@ Finally, an overview of the separate components is given as well as a descriptio
 \section{Design decisions}
 \label{sec:design-decisions}
 
-	With the choice of the merge strategy being the approach of combining two different routing algorithms, several design decisions were made.
-	Some decisions did not influence the overall architecture and were just made to enhance performance or simplify the implementation, this section only covers fundamental decisions relevant for the overall architecture.
+	With the choice of the strategy to combine graph-based and geometric routing, several design decisions were made.
+	Some decisions did not influence the overall architecture and were just made to enhance performance or simplify the implementation.
+	Therefore, this section covers fundamental decisions relevant for the overall architecture only.
 	\Cref{chap:implementation} covers those decisions that are independent of the overall architecture.
 	
 	In this work I implemented the visibility graph without the use of algorithms presented in the according \hyperref[subsec:related-work:visibility-graph]{related work section}.
 	None of the existing approach would have been easy to implement without problems.
-	Details on these problems and the exact reasons that led to the decision of a custom implementation are presented in this section.
+	Details on these problems and the exact reasons that led to the decision of a custom implementation are presented in this section as well.
 	
 	\subsection{Requirements and considerations for the visibility graph creation}
 	
@@ -210,18 +211,19 @@ Finally, an overview of the separate components is given as well as a descriptio
 		
 		An important special case arises for linestring obstacles consisting of more than two points.
 		Simply determining visibility edges to and from both sides of the linestring would result in shortest paths leading right through it.
-		Of course, this is the opposite of the desired behavior of a shortest path leading \emph{around} the linestring.
-		The same situation would arise with obstacles, including polygonal ones, touching in a single node.
+		This is the opposite of the desired behavior of a shortest path leading \emph{around} the linestring obstacle.
+		The same situation would arise with two arbitrary obstacles, including polygonal ones, touching each other in a single vertex.
 		
 		Since the visibility graph is solely used to determine shortest paths, some assumptions and optimizations can still be made.
-		However, these considerations are not relevant for the overall architecture and are therefore covered in \cref{sec:visibility-graph-creation}.
+		As mentioned above, these optimizations did not influence the overall architecture and are therefore described in detail in \cref{sec:visibility-graph-creation}.
 		
 		A core aspect of the routing algorithm is the reachability of arbitrary locations not located on the graph.
 		Adding visibility edges after the complete graph has been created must therefore be possible.
 		Implementing this is necessary regardless of the chosen algorithm for the visibility graph creation.
 		
-		One very important reason why no highly optimized approach was chosen and also why only a limited amount of effort went into the optimization of my own approach is the fact that generating the graph is separated from its use.
-		Far more significant is the routing behavior itself as it directly affects the simulation time.
+		As the generation of the routing graph happens in a preprocessing step, the time and space needed for this task was not a critical aspect of the whole algorithm.
+		Further optimizations are possible and discussed in \todo[inline]{link to future work}.
+		Significant to agent based simulations is the routing behavior itself as it directly affects the simulation time.
 		Creating the graph in a preprocessing step has, especially when persisting the graph for multiple uses, no direct effect on the simulation.
 		
 		All these requirements and considerations, including problems and efforts outlined below, lead to the decision of implementing a simple graph generation approach with some easy but effective optimizations.
@@ -233,6 +235,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 		
 		The approach by Welzl \cite{welzl-visibility-graph}, for example, explicitly assumes that there are not collinear vertices, i.e. at least three vertices forming a straight line.
 		It may seem unlikely at first that collinear vertices occur in real world datasets, but in fact, at least in OpenStreetMap, it is very common to align touching buildings and other straight obstacles like walls.
+		\todo[inline]{diagrams/graphics for problems like this alignment thing}
 		
 		An optimization of Welzls approach, by Overmars and Welzl \cite{overmars-weizl-visibility-graph}, only works on non-intersecting line segments.
 		Real world data is unfortunately too diverse to fulfill this criterion as polygons, longer linestrings and other more complex data structures exist.
@@ -241,7 +244,9 @@ Finally, an overview of the separate components is given as well as a descriptio
 		Handling all those special cases, preventing unwanted edges and still using the approach by Overmars and Welzl would be possible but would also increase the complexity of their approach.
 		
 		Another approach with the limitation of no collinear vertices was the plain-sweep algorithm by Ghosh and Mount \cite{ghosh-output-sensitive-vgraph}.
-		Next to the limitation on collinear vertices, they assume x-coordinates to be unique, which, even though it is very likely fulfilled in real world datasets, would need to be handled as well.
+		Next to the limitation on collinear vertices, they assume x-coordinates to be unique, which would need to be handled as well.
+		However, this condition it is very likely fulfilled in real world datasets, since coordinates are usually floating points numbers and the likelihood of two arbitrary coordinates having the same x-value is therefore very low.
+		\todo[inline]{check this for e.g. Germany is there are multiple equal x-coordinates (and if so: how many?)}
 		
 		Kapoor and Maheshwari presented a visibility graph creation as well \cite{kapoor-shortest-path-vgraph} but assumed a triangulation of the open space between the obstacles.
 		Such a triangulation can be done quite fast, algorithms with time complexities of $\bigo{n \log{n}}$ and better are known \cite[58-60]{de-berg-computational-geometry}, but libraries such as MARS or the NetTopologySuite do not implement this.
@@ -250,16 +255,19 @@ Finally, an overview of the separate components is given as well as a descriptio
 		
 		Probably all approaches from the literature would work but preprocessing, restrictions on the input data or adjustments to the approaches would be necessary.
 		Since this work focuses more on the overall concept of a hybrid routing algorithm, the choice on the graph generation algorithm was of less importance.
-		Therefore, the implementation is much simpler and independent of the above mentioned approaches.
+		Therefore, the implementation in this work, as shown in \cref{chap:implementation} in detail, is much simpler and independent of the aforementioned approaches.
 	
 \section{Components}
 \label{sec:components}
 
-	% Generator classes, HybridVisibilityGrahp class and helper functions
-	Since this works resides in a rather technical and algorithmically oriented context, there are not many separate components needed to implement a hybrid routing approach.
-	One component if the so called \term{hybrid visibility graph}, which is the final output graph consisting of the merged road and visibility edges.
-	These edges are created by the according generator component.
-	Finally, the merging and creation of the hybrid visibility graph takes place in a third component.
+	The hybrid routing algorithm consists of two main components, which present public interfaces.
+	Generating the underlying routing graph, the so called \term{hybrid visibility graph}, is the first step and resides in its own component, the \texttt{HybridVisibilityGraphGenerator} class.
+	The hybrid visibility graph itself is contained in the \texttt{HybridVisibilityGraph} class, which primarily contains the graph structure and is used to answer routing queries.
+	A third component, which is not intended to be used from outside the algorithm, is the \texttt{VisibilityGraphGenerator}.
+	Its purpose is the determination of visibility edges for the routable hybrid visibility graph.
+	
+	Since this works resides in a rather technical and algorithmically oriented context, there are no other components involved, like for example a user interface.
+	Also, there are no independent services or applications communicating with or depending on each other, as it would appear in a microservice architecture with different services like an HTTP proxy, application servers and a database.
 	
 	\begin{figure}[h]
 		\begin{figcenter}
@@ -269,17 +277,22 @@ Finally, an overview of the separate components is given as well as a descriptio
 		\label{fig:components}
 	\end{figure}
 	
-	The first step for a consumer of the system, e.g. an agent based simulation, is to generate the hybrid visibility graph.
-	Hence, the \texttt{HybridVisibilityGraphGenerator} (abbreviated as \enquote{H.V.GraphGenerator} in \cref{fig:components}) presents a public interface for this task.
-	The result of the graph generation is an instance of the \texttt{HybridVisibilityGraph} class offering public methods to answer shortest path requests, such as the \texttt{ShortestPath} method returning a list of positions (i.e. coordinates) representing the shortest path between two input coordinates.
+	In an agent based simulation, each agent has the ability to make its own decisions, which includes the calculation of routes as part of its path planning routing.
+	The hybrid visibility graph has the necessary interfaces to answer routing queries, which means, an agent needs access to an instance of this graph for its navigation.
+	In \cref{fig:components}, the agent itself creates this graph but the visibility graph can also be shared among multiple agent and therefore does not need to be created multiple times for the same input dataset.
+	
+	The \texttt{HybridVisibilityGraphGenerator} (abbreviated as \enquote{H.V.GraphGenerator} in \cref{fig:components}) presents a public \texttt{Generate()} method for the task of the graph generation and, in this exemplary setup, is used by the agent.
+	It returns an instance of the \texttt{HybridVisibilityGraph} class offering public methods to answer shortest path queries.
+	These methods, such as \texttt{OptimalPath(source, destination, weightFunction)}, then return a list of coordinates representing the shortest path between two input coordinates.
 %	More details on the graph generation can be found in \cref{sec:graph-generation}.
 	
-	For convenience and due to required preparations, routing queries are put to the hybrid visibility graph.
+%	For convenience and due to required preparations, routing queries are put to the hybrid visibility graph.
 	To fulfill the overall concept of this work, it must be possible to start and end at arbitrary locations, thus, there is no guarantee that the source and destination locations of the query are on any vertex in the graph.
 	Therefore, the hybrid visibility graph has to temporarily connect these locations to the graph.
-	This is done by determining all visible neighbors of the source and destination locations and then merging the resulting edges to the underlying graph.
+	This is done by determining all visible neighbors of the source and destination locations and merging the resulting edges to the underlying graph.
 	To perform this task, the hybrid visibility graph uses the interface of the \texttt{VisibilityGraphGenerator} to determine visibility neighbors of a single vertex.
-	\Cref{sec:answering-queries} covers the process of answering routing queries in more details, including the clean up step that is performed after the shortest path has been found.
+	In other words, it utilizes the central step of the graph generation process to connect the two input coordinates.
+	\Cref{sec:answering-queries} covers the process of answering routing queries in more details, including a clean up step that is performed after the shortest path has been found.
 
 \section{Deployment view}
 
