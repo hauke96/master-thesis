@@ -1,21 +1,26 @@
 % !TEX root = ../thesis.tex
 % !TeX spellcheck = en_US
 
-This chapter covers the design of the implemented hybrid routing algorithm.
+As mentioned in the introductory motivation, the developed hybrid routing algorithm has to find optimal paths through open spaces and must also be able to connect arbitrary start and destination locations.
+Current routing approaches are either not capable of correctly connecting arbitrary locations (in the case of graph-based algorithm like A*) or do not allow the use of speed up techniques (for example in the continuous Dijkstra approach).
+Additionally, none of the existing approaches uses both, the open spaces between obstacle and the existing road network, which is still relevant to simulate pedestrian movements.
+Edges from a road network often contain useful information, for example about sidewalks, and following roads is therefore a reasonable and realistic routing decision.
+
+The resulting hybrid routing algorithm does not suffer from these disadvantages and therefore offers a fast, flexible and accurate routing.
+This chapter covers the design of the implemented algorithm in order to accomplish these tasks.
 First, the overall context is presenting specifically the requirements and constrains of the algorithm.
 Second, details on the decisions regarding the routing strategy and general design are presented.
 Finally, an overview of the separate components is given as well as a description on the deployment of this algorithm.
 
 \section{Requirements and constrains}
-
-	As mentioned in the introductory motivation, the developed hybrid routing algorithm has to find optimal paths through open spaces and must also be able to connect arbitrary start and destination locations.
-	Current routing approaches are not capable of either correctly connecting arbitrary locations or enabling the use of speed up techniques.
-	Additionally, none of the existing approaches uses both, the open spaces between obstacle and the existing road network, which is still relevant to simulate pedestrian movements.
-	The resulting hybrid routing algorithm does not suffer from these disadvantages and therefore offers a fast and accurate routing.
 	
-	This primary goal of creating more accurate routes than common graph-based routing algorithms helps agent-based simulations to become more realistic.
-	Being able to easily use the resulting algorithm within a MARS-based project is another important goal of this work.
-	To achieve these goals, several requirements and constrains on the architecture and design of the software exist and are presented in the following.
+	Enhancing the routing capabilities of the MARS framework is an integral aspect of the algorithm's development.
+	Therefore, the code also uses parts of the MARS framework, which is shown in detail in \cref{subsec:frameworks-technology}.
+	Its design and the resulting architecture, however, are independent of the MARS framework.
+	Integrating the algorithm into a different context or using it as a standalone application is therefore possible with minimal changes in the code.
+	
+	Apart from the integration into MARS, there are several requirements on the algorithm itself, which are presented in the following.
+	Technical constrains also exist and are discussed at the end of this section.
 	
 	\subsection{Requirements}
 	
@@ -54,22 +59,26 @@ Finally, an overview of the separate components is given as well as a descriptio
 		% Well integrated into MARS and NTS, no new dependencies
 		One major constraint is the integration of final algorithm into the \term*{MARS} framework to make the use as easy as possible and to centralize the code base for better maintenance.
 		This means the programming language will be C\# and additionally, because MARS uses the geospatial framework \term{NetTopologySuite} (\term*{NTS}) as basis for all major geospatial operations, this algorithm will be based on NTS.
+		However, the higher level architecture and its components is not affected by these technical constrains.
 		
-		The planned integration into another code base affects the management of dependencies.
-		On the one hand, the amount newly introduced dependencies should be kept to a minimum.
+		The planned integration into another code base, in this case the one of the MARS framework, affects the management of dependencies.
+		On the one hand, the amount newly introduced dependencies should be kept to a minimum, which means dependencies on MARS and NTS are to be preferred over other third-party libraries.
 		On the other hand, using only libraries on which MARS depends as well is not always possible due to version mismatches.
-		However, the latter case can be avoided and should disappear with future dependency updates.
+		More specific, a triangulation method was needed, which is part of an NTS version not used my MARS yet.
+		However, this case only appeared once and can be avoided and should disappear with future dependency updates.
+		
+		An additional constrains is the limitation on vector data as data structure for obstacles and roads.
+		Using raster data is theoretically possible, as mentioned in \cref{subsection:generate-graphs-from-maps} for the work of Walter et al., but requires a different processing and results in less accurate results, due to the rasterization.
+		Therefore, only vector data has to be supported.
 	
 \section{Combination of routing algorithms}
 \label{sec:combining-routing-algorithms}
 
 	This section describes the core aspect of this thesis:
 	The decision of a strategy to combine graph and geometric based routing algorithms.
-	A decision on this \enquote{merge} strategy to be implemented is crucial to the design and architecture of the application.
+	A decision on this \enquote{merge} strategy is crucial to the design and architecture of the application.
 	
-	In the following, four approaches are discussed of which the last is considered to be the most promising, which was therefore chosen to be implemented.
-% STIMMT NICHT:	The first three are using any normal graph based routing algorithm, like A* or Dijkstra, in combination with the geometric continuous Dijkstra paradigm.
-%	Only the last and further pursued approach uses visibility graphs for routing.
+	In the following, four approaches are discussed of which the last one is considered to be the most promising, which was therefore implemented.
 	
 	% Ad-hoc creation of edges by stopping A* and continuing with wavefront algorithm
 	\subsection{Approach candidate 1: Ad hoc generation of edges}
@@ -153,6 +162,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 		There are probably more possible ways to ensure a sufficient amount of segments or intersections, however, this idea was not further pursued.
 		
 		Unfortunately, both approaches have a worse time complexity than any popular routing algorithms including pure geometric routing.
+		\todo[inline]{Be more precise}
 		Even though the second idea might work well for appropriate segments lengths, the complexity and definite time overhead make it an unfavorable choice.
 	
 	% Merge of networks
@@ -175,8 +185,9 @@ Finally, an overview of the separate components is given as well as a descriptio
 		\todo[inline]{Link to possible optimizations discussed in later chapters}
 		
 		Despite the disadvantages of this approach, I considered the advantages to be more important.
-		As already mentioned, this strategy is not only simple and fast, compared to some time complexities mentioned previously, but it also allows the use of speed up methods for routing queries.
+		As already mentioned, this strategy is not only simple and fast, it also allows the use of speed up methods for routing queries, e.g. the A* based ALT algorithm or other techniques described in \cref{subsec:speedup-methods}.
 		Moreover, the resulting path is definitely optimal, based on the given weight function, and no complex postprocessing is needed.
+		Such postprocessing is, for example, needed in the \enquote{concurrent routing} candidate approach.
 		
 		Taken all aspects into account, this strategy seemed to be the simplest and most promising with the least disadvantages.
 		It was therefore chosen to be implemented.
