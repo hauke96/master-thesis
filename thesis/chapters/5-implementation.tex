@@ -351,12 +351,16 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			Eventually the path switches from following the convex hull to following a visibility edge, which leads to another obstacle and therefore another convex hull part.
 			
 			This means, a shortest path consists of many convex hull parts that either are connected by straight lines or touch each other.
-			Connecting lines, i.e. line segments connecting one convex hull part with another, always follow the clockwise or counter clockwise direction of the convex hull line segments as illustrated in \cref{fig:convex-hull}.
-			If the convex hull part bends in counter clockwise direction, it means that the bearing decreases with each subsequent line segment and increases for clockwise hulls respectively.
+			Connecting lines, i.e. line segments connecting one convex hull part with another, always follow the clockwise or counter clockwise direction of the line segments of each convex hull as illustrated in \cref{fig:convex-hull}.
+			If the convex hull part bends in counter clockwise direction, it means that the bearing of each line segment decreases and increases for clockwise hulls respectively.
 			In other words, line segments of a counter clockwise convex hull only make left turns, the ones of a clockwise hull only make right turns.
 			The connecting line to the next convex hull follows this turning direction.
 			Another way to think about this is the following with \cref{fig:convex-hull} as an example:
-			if the destination vertex $v_2$ of the connecting line $(v_1, v_2)$ would be added to the obstacle of the source vertex (in this example $o_1$), then the connecting line would be part of the convex hull of this new enlarged obstacle.
+			if the destination vertex $v_2$ of the connecting line $(v_1, v_2)$ would be added to the obstacle of the source vertex (in this example $o_1$), then the connecting line would be part of the convex hull of this new expanded obstacle.
+			Since the convex hull is the shortest path around an obstacle, the path $(v_0, v_1, v_2)$ is the shortest path on the expanded obstacle from $v_0$ to $v_2$ since it is a part of its convex hull.
+			Because $v_2$ is not actually part of $o_1$, it means the path $(v_0, v_1, v_2)$ is generally the shortest from $v_0$ to $v_2$.
+			Only connecting lines, which fulfill this expansion criterion, can be part of any shortest path.
+			Furthermore, this criterion is only fulfilled for connecting lines following the turning direction of the obstacle, as $(v_1, v_2)$ does for the hull of $o_1$.
 
 			\begin{figure}[h]
 				\begin{figcenter}
@@ -414,18 +418,23 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 				\label{fig:convex-hull}
 			\end{figure}
 			
-			Allowing connecting lines against the turning direction of the source vertex would result in edges that will never be part of a shortest path.
+			Allowing connecting lines against the turning direction of the source obstacle hull would result in edges that will never be part of a shortest path.
 			For example, the line segment $(v_1, v_3)$ in \cref{fig:convex-hull} is not part of any shortest path, which has $v_1$ is an intermediate vertex.
-			This is due to the properties described at the beginning, that convex hulls themselves build shortest paths around obstacles, the overall shortest path is a sequence of convex hull parts, connecting lines connect these hulls following their turn direction and therefore are part of the overall shortest path.
+			This is due to the properties described at the beginning:
+			convex hulls themselves build shortest paths around obstacles, the overall shortest path is a sequence of convex hull parts, connecting lines connect these hull parts by following their turn direction and therefore they are part of the overall shortest path as well.
 			Breaking the criterion of the turn directions, i.e. by allowing connecting lines against the turn direction of the source hull, leads to non-shortest paths.
-			This connecting line, which was created against the hull's turning direction, can be relaxed to a new connecting line that follows the turning direction.
-			In \cref{fig:convex-hull}, the path $(v_0, v_1, v_3)$ with the connecting line $(v_1, v_3)$ can be relaxed to $(v_0, v_3)$ forming the actual shortest path.
+			This connecting line, which was created against the hull's turning direction, can be relaxed to a new connecting line that follows the turning direction and is shorter due to the triangle inequality.
+			In \cref{fig:convex-hull}, the path $(v_0, v_1, v_3)$ with the connecting line $(v_1, v_3)$, which turns to the right even though $o_1$'s hull turns to the left, can be relaxed to $(v_0, v_3)$ forming the actual shortest path.
 			
-			Following the idea of extending the source obstacle illustrates the contradiction that appear for breaking the turn direction criterion.
-			Considering $o_1$ and extending it with the connecting line's destination vertex $v_3$ to $o'_1=o_1 \cup \{v_3\}$ yields the path $(s, v_0, v_3)$, which is the shortest path for the actual existing obstacles, because it follows the convex hull of the hypothetical obstacle $o'_1$.
-			If the segment $(v_1, v_3)$ would be part of the shortest path from $s$ to $v_3$, it would not be part of the convex hull of $o'_1$ and therefore this segment cannot be part of the shortest path.
+			Following the idea of expanding the source obstacle illustrates the contradiction that appears for breaking the turn direction criterion.
+			Considering the obstacle $o_1$ and expanding it with the candidate vertex $v_3$ to $o'_1=o_1 \cup \{v_3\}$ yields the path $(s, v_0, v_3)$, which is the shortest path for the actual existing obstacles from $s$ to $v_3$, because it follows the convex hull of the hypothetical obstacle $o'_1$.
+			Assume the segment $(v_1, v_3)$, created against $o_1$'s and $o'_1$'s convex hull turning direction, would be part of the shortest path from $s$ to $v_3$.
+			In this case, which means the path would be $(s, v_0, v_1, v_3)$, the vertex $v_1$ would not be part of the convex hull of $o'_1$.
+			The hull of $o'_1$, however, is in fact the shortest path around $o'_1$, meaning it contains the shortest path from $s$ to $v_3$ since both vertices are on its convex hull.
+			Because $(v_1, v_3)$ is \emph{not} part of this convex hull, it cannot be part of the shortest path.
+			Thus, creating connecting lines against the turning direction of the source obstacle creates lines, which are not part of any shortest path.
 			
-			Only connecting lines fulfilling the above described turning direction criterion need to be considered, which restricts all relevant vertices to certain angular ranges.
+			Only connecting lines fulfilling the above described turning direction criterion need to be considered, which restricts the relevant vertices to certain angular ranges.
 			The marked green and blue angle areas in \cref{fig:convex-hull} represent these \term{valid angle areas} for potential visibility neighbors.
 			Vertices at other angles will be ignored since the resulting edges will never be part of any shortest path.
 			
