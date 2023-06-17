@@ -8,3 +8,4 @@ Here are some thoughts on future work:
 * Adding attributes to visibility edges (e.g. "surface=grass" when traversing grass area)
 * Better routing profiles for more realistic routes
 * Not many visibility edges → Roads are not well connected → Maybe explicitly connecting road vertices or at least junctions might help (but increases the graph size)
+* Enhance performance of adding source/destination locations to graph as it requires most of the time during routing.

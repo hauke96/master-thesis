@@ -4,7 +4,7 @@
 \section{Motivation}
 	
 	% finding good routes is difficult, solved using A*/Dijkstra on networks
-	Traveling through a network of roads and paths often requires the use of a computer systems determining the optimal route from a source to a target location.
+	Traveling through a network of roads and paths often requires the use of a computer systems determining the optimal route from a source to a destination location.
 	The software used to solve this problem is often called a \emph{routing engine} and uses shortest-path algorithms on graphs to find the shortest path.
 	A graph is used as the central data structure to abstract the real world into vertices and edges, which are points connected by lines representing roads and ways.
 	Such graphs can represent non-physical networks as well, for example trading relationships between countries, social media networks or routers in the internet.
@@ -16,19 +16,19 @@
 	Algorithms for network based routing, like the popular Dijkstra and A* algorithms, are well understood, optimized and used in numerous scientific and real world applications.
 	Over the last decades, optimizations and the use of more efficient data structures lead to further performance enhancements making it possible to use such routing algorithms on large scale networks.
 	Even though, the performance is good enough for larger networks, like the road network of the USA \cite{aviram-optimizing-dijkstra}, requests in dense networks or of global scale are still a problem.
-	To solve this, several speed up methods exist decreasing query times even further, which will be covered later in \cref{subsec:speedup-methods}.
+	To solve this, several speed up methods exist decreasing query times, which will be covered later in \cref{subsec:speedup-methods}.
 	Using such techniques enables global routing request being processed within milliseconds\footnote{Tested for a routing request from Hamburg, Germany to Beijing, China on \href{https://www.openstreetmap.org/directions?engine=fossgis\_osrm\_car&route=53.55\%2C10.00\%3B39.91\%2C116.39}{openstreetmap.org} using the OSRM car profile which is based on Contraction Hierarchies (s. \cref{subsubsec:ch}). The HTTP request returned the result in under 215ms -- including network latency of several milliseconds.}
 	
 	Next to line based shapes, which are very suitable for routing, the real world also consists of polygonal shapes like market places, parking lots or parks.
 	Classical routing algorithms can only interpret the outer edges of these polygons as closed lines and therefore only find paths along these outer edges.
-	Often auxiliary paths are added to connect opposite sides of polygons allowing routing algorithms to cross these areas.
-	This is a common practice in OpenStreetMap, a crowdsourced geospatial database, for example at the Rathausmarkt (town hall market) in Hamburg, Germany \footnote{Auxiliary ways were added inside the closed OpenStreetMap area with ID  \href{https://www.openstreetmap.org/way/142944433}{142944433}.}.
+	Often auxiliary paths are added to connect opposite sides of polygons enabling routing algorithms to cross these areas.
+	This is a common practice in OpenStreetMap, a crowdsourced geospatial database, for example at the Rathausmarkt (town hall market) in Hamburg, Germany \footnote{Auxiliary ways were added inside the closed OpenStreetMap-way  \href{https://www.openstreetmap.org/way/142944433}{142944433}.}.
 	Lower amounts of lines can be added quite easily by hand, but manually filling large areas or even a whole city with these auxiliary paths is not feasible.
 	Fortunately, there are algorithms filling open spaces with edges as well as algorithms finding paths through open spaces without any additional edges.
 	Both strategies are covered below but also described in detail in following chapters.
 	
 	% problem: Most real world destinations are not on the network
-	Another problem, similar to routing through open spaces, arises with the source and target locations of real world routing.
+	Another problem, similar to routing through open spaces, arises with the source and destination locations of real world routing.
 	Because things like addresses, \term*{points of interest} (POIs) and manually chosen locations are not part of roads or ways, they are rarely part of the underlying routing graph.
 	Even though there are algorithmic approaches to connect points to a graph (e.g. by searching for the nearest vertex or by taking some intermediate location on an edge), these simple approaches are often inaccurate.
 	Such inaccuracies exist due to the space between an arbitrary location and the actual road network, which can contain numerous obstacles, such as walls or buildings.
@@ -44,15 +44,16 @@
 	\Cref{subsec:visibility-graph} covers them in more detail.
 	
 	The second approach does not create such a graph but stores its shortest path information for each source vertex in a map.
-	It therefore subdivides the plain into regions with each region having one common predecessor vertex on a shortest path from the source to every location in this region.
-	In other words, all paths from the source to any location inside one region go from the source via other vertices to that predecessor and from there directly to the target location.
-	Following all predecessors back to the source gives the shortest path to a given location.
+	Each shortest path map is made for a specific source vertex and consists of several distinct regions.
+	Every location within such region has the same predecessor on the shortest path from the source vertex to this location.
+	In other words, all paths from a source vertex to any location inside one region go from the source via other vertices to the predecessor of the region and from there directly to the destination location.
+	Recursively following back all predecessors to the source vertex gives the shortest path to a given location.
 	This approach is also called the \term{continuous dijkstra} paradigm and will be described in detail in \cref{subsec:continuous-dijkstra}.
 	
 \section{Problem and contributions}
 
 	The previous section mentions one of the disadvantages of network based routing:
-	Source and target locations are probably not on the graph.
+	Source and destination locations are probably not on the graph.
 	Furthermore, trajectories of pedestrians in the real world are often not following edges on routing graphs, which is especially the case for insufficiently connected open spaces.
 	Routes strictly following the edges of a graph are therefore inaccurate for pedestrian routing \cite{graser-osm-open-spaces}.
 	Such inaccurate routes significantly affect the user experience of real world programs as well as numerous other use cases like agent based simulations.

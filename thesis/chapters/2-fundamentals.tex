@@ -16,7 +16,7 @@ Hence, the topic of agents and simulations will be covered as well.
 	
 	Examples are customer information (address information of each customer), meteorological data (measured temperature and humidity with a coordinate and altitude) and of course road and path data suitable for routing.
 	Since addresses are not globally standardized, describe only a vague location and usually belong to a hole area, they are of less importance for this thesis.
-	Geodata with an additional time dimension is also categorized as \term{spatiotemporal data}\cite{iso-19108} and even though the time dimension is relevant to many reals world use cases, this type of data is of less importance for this thesis as well.
+	Geodata with an additional time dimension is also categorized as \term{spatiotemporal data}\cite{iso-19108} and even though the time dimension is relevant to many real world use cases, this type of data is of less importance for this thesis as well.
 	Whenever this thesis mentions the term \emph{geodata}, data structures as described below in \cref{subsec:data-structures} are meant.
 	
 	Next to the mentioned explicit references to locations, such as coordinates, implicit location references can be encoded within metadata of datasets as well.
@@ -101,6 +101,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			A standardization strategy based on democratic votes is used by \term*{OpenStreetMap} (\term*{OSM}), a crowdsourced spatial database (covered in \cref{subsec:osm} with more details).
 			The standardization of OSM takes place in the projects wiki, which defines certain keys and values but also explicitly allows arbitrary tags (key-value pairs) to ensure a high degree of flexibility \cite{osm-wiki-proposal-process}.
 			
+	% TODO kürzen
 	\subsection{File formats}
 	\label{subsec:file-formats}
 	
@@ -138,10 +139,10 @@ Hence, the topic of agents and simulations will be covered as well.
 		\label{subsubsec:geojson}
 		
 			Another open but not OGC standardized format is \term{GeoJSON}.
-			As the name suggests, a GeoJSON file is valid JSON following the structure defined in \href{https://datatracker.ietf.org/doc/html/rfc7946}{RFC7946} \cite{ietf-geojson}.
-			The file can contain a collection of features (of type \texttt{FeatureCollection}), where each feature contains a geometry, or the file just contains a list of geometries (one geometry of type \texttt{GeometryCollection}) without attributes.
-			As in KML files, the length, character choice, amount of attributes and amount of geometries are not restricted.
-			The CRS has been set to WGS 84.
+			As the name suggests, a GeoJSON file follows the JSON specification as defined in \href{https://datatracker.ietf.org/doc/html/rfc7946}{RFC7946} \cite{ietf-geojson}.
+			The file can contain a collection of features (object of type \texttt{FeatureCollection}), where each feature contains a geometry, or the file just contains a list of geometries (\texttt{GeometryCollection}, which itself is a geometry type) without attributes.
+			The length of attributes, amount of attributes, character choice and amount of geometries are not restricted.
+			The CRS is fixed and has been set to WGS 84.
 			
 		\subsubsection{GeoTIFF}
 		
@@ -162,7 +163,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			
 			The \term{Well-known Text} (\term*{WKT}) format is a simple, text based format specified by the OGC\cite[51]{ogc-sfa}.
 			One popular use case is communication with databases.
-			One example is PostGIS, an extension to the Postgres database management system, which uses WKT as one exchange format to read and write spatial data\cite{postgis-doc-wkt}.
+			One example is PostGIS, an extension to the PostgreSQL database management system, which uses WKT as one exchange format to read and write spatial data\cite{postgis-doc-wkt}.
 			The WKT format also exists as a binary version called \term{Well-known Binary} (\term*{WKB}), which consumes less space.
 			
 			More complex formats are \term{SpatiaLite} and \term{GeoPackage}.
@@ -220,7 +221,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			
 			Nodes and ways are analogous to \texttt{Point} and \texttt{LineString} from the OGC \term*{Simple Feature Access} (\term*{SFA}) specification described in \cref{subsec:data-structures}.
 			Areas also exist but they are modeled as closed ways, therefore they do not form a new type of geometry.
-			A way is closed, when the first and last coordinates are identical, and thus are analogous to a \texttt{Polygon} in the SFA specification.
+			A way is closed, when the first and last coordinates are identical and certain area compatible attributes exist.
 			
 			Relations form multi-geometries, so they are analogous to \texttt{MultiPoint}, \texttt{MultiLineString} and \texttt{MultiPolygon} of the SFA specification.
 			Typical use cases are multipolygons, turn restrictions and bus routes.
@@ -265,11 +266,10 @@ Hence, the topic of agents and simulations will be covered as well.
 		\subsubsection{Data contained in OSM}
 		
 			Since OSM has no focus on specific topics and due to the flexible tagging scheme \hyperref[subsubsec:osm-attributes]{mentioned above}, nearly anything can be added to OSM.
-			However, there are some types of features that are very common according to \href{https://taginfo.openstreetmap.org/keys}{taginfo.openstreetmap.org}, a service providing basic statistics about the currently used keys and values\cite{taginfo-keys}.
-			The statistics cover the whole OSM database and are updated daily.
+			However, there are some types of features that are very common according to \href{https://taginfo.openstreetmap.org/keys}{taginfo.openstreetmap.org}, a service providing daily updated statistics on currently used keys and values covering the entire OSM database\cite{taginfo-keys}.
 			
 			According to these statistics, the most common objects are buildings with over 542 million occurrences.
-			In fact 6\% of all objects and nearly 60\% of all ways in OSM are buildings.
+			In fact 6\% of all objects and nearly 60\% of all ways, which includes polygons as well, in OSM are buildings.
 			Highways (mainly roads and streets but also paths, bridleways, railways and more) are the second common type of features with over 233 million occurrences.
 			Addresses are also very common, about 32\% of all nodes and 7\% of all ways have a house number.
 			Other often added area features are forests and lakes as well as line features like barriers and waterways.
@@ -280,6 +280,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			This can have multiple reasons.
 			
 			First, some data is too detailed and therefore people will not invest the time necessary to create or maintain that data.
+			For example a tree can have tags specifying its genus, species, taxon, wikipedia and wikidata references to each of these, leaf type, leaf cycle, protection, circumference, height, an image and even more. Some, especially older, protected or locally important trees, do have some of these tags, but the vast majority has none of these tags apart from the necessary \texttt{natural=tree}.
 			
 			Second, OSM follows some strategies on what to add and what not.
 			One important strategy is the verifiability of objects on the ground.
@@ -302,14 +303,20 @@ Hence, the topic of agents and simulations will be covered as well.
 		\subsubsection{Data used in this thesis}
 		
 			This thesis uses OSM data for routing purposes.
-			Since geometric routing is the major topic, certain features in OSM are used as obstacles to navigate between them.
-			
+			Since geometric routing is the major topic, not only the road network is used, but also certain features in OSM, which represent obstacles to navigate between.
 			The following features are considered as obstalces:
 			\begin{itemize}
-				\item \textbf{Buildings}: Anything with the \texttt{building} tag.
-				\item \textbf{Water areas}: This mainly includes lakes and rivers.
-				\item \textbf{Barriers}: The \texttt{barrier}-tag not only describes non-passable barriers but also passable structures like gates. Thus, only specific barriers (mainly fences and walls) are considered.
+				\item \textbf{Barriers}: The \texttt{barrier}-tags not only describe non-passable barriers but also passable structures like gates. Thus, only specific barriers (mainly fences and walls) are considered.
+				\item \textbf{Buildings}: The \texttt{building} tag as it represents buildings. However, some values, such as \texttt{building=roof}, \texttt{=no} and \texttt{=demolished}, are considered passable.
+				\item \textbf{Natural areas}: Areas with the \texttt{natural}-key describe areas filled with a specific form of vegetation as well as water areas. All natural areas, which are not representing grass covered land, are considered impassable.
+				\item \textbf{Railway}: Any type of railway infrastructure, especially tracks.
+				\item \textbf{Waterways}: This includes any type of waterway, such as rivers, streams, canals, ditches or drains.
 			\end{itemize}
+			The exact choice on the passable and impassable features is debatable and depends on the domain of the simulation.
+			For example, train tracks might be passable in an evacuation scenario.
+			
+			The road network is also used, which is done by importing all features with a \texttt{highway} key.
+			Filtering out irrelevant features is not done as these features have either no effect, which is for example the case for \texttt{highway=street\_lamp} for street lamps on unconnected point geometries, or contain useful information for routing, for example \texttt{highway=stop} for stop signs.
 
 \section{Graph based routing}
 \label{sec:graph-routing}
@@ -341,8 +348,9 @@ Hence, the topic of agents and simulations will be covered as well.
 		
 		\subsubsection{\term*[single-pair shortest path]{Single-pair shortest paths}}
 		
-			Like the single-source but shortest paths from one source to one target vertex are requested.
+			Like the single-source but shortest paths from one source to one destination vertex are requested.
 			Even though algorithms like TRANSIT (described in \cref{subsubsec:transit}) solve this problem efficiently, approaches solving the single-source problem, like Dijkstra or algorithms based on it, are used more often.
+			% TODO source on that
 		
 		\subsubsection{\term*[all-pair shortest path]{All-pair shortest paths}}
 		\label{subsubsec:all-pair-shortest-path}
@@ -354,10 +362,15 @@ Hence, the topic of agents and simulations will be covered as well.
 	\subsection{Routing engines and shortest path algorithms}
 	\label{subsec:routing-engines}
 		
-		A \term{routing engine} is software built to create routes but might perform other operations as well, such as map matching or calculation of isochrones.
-		In all cases, finding optimal paths is the central algorithmic task.
+		A \term{routing engine} is software built to create an optimal route between a source and destination location.
+		The optimality of this route is determined by a routing profile, which is a weighting function assigning a weight to each edge in the input graph.
+		Routing engines might perform other operations as well, such as map matching or calculation of isochrones.
+		Map matching is a technique to determine equal features in different datasets, for example one dataset is a recorded bicycle tour, the other dataset is an OSM dump and all OSM-ways used in the bicycle tour should be determined \cite{saki-map-matching}.
+		Isochrones are a way to visualize the reachability of a region \cite{allen-isochrones}.
+		Each isochrone is an area reachable from a given source location within the same amount of time, thus isochrones often form ring like structures.
+		Depending on the underlying algorithm, finding optimal paths might be a central algorithmic task to perform map matching or to create isochrones.
 		
-		To find desirable paths, the weight function $w$ mentioned in \cref{subsec:routing-theoretic-considerations} needs to be carefully chosen based on the domain of the application, target vehicles, personal preferences and other influencing factors.
+		To find desirable paths, the weight function $w$ mentioned in \cref{subsec:routing-theoretic-considerations} needs to be carefully chosen based on the domain of the application, vehicle type, personal preferences and other influencing factors.
 		Applications in our everyday life bundle these aspects into a \term{routing profile}, which maps attributed from the input data to a certain weight.
 		The input data can consist of multiple data sources like a road network graph and a digital elevation model (DEM).
 		Common types of weight functions predict the expected speed on an edge \cite{graphhopper-profile-bike-speeds}, use the length of an edge \cite{graphhopper-profile-shortest} or numerically represent a combination of attributes \cite{graphhopper-profile-short-fastest}.
@@ -480,34 +493,29 @@ Hence, the topic of agents and simulations will be covered as well.
 		\subsubsection{Transit nodes}
 		\label{subsubsec:transit}
 		
-			Due to the name of the approach and the terminology in the original paper, this section uses the term \emph{node} instead of \emph{vertex}.
-			The routing algorithm called \term{TRANSIT} uses specially selected nodes, so called \term[transit node]{transit nodes}, and the distances to all other nodes in the graph to find shortest paths very quickly \cite{bast-transit}.
+			The routing algorithm called \term{TRANSIT} uses specially selected vertices, so called \term[transit node]{transit nodes}, and the distances to all other vertices in the graph to find shortest paths very quickly \cite{bast-transit}.
 		
 			First, the graph is divided into smaller rectangular cells and Dijkstra queries are then used to determine the transit nodes.
 			For each cell, the neighboring cells of a $5 \times 5$ (inner neighbors) and $9 \times 9$ (outer neighbors) neighborhood are determined.
 			Determining transit nodes in a naive way works as follows:
-			For every vertex in the center cell, shortest paths to all vertices in the outer cells are determined.
-			A vertex being on the edge between an inner and outer cell and lying on one of the shortest paths is considered a transit node.
-			Since Dijkstra solves the single-source shortest paths problem (described in \cref{subsubsec:single-source-shortest-path}), the distances from any normal node to all its nearest transit nodes can be stored.
-			The final step of the preprocessing is the calculation of the distances between all transit nodes, which means solving the all-pair shortest path problem as described in \cref{subsubsec:all-pair-shortest-path}.
+			For every vertex within the center cell, shortest paths to all vertices in the outer cells are determined.
+			A vertex being on an shortest path edge leading from an inner into an outer cell is considered a transit node.
+			Since Dijkstra solves the \hyperref[subsubsec:single-source-shortest-path]{single-source shortest paths problem}, all distances from a normal vertex to its nearest transit nodes are stored.
+			The final step of the preprocessing is the calculation of the distances between all transit nodes, which means solving the \hyperref[subsubsec:all-pair-shortest-path]{all-pair shortest path problem}.
 			
-			Having the distances between transit nodes and the distances between any normal nodes to its closest transit nodes makes it easy to compute distances between arbitrary nodes.
-			Finding shortest paths is done by the following two routines.
+			For a source vertex $src \in V$ and destination vertex $dst \in V$, the distances from $src$ to its transit nodes $T_{src} \subset V$, the distances from $dst$ to it transit nodes $T_{dst} \subset V$ and also the distances between the vertices from $T_{src}$ and $T_{dst}$ are known.
+			To determine the shortest path, these distances are used including the total shortest path distance $d(src, dst)$.
 			
-			The first routine calculates just the distance of the shortest path using the precomputed values from above.
-			Given a start node $src \in V$ and target node $trg \in V$, the distance $d(src, trg)$ needs to be known.
+			The first routine calculates this distance $d(src, dst)$.
 			For each closest transit node $t_{src} \in T_{src}$ of $src$, all distances $d(src, t_{src})$ were already precomputed an known.
-			Same holds for all distances $d(t_{trg}, trg)$ from each closest transit node $t_{trg} \in T_{trg}$ to $trg$.
-			The minimal distance between $src$ and $trg$ can be found by going through all pairs of the closest transit nodes $t_{src} \in T_{src}$ and $t_{trg} \in T_{trg}$ and calculating $d(src, trg) = d(src, t_{src}) + d(t_{src}, t_{trg}) + d(t_{trg}, trg)$.
+			Same holds for all distances $d(t_{dst}, dst)$ from each closest transit node $t_{dst} \in T_{dst}$ to $dst$.
+			The minimal distance between $src$ and $dst$ can be found by going through all pairs of the closest transit nodes $t_{src} \in T_{src}$ and $t_{dst} \in T_{dst}$ and calculating $d(src, dst) = d(src, t_{src}) + d(t_{src}, t_{dst}) + d(t_{dst}, dst)$.
 			
-			The second routine actually determines the shortest path, is quite simple and therefore very fast:
-			First, calculate $d(src, trg)$, as described above, and let $u$ be the currently visited node, with $u = src$ initially.
-			The distance from $u$ to the target can be calculated by $d(u, trg) = d(src, trg) - d(src, u)$ of which $d(src, u)$ is known since we started at $src$ and can simply remember the distance traveled so far.
-			Next, find the adjacent node $v$ of $u$ for which $d(u, trg) = d(u, v) + d(v, trg)$ holds.
-			The distance $d(v, trg)$ can easily be computed with the routine described above.
-			Finally, store $u$ to a list, set $u = v$ and repeat the described steps.
-			
-			After reaching the target, the list of stored nodes build the shortest path.
+			With the total distance $d(src, dst)$ of the shortest path, it is possible to iteratively pick the next vertex in the shortest path.
+			For each vertex $v$ on the shortest path, the next vertex $v'$ on that path can be found as follows:
+			the one neighbor vertex $v'$ for which $d(src, v) + d(v, v') + d(v', dst) = d(src, dst)$ holds is the next vertex on the shortest path.
+			Therefore, it is essential to know the distance $d(src, dst)$.
+			After reaching $dst$, the list of stored vertices build the shortest path.
 		
 		\subsubsection{Hub labels}
 		
@@ -583,7 +591,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		
 		Alternatives to the visibility method are based on Voronoi diagrams or skeletonization methods.
 		However, routing results on such graphs are not be optimal anymore, since a straight edge between visible vertices is the shortest possible connection and those alternatives so not always create such direct edges \cite{graser-osm-open-spaces}.
-		Another property of graph generating methods is, that the start and target locations must still be on the graph to be precisely reachable by routing algorithms.
+		Another property of graph generating methods is, that the start and destination locations must still be on the graph to be precisely reachable by routing algorithms.
 	
 	\subsection{Continuous Dijkstra}
 	\label{subsec:continuous-dijkstra}
@@ -596,8 +604,8 @@ Hence, the topic of agents and simulations will be covered as well.
 		Due to this similarity, this strategy is also called the \term{continuous dijkstra} paradigm \cite{mitchell-discrete-geodesic}.
 		
 		To precisely determine these regions, one popular approach is to create \term[wavefront]{wavefronts} (sometimes also called \term[wavelet]{wavelets}) propagating through open spaces.
-		A well fitting analogy for this approach is the propagation of sound or water waves traveling through space, folding around obstacles and finally reaching the target.
-		Recursively following each wave back to its origin yields the shortest path from the source to the target.
+		A well fitting analogy for this approach is the propagation of sound or water waves traveling through space, folding around obstacles and finally reaching the destination location.
+		Recursively following each wave back to its origin yields the shortest path from the source to the destination.
 		
 		Each wavefront can interact with edges and vertices but also with other wavelets.
 		Interactions in this case are collisions creating the borders of the regions.

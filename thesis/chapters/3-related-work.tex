@@ -48,18 +48,18 @@ This section gives an overview about closely related work from these areas.
 		To do so, they developed a metric to detect holes in an existing graph based on the following idea:
 		If the shortest path between two vertices is much longer than the euclidean distance, there is probably a hole in the network.
 		However, this metric leads to false positives when large obstacles, such as a river, is between the two vertices.
-		In this case, the euclidean and shortest path distances differ a lot, which is in deed correct in such cases.
+		In this case, the euclidean and shortest path distances differ a lot, which is indeed correct in such cases.
 		To handle such problems caused by obstacles, they discussed the use of Mitchells wavefront propagation algorithm as discussed \hyperref[related-work:mitchell]{above}.
 		Due to the complexity and lower performance, they decided to use a dense grid instead, cutting out edges intersecting obstacles and use this remaining grid for navigation.
 		Unfortunately, the use of other graph generation algorithms (for example generating a visibility graph) was not discussed.
 		
 		% https://drops.dagstuhl.de/opus/volltexte/2015/5459/pdf/10.pdf
-		Andreev et al. also worked on the existing OpenStreetMap graph but they added sidewalks to roads for more realistic routing and also tried to handle arbitrary source and target locations of routing queries \cite{andreev-osm-generate-sidewalks}.
+		Andreev et al. also worked on the existing OpenStreetMap graph but they added sidewalks to roads for more realistic routing and also tried to handle arbitrary source and destination locations of routing queries \cite{andreev-osm-generate-sidewalks}.
 		They not only added sidewalks but also dealt with open spaces such as plazas and parks.
 		For each plaza, which usually do not contain designated footways, they create a visibility graph to generate edges within the plaza.
 		Edges not relevant for paths through the plaza are removed afterwards.
 		Parks are handles differently, since they often contain designated paths.
-		If the source or target starts within a park, special edges are added based on the walking speed and existing edges for paths within the park.
+		If the source or destination starts within a park, special edges are added based on the walking speed and existing edges for paths within the park.
 		After this preprocessing, Dijkstra is used to determine the complete shortest path.
 	
 	\subsection{Filling open spaces}
@@ -79,6 +79,7 @@ This section gives an overview about closely related work from these areas.
 		Considered and discussed alternatives were two skeletonization methods and the usage of a simple grid filling the open spaces.
 		
 	\subsection{Generate graphs from existing maps}
+	\label{subsection:generate-graphs-from-maps}
 	
 		A graph is not always available, which motivated Walter et al. to create a procedure using raster maps \cite{walter-raster-maps}.
 		They proposed an algorithm with four steps:

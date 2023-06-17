@@ -54,7 +54,7 @@ For both parts, method and design details are given followed by the respective r
 
 			\begin{description}
 				\item[Shadow areas] Instead, every visibility check was performed using the custom intersection check described in \cref{subsubsec:intersection-checks}.
-				\item[Custom intersection check] The custom intersection check was replaced by the \texttt{RobustLineIntersector} class from the NTS to determine intersections between line segments.
+				\item[Custom intersection check] The custom intersection check was replaced by the \todo[inline]{probably \texttt{RobustLineIntersector}?} class from the NTS to determine intersections between line segments.
 				\item[BinIndex] Instead, the \texttt{BinTree} from the NTS was used.
 				\item[Convex hull] The restriction to only consider vertices on the convex hull of obstacles was removed.
 				\item[Valid angle areas] Considering only potential visibility neighbors within certain angular ranges was deactivated.
@@ -89,6 +89,10 @@ For both parts, method and design details are given followed by the respective r
 			To prevent the garbage collection from interfering with the execution, a 256 MiB large no-GC-region is placed around the function call via \texttt{GC.TryStartNoGCRegion(256 * 1024 * 1024)}.
 			Although this only works if enough memory is available \cite{ms-no-gc-region}, the system had this memory and introduction this no-GC-region significantly stabilized the results.
 			\todo[inline]{test this and maybe give an example result (standard deviation or so?)}
+			
+			Another step is the increase of the process priority.
+			This ideally leads to an exclusive use of one CPU core on which the single threaded application runs.
+			Increasing the process priority is done by settings the \texttt{PriorityClass} of the current process to \texttt{ProcessPriorityClass.High}.
 		
 		\subsubsection{System and hardware}
 		
