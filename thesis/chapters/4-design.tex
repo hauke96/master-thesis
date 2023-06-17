@@ -256,6 +256,24 @@ Finally, an overview of the separate components is given as well as a descriptio
 		Probably all approaches from the literature would work but preprocessing, restrictions on the input data or adjustments to the approaches would be necessary.
 		Since this work focuses more on the overall concept of a hybrid routing algorithm, the choice on the graph generation algorithm was of less importance.
 		Therefore, the implementation in this work, as shown in \cref{chap:implementation} in detail, is much simpler and independent of the aforementioned approaches.
+		
+	\subsection{Early implementation based on the continuous dijkstra paradigm}
+		
+		An early implementation, before the above mentioned decision for a strategy fell, was not creating a visibility graph but instead it was based on the \term*{continuous dijkstra} paradigm with wavelets propagating through open spaces.
+		However, there were three reasons why this first approach was replaced by a visibility graph based algorithm.
+		
+		The main reason was the overall strategy decision on the visibility graph approach.
+		One other reason was the implementation of performance enhancement for the naive continuous dijkstra.
+		Early stages of the continuous dijsktra approach used a very naive and simple implementation without optimizations mentioned in recent literature on this topic.
+		Wavelets did not move continuously but instead they snapped to the next \enquote{event}, i.e. to the next visible vertex where new wavelets can spawn.
+		Because the strategy decision was not yet made at that time, no larger efforts went into optimizing the implementation, e.g. by implementing the approach presented by Hershberger and Suri\cite{hershberger-suri}.
+		Instead, a simple preprocessing was introduced and lead to a major performance improvement.
+		This preprocessing determined the visibility between all vertices used for the above mentioned events.
+		Such predetermined visibilities are the core idea of a visibility graph, thus moving to an approach using an actual visibility graph was only a small step.
+		
+		A third reason against this early continuous dijkstra implementation were the difficulties and the disadvantages of combining the network based routing with the continuous dijkstra algorithm, as described in \cref{sec:combining-routing-algorithms}.
+		
+		Therefore, this first continuous dijkstra approach was not further pursued but converted to a generator for a routable visibility graph with components described in the following section.
 	
 \section{Components}
 \label{sec:components}

@@ -8,7 +8,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 
 \section{Algorithm overview}
 
-	Before technical details are covered, this section gives a broad overview of the implementation.
+	In this section, details on the code dependencies are given as well as a broad overview of the algorithm.
 
 	\subsection{Frameworks and technology}
 	\label{subsec:frameworks-technology}
@@ -26,26 +26,6 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 		Most notably, a \hyperref[subsubsec:intersection-checks]{fast line intersection check}, a \hyperref[subsec:binindex]{bin based index} and a fast \hyperref[subsec:shadow-areas]{vertex filtering method} were implemented.
 		The latter one refers to the so called \emph{shadow areas} in the sections below.
 		Several other helper functions and simpler structures, for instance separate classes for vertices and obstacles, were added as well.
-
-	\subsection{Early implementation based on the continuous dijkstra paradigm}
-	
-		An early implementation, before the final decision for a strategy fell, was not creating a visibility graph but instead it was based on the \term*{continuous dijkstra} paradigm with wavelets propagating through open spaces.
-		However, there were two reasons why this first approach was replaced by a visibility graph based algorithm.
-		
-		The main reason was the overall strategy decision on the visibility graph approach.
-		The other reason were performance enhancement made to the naive continuous dijkstra implementation.
-		
-		Early stages of the continuous dijsktra approach used a very naive and simple implementation without optimizations mentioned in recent literature on this topic.
-		Wavelets did not move continuously but instead they snapped to the next \enquote{event}, i.e. the next visible vertex where new wavelets can spawn.
-		Because the strategy decision was not yet made at that time, no larger efforts went into optimizing the implementation, e.g. by implementing the approach presented by Hershberger and Suri\cite{hershberger-suri}.
-		Instead, a simple preprocessing was introduced and lead to a major performance improvement.
-		This preprocessing determined the visibility between all vertices used for the above mentioned events.
-		Such predetermined visibilities are the core idea of a visibility graph, thus moving to an approach using an actual visibility graph was only a small step.
-		Design decisions regarding the implementation and concrete algorithm were discussed in \cref{sec:design-decisions}.
-		
-		A third reason against this early continuous dijkstra implementation were the difficulties and the disadvantages of combining the network based routing with the continuous dijkstra algorithm, as described in \cref{sec:combining-routing-algorithms}.
-		
-		Therefore, this first continuous dijkstra approach was not further pursued but converted to a generator for a routable visibility graph.
 	
 %	\subsection{Chosen approach and potentially faster known algorithms}
 %
@@ -95,14 +75,12 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 	\subsection{Shadow areas}
 	\label{subsec:shadow-areas}
 		
-		Shadow areas are a method to quickly determine and filter out vertices that are not visible to each other.
-		The idea of shadow areas is the following:
-		Let $v$ be the currently processed vertex and think of it as a light bulb illuminating its surroundings.
-		An obstacle $o$ casts a shadow outwards and everything within this shadow is definitely not visible from $v$.
+		Shadow areas are a method I designed and implemented to quickly determine and filter out vertices that are not visible to each other.
+		The motivation and the idea behind shadow areas is the following:
+		Having a light bulb as a single light source, everything within a shadow is not visible from that light bulb.
+		Interpreting a vertex $v$ as a light bulb illuminating its surroundings, an obstacle $o$ casts a shadow outwards and every vertex within this shadow is definitely not visible from $v$.
 		
 		Each shadow is determined by three values: two values for the angular range (also referred to as \emph{angle area}) and a third value for the minimum distance from which other vertices within the angular range are definitely not visible.
-		This means each shadow is an interval with of certain distance, which turns the visibility problem into an interval intersection problem.
-		Checks on whether a certain coordinate is within any shadow area is a simple operation using just a few arithmetic operations.
 		
 		\begin{figure}[h]
 			\begin{figcenter}
@@ -161,11 +139,26 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			\label{fig:shadow-area}
 		\end{figure}
 		
-		The angular range of a shadow is determined by the two bounding vertices (marked in red in \cref{fig:shadow-area}) of the respective obstacle.
-		Of these two bounding vertices, the one further away determines the minimum distance of the shadow area.
+		The angular range is determined by two vertices, the \emph{bounding vertices} as marked in red in \cref{fig:shadow-area}, one with the smallest and one with the largest angle from the processed vertex $v$.
+		Thus, the shadow area covers the largest possible angular range for the obstacle it belongs to.
+		
+		Having the distances from $v$ the two bounding vertices, the larger distance is the overall distance of the shadow area.
+		Choosing any other distance, e.g. the smaller distance of these two, would result in a shadow area leading to false positive visibility checks, meaning the checked vertex is within the shadow but it is actually visible from $v$.
+		Taking the larger distance into account results in false negative results (as for $v'$ in \cref{fig:shadow-area}), meaning the vertex is not within a shadow but not visible, which can be handled by a full visibility check.
+		Additionally when using the larger distance, positive results, meaning the checked vertex is within a shadow and seems to be not visible from $v$, are always true positive results and need no further checking.
+		
+		Calculating the shadow area of an obstacle is a linear time operation (linear in the amount of vertices of the obstacle) and requires just a few arithmetic operations.
+		
+		For example for the currently processed vertex $v$, a shadow area can range from 45° to 90° and starts at a distance of 5 meters.
+		This means a vertex at 60° and 3 meters distance might be visible from $v$ but a visibility check is needed.
+		A vertex at 60° and 6 meters distance is definitely not visible.
+		This scenario is illustrated in \cref{fig:shadow-area} with vertices $v'$ and $v''$.
+		
+		In terms of data structures, each shadow is an interval (between 0 and 360) of certain distance, which turns the visibility problem into an interval intersection problem.
+		Thus, checking whether a certain coordinate is within any shadow area is a simple operation using just a few arithmetic operations.
 		
 		Keeping track of these shadow areas for each vertex significantly improves performance, especially with the use of the \texttt{BinIndex} data structure described \hyperref[subsec:binindex]{below}.
-		\todo[inline]{conrete numbers?}
+		\todo[inline]{Evaluation why this is fast.}
 		
 		% NetworkRoutingPlayground->Jungfernstieg dataset with 7916 vertices: ~7.3s with and 67s without shadow areas -> speed up of factor ~9
 		% Hamburg inner city dataset with 67819 vertices: 382s with and ~31000s without shadow areas -> speed up of factor ~81
