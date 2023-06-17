@@ -238,7 +238,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 					\draw[->] (\itemBIndexStart*\l+4.5*\l,\l) -- ++(0,0.5*\l);
 					
 					\node at (0.5*\countX*\l,-0.875) {bins};
-					\node[align=right] at (-1.25,0.5*\countY*\l+\l) {Linked list\\of bins};
+					\node[align=right] at (-1.25,0.5*\countY*\l+0.5*\l) {Linked lists\\of bins};
 				\end{tikzpicture}
 			\end{figcenter}
 			\caption{Bin index filled with two items A (added first) and B (added last). Since item A was added first, B's entries in, which fall into a bin where en entry for item A already exists, are moved to a next item in the linked list of the bin. Each bin covers a range, which means non integer value are rounded down (for from-values) or up (for to-values).}
@@ -249,10 +249,9 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 		This dynamic behavior is crucial for an efficient use of the shadow areas.
 		Otherwise, the shadow areas must be created in beforehand, added to and index and then be used, which results in a large number of unnecessary areas being added to the index.
 		
-		Even though these three data structures are tree based and should offer a logarithmic query time complexity, compared to the linear time complexity of the \texttt{BinIndex}, the simple and list based \texttt{BinIndex} is significantly faster even for larger datasets with tens of thousands of vertices.
-		It is thinkable that the logarithmic complexity is useful for even larger datasets with millions of vertices.
-		
-		\todo{Performance analysis (maybe in evaluation chapter?)}
+		Even though these three data structures are tree based and offer a logarithmic query time complexity for queries, compared to the linear time complexity of the \texttt{BinIndex}, the simple and list based \texttt{BinIndex} is significantly faster even for larger datasets with tens of thousands of vertices.
+		%It is thinkable that the logarithmic complexity is useful for even larger datasets with millions of vertices.
+		\todo[inline]{Measure performance + Point when the tree is better}
 		
 \section{Routing graph creation}
 \label{sec:visibility-graph-creation}
@@ -265,7 +264,8 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 		The first step is to filter all input features by their attributes to get all relevant obstacle features, regardless of their geometry.
 		
 		For performance reasons, multi-geometries, like \texttt{MultiPolygon} are split up into their separate geometries.
-		Holes in a polygon are not reachable in the first place and unwrapping the \texttt{MultiPolygon} will not change this.
+		% TODO Add remarks on handling islands in multi-polygons (s. ticket).
+		%Holes in a polygon are not reachable in the first place and unwrapping the \texttt{MultiPolygon} will not change this.
 		Unwrapping \texttt{MultiLineString} geometries is unproblematic as well, since the result are just multiple normal linestrings.
 		Features made of \texttt{Point} geometries are also considered so that visibility edges can reach \term*{points of interest}.
 		Visibility checks, which are performed in the next step of the algorithm, can ignore point features, since they have no spatial size.
@@ -293,8 +293,8 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			
 			\begin{description}
 				\item[obstacle] An \term{obstacle} is a geometry that should be avoided when determining shortest paths. It can be any type of geometry, not only a polygon.
-				\item[visibility neighbor] A \term{visibility neighbor} (sometimes also \emph{visible neighbor}) of a vertex $v$ is another vertex $u$, which is visible to $v$ and vice versa. In other words an imaginary linestring from $v$ to $u$ does not intersect with any obstacle. Sometimes $u$ is just called a \emph{visible neighbor}.
-				\item[obstacle neighbor] An \term{obstacle neighbor} of a vertex $v$ is another vertex $u$ with the property that an (undirected) edge $\{v, u\}$ exists. In other words, $u$ is visible from $v$ but via an existing edge that is part of an obstacle.
+				\item[visibility neighbor] A \term{visibility neighbor} (sometimes also \emph{visible neighbor}) of a vertex $v$ is another vertex $u$, which is visible to $v$ and vice versa. In other words an imaginary linestring from $v$ to $u$ does not intersect with any obstacle.
+				\item[obstacle neighbor] An \term{obstacle neighbor} of a vertex $v$ is another vertex $u$ with the property that an (undirected) edge $\{v, u\}$ exists on that obstacle. In other words, $u$ is visible from $v$ but not via a visibility edge but instead via an edge of that obstacle.
 				\item[valid angle area] A \term{valid angle area} describes a specially determined angular range around a vertex in which potential visibility neighbors are checked.
 			\end{description}
 		
@@ -351,10 +351,12 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			Eventually the path switches from following the convex hull to following a visibility edge, which leads to another obstacle and therefore another convex hull part.
 			
 			This means, a shortest path consists of many convex hull parts that either are connected by straight lines or touch each other.
-			Connecting lines between two convex hull parts always follow the clockwise or counter clockwise direction of the convex hull line segments being part of the shortest path as illustrated in \cref{fig:convex-hull}.
-			If the convex hull part bends in counter clockwise direction, the connecting line leading to the next convex hull also goes into a counter clockwise direction.
-			In other words, if the destination vertex of the connecting line would be part of the source obstacle, then the connecting line would be part of the convex hull as well.
-			Adding this destination vertex would therefore enlarge the convex hull in a way that the source vertex, where the connecting line starts, would still be part of the obstacle's convex hull.
+			Connecting lines, i.e. line segments connecting one convex hull part with another, always follow the clockwise or counter clockwise direction of the convex hull line segments as illustrated in \cref{fig:convex-hull}.
+			If the convex hull part bends in counter clockwise direction, it means that the bearing decreases with each subsequent line segment and increases for clockwise hulls respectively.
+			In other words, line segments of a counter clockwise convex hull only make left turns, the ones of a clockwise hull only make right turns.
+			The connecting line to the next convex hull follows this turning direction.
+			Another way to think about this is the following with \cref{fig:convex-hull} as an example:
+			if the destination vertex $v_2$ of the connecting line $(v_1, v_2)$ would be added to the obstacle of the source vertex (in this example $o_1$), then the connecting line would be part of the convex hull of this new enlarged obstacle.
 
 			\begin{figure}[h]
 				\begin{figcenter}
@@ -367,7 +369,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 							-- ++(-2,0) coordinate (c04)
 							-- ++(-1.4,-0.35) coordinate (c05)
 							-- (c00);
-						\node[above right = 0.3 and 1.6 of c00] {$o_1$};
+						\node[above right = 0.15 and 1.6 of c00] {$o_1$};
 							
 						\coordinate (c10) at (2.5,3.85);
 						\draw (c10)
@@ -376,7 +378,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 							-- ++(2.8,0) coordinate (c13)
 							-- ++(-0.4,1.2) coordinate (c14)
 							-- (c10);
-						\node[below right = 0.3 and 0.5 of c10] {$o_2$};
+						\node[below right = 0.25 and 0.75 of c10] {$o_2$};
 						
 						\def\d{1.5\pgflinewidth}
 						\filldraw[thin,Green4!35!white] ($(c03)+(0,\d)$) -- +(180:0.35) arc [start angle=180, delta angle=-97.126, radius=0.35];
@@ -388,31 +390,42 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 						\draw[thin,DodgerBlue3] ($(c12)+(0,-\d)$) -- +(0:4);
 						
 						\tikzDot[label={right:$s$}]{(c01)}{s}
-						\tikzDot[label={right:$v_0$}]{(c03)}{v0}
-						\tikzDot[label={left:$v_1$}]{(c12)}{v1}
-						\tikzDot[label={below:$v_2$}]{(c13)}{v2}
+						\tikzDot[label={right:$v_0$}]{(c02)}{v0}
+						\tikzDot[label={right:$v_1$}]{(c03)}{v1}
+						\tikzDot[label={left:$v_2$}]{(c12)}{v2}
+						\tikzDot[label={below:$v_3$}]{(c13)}{v3}
 						\tikzDot[label={left:$t$}]{(c10)}{t}
 						
-						\draw[->,Red2,thick] (s) -- (c02);
-						\draw[->,Red2,thick] (c02) -- (v0);
+						\draw[->,Red2,thick] (s) -- (v0);
 						\draw[->,Red2,thick] (v0) -- (v1);
-						\draw[->,Red2,thick] (v1) -- (c11);
+						\draw[->,Red2,thick] (v1) -- (v2);
+						\draw[->,Red2,thick] (v2) -- (c11);
 						\draw[->,Red2,thick] (c11) -- (t);
 					\end{tikzpicture}
 				\end{figcenter}
-				\caption{The path from $s$ via $v_0$ and $v_1$ to $t$ bends along the convex hulls of $o_1$ and $o_2$.
-					The segment from $v_0$ to $v_1$ is a connecting line between the hull parts.
-					% Suppose $v_1$ would be part of $o_1$, then the path from $s$ via $v_0$ to $v_1$ would be on its convex hull. Same holds true for $v_0$ and $o_2$ respectively.
+				\caption{The path from $s$ via $v_1$ and $v_2$ to $t$ bends along the convex hulls of $o_1$ and $o_2$.
+					The segment from $v_1$ to $v_2$ is a connecting line between the hull parts.
+					% Suppose $v_2$ would be part of $o_1$, then the path from $s$ via $v_1$ to $v_2$ would be on its convex hull. Same holds true for $v_1$ and $o_2$ respectively.
 					\\
-					The green angle at $v_0$ indicates one angle area in which all visibility neighbors of $v_0$, in case they would be added to $o_1$, would expand $o_1$'s convex hull without removing $v_0$ from it. Same applies to the blue angle for $o_2$ and $v_1$ respectively.
+					The green angle at $v_1$ indicates one angle area in which all visibility neighbors of $v_1$, in case they would be added to $o_1$, would expand $o_1$'s convex hull without removing $v_1$ from it. Same applies to the blue angle for $o_2$ and $v_2$ respectively.
 					\\
-					Vertex $v_2$, however, is not a potential neighbor for $v_0$.
-					Adding it to $o_1$ would not only remove $v_0$ from $o_1$'s convex hull but would also remove $v_0$ from the shortest path.}
+					Vertex $v_3$, however, is not a potential neighbor for $v_1$.
+					Adding it to $o_1$ would not only remove $v_1$ from $o_1$'s convex hull but would also remove $v_1$ from the shortest path.}
 				\label{fig:convex-hull}
 			\end{figure}
-			Connecting vertices against the bending direction would result in edges that will never be part of a shortest path.
-			For example, connecting $v_0$ to $v_2$ in \cref{fig:convex-hull} would result in two line segments never being part of a shortest path, namely the segment leading into $v_0$ and the segment from $v_0$ to $v_2$. 
-			Only connecting vertices fulfilling the above described convex hull expansion criterion need to be considered, which includes all vertices within certain angular ranges.
+			
+			Allowing connecting lines against the turning direction of the source vertex would result in edges that will never be part of a shortest path.
+			For example, the line segment $(v_1, v_3)$ in \cref{fig:convex-hull} is not part of any shortest path, which has $v_1$ is an intermediate vertex.
+			This is due to the properties described at the beginning, that convex hulls themselves build shortest paths around obstacles, the overall shortest path is a sequence of convex hull parts, connecting lines connect these hulls following their turn direction and therefore are part of the overall shortest path.
+			Breaking the criterion of the turn directions, i.e. by allowing connecting lines against the turn direction of the source hull, leads to non-shortest paths.
+			This connecting line, which was created against the hull's turning direction, can be relaxed to a new connecting line that follows the turning direction.
+			In \cref{fig:convex-hull}, the path $(v_0, v_1, v_3)$ with the connecting line $(v_1, v_3)$ can be relaxed to $(v_0, v_3)$ forming the actual shortest path.
+			
+			Following the idea of extending the source obstacle illustrates the contradiction that appear for breaking the turn direction criterion.
+			Considering $o_1$ and extending it with the connecting line's destination vertex $v_3$ to $o'_1=o_1 \cup \{v_3\}$ yields the path $(s, v_0, v_3)$, which is the shortest path for the actual existing obstacles, because it follows the convex hull of the hypothetical obstacle $o'_1$.
+			If the segment $(v_1, v_3)$ would be part of the shortest path from $s$ to $v_3$, it would not be part of the convex hull of $o'_1$ and therefore this segment cannot be part of the shortest path.
+			
+			Only connecting lines fulfilling the above described turning direction criterion need to be considered, which restricts all relevant vertices to certain angular ranges.
 			The marked green and blue angle areas in \cref{fig:convex-hull} represent these \term{valid angle areas} for potential visibility neighbors.
 			Vertices at other angles will be ignored since the resulting edges will never be part of any shortest path.
 			
