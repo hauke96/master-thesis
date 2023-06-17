@@ -446,6 +446,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 		\label{subsubsec:intersection-checks}
 			
 			All intersection checks are performed using own implementations instead of method from the the NetTopologySuite, which are more generalized and therefore slower.
+			\todo[inline]{Evaluation by executing 10k (or so) random collision checks with several other method from NTS (s. wekan ticket)}
 			In fact, there are two types of intersection checks implemented:
 			One function to check for an intersection between two arbitrary line segments and one to check if a point lies within a triangle.
 			
