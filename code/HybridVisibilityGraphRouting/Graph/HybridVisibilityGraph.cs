@@ -308,7 +308,7 @@ public class HybridVisibilityGraph
             // 1.1. Add intersection node (the node where the existing edge and the segment intersect). A new node
             // is only added when there's no existing node at the intersection points.
             var (intersectionNodes, createdIntersectionNode) =
-                hybridGraph.GetOrCreateNodeAt(hybridGraph.Graph, intersectionCoordinate.ToPosition());
+                hybridGraph.GetOrCreateNodeAt(intersectionCoordinate.ToPosition());
             var intersectionNode = Graph.NodesMap[GetNodeForAngle(intersectionNeighbor, intersectionNodes)];
             intersectionNodeIds.Add(intersectionNode);
             if (createdIntersectionNode)
@@ -342,14 +342,14 @@ public class HybridVisibilityGraph
         // 2. Split the segment at existing edges.
 
         // Find or create from-node and to-node of the unsplit segment
-        var (fromNodes, fromNodeHasBeenCreated) = hybridGraph.GetOrCreateNodeAt(hybridGraph.Graph, segmentFromPosition);
+        var (fromNodes, fromNodeHasBeenCreated) = hybridGraph.GetOrCreateNodeAt(segmentFromPosition);
         var fromNode = Graph.NodesMap[GetNodeForAngle(segmentToPosition, fromNodes)];
         if (fromNodeHasBeenCreated)
         {
             newNodes.Add(fromNode);
         }
 
-        var (toNodes, toNodeHasBeenCreated) = hybridGraph.GetOrCreateNodeAt(hybridGraph.Graph, segmentToPosition);
+        var (toNodes, toNodeHasBeenCreated) = hybridGraph.GetOrCreateNodeAt(segmentToPosition);
         var toNode = Graph.NodesMap[GetNodeForAngle(segmentFromPosition, toNodes)];
         if (toNodeHasBeenCreated)
         {
@@ -449,7 +449,7 @@ public class HybridVisibilityGraph
     /// <summary>
     /// Gets the nearest node at the given location. Is no node was found, a new one is created and returned.
     /// </summary>
-    private (IEnumerable<NodeData>, bool) GetOrCreateNodeAt(SpatialGraph graph, Position position)
+    private (IEnumerable<NodeData>, bool) GetOrCreateNodeAt(Position position)
     {
         var nodes = new HashSet<NodeData>();
         var createdNewNode = false;
@@ -458,7 +458,7 @@ public class HybridVisibilityGraph
         if (potentialNodes.IsEmpty())
         {
             // No nodes found within the radius -> create a new node
-            var node = graph.AddNode(position.X, position.Y);
+            var node = Graph.AddNode(position.X, position.Y);
             nodes.Add(node);
             _nodeIndex.Add(position, node);
             createdNewNode = true;
@@ -502,14 +502,11 @@ public class HybridVisibilityGraph
         return edge;
     }
 
-    private void RemoveNode(int nodeId)
-    {
-        RemoveNode(Graph.NodesMap[nodeId]);
-    }
-
     private void RemoveNode(NodeData node)
     {
         Graph.RemoveNode(node);
+        _vertexToNodes.Where(pair => pair.Value.Contains(node.Key)).Each(pair => _vertexToNodes.RemoveKey(pair.Key));
+        InitNodeIndex();
     }
 
     private void RemoveEdge(EdgeData edge)
