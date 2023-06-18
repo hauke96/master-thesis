@@ -8,11 +8,11 @@ Edges from a road network often contain useful information, for example about si
 
 The resulting hybrid routing algorithm does not suffer from these disadvantages and therefore offers a fast, flexible and accurate routing.
 This chapter covers the design of the implemented algorithm in order to accomplish these tasks.
-First, the overall context is presenting specifically the requirements and constrains of the algorithm.
+First, the overall context is presenting specifically the requirements and constraints of the algorithm.
 Second, details on the decisions regarding the routing strategy and general design are presented.
 Finally, an overview of the separate components is given as well as a description on the deployment of this algorithm.
 
-\section{Requirements and constrains}
+\section{Requirements and constraints}
 	
 	Enhancing the routing capabilities of the MARS framework is an integral aspect of the algorithm's development.
 	Therefore, the code also uses parts of the MARS framework, which is shown in detail in \cref{subsec:frameworks-technology}.
@@ -20,7 +20,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 	Integrating the algorithm into a different context or using it as a standalone application is therefore possible with minimal changes in the code.
 	
 	Apart from the integration into MARS, there are several requirements on the algorithm itself, which are presented in the following.
-	Technical constrains also exist and are discussed at the end of this section.
+	Technical constraints also exist and are discussed at the end of this section.
 	
 	\subsection{Requirements}
 	
@@ -53,13 +53,13 @@ Finally, an overview of the separate components is given as well as a descriptio
 
 		Next to the domain specific requirement, the overall code itself should of course be well documented and tested.
 	
-	\subsection{Constrains}
-	\label{subsec:constrains}
+	\subsection{Constraints}
+	\label{subsec:constraints}
 		
 		% Well integrated into MARS and NTS, no new dependencies
 		One major constraint is the integration of final algorithm into the \term*{MARS} framework to make the use as easy as possible and to centralize the code base for better maintenance.
 		This means the programming language will be C\# and additionally, because MARS uses the geospatial framework \term{NetTopologySuite} (\term*{NTS}) as basis for all major geospatial operations, this algorithm will be based on NTS.
-		However, the higher level architecture and its components is not affected by these technical constrains.
+		However, the higher level architecture and its components is not affected by these technical constraints.
 		
 		The planned integration into another code base, in this case the one of the MARS framework, affects the management of dependencies.
 		On the one hand, the amount newly introduced dependencies should be kept to a minimum, which means dependencies on MARS and NTS are to be preferred over other third-party libraries.
@@ -67,7 +67,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 		More specific, a triangulation method was needed, which is part of an NTS version not used my MARS yet.
 		However, this case only appeared once and can be avoided and should disappear with future dependency updates.
 		
-		An additional constrains is the limitation on vector data as data structure for obstacles and roads.
+		An additional constraints is the limitation on vector data as data structure for obstacles and roads.
 		Using raster data is theoretically possible, as mentioned in \cref{subsection:generate-graphs-from-maps} for the work of Walter et al., but requires a different processing and results in less accurate results, due to the rasterization.
 		Therefore, only vector data has to be supported.
 	
