@@ -23,7 +23,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 		However, higher level structures were used as well, such as \texttt{SpatialGraph} or \texttt{QuadTree} classes.
 		
 		Not all data structures and algorithms already existed to create the hybrid routing graph.
-		Most notably, a \hyperref[subsubsec:intersection-checks]{fast line intersection check}, a \hyperref[subsec:binindex]{bin based index} and a fast \hyperref[subsec:shadow-areas]{vertex filtering method} were implemented.
+		Most notably, a \hyperref[subsubsec:intersection-checks]{fast line intersection check}, a \hyperref[subsec:binindex]{bin-based index} and a fast \hyperref[subsec:shadow-areas]{vertex filtering method} were implemented.
 		The latter one refers to the so called \emph{shadow areas} in the sections below.
 		Several other helper functions and simpler structures, for instance separate classes for vertices and obstacles, were added as well.
 	
@@ -166,7 +166,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 	\subsection{BinIndex data structure}
 	\label{subsec:binindex}
 		
-		The \texttt{BinIndex} class implements a linear bin based index structure to store and access intervals.
+		The \texttt{BinIndex} class implements a linear bin-based index structure to store and access intervals.
 		It contains $n$ many bins covering a certain range and each bin consists of a linked list.
 		Items are added to each bin that intersect with the range of the item.
 		Due to the linked list as the underlying data structure for the bins, point queries can be answered in constant and range queries in linear time.
@@ -249,7 +249,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 		This dynamic behavior is crucial for an efficient use of the shadow areas.
 		Otherwise, the shadow areas must be created in beforehand, added to and index and then be used, which results in a large number of unnecessary areas being added to the index.
 		
-		Even though these three data structures are tree based and offer a logarithmic query time complexity for queries, compared to the linear time complexity of the \texttt{BinIndex}, the simple and list based \texttt{BinIndex} is significantly faster even for larger datasets with tens of thousands of vertices.
+		Even though these three data structures are tree-based and offer a logarithmic query time complexity for queries, compared to the linear time complexity of the \texttt{BinIndex}, the simple and list-based \texttt{BinIndex} is significantly faster even for larger datasets with tens of thousands of vertices.
 		%It is thinkable that the logarithmic complexity is useful for even larger datasets with millions of vertices.
 		\todo[inline]{Measure performance + Point when the tree is better}
 		
@@ -450,7 +450,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			In fact, there are two types of intersection checks implemented:
 			One function to check for an intersection between two arbitrary line segments and one to check if a point lies within a triangle.
 			
-			The line segment intersection check uses a cross product based approach described in \emph{Introduction to algorithms} by Thomas H Cormen et al. \cite[1018]{cormen-introduction-to-alg}.
+			The line segment intersection check uses an approach based on cross products as presented in \emph{Introduction to algorithms} by Thomas H Cormen et al. \cite[1018]{cormen-introduction-to-alg}.
 			Even though this method only works on single line segments, it is significantly faster than general purpose checks provided by the NetTopologySuite.
 			This is still true when checking if a single line segments intersects any of multiple obstacles.
 			
@@ -608,7 +608,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 		\subsubsection{Step 2.3: Sort resulting visibility neighbors into bins}
 		
 			A naive approach to create a visibility graph would be to create edges between vertices that are visible to each other.
-			This would make routing through line based obstacles possible as \cref{fig:routing-through-line-obstacle} illustrates.
+			This would make routing through line-based obstacles possible as \cref{fig:routing-through-line-obstacle} illustrates.
 			Such routing behavior is, of course, not desired.
 			
 			\begin{figure}[h]
@@ -865,3 +865,5 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 	
 	Fortunately, the \texttt{SpatialGraph.RemoveNode(int)} method removes the node given by its ID and also removes all edges, which are connected to the given node.
 	This makes step \ref{itm:answering-queries-cleanup} very easy since step \ref{itm:answering-queries-add-nodes} and \ref{itm:answering-queries-vis-edges} yield the IDs of created nodes, which are needed for the cleanup.
+	
+	\todo{Summary/wrap up/transition to evaluation chapter}

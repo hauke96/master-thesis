@@ -2,11 +2,11 @@
 % !TeX spellcheck = en_US
 
 This chapter introduces basic concepts relevant for this thesis.
-Primarily, this includes geodata, routing algorithms as well as agent based simulations.
+Primarily, this includes geodata, routing algorithms as well as agent-based simulations.
 The section about geodata gives a broad overview of coordinate systems, file formats, standards and OpenStreetMap as one important source of geospatial data.
 Such data can be used to find shortest paths between two locations using routing algorithms.
-Two main strategies exist to find such paths, graph based and geometric routing, and both will be covered in this chapter.
-Agent based simulations play an important role in pedestrian simulations and often use these routing techniques.
+Two main strategies exist to find such paths, graph-based and geometric routing, and both will be covered in this chapter.
+agent-based simulations play an important role in pedestrian simulations and often use these routing techniques.
 Hence, the topic of agents and simulations will be covered as well.
 
 \section{Geospatial data}
@@ -20,7 +20,7 @@ Hence, the topic of agents and simulations will be covered as well.
 	Whenever this thesis mentions the term \emph{geodata}, data structures as described below in \cref{subsec:data-structures} are meant.
 	
 	Next to the mentioned explicit references to locations, such as coordinates, implicit location references can be encoded within metadata of datasets as well.
-	This is for example the case with the image based GeoTIFF format, which stores the geographic extent of the image in the metadata of a normal TIFF image file\cite{ogc-geotiff}.
+	This is for example the case with the image-based GeoTIFF format, which stores the geographic extent of the image in the metadata of a normal TIFF image file\cite{ogc-geotiff}.
 	The exact coordinate of a data point (in this case a pixel in the TIFF image), must then be calculated using this metadata.
 
 	\subsection{Coordinate reference systems and projections}
@@ -161,19 +161,19 @@ Hence, the topic of agents and simulations will be covered as well.
 			This uses the \term{GTFS} format, which is based on CSV files (even though each file has the ending \texttt{.txt}) and also contains a \texttt{shapes.txt} CSV file to describe which routes the vehicles take \cite{google-gtfs}.
 			However, there is no popular standard using CSV files to store spatial data only.
 			
-			The \term{Well-known Text} (\term*{WKT}) format is a simple, text based format specified by the OGC\cite[51]{ogc-sfa}.
+			The \term{Well-known Text} (\term*{WKT}) format is a simple, text-based format specified by the OGC\cite[51]{ogc-sfa}.
 			One popular use case is communication with databases.
 			One example is PostGIS, an extension to the PostgreSQL database management system, which uses WKT as one exchange format to read and write spatial data\cite{postgis-doc-wkt}.
 			The WKT format also exists as a binary version called \term{Well-known Binary} (\term*{WKB}), which consumes less space.
 			
 			More complex formats are \term{SpatiaLite} and \term{GeoPackage}.
-			SpatiaLite specifies an extension to file based SQLite database engine and offers additional geodata specific functionality\cite{spatialite-website}.
+			SpatiaLite specifies an extension to file-based SQLite database engine and offers additional geodata specific functionality\cite{spatialite-website}.
 			The GeoPackage format is very similar to SpataLite as it is based on an SQLite database as well, but it diverged from the SpatiaLite format, for example by using a different WKB encoding\cite{geopackage-faq}.
 			
 	\subsection{OGC web services}
 	
-		Next to the above mentioned file based formats, there are web based standards as well.
-		The OGC standardized some APIs for web based services.
+		Next to the above mentioned file-based formats, there are web-based standards as well.
+		The OGC standardized some APIs for web-based services.
 		Popular standards are the \term{Web Map Service} (\term*{WMS}), \term{Web Map Tile Service} (\term*{WMTS}) and \term{Web Feature Service} (\term*{WFS}).
 		
 		Each API has a \texttt{REQUEST} parameter used to specify a operation to perform, for example get metadata with \texttt{GetCapabilities} or features with \texttt{GetFeature}.
@@ -318,7 +318,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			The road network is also used, which is done by importing all features with a \texttt{highway} key.
 			Filtering out irrelevant features is not done as these features have either no effect, which is for example the case for \texttt{highway=street\_lamp} for street lamps on unconnected point geometries, or contain useful information for routing, for example \texttt{highway=stop} for stop signs.
 
-\section{Graph based routing}
+\section{Graph-based routing}
 \label{sec:graph-routing}
 
 	\subsection{Theoretic considerations}
@@ -546,7 +546,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			In other words, the solution of the all-pair shortest paths problem from \cref{subsubsec:all-pair-shortest-path} can be stored in a CPD without having extensive memory requirements.
 			
 			The simplest form of a CPD works on a grid rather than a graph, where the number of neighbors is limited and visualization, calculations and compression is simpler.
-			Such grid based CPDs actually consist not of one but of $n$ many grids, each one storing movement information from a fixed cell $v$ to all other cells.
+			Such grid-based CPDs actually consist not of one but of $n$ many grids, each one storing movement information from a fixed cell $v$ to all other cells.
 			When having $n$ cells per grid, $n$ grids are needed so that for each cell, one grid with movement information exists.
 			However, movement information here means, that only a single step is stored in a grid.
 			
@@ -577,12 +577,12 @@ Hence, the topic of agents and simulations will be covered as well.
 	Geometric routing determines shortest paths through open spaces by avoiding obstacles.
 	Because this way of routing is based on geometric properties, attributes of edges (for example the surface conditions of roads) are of no use.
 	There are to main strategies for finding shortest paths:
-	Create edges through open spaces for graph based routing or create a shortest paths map, a structure similar to CPDs.
+	Create edges through open spaces for graph-based routing or create a shortest paths map, a structure similar to CPDs.
 	
 	\subsection{Visibility graphs}
 	\label{subsec:visibility-graph}
 	
-		The first mechanism creates edges and then utilizes a normal graph based routing algorithm to actually find the shortest path.
+		The first mechanism creates edges and then utilizes a normal graph-based routing algorithm to actually find the shortest path.
 		There are multiple ways on how to create such edges.
 		A well known and often used mechanism is the creation of a so called \term{visibility graph}, which is a normal graph with edges between vertices that are visible to each other.
 		Or in other words, for any two $u, v \in V$ there is an edge $(u, v) \in E$ if and only if there is no obstacle intersecting this edge.
@@ -612,11 +612,11 @@ Hence, the topic of agents and simulations will be covered as well.
 		For each region the origin of the wavefront is known, which enables the query routine to follow these predecessors back to the source.
 		The key difficulty of this approach is the efficient propagation of these wavefronts, which means the fast detection of collision with obstacles and other wavefronts \cite{hershberger-suri}.
 
-\section{Agent based systems and simulations}
+\section{Agent-based systems and simulations}
 
 	Simulating complex systems with numerous individuals is a complex task.
 	Agent-based models help to break down this complexity by simulating each individual separately with its own behavior and decision-making \cite{macal-introductory-tutorial}.
-	Interactions between agents and the environment as well as agents with other agents are an essential part of agent based simulations.
+	Interactions between agents and the environment as well as agents with other agents are an essential part of agent-based simulations.
 	Each interaction can affect other agents and the environment.
 	
 	The modeling of agents can be arbitrarily complex.
@@ -629,6 +629,6 @@ Hence, the topic of agents and simulations will be covered as well.
 
 	Studying the behavior of pedestrians requires a spatial environment where agents can move and interact with each other.
 	Since uncontrolled movement is rather uninteresting, most of the time, algorithms finding optimal paths are involved \cite{kneidl-borrmann-hartmann-navigation,gloor-hybrid-pedestrian-routing,teknomo-millonig-routing}.
-	This not only includes \hyperref[sec:graph-routing]{graph based routing} but often utilizes \hyperref[sec:geometric-routing]{geometric routing} as well \cite{kneidl-borrmann-hartmann-navigation}.
+	This not only includes \hyperref[sec:graph-routing]{graph-based routing} but often utilizes \hyperref[sec:geometric-routing]{geometric routing} as well \cite{kneidl-borrmann-hartmann-navigation}.
 	
 	% TODO Describe MARS here or later?
