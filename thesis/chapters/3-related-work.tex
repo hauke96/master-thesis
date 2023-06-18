@@ -45,7 +45,7 @@ This section gives an overview about closely related work from these areas.
 		Graph generation techniques can be used to fill missing data in routing graphs or enhance these in case of a low degree of detail.
 		
 		Stefan Funke et al. achieved this by filling holes in an existing road graph, which was the OpenStreetMap network in their case \cite{funke-osm-extrapolation}.
-		To do so, they developed a metric to detect holes in an existing graph based on the following idea:
+		To do so, they developed a metric to detect holes in an existing graph-based on the following idea:
 		If the shortest path between two vertices is much longer than the euclidean distance, there is probably a hole in the network.
 		However, this metric leads to false positives when large obstacles, such as a river, is between the two vertices.
 		In this case, the euclidean and shortest path distances differ a lot, which is indeed correct in such cases.
@@ -106,14 +106,14 @@ This section gives an overview about closely related work from these areas.
 		New segments are created and possibly merged with existing closely located segments having an almost parallel trajectory.
 		
 		Zhou et al. also used the idea of using crowd sourced location data to create a navigation \cite{zhou-crowd-sourced-navigation}.
-		They also filtered out GPS based data anomalies and created a density map from this cleaned location data.
+		They also filtered out anomalies, due to inaccuracies in the GPS data, and created a density map from this cleaned location data.
 		The ridge lines of this density map were turned in to edges, since many people walked along these ridge lines.
 		An evaluation of their approach showed that even small amounts of data are enough to create a sufficient routing network.
 		Unsurprisingly, the accuracy and density of the network increases with the number of input trajectories.
 	
 \section{Routing}
 
-	As done in the previous chapter, this section covers geometric and network based routing.
+	As done in the previous chapter, this section covers geometric and network-based routing.
 	Related work regarding specific routing techniques for pedestrian navigation is described below in \cref{sec:pedestrian-path-planning}.
 	
 	\subsection{Geometric routing}
@@ -132,54 +132,54 @@ This section gives an overview about closely related work from these areas.
 		Maintaining some important properties is crucial to the efficiency when creating the subdivision, most important is the $\bigo{1}$ amount of neighboring cells around an edge.
 		Their algorithm calculates a shortest path map allowing queries to be answered in only $\bigo{n \log n}$ time and space, where $n$ is the number of vertices in all obstacles.
 		
-	\subsection{Network based routing}
+	\subsection{Network-based routing}
 	
-		The topic of network based routing, meaning the problem of determining shortest path in a graph, is a well studied area with widely used algorithms.
+		The topic of network-based routing, meaning the problem of determining shortest path in a graph, is a well studied area with widely used algorithms.
 		
 		One of the most popular algorithms is the A* algorithm introduced by Hart, Nilsson and Raphael in 1968 \cite{astar}.
 		A detailed description of A* including its time and space complexities can be found in \cref{subsubsec:astar}.
 
-		Because the result of this thesis can be used with any network based algorithm, all previously described \hyperref[subsec:routing-engines]{routing algorithms} and \hyperref[subsec:speedup-methods]{speedup methods} are related to this thesis.
+		Because the result of this thesis can be used with any network-based algorithm, all previously described \hyperref[subsec:routing-engines]{routing algorithms} and \hyperref[subsec:speedup-methods]{speedup methods} are related to this thesis.
 		The combination of speedup methods is also possible and has been studied by Bauer et al. \cite{bauer-combining-speedup-methods} with promising results on the combination of arc-flags and highway hierarchies, which they called CHASE.
 		A comparison by Bast et al. showed the performance increase against normal speedup methods \cite{bast-transportation-networks}, for example compared to contraction hierarchies, which had a 19 times slower query time but a six times faster preprocessing.
 
 \section{Pedestrian path finding}
 \label{sec:pedestrian-path-planning}
 	
-	A special case of the general single-source shortest path problem is pedestrian routing, also called pedestrian shortest-path finding.
+	A special case of the general single-source shortest path problem is pedestrian routing, also called pedestrian shortest path finding.
 	This problem is especially interesting since pedestrians have the maximum degree of flexibility/freedom compared to other traffic participants like bikes or cars.
-	Therefore, geometric routing is a good way to find shortest-paths for pedestrians.
+	Therefore, geometric routing is a good way to find shortest paths for pedestrians.
 	
 	Pedestrian path finding is, however, not only relevant for real world users, who want to know how to get from one location to another.
 	Such algorithms are also used in (multi) agent simulations of pedestrian behavior.
 	Scenarios in such simulations are for example evacuation or crowd behaviors.
-	The area of pedestrian path planning and simulations is divided into two strategies: Network and field based path finding \cite{hartmann-geodesic}.
+	The area of pedestrian path planning and simulations is divided into two strategies: Network- and field-based path finding \cite{hartmann-geodesic}.
 	Work from both strategies will be covered here.
 	
-	\subsection{Field based and dynamic navigation}
+	\subsection{Field-based and dynamic navigation}
 	
-		Next to geometric and network based routing, potential fields can be used to find shortest paths within this field.
+		Next to geometric and network-based routing, potential fields can be used to find shortest paths within this field.
 		
 		% online routing: A Navigation Algorithm for Pedestrian Simulation in Dynamic Environments (Teknomo, Millonig, 2007)
 		Teknomo and Millonig created a dynamic algorithm which does not pre-compute the path with one of the above mentioned approaches\cite{teknomo-millonig-routing}.
 		This is interesting, since the probably most common and naive approach is to pre-compute the route used by an agent within a simulation.
 		The term \enquote{dynamic} refers to the fact, that real world pedestrians often only consider the near neighborhood within their path planning.
 		Even if a person knows the hole area, dynamic changes (closed doors, construction work, crowds blocking the way) can still occur at any point in time.
-		Therefore, considering such dynamic changes make agent based simulations more realistic.
+		Therefore, considering such dynamic changes make agent-based simulations more realistic.
 		
 		% maybe: pure geometric/geodesic approach with navigation fields: https://iopscience.iop.org/article/10.1088/1367-2630/12/4/043032/pdf
 		The above mentioned dynamic routing by Teknomo and Millonig has strong similarities to approaches based on potential fields, like the dynamic path finding from Hartmann, 2010\cite{hartmann-geodesic}.
 		He proposed a mechanism using vector fields in a cellular automaton model with hexagonal cells.
 		Interestingly, this method can be interpreted as wavefronts, like in Mitchells algorithm described above, propagating through the vector field.
 			
-	\subsection{Graph based path planning}
+	\subsection{Graph-based path planning}
 	
-		An alternative to field based approaches are graph based ones, where a graph is constructed and then used in navigation.
+		An alternative to field-based approaches are graph-based ones, where a graph is constructed and then used in navigation.
 		The construction can be based on potential fields but also on the \hyperref[subsec:related-work:visibility-graph]{above} mentioned \term*[visibility graph]{visibility graphs}.
 		
 		In fact, Gloor, Stucki and Nagel presented a pedestrian navigation model and a comparison of these two strategies regarding their performance\cite{gloor-hybrid-pedestrian-routing}.
 		They developed this model for a pedestrian simulation in the Alps, where a hiking network should be enhanced with additional navigation information.
-		Two approaches were presented: A potential field based method, which is used in navigation when needed, and a visibility graph, which is merged into the existing hiking network.
+		Two approaches were presented: A potential field-based method, which is used in navigation when needed, and a visibility graph, which is merged into the existing hiking network.
 		For the performance evaluation, they used an evacuation scenario and the results showed, that both navigation mechanisms are comparably fast.
 		
 		The work of Kneidl et al. from \cref{subsec:filling-open-spaces}, was used by Kielar et al. as a basis for a generalized routing model for pedestrian simulations \cite{kielar-unified-pedestrian-routing} taking cognitive models of agents into account.

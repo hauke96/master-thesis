@@ -13,7 +13,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 	\subsection{Frameworks and technology}
 	\label{subsec:frameworks-technology}
 	
-		As mentioned in \cref{subsec:constrains} about the constrains, the used programming language is C\# due to the dependency to the MARS framework.
+		As mentioned in \cref{subsec:constraints} about the constraints, the used programming language is C\# due to the dependency to the MARS framework.
 		The MARS framework is based on the widely used C\# library \term{NetTopologySuite} (\term*{NTS}), which contains numerous data structures, algorithms and helper function to handle and process geospatial data.
 		
 		Primarily, the NTS was used for basic data structures like coordinates, geometries and features but also for simple operations, e.g. the calculation of distances.
@@ -23,7 +23,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 		However, higher level structures were used as well, such as \texttt{SpatialGraph} or \texttt{QuadTree} classes.
 		
 		Not all data structures and algorithms already existed to create the hybrid routing graph.
-		Most notably, a \hyperref[subsubsec:intersection-checks]{fast line intersection check}, a \hyperref[subsec:binindex]{bin based index} and a fast \hyperref[subsec:shadow-areas]{vertex filtering method} were implemented.
+		Most notably, a \hyperref[subsubsec:intersection-checks]{fast line intersection check}, a \hyperref[subsec:binindex]{bin-based index} and a fast \hyperref[subsec:shadow-areas]{vertex filtering method} were implemented.
 		The latter one refers to the so called \emph{shadow areas} in the sections below.
 		Several other helper functions and simpler structures, for instance separate classes for vertices and obstacles, were added as well.
 	
@@ -160,13 +160,13 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 		Keeping track of these shadow areas for each vertex significantly improves performance, especially with the use of the \texttt{BinIndex} data structure described \hyperref[subsec:binindex]{below}.
 		\todo[inline]{Evaluation why this is fast.}
 		
-		% NetworkRoutingPlayground->Jungfernstieg dataset with 7916 vertices: ~7.3s with and 67s without shadow areas -> speed up of factor ~9
-		% Hamburg inner city dataset with 67819 vertices: 382s with and ~31000s without shadow areas -> speed up of factor ~81
+		% NetworkRoutingPlayground->Jungfernstieg dataset with 7916 vertices: ~7.3s with and 67s without shadow areas -> speedup of factor ~9
+		% Hamburg inner city dataset with 67819 vertices: 382s with and ~31000s without shadow areas -> speedup of factor ~81
 		
 	\subsection{BinIndex data structure}
 	\label{subsec:binindex}
 		
-		The \texttt{BinIndex} class implements a linear bin based index structure to store and access intervals.
+		The \texttt{BinIndex} class implements a linear bin-based index structure to store and access intervals.
 		It contains $n$ many bins covering a certain range and each bin consists of a linked list.
 		Items are added to each bin that intersect with the range of the item.
 		Due to the linked list as the underlying data structure for the bins, point queries can be answered in constant and range queries in linear time.
@@ -249,7 +249,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 		This dynamic behavior is crucial for an efficient use of the shadow areas.
 		Otherwise, the shadow areas must be created in beforehand, added to and index and then be used, which results in a large number of unnecessary areas being added to the index.
 		
-		Even though these three data structures are tree based and offer a logarithmic query time complexity for queries, compared to the linear time complexity of the \texttt{BinIndex}, the simple and list based \texttt{BinIndex} is significantly faster even for larger datasets with tens of thousands of vertices.
+		Even though these three data structures are tree-based and offer a logarithmic query time complexity for queries, compared to the linear time complexity of the \texttt{BinIndex}, the simple and list-based \texttt{BinIndex} is significantly faster even for larger datasets with tens of thousands of vertices.
 		%It is thinkable that the logarithmic complexity is useful for even larger datasets with millions of vertices.
 		\todo[inline]{Measure performance + Point when the tree is better}
 		
@@ -450,7 +450,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			In fact, there are two types of intersection checks implemented:
 			One function to check for an intersection between two arbitrary line segments and one to check if a point lies within a triangle.
 			
-			The line segment intersection check uses a cross product based approach described in \emph{Introduction to algorithms} by Thomas H Cormen et al. \cite[1018]{cormen-introduction-to-alg}.
+			The line segment intersection check uses an approach based on cross products as presented in \emph{Introduction to algorithms} by Thomas H Cormen et al. \cite[1018]{cormen-introduction-to-alg}.
 			Even though this method only works on single line segments, it is significantly faster than general purpose checks provided by the NetTopologySuite.
 			This is still true when checking if a single line segments intersects any of multiple obstacles.
 			
@@ -608,78 +608,88 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 		\subsubsection{Step 2.3: Sort resulting visibility neighbors into bins}
 		
 			A naive approach to create a visibility graph would be to create edges between vertices that are visible to each other.
-			This would make routing through line based obstacles possible as \cref{fig:routing-through-line-obstacle} illustrates.
+			This would make routing through line-based obstacles possible as \cref{fig:routing-through-line-obstacle} illustrates.
 			Such routing behavior is, of course, not desired.
 			
 			\begin{figure}[h]
 				\begin{figcenter}
-					\begin{tikzpicture}
-						\tikzDot{(2,0)}{vo0};
-						\tikzDot[label={[label distance=-1.25mm]above right:$v $}]{(2,1)}{vo1};
-						\tikzDot{(2,2)}{vo2};
-						
-						\draw (vo0) -- (vo1);
-						\draw (vo1) -- (vo2);
-						
-						\tikzDot[label=left:$n_a$,outer sep=0.5mm]{(0.5,1.3)}{n1};
-						\tikzDot[label=right:$n_b$,outer sep=0.5mm]{(3.5,1)}{n2};
-						
-						\draw[dotted] (n1) -- (vo1);
-						\draw[dotted] (vo1) -- (n2);
-						
-						\draw[dotted] (n1) -- (vo0);
-						\draw[dotted] (n1) -- (vo2);
-						\draw[dotted] (n2) -- (vo0);
-						\draw[dotted] (n2) -- (vo2);
-					\end{tikzpicture}
-					\hspace{2cm}
-					\begin{tikzpicture}
-						\def\r{0.85mm}
-						\def\rMargin{1.1mm} % = r + 0.25mm
-						\def\gap{0.1875mm}
-						
-						\tikzDot{(2,0)}{vo0};
-						\node (vo1) at (2,1) {};
-						\node[label={[label distance=-1.25mm]above left:$v_a$}] at (vo1) {};
-						\node[label={[label distance=-1.25mm]above right:$v_b$}] at (vo1) {};
-						\coordinate (vo11) at ($(vo1)+(180:\rMargin)$);
-						\coordinate (vo12) at ($(vo1)+(0:\rMargin)$);
-						\tikzDot{(2,2)}{vo2};
-						
-						\filldraw (vo1)++(-\gap,0)++(90:\r) arc (90:270:\r);
-						\filldraw (vo1)++( \gap,0)++(90:\r) arc (90:-90:\r);
-						
-%							\draw (vo1)++(270:\rMargin) -- (vo0);
-						\draw ($(vo1)+(270:\r)+(-0.275mm,0)$) -- ($(vo0)+(-0.275mm,2mm)$) -- (vo0.north);
-						\draw ($(vo1)+(270:\r)+( 0.275mm,0)$) -- ($(vo0)+( 0.275mm,2mm)$) -- (vo0.north);
-%							\draw (vo1)++(90:\rMargin) -- (vo2);
-						\draw ($(vo1)+(90:\r)+(-0.275mm,0)$) -- ($(vo2)+(-0.275mm,-2mm)$) -- (vo2.south);
-						\draw ($(vo1)+(90:\r)+( 0.275mm,0)$) -- ($(vo2)+( 0.275mm,-2mm)$) -- (vo2.south);
-						
-						\tikzDot[label=left:$n_a$,outer sep=0.5mm]{(0.5,1.3)}{n1};
-						\tikzDot[label=right:$n_b$,outer sep=0.5mm]{(3.5,1)}{n2};
-						
-						\draw[dotted] (n1) -- (vo11);
-						\draw[dotted] (vo12) -- (n2);
-						
-						\draw[dotted] (n1) -- (vo0);
-						\draw[dotted] (n1) -- (vo2);
-						\draw[dotted] (n2) -- (vo0);
-						\draw[dotted] (n2) -- (vo2);
-					\end{tikzpicture}
+					\begin{subfigure}[t]{.48\textwidth}
+						\begin{figcenter}
+							\begin{tikzpicture}
+								\tikzDot{(2,0)}{vo0};
+								\tikzDot[label={[label distance=-1.25mm]above right:$v $}]{(2,1)}{vo1};
+								\tikzDot{(2,2)}{vo2};
+								
+								\draw (vo0) -- (vo1);
+								\draw (vo1) -- (vo2);
+								
+								\tikzDot[label=left:$n_a$,outer sep=0.5mm]{(0.5,1.3)}{n1};
+								\tikzDot[label=right:$n_b$,outer sep=0.5mm]{(3.5,1)}{n2};
+								
+								\draw[dotted] (n1) -- (vo1);
+								\draw[dotted] (vo1) -- (n2);
+								
+								\draw[dotted] (n1) -- (vo0);
+								\draw[dotted] (n1) -- (vo2);
+								\draw[dotted] (n2) -- (vo0);
+								\draw[dotted] (n2) -- (vo2);
+							\end{tikzpicture}
+						\end{figcenter}
+						\caption{
+							Visibility graph with naive connections.
+							The two visibility edges at $v$ allow the shortest path to go through the obstacle from $n_a$ via $v$ to $n_b$.
+						}
+						\label{fig:routing-through-line-obstacle-a}
+					\end{subfigure}
+					\hfill
+					\begin{subfigure}[t]{.48\textwidth}
+						\begin{figcenter}
+							\begin{tikzpicture}
+								\def\r{0.85mm}
+								\def\rMargin{1.1mm} % = r + 0.25mm
+								\def\gap{0.1875mm}
+								
+								\tikzDot{(2,0)}{vo0};
+								\node (vo1) at (2,1) {};
+								\node[label={[label distance=-1.25mm]above left:$v_a$}] at (vo1) {};
+								\node[label={[label distance=-1.25mm]above right:$v_b$}] at (vo1) {};
+								\coordinate (vo11) at ($(vo1)+(180:\rMargin)$);
+								\coordinate (vo12) at ($(vo1)+(0:\rMargin)$);
+								\tikzDot{(2,2)}{vo2};
+								
+								\filldraw (vo1)++(-\gap,0)++(90:\r) arc (90:270:\r);
+								\filldraw (vo1)++( \gap,0)++(90:\r) arc (90:-90:\r);
+								
+%								\draw (vo1)++(270:\rMargin) -- (vo0);
+								\draw ($(vo1)+(270:\r)+(-0.275mm,0)$) -- ($(vo0)+(-0.275mm,2mm)$) -- (vo0.north);
+								\draw ($(vo1)+(270:\r)+( 0.275mm,0)$) -- ($(vo0)+( 0.275mm,2mm)$) -- (vo0.north);
+%								\draw (vo1)++(90:\rMargin) -- (vo2);
+								\draw ($(vo1)+(90:\r)+(-0.275mm,0)$) -- ($(vo2)+(-0.275mm,-2mm)$) -- (vo2.south);
+								\draw ($(vo1)+(90:\r)+( 0.275mm,0)$) -- ($(vo2)+( 0.275mm,-2mm)$) -- (vo2.south);
+								
+								\tikzDot[label=left:$n_a$,outer sep=0.5mm]{(0.5,1.3)}{n1};
+								\tikzDot[label=right:$n_b$,outer sep=0.5mm]{(3.5,1)}{n2};
+								
+								\draw[dotted] (n1) -- (vo11);
+								\draw[dotted] (vo12) -- (n2);
+								
+								\draw[dotted] (n1) -- (vo0);
+								\draw[dotted] (n1) -- (vo2);
+								\draw[dotted] (n2) -- (vo0);
+								\draw[dotted] (n2) -- (vo2);
+							\end{tikzpicture}
+						\end{figcenter}
+						\caption{
+							The visibility graph with connection respecting the obstacle. Vertex $v$ is split into two, $v_a$ and $v_b$, with exact same location. All gaps are for illustration purposes only.
+							Vertex $v_a$ is connected to $n_a$ and $v_b$ to $n_b$ but $v_a$ and $v_b$ are not connected.
+							This ensures that the shortest path from $n_a$ to $n_b$ does not lead through the middle vertex of the obstacle anymore.
+						}
+						\label{fig:routing-through-line-obstacle-b}
+					\end{subfigure}
 				\end{figcenter}
 				\caption{
 					Both illustrations show two of $v$'s visibility neighbors $n_a$ and $n_b$ next to a vertical obstacle. Routing through this obstacle should \emph{not} be possible.
 					The dotted edges are visibility edges, the solid edges normal line segments of the obstacle.
-					\\
-					\underline{Left}:
-					Visibility graph with naive connections.
-					The two visibility edges at $v$ allow the shortest path to go through the obstacle from $n_a$ via $v$ to $n_b$.
-					\\
-					\underline{Right}:
-					The visibility graph with connection respecting the obstacle. Vertex $v$ is split into two, $v_a$ and $v_b$, with exact same location. All gabs are for illustration purposes only.
-					Vertex $v_a$ is connected to $n_a$ and $v_b$ to $n_b$ but $v_a$ and $v_b$ are not connected.
-					This ensures that the shortest path from $n_a$ to $n_b$ does not lead through the middle vertex of the obstacle anymore.
 				}
 				\label{fig:routing-through-line-obstacle}
 			\end{figure}
@@ -738,11 +748,11 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 	\label{subsec:step-3-graph-creation}
 	
 		The previous step created the raw data that is needed to generate a routable visibility graph, which is done in this third step.
-		Since the \texttt{SpatialGraph} class in the NetTopologySuite uses the term \emph{node}, the term \emph{vertex} in this section refers to the vertices in the result of step 2.
+		Since the \texttt{SpatialGraph} class in the NetTopologySuite uses the term \emph{node}, the term \emph{vertex} in this section refers to the vertices in the result of step 2, the term \emph{node} refers to the nodes in the output graph.
 		
 		As described at the end of the previous step, one node is created for each bin of neighboring vertices.
 		Therefore, mappings between nodes, vertices and neighbor bins have to be created.
-		For an example, consider the right side of \cref{fig:routing-through-line-obstacle} where neighbor vertex $n_a$ should be connected to $v$.
+		For an example, consider \cref{fig:routing-through-line-obstacle-b} where neighbor vertex $n_a$ should be connected to $v$.
 		Since $v$ is split into two vertices, two nodes are created in the graph and therefore a mapping from node to bin is needed in order to connect the right nodes with each other.
 		Two iterations over all vertices are used to first create the nodes with the respective bin-mapping and then, in the second iteration, this mapping is used to correctly connect all nodes.
 		
@@ -762,51 +772,63 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 		
 		\begin{figure}[h]
 			\begin{figcenter}
-				\begin{tikzpicture}
-					\tikzDot{(0,-0.75)}{v1n1}
-					\tikzDot{(4,-0.6)}{v1n2}
-					
-					\tikzDot{(0,0.8)}{v2n1}
-					\tikzDot{(4.2,0.6)}{v2n2}
-					
-					\tikzDot{(1.5,-1.65)}{rn1}
-					\tikzDot{(1.8,1.65)}{rn2}
-					
-					\draw[<->,dashed] (v1n1) -- node[above right=0cm and 0.4cm] {$v$} (v1n2);
-					\draw[<->,dashed] (v2n1) -- node[above right=0cm and 0.4cm] {$u$} (v2n2);
-					
-					\draw[<->] (rn1) -- node[left] {$r$} (rn2);
-				\end{tikzpicture}
-				\hspace{2cm}
-				\begin{tikzpicture}
-					\tikzDot{(0,-0.75)}{v1n1}
-					\tikzDot{(4,-0.6)}{v1n2}
-					
-					\tikzDot{(0,0.8)}{v2n1}
-					\tikzDot{(4.2,0.6)}{v2n2}
-					
-					\tikzDot{(1.5,-1.65)}{rn1}
-					\tikzDot{(1.8,1.65)}{rn2}
-					
-					\tikzDot{(intersection of v1n1--v1n2 and rn1--rn2)}{i1}
-					\tikzDot{(intersection of v2n1--v2n2 and rn1--rn2)}{i2}
-					
-					\draw[<->,dashed] (v1n1) -- node[above] {$v_1$} (i1);
-					\draw[<->,dashed] (i1)   -- node[above] {$v_2$} (v1n2);
-					\draw[<->,dashed] (v2n1) -- node[above] {$u_1$} (i2);
-					\draw[<->,dashed] (i2)   -- node[above] {$u_2$} (v2n2);
-					
-					\draw[<->] (rn1) -- node[right] {$r_1$} (i1);
-					\draw[<->] (i1)  -- node[right] {$r_2$} (i2);
-					\draw[<->] (i2)  -- node[right] {$r_3$} (rn2);
-				\end{tikzpicture}
+				\begin{subfigure}[t]{.48\textwidth}
+					\begin{figcenter}
+						\begin{tikzpicture}
+							\tikzDot{(0,-0.75)}{v1n1}
+							\tikzDot{(4,-0.6)}{v1n2}
+							
+							\tikzDot{(0,0.8)}{v2n1}
+							\tikzDot{(4.2,0.6)}{v2n2}
+							
+							\tikzDot{(1.5,-1.65)}{rn1}
+							\tikzDot{(1.8,1.65)}{rn2}
+							
+							\draw[<->,dashed] (v1n1) -- node[above right=0cm and 0.4cm] {$v$} (v1n2);
+							\draw[<->,dashed] (v2n1) -- node[above right=0cm and 0.4cm] {$u$} (v2n2);
+							
+							\draw[<->] (rn1) -- node[left] {$r$} (rn2);
+						\end{tikzpicture}
+					\end{figcenter}
+					\caption{
+						Before merging $r$ into the graph with a total of six nodes and six edges.
+					}
+					\label{fig:merging-edges-a}
+				\end{subfigure}
+				\hfill
+				\begin{subfigure}[t]{.48\textwidth}
+					\begin{figcenter}
+						\begin{tikzpicture}
+							\tikzDot{(0,-0.75)}{v1n1}
+							\tikzDot{(4,-0.6)}{v1n2}
+							
+							\tikzDot{(0,0.8)}{v2n1}
+							\tikzDot{(4.2,0.6)}{v2n2}
+							
+							\tikzDot{(1.5,-1.65)}{rn1}
+							\tikzDot{(1.8,1.65)}{rn2}
+							
+							\tikzDot{(intersection of v1n1--v1n2 and rn1--rn2)}{i1}
+							\tikzDot{(intersection of v2n1--v2n2 and rn1--rn2)}{i2}
+							
+							\draw[<->,dashed] (v1n1) -- node[above] {$v_1$} (i1);
+							\draw[<->,dashed] (i1)   -- node[above] {$v_2$} (v1n2);
+							\draw[<->,dashed] (v2n1) -- node[above] {$u_1$} (i2);
+							\draw[<->,dashed] (i2)   -- node[above] {$u_2$} (v2n2);
+							
+							\draw[<->] (rn1) -- node[right] {$r_1$} (i1);
+							\draw[<->] (i1)  -- node[right] {$r_2$} (i2);
+							\draw[<->] (i2)  -- node[right] {$r_3$} (rn2);
+						\end{tikzpicture}
+					\end{figcenter}
+					\caption{
+						After merging $r$. Two new vertices have been created and all edges are split on the intersection points. The graph size therefore increased by two nodes and eight edges (since all edges are bidirectional) to eight nodes and 14 edges.
+					}
+					\label{fig:merging-edges-b}
+				\end{subfigure}
 			\end{figcenter}
 			\caption{
 				Merging the road edge $r$ with two bidirectional visibility edges $v$ and $u$.
-				\\
-				\underline{Left:} Before merging $r$ into the graph with a total of six nodes and six edges.
-				\\
-				\underline{Right:} After merging $r$. Two new vertices have been created and all edges are split on the intersection points. The graph size therefore increased by two nodes and eight edges (since all edges are bidirectional) to eight nodes and 14 edges.
 			}
 			\label{fig:merging-edges}
 		\end{figure}
@@ -843,3 +865,5 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 	
 	Fortunately, the \texttt{SpatialGraph.RemoveNode(int)} method removes the node given by its ID and also removes all edges, which are connected to the given node.
 	This makes step \ref{itm:answering-queries-cleanup} very easy since step \ref{itm:answering-queries-add-nodes} and \ref{itm:answering-queries-vis-edges} yield the IDs of created nodes, which are needed for the cleanup.
+	
+	\todo{Summary/wrap up/transition to evaluation chapter}

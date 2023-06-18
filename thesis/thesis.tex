@@ -46,6 +46,7 @@
 
 \usepackage[x11names]{xcolor}
 \usepackage{graphicx}
+\usepackage{subcaption}
 \usepackage{tabularx}
 \usepackage{enumerate}
 \usepackage{enumitem}
@@ -198,9 +199,12 @@
 \begin{document}
 	\include{titlepage.tex}
 	
+	\pagenumbering{Roman}
+	
 	\tableofcontents
-	\thispagestyle{empty}
 	\clearpage
+	
+	\pagenumbering{arabic}
 	
 	\chapter{Introduction}
 	

@@ -2,17 +2,17 @@
 % !TeX spellcheck = en_US
 
 As mentioned in the introductory motivation, the developed hybrid routing algorithm has to find optimal paths through open spaces and must also be able to connect arbitrary start and destination locations.
-Current routing approaches are either not capable of correctly connecting arbitrary locations (in the case of graph-based algorithm like A*) or do not allow the use of speed up techniques (for example in the continuous Dijkstra approach).
+Current routing approaches are either not capable of correctly connecting arbitrary locations (in the case of graph-based algorithm like A*) or do not allow the use of speedup techniques (for example in the continuous Dijkstra approach).
 Additionally, none of the existing approaches uses both, the open spaces between obstacle and the existing road network, which is still relevant to simulate pedestrian movements.
 Edges from a road network often contain useful information, for example about sidewalks, and following roads is therefore a reasonable and realistic routing decision.
 
 The resulting hybrid routing algorithm does not suffer from these disadvantages and therefore offers a fast, flexible and accurate routing.
 This chapter covers the design of the implemented algorithm in order to accomplish these tasks.
-First, the overall context is presenting specifically the requirements and constrains of the algorithm.
+First, the overall context is presenting specifically the requirements and constraints of the algorithm.
 Second, details on the decisions regarding the routing strategy and general design are presented.
 Finally, an overview of the separate components is given as well as a description on the deployment of this algorithm.
 
-\section{Requirements and constrains}
+\section{Requirements and constraints}
 	
 	Enhancing the routing capabilities of the MARS framework is an integral aspect of the algorithm's development.
 	Therefore, the code also uses parts of the MARS framework, which is shown in detail in \cref{subsec:frameworks-technology}.
@@ -20,7 +20,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 	Integrating the algorithm into a different context or using it as a standalone application is therefore possible with minimal changes in the code.
 	
 	Apart from the integration into MARS, there are several requirements on the algorithm itself, which are presented in the following.
-	Technical constrains also exist and are discussed at the end of this section.
+	Technical constraints also exist and are discussed at the end of this section.
 	
 	\subsection{Requirements}
 	
@@ -35,7 +35,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 		Nonetheless, they exist and consist of the following aspects.
 	
 		The largest quality requirement in terms of effort is performance.
-		It affects large parts of the software architecture since the resulting algorithm, despite its complexity, should ideally have a negligible impact on the overall performance of a simulation compared to current graph based routing approaches.
+		It affects large parts of the software architecture since the resulting algorithm, despite its complexity, should ideally have a negligible impact on the overall performance of a simulation compared to current graph-based routing approaches.
 		Routing algorithms and engines often consist of two steps: preprocessing and answering routing queries.
 		In order to create fluent and fast simulations, the performance of answering numerous routing requests must be as good as possible.
 		The time needed for preprocessing is of less importance.
@@ -53,13 +53,13 @@ Finally, an overview of the separate components is given as well as a descriptio
 
 		Next to the domain specific requirement, the overall code itself should of course be well documented and tested.
 	
-	\subsection{Constrains}
-	\label{subsec:constrains}
+	\subsection{Constraints}
+	\label{subsec:constraints}
 		
 		% Well integrated into MARS and NTS, no new dependencies
 		One major constraint is the integration of final algorithm into the \term*{MARS} framework to make the use as easy as possible and to centralize the code base for better maintenance.
 		This means the programming language will be C\# and additionally, because MARS uses the geospatial framework \term{NetTopologySuite} (\term*{NTS}) as basis for all major geospatial operations, this algorithm will be based on NTS.
-		However, the higher level architecture and its components is not affected by these technical constrains.
+		However, the higher level architecture and its components is not affected by these technical constraints.
 		
 		The planned integration into another code base, in this case the one of the MARS framework, affects the management of dependencies.
 		On the one hand, the amount newly introduced dependencies should be kept to a minimum, which means dependencies on MARS and NTS are to be preferred over other third-party libraries.
@@ -67,7 +67,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 		More specific, a triangulation method was needed, which is part of an NTS version not used my MARS yet.
 		However, this case only appeared once and can be avoided and should disappear with future dependency updates.
 		
-		An additional constrains is the limitation on vector data as data structure for obstacles and roads.
+		An additional constraints is the limitation on vector data as data structure for obstacles and roads.
 		Using raster data is theoretically possible, as mentioned in \cref{subsection:generate-graphs-from-maps} for the work of Walter et al., but requires a different processing and results in less accurate results, due to the rasterization.
 		Therefore, only vector data has to be supported.
 	
@@ -75,10 +75,12 @@ Finally, an overview of the separate components is given as well as a descriptio
 \label{sec:combining-routing-algorithms}
 
 	This section describes the core aspect of this thesis:
-	The decision of a strategy to combine graph and geometric based routing algorithms.
+	The decision of a strategy to combine graph and geometric routing algorithms.
 	A decision on this \enquote{merge} strategy is crucial to the design and architecture of the application.
 	
 	In the following, four approaches are discussed of which the last one is considered to be the most promising, which was therefore implemented.
+	
+	% TODO Maybe remove "Approach candidate x"?
 	
 	% Ad-hoc creation of edges by stopping A* and continuing with wavefront algorithm
 	\subsection{Approach candidate 1: Ad hoc generation of edges}
@@ -87,19 +89,19 @@ Finally, an overview of the separate components is given as well as a descriptio
 		Whenever the graph routing algorithm reaches a road junction, it's paused and the continuous Dijkstra algorithm is started.
 		No destination vertex is defined, which means the geometric routing will be stopped after the furthest wavelet reached a certain distance.
 		The continuous Dijkstra approach actually creates a shortest path map, so the shortest paths to all reached vertices are calculated.
-		All shortest path edges are then added to the graph for the paused graph based routing algorithm.
+		All shortest path edges are then added to the graph for the paused graph-based routing algorithm.
 		
 		A real world example for this approach would be a pedestrian walking down a road, stopping at a junction to decide where to go and choosing the option to cross a park for a shortcut before continuing to follow the roads again.
 		Doing the shortcut was not planned but an ad hoc decision, just as the algorithm would do.
 		
 		The advantage of this approach is the realistic behavior of pedestrians not planning the route in beforehand.
-		In fact Teknomo and Millonig introduced a routing mechanism for agent based simulations with the assumption of little to no apriori knowledge of agents about their environment \cite{teknomo-millonig-routing}.
+		In fact Teknomo and Millonig introduced a routing mechanism for agent-based simulations with the assumption of little to no apriori knowledge of agents about their environment \cite{teknomo-millonig-routing}.
 		This approach would therefore implement their assumptions on agents behaviors.
 		
 		One disadvantage is a relatively high complexity since no standard algorithm from frequently used software frameworks support a pause functionality, so any routing algorithm has to be manually adjusted or implemented from scratch.
 		
 		Also this approach will likely cause performance issues.
-		When using Dijkstra as graph based routing algorithm, $\bigo{|V|}$ many vertices are visited, which leads to $\bigo{|V|}$ routing requests using the geometric continuous Dijkstra algorithm.
+		When using Dijkstra as graph-based routing algorithm, $\bigo{|V|}$ many vertices are visited, which leads to $\bigo{|V|}$ routing requests using the geometric continuous Dijkstra algorithm.
 %		Because a simple caching of the shortest path map is not possible, at least not without a smart and complex caching strategy, this decreases the runtime of the whole routing process significantly.
 		Even when using the continuous Dijkstra approach from Hershberger and Suri \cite{hershberger-suri} with only $\bigo{n \log n}$ time requirement, the number $n$ of vertices in obstacles is expected to be much higher than the size of $V$ resulting in a somehow quadratic runtime.
 		Caching the shortest path map using a \term*{CPD} (see \cref{subsubsec:cpd}) would be possible but would also increase complexity during query time and reduce performance during preprocessing time.
@@ -131,7 +133,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 		To merge them, first the intersection points need to be determined and then the better segments have to be chosen based on a weight function.
 		
 		The most prominent advantage is the simplicity of the routing requests, since known routing algorithms could be used.
-		Therefore, it would be rather simple to implement and speed up techniques could be used.
+		Therefore, it would be rather simple to implement and speedup techniques could be used.
 		
 		However, there are two major disadvantages.
 		First, it is uncertain that the two paths are actually intersecting at any point.
@@ -145,7 +147,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 		Multiple ways are conceivable to ensure that there are enough intersections or to otherwise guarantee that segments are small enough to be merged.
 		
 		One way is to stop the routing after a certain distance stopping at the next available vertex.
-		After stopping for the first time, there are two such vertices, one where the road network based routing stopped and one where the routing on the generated graph stopped.
+		After stopping for the first time, there are two such vertices, one where the road network-based routing stopped and one where the routing on the generated graph stopped.
 		From each vertex, two new routing queries start and stop again after a certain distance.
 		This continues until one query reaches the destination.
 		On the one hand, this would guarantee small enough segments for later merging, on the other hand, this results in $\bigo{2^n}$ many routing queries.
@@ -185,7 +187,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 		\todo[inline]{Link to possible optimizations discussed in later chapters}
 		
 		Despite the disadvantages of this approach, I considered the advantages to be more important.
-		As already mentioned, this strategy is not only simple and fast, it also allows the use of speed up methods for routing queries, e.g. the A* based ALT algorithm or other techniques described in \cref{subsec:speedup-methods}.
+		As already mentioned, this strategy is not only simple and fast, it also allows the use of speedup methods for routing queries, e.g. the A*-based ALT algorithm or other techniques described in \cref{subsec:speedup-methods}.
 		Moreover, the resulting path is definitely optimal, based on the given weight function, and no complex postprocessing is needed.
 		Such postprocessing is, for example, needed in the \enquote{concurrent routing} candidate approach.
 		
@@ -223,7 +225,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 		
 		As the generation of the routing graph happens in a preprocessing step, the time and space needed for this task was not a critical aspect of the whole algorithm.
 		Further optimizations are possible and discussed in \todo[inline]{link to future work}.
-		Significant to agent based simulations is the routing behavior itself as it directly affects the simulation time.
+		Significant to agent-based simulations is the routing behavior itself as it directly affects the simulation time.
 		Creating the graph in a preprocessing step has, especially when persisting the graph for multiple uses, no direct effect on the simulation.
 		
 		All these requirements and considerations, including problems and efforts outlined below, lead to the decision of implementing a simple graph generation approach with some easy but effective optimizations.
@@ -260,7 +262,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 	\subsection{Early implementation based on the continuous dijkstra paradigm}
 		
 		An early implementation, before the above mentioned decision for a strategy fell, was not creating a visibility graph but instead it was based on the \term*{continuous dijkstra} paradigm with wavelets propagating through open spaces.
-		However, there were three reasons why this first approach was replaced by a visibility graph based algorithm.
+		However, there were three reasons why this first approach was replaced by a visibility graph-based algorithm.
 		
 		The main reason was the overall strategy decision on the visibility graph approach.
 		One other reason was the implementation of performance enhancement for the naive continuous dijkstra.
@@ -271,7 +273,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 		This preprocessing determined the visibility between all vertices used for the above mentioned events.
 		Such predetermined visibilities are the core idea of a visibility graph, thus moving to an approach using an actual visibility graph was only a small step.
 		
-		A third reason against this early continuous dijkstra implementation were the difficulties and the disadvantages of combining the network based routing with the continuous dijkstra algorithm, as described in \cref{sec:combining-routing-algorithms}.
+		A third reason against this early continuous dijkstra implementation were the difficulties and the disadvantages of combining the network-based routing with the continuous dijkstra algorithm, as described in \cref{sec:combining-routing-algorithms}.
 		
 		Therefore, this first continuous dijkstra approach was not further pursued but converted to a generator for a routable visibility graph with components described in the following section.
 	
@@ -295,7 +297,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 		\label{fig:components}
 	\end{figure}
 	
-	In an agent based simulation, each agent has the ability to make its own decisions, which includes the calculation of routes as part of its path planning routing.
+	In an agent-based simulation, each agent has the ability to make its own decisions, which includes the calculation of routes as part of its path planning routing.
 	The hybrid visibility graph has the necessary interfaces to answer routing queries, which means, an agent needs access to an instance of this graph for its navigation.
 	In \cref{fig:components}, the agent itself creates this graph but the visibility graph can also be shared among multiple agent and therefore does not need to be created multiple times for the same input dataset.
 	
