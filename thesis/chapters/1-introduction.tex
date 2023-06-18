@@ -5,27 +5,27 @@
 	
 	% finding good routes is difficult, solved using A*/Dijkstra on networks
 	Traveling through a network of roads and paths often requires the use of a computer systems determining the optimal route from a source to a destination location.
-	The software used to solve this problem is often called a \emph{routing engine} and uses shortest path algorithms on graphs to find the shortest path.
+	The software used to solve this problem is often called a \emph{routing engine} and uses shortest path algorithms.
 	A graph is used as the central data structure to abstract the real world into vertices and edges, which are points connected by lines representing roads and ways.
 	Such graphs can represent non-physical networks as well, for example trading relationships between countries, social media networks or routers in the internet.
-	However, this thesis only considers graphs representing road networks.
+	However, only graphs representing road networks are considered in this thesis.
 	
-	Graphs representing road networks only build an abstraction of the real world.
+	Graphs can only model an abstraction of the real world.
 	Detailed information regarding the geometry and infrastructure, such as the width or number of lanes, are usually added via attributes (usually key-value pairs) describing these properties.
 	
 	Algorithms for network-based routing, like the popular Dijkstra and A* algorithms, are well understood, optimized and used in numerous scientific and real world applications.
-	Over the last decades, optimizations and the use of more efficient data structures lead to further performance enhancements making it possible to use such routing algorithms on large scale networks.
-	Even though, the performance is good enough for larger networks, like the road network of the USA \cite{aviram-optimizing-dijkstra}, requests in dense networks or of global scale are still a problem.
-	To solve this, several speed up methods exist decreasing query times, which will be covered later in \cref{subsec:speedup-methods}.
-	Using such techniques enables global routing request being processed within milliseconds\footnote{Tested for a routing request from Hamburg, Germany to Beijing, China on \href{https://www.openstreetmap.org/directions?engine=fossgis\_osrm\_car&route=53.55\%2C10.00\%3B39.91\%2C116.39}{openstreetmap.org} using the OSRM car profile which is based on Contraction Hierarchies (s. \cref{subsubsec:ch}). The HTTP request returned the result in under 215ms -- including network latency of several milliseconds.}
+	Over the last decades, optimizations and the use of more efficient data structures lead to further performance enhancements, making it possible to use such routing algorithms on large scale networks.
+	Even though, the performance is good enough for larger networks like the road network of the USA \cite{aviram-optimizing-dijkstra}, answering routing queries using normal shortest path algorithms on dense networks or networks of global scale are still a problem.
+	To solve this, several speedup methods exist that further decrease query times, which will be covered later in \cref{subsec:speedup-methods}.
+	Using such techniques enables global routing request being processed within milliseconds.\footnote{Tested for a routing request from Hamburg, Germany to Beijing, China on \href{https://www.openstreetmap.org/directions?engine=fossgis\_osrm\_car&route=53.55\%2C10.00\%3B39.91\%2C116.39}{openstreetmap.org} using the OSRM car profile which is based on Contraction Hierarchies (s. \cref{subsubsec:ch}). The HTTP request returned the result in under 215ms -- including network latency of several milliseconds.}
 	
 	Next to line-based shapes, which are very suitable for routing, the real world also consists of polygonal shapes like market places, parking lots or parks.
 	Classical routing algorithms can only interpret the outer edges of these polygons as closed lines and therefore only find paths along these outer edges.
-	Often auxiliary paths are added to connect opposite sides of polygons enabling routing algorithms to cross these areas.
-	This is a common practice in OpenStreetMap, a crowdsourced geospatial database, for example at the Rathausmarkt (town hall market) in Hamburg, Germany \footnote{Auxiliary ways were added inside the closed OpenStreetMap-way  \href{https://www.openstreetmap.org/way/142944433}{142944433}.}.
+	Often, auxiliary paths are added to connect opposite sides of polygons, enabling routing algorithms to cross these areas.
+	This is a common practice in OpenStreetMap, a crowdsourced geospatial database, for example on market or playground areas.
 	Lower amounts of lines can be added quite easily by hand, but manually filling large areas or even a whole city with these auxiliary paths is not feasible.
 	Fortunately, there are algorithms filling open spaces with edges as well as algorithms finding paths through open spaces without any additional edges.
-	Both strategies are covered below but also described in detail in following chapters.
+	Both strategies will be covered in detail in following chapters.
 	
 	% problem: Most real world destinations are not on the network
 	Another problem, similar to routing through open spaces, arises with the source and destination locations of real world routing.
@@ -39,9 +39,8 @@
 	Obstacles are geometries that cannot be passed under normal circumstances, like for example buildings, fences, lakes and walls.
 	There are two main strategies to solve this type of shortest path problem \cite{hershberger-suri}:
 	
-	The first approach generates an auxiliary network around these obstacles (just like the auxiliary paths mentioned above) and then uses a graph-based shortest path algorithm to find the actual path.
-	There are several different approaches on how to generate a graph and all have different properties \cite{graser-osm-open-spaces}.
-	\Cref{subsec:visibility-graph} covers them in more detail.
+	The first approach generates an auxiliary network around these obstacles (just like the aforementioned auxiliary paths) and then uses a graph-based shortest path algorithm to find the actual path.
+	A variety of different approaches exist to generate such auxiliary edges\cite{graser-osm-open-spaces} which will be covered in detail in \cref{subsec:visibility-graph}.
 	
 	The second approach does not create such a graph but stores its shortest path information for each source vertex in a map.
 	Each shortest path map is made for a specific source vertex and consists of several distinct regions.
@@ -55,11 +54,11 @@
 	The previous section mentions one of the disadvantages of network-based routing:
 	Source and destination locations are probably not on the graph.
 	Furthermore, trajectories of pedestrians in the real world are often not following edges on routing graphs, which is especially the case for insufficiently connected open spaces.
-	Routes strictly following the edges of a graph are therefore inaccurate for pedestrian routing \cite{graser-osm-open-spaces}.
-	Such inaccurate routes significantly affect the user experience of real world programs as well as numerous other use cases like agent-based simulations.
+	Routes strictly following the edges of a graph are therefore inaccurate for pedestrian routing \cite{graser-osm-open-spaces}, which means the calculated route contains detours and is therefore longer than the actual trajectory and additionally may not reach the exact destination location at all.
+	Such inaccuracies significantly affect the quality of agent-based simulations, as well as the helpfulness and user experience of real world applications, such as mobile navigation apps.
 
-	This thesis solves these issues by proposing, implementing and evaluating a hybrid routing algorithm that combines the accuracy of geometric routing using visibility graphs with the optimizations and wide use of network-based routing.
-	Determining shortest paths using the resulting approach is fast, enables the use of common speed up techniques, easy to implement and reaches all accessible vertices on the graph.
+	In this thesis these issues are solved by proposing, implementing and evaluating a hybrid routing algorithm that combines the accuracy of geometric routing using visibility graphs with the optimizations and wide use of network-based routing.
+	Determining shortest paths using the resulting approach has a simple structure, is fast, enables the use of common speedup techniques and reaches all accessible locations independent of the presence of corresponding vertices in the graph.
 	Any other arbitrary location, for example a location chosen by the user, can be added to the graph quite easily.
 	Real world applications as well as simulations, such as multi-agent simulations of pedestrian behavior, benefit from this algorithm.
 	
@@ -67,8 +66,8 @@
 
 	First, the basics of spatial data, data formats, graph routing, geometric routing and agent-based simulations are covered in \cref{chap:fundamentals}.
 	The scientific work related to this thesis is presented in \cref{chap:related-work} for graphs and networks, routing techniques and pedestrian path finding in particular.
-	\Cref{chap:design} describes the design of the system developed for this thesis and gives an overview of the different components and elements.
-	A more detailed view of the implementation is given in \cref{chap:implementation} describing the technical aspects of combining network and geometric routing as well as the frameworks that were used.
-	The hybrid solution is then evaluated in \cref{chap:evaluation} regarding performance, correctness and quality of the resulting routes.
+	In \cref{chap:design} the design of the system developed for this thesis is described and an overview of the different components and elements is given.
+	A more detailed view of the implementation is presented in \cref{chap:implementation} including technical aspects of the combination of network and geometric routing as well as used frameworks.
+	The hybrid routing algorithm is then evaluated in \cref{chap:evaluation} regarding performance, correctness and quality of the resulting routes.
 	
 % TODO Spatial pruning as in "A Modular Routing Graph Generation Method for Pedestrian Simulation"?

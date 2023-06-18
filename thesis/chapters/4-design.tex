@@ -2,7 +2,7 @@
 % !TeX spellcheck = en_US
 
 As mentioned in the introductory motivation, the developed hybrid routing algorithm has to find optimal paths through open spaces and must also be able to connect arbitrary start and destination locations.
-Current routing approaches are either not capable of correctly connecting arbitrary locations (in the case of graph-based algorithm like A*) or do not allow the use of speed up techniques (for example in the continuous Dijkstra approach).
+Current routing approaches are either not capable of correctly connecting arbitrary locations (in the case of graph-based algorithm like A*) or do not allow the use of speedup techniques (for example in the continuous Dijkstra approach).
 Additionally, none of the existing approaches uses both, the open spaces between obstacle and the existing road network, which is still relevant to simulate pedestrian movements.
 Edges from a road network often contain useful information, for example about sidewalks, and following roads is therefore a reasonable and realistic routing decision.
 
@@ -133,7 +133,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 		To merge them, first the intersection points need to be determined and then the better segments have to be chosen based on a weight function.
 		
 		The most prominent advantage is the simplicity of the routing requests, since known routing algorithms could be used.
-		Therefore, it would be rather simple to implement and speed up techniques could be used.
+		Therefore, it would be rather simple to implement and speedup techniques could be used.
 		
 		However, there are two major disadvantages.
 		First, it is uncertain that the two paths are actually intersecting at any point.
@@ -187,7 +187,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 		\todo[inline]{Link to possible optimizations discussed in later chapters}
 		
 		Despite the disadvantages of this approach, I considered the advantages to be more important.
-		As already mentioned, this strategy is not only simple and fast, it also allows the use of speed up methods for routing queries, e.g. the A*-based ALT algorithm or other techniques described in \cref{subsec:speedup-methods}.
+		As already mentioned, this strategy is not only simple and fast, it also allows the use of speedup methods for routing queries, e.g. the A*-based ALT algorithm or other techniques described in \cref{subsec:speedup-methods}.
 		Moreover, the resulting path is definitely optimal, based on the given weight function, and no complex postprocessing is needed.
 		Such postprocessing is, for example, needed in the \enquote{concurrent routing} candidate approach.
 		
