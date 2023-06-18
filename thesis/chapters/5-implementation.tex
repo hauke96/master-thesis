@@ -613,73 +613,83 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			
 			\begin{figure}[h]
 				\begin{figcenter}
-					\begin{tikzpicture}
-						\tikzDot{(2,0)}{vo0};
-						\tikzDot[label={[label distance=-1.25mm]above right:$v $}]{(2,1)}{vo1};
-						\tikzDot{(2,2)}{vo2};
-						
-						\draw (vo0) -- (vo1);
-						\draw (vo1) -- (vo2);
-						
-						\tikzDot[label=left:$n_a$,outer sep=0.5mm]{(0.5,1.3)}{n1};
-						\tikzDot[label=right:$n_b$,outer sep=0.5mm]{(3.5,1)}{n2};
-						
-						\draw[dotted] (n1) -- (vo1);
-						\draw[dotted] (vo1) -- (n2);
-						
-						\draw[dotted] (n1) -- (vo0);
-						\draw[dotted] (n1) -- (vo2);
-						\draw[dotted] (n2) -- (vo0);
-						\draw[dotted] (n2) -- (vo2);
-					\end{tikzpicture}
-					\hspace{2cm}
-					\begin{tikzpicture}
-						\def\r{0.85mm}
-						\def\rMargin{1.1mm} % = r + 0.25mm
-						\def\gap{0.1875mm}
-						
-						\tikzDot{(2,0)}{vo0};
-						\node (vo1) at (2,1) {};
-						\node[label={[label distance=-1.25mm]above left:$v_a$}] at (vo1) {};
-						\node[label={[label distance=-1.25mm]above right:$v_b$}] at (vo1) {};
-						\coordinate (vo11) at ($(vo1)+(180:\rMargin)$);
-						\coordinate (vo12) at ($(vo1)+(0:\rMargin)$);
-						\tikzDot{(2,2)}{vo2};
-						
-						\filldraw (vo1)++(-\gap,0)++(90:\r) arc (90:270:\r);
-						\filldraw (vo1)++( \gap,0)++(90:\r) arc (90:-90:\r);
-						
-%							\draw (vo1)++(270:\rMargin) -- (vo0);
-						\draw ($(vo1)+(270:\r)+(-0.275mm,0)$) -- ($(vo0)+(-0.275mm,2mm)$) -- (vo0.north);
-						\draw ($(vo1)+(270:\r)+( 0.275mm,0)$) -- ($(vo0)+( 0.275mm,2mm)$) -- (vo0.north);
-%							\draw (vo1)++(90:\rMargin) -- (vo2);
-						\draw ($(vo1)+(90:\r)+(-0.275mm,0)$) -- ($(vo2)+(-0.275mm,-2mm)$) -- (vo2.south);
-						\draw ($(vo1)+(90:\r)+( 0.275mm,0)$) -- ($(vo2)+( 0.275mm,-2mm)$) -- (vo2.south);
-						
-						\tikzDot[label=left:$n_a$,outer sep=0.5mm]{(0.5,1.3)}{n1};
-						\tikzDot[label=right:$n_b$,outer sep=0.5mm]{(3.5,1)}{n2};
-						
-						\draw[dotted] (n1) -- (vo11);
-						\draw[dotted] (vo12) -- (n2);
-						
-						\draw[dotted] (n1) -- (vo0);
-						\draw[dotted] (n1) -- (vo2);
-						\draw[dotted] (n2) -- (vo0);
-						\draw[dotted] (n2) -- (vo2);
-					\end{tikzpicture}
+					\begin{subfigure}[t]{.48\textwidth}
+						\begin{figcenter}
+							\begin{tikzpicture}
+								\tikzDot{(2,0)}{vo0};
+								\tikzDot[label={[label distance=-1.25mm]above right:$v $}]{(2,1)}{vo1};
+								\tikzDot{(2,2)}{vo2};
+								
+								\draw (vo0) -- (vo1);
+								\draw (vo1) -- (vo2);
+								
+								\tikzDot[label=left:$n_a$,outer sep=0.5mm]{(0.5,1.3)}{n1};
+								\tikzDot[label=right:$n_b$,outer sep=0.5mm]{(3.5,1)}{n2};
+								
+								\draw[dotted] (n1) -- (vo1);
+								\draw[dotted] (vo1) -- (n2);
+								
+								\draw[dotted] (n1) -- (vo0);
+								\draw[dotted] (n1) -- (vo2);
+								\draw[dotted] (n2) -- (vo0);
+								\draw[dotted] (n2) -- (vo2);
+							\end{tikzpicture}
+						\end{figcenter}
+						\caption{
+							Visibility graph with naive connections.
+							The two visibility edges at $v$ allow the shortest path to go through the obstacle from $n_a$ via $v$ to $n_b$.
+						}
+						\label{fig:routing-through-line-obstacle-a}
+					\end{subfigure}
+					\hfill
+					\begin{subfigure}[t]{.48\textwidth}
+						\begin{figcenter}
+							\begin{tikzpicture}
+								\def\r{0.85mm}
+								\def\rMargin{1.1mm} % = r + 0.25mm
+								\def\gap{0.1875mm}
+								
+								\tikzDot{(2,0)}{vo0};
+								\node (vo1) at (2,1) {};
+								\node[label={[label distance=-1.25mm]above left:$v_a$}] at (vo1) {};
+								\node[label={[label distance=-1.25mm]above right:$v_b$}] at (vo1) {};
+								\coordinate (vo11) at ($(vo1)+(180:\rMargin)$);
+								\coordinate (vo12) at ($(vo1)+(0:\rMargin)$);
+								\tikzDot{(2,2)}{vo2};
+								
+								\filldraw (vo1)++(-\gap,0)++(90:\r) arc (90:270:\r);
+								\filldraw (vo1)++( \gap,0)++(90:\r) arc (90:-90:\r);
+								
+%								\draw (vo1)++(270:\rMargin) -- (vo0);
+								\draw ($(vo1)+(270:\r)+(-0.275mm,0)$) -- ($(vo0)+(-0.275mm,2mm)$) -- (vo0.north);
+								\draw ($(vo1)+(270:\r)+( 0.275mm,0)$) -- ($(vo0)+( 0.275mm,2mm)$) -- (vo0.north);
+%								\draw (vo1)++(90:\rMargin) -- (vo2);
+								\draw ($(vo1)+(90:\r)+(-0.275mm,0)$) -- ($(vo2)+(-0.275mm,-2mm)$) -- (vo2.south);
+								\draw ($(vo1)+(90:\r)+( 0.275mm,0)$) -- ($(vo2)+( 0.275mm,-2mm)$) -- (vo2.south);
+								
+								\tikzDot[label=left:$n_a$,outer sep=0.5mm]{(0.5,1.3)}{n1};
+								\tikzDot[label=right:$n_b$,outer sep=0.5mm]{(3.5,1)}{n2};
+								
+								\draw[dotted] (n1) -- (vo11);
+								\draw[dotted] (vo12) -- (n2);
+								
+								\draw[dotted] (n1) -- (vo0);
+								\draw[dotted] (n1) -- (vo2);
+								\draw[dotted] (n2) -- (vo0);
+								\draw[dotted] (n2) -- (vo2);
+							\end{tikzpicture}
+						\end{figcenter}
+						\caption{
+							The visibility graph with connection respecting the obstacle. Vertex $v$ is split into two, $v_a$ and $v_b$, with exact same location. All gaps are for illustration purposes only.
+							Vertex $v_a$ is connected to $n_a$ and $v_b$ to $n_b$ but $v_a$ and $v_b$ are not connected.
+							This ensures that the shortest path from $n_a$ to $n_b$ does not lead through the middle vertex of the obstacle anymore.
+						}
+						\label{fig:routing-through-line-obstacle-b}
+					\end{subfigure}
 				\end{figcenter}
 				\caption{
 					Both illustrations show two of $v$'s visibility neighbors $n_a$ and $n_b$ next to a vertical obstacle. Routing through this obstacle should \emph{not} be possible.
 					The dotted edges are visibility edges, the solid edges normal line segments of the obstacle.
-					\\
-					\underline{Left}:
-					Visibility graph with naive connections.
-					The two visibility edges at $v$ allow the shortest path to go through the obstacle from $n_a$ via $v$ to $n_b$.
-					\\
-					\underline{Right}:
-					The visibility graph with connection respecting the obstacle. Vertex $v$ is split into two, $v_a$ and $v_b$, with exact same location. All gabs are for illustration purposes only.
-					Vertex $v_a$ is connected to $n_a$ and $v_b$ to $n_b$ but $v_a$ and $v_b$ are not connected.
-					This ensures that the shortest path from $n_a$ to $n_b$ does not lead through the middle vertex of the obstacle anymore.
 				}
 				\label{fig:routing-through-line-obstacle}
 			\end{figure}
@@ -738,11 +748,11 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 	\label{subsec:step-3-graph-creation}
 	
 		The previous step created the raw data that is needed to generate a routable visibility graph, which is done in this third step.
-		Since the \texttt{SpatialGraph} class in the NetTopologySuite uses the term \emph{node}, the term \emph{vertex} in this section refers to the vertices in the result of step 2.
+		Since the \texttt{SpatialGraph} class in the NetTopologySuite uses the term \emph{node}, the term \emph{vertex} in this section refers to the vertices in the result of step 2, the term \emph{node} refers to the nodes in the output graph.
 		
 		As described at the end of the previous step, one node is created for each bin of neighboring vertices.
 		Therefore, mappings between nodes, vertices and neighbor bins have to be created.
-		For an example, consider the right side of \cref{fig:routing-through-line-obstacle} where neighbor vertex $n_a$ should be connected to $v$.
+		For an example, consider \cref{fig:routing-through-line-obstacle-b} where neighbor vertex $n_a$ should be connected to $v$.
 		Since $v$ is split into two vertices, two nodes are created in the graph and therefore a mapping from node to bin is needed in order to connect the right nodes with each other.
 		Two iterations over all vertices are used to first create the nodes with the respective bin-mapping and then, in the second iteration, this mapping is used to correctly connect all nodes.
 		
@@ -762,51 +772,63 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 		
 		\begin{figure}[h]
 			\begin{figcenter}
-				\begin{tikzpicture}
-					\tikzDot{(0,-0.75)}{v1n1}
-					\tikzDot{(4,-0.6)}{v1n2}
-					
-					\tikzDot{(0,0.8)}{v2n1}
-					\tikzDot{(4.2,0.6)}{v2n2}
-					
-					\tikzDot{(1.5,-1.65)}{rn1}
-					\tikzDot{(1.8,1.65)}{rn2}
-					
-					\draw[<->,dashed] (v1n1) -- node[above right=0cm and 0.4cm] {$v$} (v1n2);
-					\draw[<->,dashed] (v2n1) -- node[above right=0cm and 0.4cm] {$u$} (v2n2);
-					
-					\draw[<->] (rn1) -- node[left] {$r$} (rn2);
-				\end{tikzpicture}
-				\hspace{2cm}
-				\begin{tikzpicture}
-					\tikzDot{(0,-0.75)}{v1n1}
-					\tikzDot{(4,-0.6)}{v1n2}
-					
-					\tikzDot{(0,0.8)}{v2n1}
-					\tikzDot{(4.2,0.6)}{v2n2}
-					
-					\tikzDot{(1.5,-1.65)}{rn1}
-					\tikzDot{(1.8,1.65)}{rn2}
-					
-					\tikzDot{(intersection of v1n1--v1n2 and rn1--rn2)}{i1}
-					\tikzDot{(intersection of v2n1--v2n2 and rn1--rn2)}{i2}
-					
-					\draw[<->,dashed] (v1n1) -- node[above] {$v_1$} (i1);
-					\draw[<->,dashed] (i1)   -- node[above] {$v_2$} (v1n2);
-					\draw[<->,dashed] (v2n1) -- node[above] {$u_1$} (i2);
-					\draw[<->,dashed] (i2)   -- node[above] {$u_2$} (v2n2);
-					
-					\draw[<->] (rn1) -- node[right] {$r_1$} (i1);
-					\draw[<->] (i1)  -- node[right] {$r_2$} (i2);
-					\draw[<->] (i2)  -- node[right] {$r_3$} (rn2);
-				\end{tikzpicture}
+				\begin{subfigure}[t]{.48\textwidth}
+					\begin{figcenter}
+						\begin{tikzpicture}
+							\tikzDot{(0,-0.75)}{v1n1}
+							\tikzDot{(4,-0.6)}{v1n2}
+							
+							\tikzDot{(0,0.8)}{v2n1}
+							\tikzDot{(4.2,0.6)}{v2n2}
+							
+							\tikzDot{(1.5,-1.65)}{rn1}
+							\tikzDot{(1.8,1.65)}{rn2}
+							
+							\draw[<->,dashed] (v1n1) -- node[above right=0cm and 0.4cm] {$v$} (v1n2);
+							\draw[<->,dashed] (v2n1) -- node[above right=0cm and 0.4cm] {$u$} (v2n2);
+							
+							\draw[<->] (rn1) -- node[left] {$r$} (rn2);
+						\end{tikzpicture}
+					\end{figcenter}
+					\caption{
+						Before merging $r$ into the graph with a total of six nodes and six edges.
+					}
+					\label{fig:merging-edges-a}
+				\end{subfigure}
+				\hfill
+				\begin{subfigure}[t]{.48\textwidth}
+					\begin{figcenter}
+						\begin{tikzpicture}
+							\tikzDot{(0,-0.75)}{v1n1}
+							\tikzDot{(4,-0.6)}{v1n2}
+							
+							\tikzDot{(0,0.8)}{v2n1}
+							\tikzDot{(4.2,0.6)}{v2n2}
+							
+							\tikzDot{(1.5,-1.65)}{rn1}
+							\tikzDot{(1.8,1.65)}{rn2}
+							
+							\tikzDot{(intersection of v1n1--v1n2 and rn1--rn2)}{i1}
+							\tikzDot{(intersection of v2n1--v2n2 and rn1--rn2)}{i2}
+							
+							\draw[<->,dashed] (v1n1) -- node[above] {$v_1$} (i1);
+							\draw[<->,dashed] (i1)   -- node[above] {$v_2$} (v1n2);
+							\draw[<->,dashed] (v2n1) -- node[above] {$u_1$} (i2);
+							\draw[<->,dashed] (i2)   -- node[above] {$u_2$} (v2n2);
+							
+							\draw[<->] (rn1) -- node[right] {$r_1$} (i1);
+							\draw[<->] (i1)  -- node[right] {$r_2$} (i2);
+							\draw[<->] (i2)  -- node[right] {$r_3$} (rn2);
+						\end{tikzpicture}
+					\end{figcenter}
+					\caption{
+						After merging $r$. Two new vertices have been created and all edges are split on the intersection points. The graph size therefore increased by two nodes and eight edges (since all edges are bidirectional) to eight nodes and 14 edges.
+					}
+					\label{fig:merging-edges-b}
+				\end{subfigure}
 			\end{figcenter}
 			\caption{
 				Merging the road edge $r$ with two bidirectional visibility edges $v$ and $u$.
-				\\
-				\underline{Left:} Before merging $r$ into the graph with a total of six nodes and six edges.
-				\\
-				\underline{Right:} After merging $r$. Two new vertices have been created and all edges are split on the intersection points. The graph size therefore increased by two nodes and eight edges (since all edges are bidirectional) to eight nodes and 14 edges.
 			}
 			\label{fig:merging-edges}
 		\end{figure}
