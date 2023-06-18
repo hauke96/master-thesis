@@ -11,6 +11,11 @@ function head {
 	echo
 }
 
+echo "Start evaluating"
+date
+echo
+echo
+
 # Rectangle datasets
 head "Rectangle pattern datasets"
 DATASETS=$(ls datasets/pattern-based-rectangles/ | grep --color=never -P "pattern_\\d*x\\d*\.geojson" | sed "s/\.geojson//g")
@@ -44,6 +49,12 @@ head "OSM \"rural\" datasets"
 ./execute-evaluation.sh ../code/HikerModel datasets/osm-based/dataset-rural/3km2/ results/osm-based-rural "3km2"
 ./execute-evaluation.sh ../code/HikerModel datasets/osm-based/dataset-rural/4km2/ results/osm-based-rural "4km2"
 
-# TODO city without roads
+./execute-evaluation.sh ../code/HikerModel datasets/osm-based/dataset-city-no-roads/ results/osm-based-city-no-roads "data"
+./execute-evaluation.sh ../code/HikerModel datasets/osm-based/dataset-city-no-obstacles/ results/osm-based-city-no-obstacles "data"
+./execute-evaluation.sh ../code/HikerModel datasets/osm-based/dataset-rural-no-roads/ results/osm-based-rural-no-roads "data"
+./execute-evaluation.sh ../code/HikerModel datasets/osm-based/dataset-rural-no-obstacles/ results/osm-based-rural-no-obstacles "data"
 
-# TODO city without obstacles
+echo
+echo
+date
+echo "Done executing all evaluations"
