@@ -475,14 +475,11 @@ public class HybridVisibilityGraph
         return edge;
     }
 
-    private void RemoveNode(int nodeId)
-    {
-        RemoveNode(Graph.NodesMap[nodeId]);
-    }
-
     private void RemoveNode(NodeData node)
     {
         Graph.RemoveNode(node);
+        _vertexToNodes.Where(pair => pair.Value.Contains(node.Key)).Each(pair => _vertexToNodes.RemoveKey(pair.Key));
+        InitNodeIndex();
     }
 
     private void RemoveEdge(EdgeData edge)
