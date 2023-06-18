@@ -1,12 +1,12 @@
 % !TEX root = ../thesis.tex
 % !TeX spellcheck = en_US
 
-This chapter introduces basic concepts relevant for this thesis.
+In this chapter, basic concepts are described, which are relevant for this thesis.
 Primarily, this includes geodata, routing algorithms as well as agent-based simulations.
-The section about geodata gives a broad overview of coordinate systems, file formats, standards and OpenStreetMap as one important source of geospatial data.
-Such data can be used to find shortest paths between two locations using routing algorithms.
+The section about geodata gives a broad overview of coordinate systems, file formats, standards and OpenStreetMap, which is the source of geodata in this thesis.
+Geodata in general can be used to find shortest paths between two locations using routing algorithms.
 Two main strategies exist to find such paths, graph-based and geometric routing, and both will be covered in this chapter.
-agent-based simulations play an important role in pedestrian simulations and often use these routing techniques.
+Agent-based simulations play an important role in pedestrian simulations and often use these routing algorithms for the agent's movements.
 Hence, the topic of agents and simulations will be covered as well.
 
 \section{Geospatial data}
@@ -14,10 +14,10 @@ Hence, the topic of agents and simulations will be covered as well.
 	According to the ISO standard 19109:2015\cite{iso-19109}, the term \term{geospatial data} refers to \enquote{data with implicit or explicit reference to a location relative to the Earth}.
 	In other words, data with any kind of address, coordinate or other location reference belongs to the class of \term{geospatial data}, or \term{geodata} for short.
 	
-	Examples are customer information (address information of each customer), meteorological data (measured temperature and humidity with a coordinate and altitude) and of course road and path data suitable for routing.
-	Since addresses are not globally standardized, describe only a vague location and usually belong to a hole area, they are of less importance for this thesis.
+	Examples are customer information (address information of each customer), meteorological data (measured temperature and humidity with a coordinate and altitude) and, primarily used in this thesis, road and path data suitable for routing.
+	Since addresses are not globally standardized, describe only a vague location and usually belong to a whole area, they are of less importance for this thesis.
 	Geodata with an additional time dimension is also categorized as \term{spatiotemporal data}\cite{iso-19108} and even though the time dimension is relevant to many real world use cases, this type of data is of less importance for this thesis as well.
-	Whenever this thesis mentions the term \emph{geodata}, data structures as described below in \cref{subsec:data-structures} are meant.
+	The term \emph{geodata} in this thesis refers to data structures as described below in \cref{subsec:data-structures}.
 	
 	Next to the mentioned explicit references to locations, such as coordinates, implicit location references can be encoded within metadata of datasets as well.
 	This is for example the case with the image-based GeoTIFF format, which stores the geographic extent of the image in the metadata of a normal TIFF image file\cite{ogc-geotiff}.
@@ -28,45 +28,44 @@ Hence, the topic of agents and simulations will be covered as well.
 		Coordinates are used to specify exact locations on Earth.
 		However, the Earth is not a perfect sphere but rather an ellipsoid.
 		But even this ellipsoid is not smooth and has slightly different radii in different regions.
-		Furthermore, most regions on Earth move (continental drift) and therefore constantly change their positions and distances relative to each other.
-		Even though, the continental plates move slowly, this effect adds up to a significant distance rendering very accurate measurements potentially useless over time \cite[7]{ordenance-survey-booklet}.
-		These properties of the surface of Earth make it necessary to have a variety of different reference systems and projections for spatial data covering different parts of the planet.
+		Furthermore, most regions on Earth move due to continental drift and therefore constantly change their positions and distances relative to each other.
+		Even though, the continental plates move slowly, this effect adds up to a significant distance rendering very accurate measurements potentially unusable over time \cite[7]{ordenance-survey-booklet}.
+		These properties of Earth's surface make it necessary to have a variety of different reference systems and projections for spatial data covering different parts of the planet.
 		
 		A \term{coordinate reference system} (CRS) defines the combination of a coordinate system and an approximation of the surface of the Earth.
-		The \term{coordinate system} defines the extent and unit of coordinates.
+		The \term{coordinate system} defines the extent, meaning the spatial boundaries, and unit of coordinates.
 		Types of coordinate systems are for example Cartesian (coordinates in meters or foot) and ellipsoidal (coordinates in degrees) \cite[11-13]{ordenance-survey-booklet}.
 		The \term{horizontal datum} (also \term{Terrestrial Reference System} or \term{geodetic datum}) defines the origin and orientation of the coordinate system and is therefore a mapping from a numeric coordinate to a real location on Earth based on a specific ellipsoid.
 		
 		Since the Earth is a spherical body, the horizontal datum is always tied to an ellipsoid.
-		\term[ellipsoid]{Ellipsoids} are deformed spheres, which describe either the whole Earth or a part of it, e.g. a single continent or country, as accurate as possible.
+		\term[ellipsoid]{Ellipsoids} are deformed spheres, which describe either the whole Earth or a part of it, e.g. a single continent or country, as accurately as possible.
 		Depending on this ellipsoid, the horizontal datum either defines a global or local reference system.
-		Latter is more accurate in certain places while a global system tries to find a good approximation for every location on Earth.
+		The latter is more accurate in certain places while a global system is designed to find good approximations for every location on Earth.
 		Cartesian coordinate systems with two dimensions only work on flat surfaces, therefore a \term*[map projection]{projection} is required to turn each spherical location on the ellipsoid into a two dimensional planar location in the coordinate system \cite[17]{ordenance-survey-booklet}.
 		
 		Next to the horizontal datum, a \term{vertical datum} can be used to define the height of data \cite{ordenance-survey-booklet}.
 		This is done by defining a so called \term{geoid}, which defined the level of zero height.
 		Such a geoid can be modeled using another ellipsoidal sphere but that would result in very inaccurate data.
 		Instead, local reference levels for height data are used, such as the Ordnance Datum Newlyn (\term*{ODN}) for Britain or Normalhöhennull (\term*{NHN}) for Germany.
-		Since it is often based on the water level of oceans, the level of zero height on landmasses is extrapolated based on the gravitational field of the earth.
+		Since it is often based on the water level of oceans, the level of zero height on landmasses is extrapolated based on the gravitational field of the Earth.
 		
 		For visualization purposes, a \term{map projection} might be needed to translate coordinates from the CRS of the data into the coordinate system used of the map.
-		The map can be two dimensional but digital maps can also be rendered on a three dimensional sphere.
-		Since the projections from the data and map can differ, transformations between the projections are needed.
+		The map can be two-dimensional but digital maps can also be rendered on a three-dimensional sphere.
+		Since the projections of the data and map can differ, transformations between the projections are needed.
 		
 		For better communication, the European Petroleum Survey Group (\term*{EPSG}) created a database with definitions for coordinate reference systems and transformations \cite{epsg}.
-		Each entry in this database has an ID with the prefix \enquote{EPSG:} followed by a numeric code, for example EPSG:4326 for the global and widely used WGS 84, a global ellipsoidal horizontal datum used in the GPS.
+		Each entry in this database has an ID with the prefix \enquote{EPSG:} followed by a numeric code, for example EPSG:4326 refers to the global and widely used World Geodetic System 1984 (WGS 84), a global ellipsoidal horizontal datum used for example in GPS.
 		
 	\subsection{Data structures}
 	\label{subsec:data-structures}
 	
 		Spatial data can be stored in a variety of data structures.
 		Some of these are used in many frameworks, libraries and formats, but some are vendor specific.
-		This section gives an overview of common data structures in spatial data.
+		An overview of common data structures in spatial data is given in this section.
 		
-		The \term{Simple Feature Access} (\term*{SFA}) standard by the Open Geospatial Consortium (\term*{OGC}) defines numerous geometry types\cite{ogc-sfa}, however, not all of them are implemented in all formats and most of them are not relevant for this thesis.
-		Because the widely used GeoJSON format (described in more detail in \cref{subsubsec:geojson}) implements the most important geometries of the SFA standard\cite{ietf-geojson}, this section gives an overview of the geometry types implemented by GeoJSON.
-		
-		The main concepts considered in this section are geometries and features.
+		The \term{Simple Feature Access} (\term*{SFA}) standard by the Open Geospatial Consortium (\term*{OGC}) defines numerous geometry types\cite{ogc-sfa}, however, not all of them are implemented in all data formats and most of them are not relevant for this thesis.
+		The GeoJSON file format (described in more detail in \cref{subsubsec:geojson}) implements the most important geometries and data structures of the SFA standard\cite{ietf-geojson}.
+		Therefore, an overview of these geometry types as well as an introduction to the concept of features is given in this section.
 		
 		\subsubsection{Geometries}
 		
@@ -82,7 +81,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		\subsubsection{Features}
 		
 			According to the OGC, a \term{feature} is an \enquote{abstraction of real world phenomena}\cite{ogc-sfa}, for example a tree, road or lake.
-			It therefore consists of a geometry, describing \textit{where} the feature is, and certain attributes (sometimes called \enquote{properties} or \enquote{tags}), describing \textit{what} the feature represents.
+			It therefore consists of a geometry, describing \textit{where} the feature is, and certain attributes (also called \enquote{properties} or \enquote{tags}), describing \textit{what} the feature represents.
 			In the case of GeoJSON, these attributes consist of any number of key-value pairs that can contain arbitrary entries.
 			Some other file formats might have technical restrictions regarding possible attributes (e.g. the number of bytes per value) while others try to standardize the allowed keys and values.
 		
@@ -91,15 +90,15 @@ Hence, the topic of agents and simulations will be covered as well.
 			Standards exist to keep a data source consistent but to also allow interoperability between systems.
 			Common standards were defined by organizations like the OGC but companies or government agencies define standards as well.
 			
-			A widely used proprietary standard established the company Esri Inc. is the Shapefile file format.
+			A widely used proprietary standard established by the company Esri Inc. is the Shapefile file format.
 			This format will be covered in more detail in \cref{subsubsec:shapefile}.
 			
 			One example for a governmental standard, is the INSPIRE standard.
 			It was established based on an initiative of the European Commission and defines fixed attributes with keys and values as well as specifications for metadata.
-			This standard works on a high level of detail with numerous separate specifications for different types of features, for example there exists a single specification just for protected sites \cite[31]{inspire-protected-sites}.
+			This standard works on a high level of detail with numerous separate specifications for different types of features, for example there exists a single specification just for protected sites, such as natural reserves \cite[31]{inspire-protected-sites}.
 		
 			A standardization strategy based on democratic votes is used by \term*{OpenStreetMap} (\term*{OSM}), a crowdsourced spatial database (covered in \cref{subsec:osm} with more details).
-			The standardization of OSM takes place in the projects wiki, which defines certain keys and values but also explicitly allows arbitrary tags (key-value pairs) to ensure a high degree of flexibility \cite{osm-wiki-proposal-process}.
+			The standardization of OSM takes place in the projects Wiki, which defines certain keys and values but also explicitly allows arbitrary tags (key-value pairs) to ensure a high degree of flexibility \cite{osm-wiki-proposal-process}.
 			
 	% TODO kürzen
 	\subsection{File formats}
@@ -107,8 +106,8 @@ Hence, the topic of agents and simulations will be covered as well.
 	
 		Spatial data can be stored in a variety of different file formats with different properties and use cases.
 		Next to proprietary formats, there are many open standards.
-		The \term[OGC]{Open Geospatial Consortium} (OGC) published open standard definitions and schemas for some of these open file formats.		
-		This section gives an overview of some popular formats:
+		The \term[OGC]{Open Geospatial Consortium} (OGC) published open standard definitions and schemas for some of these open file formats.
+		This section gives an overview of some popular formats.
 		
 		\subsubsection{Esri shapefile}
 		\label{subsubsec:shapefile}
@@ -124,12 +123,12 @@ Hence, the topic of agents and simulations will be covered as well.
 			Attributes have limitations in their size and structure.
 			One major limitation is the maximum length of 10 characters per attribute name and a maximum of 254 characters per value \cite{esri-shapefile-limitations}.
 			The maximum number of attributes per geometry is limited by 255.
-			The default CRS is based on latitudes and longitudes using the NAD 27 datum\cite{esri-shapefile-coordinate-system}.
+			The default CRS is based on latitudes and longitudes using the North American Darum from 1927 (NAD 27)\cite{esri-shapefile-coordinate-system}.
 			
 		\subsubsection{KML}
 		
 			Another popular spatial format is the \term[kml]{Keyhole Markup Language} (KML), which was standardized by the OGC in 2008\cite{ogc-kml-2.2}.
-			A KML file consist of a single XML structured file.
+			A KML file consists of a single XML structured file.
 			Since it follows the XML standard, which is plain text, the amount of geometries and attributes are not restricted.
 			KML files may contain more information than just features:
 			Features can be grouped and hierarchically organized, temporal data can be added to define the lifetime of a feature and camera views for visualization applications can be defined \cite{ogc-kml-2.3}.
@@ -138,7 +137,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		\subsubsection{GeoJSON}
 		\label{subsubsec:geojson}
 		
-			Another open but not OGC standardized format is \term{GeoJSON}.
+			Another open but not OGC-standardized format is \term{GeoJSON}, which is the most important format for this thesis as all used datasets were in this file format.
 			As the name suggests, a GeoJSON file follows the JSON specification as defined in \href{https://datatracker.ietf.org/doc/html/rfc7946}{RFC7946} \cite{ietf-geojson}.
 			The file can contain a collection of features (object of type \texttt{FeatureCollection}), where each feature contains a geometry, or the file just contains a list of geometries (\texttt{GeometryCollection}, which itself is a geometry type) without attributes.
 			The length of attributes, amount of attributes, character choice and amount of geometries are not restricted.
@@ -147,9 +146,9 @@ Hence, the topic of agents and simulations will be covered as well.
 		\subsubsection{GeoTIFF}
 		
 			All formats mentioned so far store vector data, however, raster data can be georeferenced as well.
-			One format to store such raster data in form of an image, is the OGC standardized \term{GeoTIFF} format \cite{ogc-geotiff}.
+			One format to store such raster data in form of an image, is the OGC-standardized \term{GeoTIFF} format \cite{ogc-geotiff}.
 			As the name suggests, it is an TIFF formatted image with spatial metadata such as the CRS and a mapping of pixel to coordinates.
-			Typical use cases for such images are aerial or satellite imagery and \term[digital elevation model]*{digital elevation models} (\term*{DEM}).
+			Typical use cases for such images are aerial or satellite imagery and \term*[digital elevation model]{digital elevation models} (\term*{DEM}).
 		
 		\subsubsection{Other formats}
 		
@@ -280,7 +279,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			This can have multiple reasons.
 			
 			First, some data is too detailed and therefore people will not invest the time necessary to create or maintain that data.
-			For example a tree can have tags specifying its genus, species, taxon, wikipedia and wikidata references to each of these, leaf type, leaf cycle, protection, circumference, height, an image and even more. Some, especially older, protected or locally important trees, do have some of these tags, but the vast majority has none of these tags apart from the necessary \texttt{natural=tree}.
+			For example a tree can have tags specifying its genus, species, taxon, Wikipedia and Wikidata references to each of these, leaf type, leaf cycle, protection, circumference, height, an image and even more. Some, especially older, protected or locally important trees, do have some of these tags, but the vast majority has none of these tags apart from the necessary \texttt{natural=tree}.
 			
 			Second, OSM follows some strategies on what to add and what not.
 			One important strategy is the verifiability of objects on the ground.
