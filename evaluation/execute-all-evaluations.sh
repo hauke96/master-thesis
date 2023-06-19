@@ -7,7 +7,7 @@ function head {
 	echo
     printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' =
 	echo " $1"
-	time
+	date
 	echo
 }
 
@@ -49,6 +49,8 @@ head "OSM \"rural\" datasets"
 ./execute-evaluation.sh ../code/HikerModel datasets/osm-based/dataset-rural/3km2/ results/osm-based-rural "3km2"
 ./execute-evaluation.sh ../code/HikerModel datasets/osm-based/dataset-rural/4km2/ results/osm-based-rural "4km2"
 
+# OSM without roads/obstacles
+head "OSM without roads/obstacles"
 ./execute-evaluation.sh ../code/HikerModel datasets/osm-based/dataset-city-no-roads/ results/osm-based-city-no-roads "data"
 ./execute-evaluation.sh ../code/HikerModel datasets/osm-based/dataset-city-no-obstacles/ results/osm-based-city-no-obstacles "data"
 ./execute-evaluation.sh ../code/HikerModel datasets/osm-based/dataset-rural-no-roads/ results/osm-based-rural-no-roads "data"
