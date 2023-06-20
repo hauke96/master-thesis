@@ -25,6 +25,7 @@ public class HybridVisibilityGraph
 
     private readonly QuadTree<Obstacle> _obstacles;
     private readonly Dictionary<Vertex, int[]> _vertexToNodes;
+    private readonly Dictionary<Coordinate, List<Obstacle>> _vertexToObstacleMapping;
     private readonly Dictionary<int, (double, double)> _nodeToAngleArea;
     private readonly QuadTree<int> _edgeIndex;
     private KdTree<NodeData> _nodeIndex;
@@ -49,6 +50,9 @@ public class HybridVisibilityGraph
             var envelope = GeometryHelper.GetEnvelope(e.Geometry);
             _edgeIndex.Insert(envelope, i);
         });
+
+        // Create and store the mapping from vertex to obstacles for later use
+        _vertexToObstacleMapping = VisibilityGraphGenerator.GetCoordinateToObstaclesMapping(_obstacles.QueryAll());
 
         // Create and fill a spatial index with all nodes of the graph
         InitNodeIndex();
@@ -158,7 +162,7 @@ public class HybridVisibilityGraph
         // TODO If performance too bad: Pass multiple positions to not calculate certain things twice.
         var allVertices = _vertexToNodes.Keys.ToList();
         var visibilityNeighborVertices = VisibilityGraphGenerator.GetVisibilityNeighborsForVertex(_obstacles,
-            allVertices, new Dictionary<Coordinate, List<Obstacle>>(), vertexToConnect, visibilityNeighborBinCount,
+            allVertices, _vertexToObstacleMapping, vertexToConnect, visibilityNeighborBinCount,
             visibilityNeighborsPerBin)[0];
 
         visibilityNeighborVertices
