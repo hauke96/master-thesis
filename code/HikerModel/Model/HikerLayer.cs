@@ -5,6 +5,7 @@ using Mars.Components.Layers;
 using Mars.Core.Data;
 using Mars.Interfaces.Data;
 using Mars.Interfaces.Layers;
+using NetTopologySuite.Geometries;
 using ServiceStack;
 
 namespace HikerModel.Model
@@ -12,6 +13,7 @@ namespace HikerModel.Model
     public class HikerLayer : AbstractLayer
     {
         public GeoHashEnvironment<Hiker> Environment { get; private set; }
+        public Envelope BBOX;
 
         public override bool InitLayer(LayerInitData layerInitData, RegisterAgent registerAgentHandle = null,
             UnregisterAgent unregisterAgent = null)
@@ -26,10 +28,10 @@ namespace HikerModel.Model
 
         public void InitEnvironment(ICollection<IVectorFeature> features, Hiker hiker)
         {
-            var bbox = features.CreateCopy().Map(f => f.VectorStructured.BoundingBox)
+            BBOX = features.CreateCopy().Map(f => f.VectorStructured.BoundingBox)
                 .Aggregate((e1, e2) => e1.ExpandedBy(e2));
             
-            Environment = GeoHashEnvironment<Hiker>.BuildEnvironment(bbox.MaxY, bbox.MinY, bbox.MinX, bbox.MaxX, 10);
+            Environment = GeoHashEnvironment<Hiker>.BuildEnvironment(BBOX.MaxY, BBOX.MinY, BBOX.MinX, BBOX.MaxX, 10);
             Environment.Insert(hiker);
         }
     }

@@ -7,6 +7,7 @@ using Mars.Interfaces.Annotations;
 using Mars.Interfaces.Environments;
 using Mars.Interfaces.Layers;
 using NetTopologySuite.Geometries;
+using NetTopologySuite.Operation.Distance;
 using Position = Mars.Interfaces.Environments.Position;
 
 namespace HikerModel.Model
@@ -17,12 +18,11 @@ namespace HikerModel.Model
         [PropertyDescription] public ObstacleLayer ObstacleLayer { get; set; }
         [PropertyDescription] public UnregisterAgent UnregisterHandle { get; set; }
 
-        private static readonly double StepSize = 250;
-
         public Position Position { get; set; }
         public Guid ID { get; set; }
 
         private HikerLayer _hikerLayer;
+        private double _stepSize = 1;
 
         // Locations the hiker wants to visit
         private IEnumerator<Coordinate> _destinationWaypoints;
@@ -43,6 +43,8 @@ namespace HikerModel.Model
 
             _hikerLayer = layer;
             _hikerLayer.InitEnvironment(ObstacleLayer.Features, this);
+
+            _stepSize = new Position(_hikerLayer.BBOX.MinX, _hikerLayer.BBOX.MinY).DistanceInMTo(new Position(_hikerLayer.BBOX.MaxX, _hikerLayer.BBOX.MaxY)) / 2500;
         }
 
         public void Tick()
@@ -71,7 +73,7 @@ namespace HikerModel.Model
                 Log.I("Hiker knows its destination but no route to it. Calculate route to next destination.");
                 CalculateRoute(Position, NextDestinationWaypoint.ToPosition());
             }
-            else if (NextRouteWaypoint.DistanceInMTo(Position) < StepSize * 2)
+            else if (NextRouteWaypoint.DistanceInMTo(Position) < _stepSize * 2)
             {
                 _routeWaypoints.MoveNext();
 
@@ -95,7 +97,7 @@ namespace HikerModel.Model
             }
 
             var bearing = Position.GetBearing(NextRouteWaypoint);
-            _hikerLayer.Environment.MoveTowards(this, bearing, StepSize);
+            _hikerLayer.Environment.MoveTowards(this, bearing, _stepSize);
         }
 
         private void CalculateRoute(Position from, Position to)
