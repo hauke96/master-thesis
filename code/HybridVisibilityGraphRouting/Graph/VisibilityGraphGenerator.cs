@@ -468,7 +468,10 @@ public static class VisibilityGraphGenerator
     {
         if (allVisibilityNeighbors.IsEmpty())
         {
-            return new List<List<Vertex>>();
+            return new List<List<Vertex>>
+            {
+                new()
+            };
         }
 
         if (vertex.ObstacleNeighbors.Count < 2)
