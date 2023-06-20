@@ -197,13 +197,16 @@ public class HybridVisibilityGraph
             .Where(nodeCandidates =>
                 !nodeCandidates
                     .IsEmpty()) // can happen due to convex-hull filtering so that not every vertex is represented by a node 
-            .Map(nodeCandidates => GetNodeForAngle(nodeToConnect.Position, nodeCandidates))
-            .Each(node =>
+            .Each(nodeCandidates =>
             {
-                // Create the bi-directional edge between node to add and this visibility node and collect its IDs for
-                // later clean up.
-                newEdges.Add(Graph.AddEdge(nodeToConnect.Key, node));
-                newEdges.Add(Graph.AddEdge(node, nodeToConnect.Key));
+                GetNodeForAngle(nodeToConnect.Position, nodeCandidates)
+                    .Each(node =>
+                    {
+                        // Create the bi-directional edge between node to add and this visibility node and collect its IDs for
+                        // later clean up.
+                        newEdges.Add(Graph.AddEdge(nodeToConnect.Key, node));
+                        newEdges.Add(Graph.AddEdge(node, nodeToConnect.Key));
+                    });
             });
 
         newEdges.CreateCopy().ForEach(edge =>
@@ -347,14 +350,14 @@ public class HybridVisibilityGraph
 
         // Find or create from-node and to-node of the unsplit segment
         var (fromNodes, fromNodeHasBeenCreated) = hybridGraph.GetOrCreateNodeAt(segmentFromPosition);
-        var fromNode = Graph.NodesMap[GetNodeForAngle(segmentToPosition, fromNodes)];
+        var fromNode = Graph.NodesMap[GetNodeForAngle(segmentToCoordinate, fromNodes)];
         if (fromNodeHasBeenCreated)
         {
             newNodes.Add(fromNode);
         }
 
         var (toNodes, toNodeHasBeenCreated) = hybridGraph.GetOrCreateNodeAt(segmentToPosition);
-        var toNode = Graph.NodesMap[GetNodeForAngle(segmentFromPosition, toNodes)];
+        var toNode = Graph.NodesMap[GetNodeForAngle(segmentFromCoordinate, toNodes)];
         if (toNodeHasBeenCreated)
         {
             newNodes.Add(toNode);
@@ -411,14 +414,9 @@ public class HybridVisibilityGraph
             .ToList();
     }
 
-    private int GetNodeForAngle(Position position, IEnumerable<NodeData> nodeCandidates)
-    {
-        return GetNodeForAngle(position, nodeCandidates.Map(n => n.Key));
-    }
-
     private int GetNodeForAngle(Coordinate coordinate, IEnumerable<NodeData> nodeCandidates)
     {
-        return GetNodeForAngle(coordinate.ToPosition(), nodeCandidates.Map(n => n.Key));
+        return GetNodeForAngle(coordinate.ToPosition(), nodeCandidates.Map(n => n.Key)).First();
     }
 
     /// <summary>
@@ -426,12 +424,12 @@ public class HybridVisibilityGraph
     /// does *not* find the node *at* this position. Therefore, the <code>position</code> parameter can be seen as a
     /// neighbor of the given node candidates.
     /// </summary>
-    public int GetNodeForAngle(Position position, IEnumerable<int> nodeCandidates)
+    public IEnumerable<int> GetNodeForAngle(Position position, IEnumerable<int> nodeCandidates)
     {
         // We have all corresponding nodes for the given position ("nodeCandidates") but we only want the one node
         // whose angle area includes the position to add. So its angle area should include the angle from that
         // node candidate to the position.
-        return Enumerable.First(nodeCandidates, nodeCandidate =>
+        return Enumerable.Where(nodeCandidates, nodeCandidate =>
             // There are some cases:
             // 1. The node does not exist in the dictionary. This happens for nodes that were added during a routing
             // request. We assume they cover a 360° area.
