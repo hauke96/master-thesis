@@ -94,6 +94,5 @@ do
 	echo "Created datasets for '$TYPE'"
 	echo
 done
-echo
 
 echo "Done"
