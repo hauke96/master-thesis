@@ -276,9 +276,42 @@ public static class HybridVisibilityGraphGenerator
 
         var watch = Stopwatch.StartNew();
 
-        var roadFeatures = FeatureHelper.FilterFeaturesByExpressions(features, roadExpressions);
+        var roadFeatures = FeatureHelper.FilterFeaturesByExpressions(features, roadExpressions).ToList();
         var roadSegments = FeatureHelper.SplitFeaturesToSegments(roadFeatures);
 
+        // Determine dead-ends and connect them manually. This enables the routing to better connect to roads.
+        var vertexToRoad = new Dictionary<Coordinate, ICollection<IFeature>>();
+        roadFeatures.Each(feature =>
+        {
+            var coordinate = feature.Geometry.Coordinates[0];
+            if (!vertexToRoad.ContainsKey(coordinate))
+            {
+                vertexToRoad[coordinate] = new HashSet<IFeature>();
+            }
+
+            vertexToRoad[coordinate].Add(feature);
+
+            coordinate = feature.Geometry.Coordinates[^1];
+            if (!vertexToRoad.ContainsKey(coordinate))
+            {
+                vertexToRoad[coordinate] = new HashSet<IFeature>();
+            }
+
+            vertexToRoad[coordinate].Add(feature);
+        });
+        // Add the dead-ends (coordinates belonging to only one road) to graph
+        vertexToRoad
+            .Where(pair => pair.Value.Count == 1)
+            .Each(pair =>
+            {
+                var (node, nodeHasBeenCreated) = hybridGraph.AddPositionToGraph(pair.Key.ToPosition());
+                if (nodeHasBeenCreated)
+                {
+                    hybridGraph.ConnectNodeToGraph(node);
+                }
+            });
+
+        // Merge the segments into the graph
         roadSegments.Each((i, roadSegment) =>
         {
             Log.D($"MergeSegmentIntoGraph {i}/{roadSegments.Count}");
