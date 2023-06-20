@@ -7,6 +7,7 @@ function head {
 	echo
     printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' =
 	echo " $1"
+    printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' =
 	date
 	echo
 }
