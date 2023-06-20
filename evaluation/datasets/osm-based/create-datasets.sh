@@ -2,6 +2,15 @@
 
 set -e
 
+function head {
+	echo
+    printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' =
+	echo " $1"
+    printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' =
+	date
+	echo
+}
+
 TYPE="$1"
 
 # $1: Type of dataset (e.g. "city" for "bbox-city" and "waypoints-city")
@@ -35,9 +44,7 @@ fi
 
 for TYPE in "city" "rural"
 do
-	echo "=========="
-	echo "  $TYPE"
-	echo "=========="
+	head "$TYPE"
 
 	echo "Clean up existing dataset folder"
 	rm -rf "./dataset-$TYPE"
@@ -65,6 +72,23 @@ do
 	process $TYPE "3"
 	process $TYPE "4"
 	
+	echo "$TYPE - Without roads"
+	IN=dataset-$TYPE
+	OUT=$IN-no-roads
+	rm -rf $OUT
+	mkdir $OUT
+	ogr2ogr $OUT/data.geojson $IN/4km2/4km2.geojson -where "highway IS NULL OR tunnel IS NOT NULL"
+	cp $IN/4km2/waypoints.geojson $OUT/
+	
+	echo "$TYPE - Without obstacles"
+	IN=dataset-$TYPE
+	OUT=$IN-no-obstacles
+	rm -rf $OUT
+	mkdir $OUT
+	ogr2ogr $OUT/data.geojson $IN/4km2/4km2.geojson -where "highway IS NOT NULL"
+	cp $IN/4km2/waypoints.geojson $OUT/
+	
+	echo "Cleanup"
 	cleanup-intermediate
 
 	echo "Created datasets for '$TYPE'"
