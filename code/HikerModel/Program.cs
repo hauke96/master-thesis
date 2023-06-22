@@ -4,6 +4,7 @@ using HikerModel.Model;
 using Mars.Components.Starter;
 using Mars.Interfaces.Model;
 using HybridVisibilityGraphRouting;
+using HybridVisibilityGraphRouting.IO;
 
 namespace HikerModel
 {

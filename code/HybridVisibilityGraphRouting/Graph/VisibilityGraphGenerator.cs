@@ -173,28 +173,23 @@ public static class VisibilityGraphGenerator
         Log.D(
             $"Calculate nearest visible neighbors for each vertex. Bin size is {visibilityNeighborBinCount} with {visibilityNeighborsPerBin} neighbors per bin.");
 
-        var i = 1;
-        var verticesPerPercent = vertices.Count / 100d;
-        var nextProcessOutput = verticesPerPercent;
         var totalTimeStopWatch = new Stopwatch();
         var stopWatch = new Stopwatch();
         totalTimeStopWatch.Start();
         stopWatch.Start();
-        foreach (var vertex in vertices)
-        {
-            if (i > nextProcessOutput)
-            {
-                Log.D($"  {(int)(i / verticesPerPercent)}% done ({stopWatch.ElapsedMilliseconds}ms)");
-                stopWatch.Restart();
-                nextProcessOutput += verticesPerPercent;
-            }
 
-            i++;
+        vertices.Each((i, vertex) =>
+        {
+            if (Log.LogLevel == Log.DEBUG && i % (vertices.Count / 10) == 0)
+            {
+                Log.D($"  {i / (vertices.Count / 100)}% done ({stopWatch.ElapsedMilliseconds}ms)");
+                stopWatch.Restart();
+            }
 
             result[vertex] = GetVisibilityNeighborsForVertex(obstacles, new List<Vertex>(vertices),
                 coordinateToObstacles,
                 vertex, visibilityNeighborBinCount, visibilityNeighborsPerBin);
-        }
+        });
 
         Log.D($"  100% done after a total of {totalTimeStopWatch.ElapsedMilliseconds}ms");
 

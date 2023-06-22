@@ -201,7 +201,9 @@ public static class HybridVisibilityGraphGenerator
 
         var watch = Stopwatch.StartNew();
 
-        var roadFeatures = FeatureHelper.FilterFeaturesByExpressions(features, roadExpressions).ToList();
+        var roadFeatures = FeatureHelper.FilterFeaturesByExpressions(features, roadExpressions)
+            .Where(f => f.Geometry.OgcGeometryType != OgcGeometryType.Point)
+            .ToList();
         var roadSegments = FeatureHelper.SplitFeaturesToSegments(roadFeatures);
 
         // Determine dead-ends and connect them manually. This enables the routing to better connect to roads.
@@ -224,6 +226,7 @@ public static class HybridVisibilityGraphGenerator
 
             vertexToRoad[coordinate].Add(feature);
         });
+
         // Add the dead-ends (coordinates belonging to only one road) to graph
         vertexToRoad
             .Where(pair => pair.Value.Count == 1)
@@ -239,7 +242,11 @@ public static class HybridVisibilityGraphGenerator
         // Merge the segments into the graph
         roadSegments.Each((i, roadSegment) =>
         {
-            Log.D($"MergeSegmentIntoGraph {i}/{roadSegments.Count}");
+            if (Log.LogLevel == Log.DEBUG && i % (roadSegments.Count / 10) == 0)
+            {
+                Log.D($"MergeSegmentIntoGraph {i}/{roadSegments.Count} ({i / (roadSegments.Count / 100)}%)");
+            }
+
             hybridGraph.MergeSegmentIntoGraph(hybridGraph, roadSegment);
         });
 

@@ -790,7 +790,7 @@ public class HybridVisibilityGraphGeneratorTest
 
     private static int GetNodeForNeighbor(HybridVisibilityGraph graph, Coordinate coordinate, Coordinate neighbor)
     {
-        return graph.GetNodeForAngle(neighbor.ToPosition(), GetNodes(graph.Graph, coordinate).Map(n => n.Key));
+        return graph.GetNodeForAngle(neighbor.ToPosition(), GetNodes(graph.Graph, coordinate).Map(n => n.Key)).First();
     }
 
     private static void AssertEdges(SpatialGraph graph, int nodeA, int nodeB)
