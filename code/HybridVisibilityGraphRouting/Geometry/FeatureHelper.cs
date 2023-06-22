@@ -33,18 +33,9 @@ public class FeatureHelper
             .ToList();
     }
 
-    /*
-     * Syntax for the filter expression strings. The regex is used to exclude features.
-     * 
-     *   <key>
-     *   <key>!=<regex>
-     *
-     *  Examples:
-     *   barrier
-     *   barrier!=^(kerb|bollard|*gate|cycle_barrier|no)$
-     */
     /// <summary>
-    /// The "filterExpressionStrings" can contain simple keys or regular expressions to exclude features.
+    /// Gets all features based on the given filter expression. The "filterExpressionStrings" can contain simple keys or
+    /// regular expressions to exclude features.
     ///
     /// Syntax:
     /// <ul>

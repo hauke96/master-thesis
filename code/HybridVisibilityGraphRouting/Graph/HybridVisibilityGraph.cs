@@ -29,6 +29,7 @@ public class HybridVisibilityGraph
     private readonly Dictionary<int, (double, double)> _nodeToAngleArea;
     private readonly QuadTree<int> _edgeIndex;
     private KdTree<NodeData> _nodeIndex;
+    private KdTree<Vertex> _vertexIndex;
 
     public readonly SpatialGraph Graph;
     public BoundingBox BoundingBox => Graph.BoundingBox;
@@ -62,6 +63,9 @@ public class HybridVisibilityGraph
     {
         _nodeIndex = new KdTree<NodeData>(2);
         Graph.NodesMap.Values.Each(node => { _nodeIndex.Add(node.Position, node); });
+
+        _vertexIndex = new KdTree<Vertex>(2);
+        _vertexToNodes.Keys.Each(vertex => _vertexIndex.Add(vertex.Coordinate.ToPosition(), vertex));
     }
 
     public List<Position> WeightedShortestPath(Position source, Position destination)
@@ -91,12 +95,13 @@ public class HybridVisibilityGraph
 
                 if (sourceNodeHasBeenCreated)
                 {
-                    (newCreatedNodesForSource, newEdgedForSource) = ConnectNodeToGraph(sourceNode);
+                    (newCreatedNodesForSource, newEdgedForSource) = ConnectNodeToGraph(sourceNode, false);
                 }
 
                 if (destinationNodeHasBeenCreated)
                 {
-                    (newCreatedNodesForDestination, newEdgedForDestination) = ConnectNodeToGraph(destinationNode);
+                    (newCreatedNodesForDestination, newEdgedForDestination) =
+                        ConnectNodeToGraph(destinationNode, false);
                 }
 
                 sourceNodeKey = sourceNode.Key;
@@ -128,6 +133,7 @@ public class HybridVisibilityGraph
                 newEdgedForDestination.Each(RemoveEdge);
                 newCreatedNodesForSource.Each(RemoveNode);
                 newCreatedNodesForDestination.Each(RemoveNode);
+                InitNodeIndex();
             },
             "restore_graph"
         );
@@ -169,6 +175,7 @@ public class HybridVisibilityGraph
 
         var vertex = new Vertex(addedNode.Position.ToCoordinate(), true);
         _vertexToNodes[vertex] = new[] { addedNode.Key };
+        _vertexIndex.Add(vertex.Coordinate.ToPosition(), vertex);
 
         return (addedNode, true);
     }
@@ -179,6 +186,7 @@ public class HybridVisibilityGraph
     /// </summary>
     /// <returns>A tuple with a list of all newly added nodes (including the given nodeToConnect) and edges.</returns>
     public (IList<NodeData>, IList<EdgeData>) ConnectNodeToGraph(NodeData nodeToConnect,
+        bool onlyConnectToObstacles = true,
         int visibilityNeighborBinCount = 36,
         int visibilityNeighborsPerBin = 10)
     {
@@ -186,10 +194,14 @@ public class HybridVisibilityGraph
         var newNodes = new List<NodeData> { nodeToConnect };
         var newEdges = new List<EdgeData>();
 
-        // TODO If performance too bad: Pass multiple positions to not calculate certain things twice.
-        var allVertices = _vertexToNodes.Keys.ToList();
+        var allVertices = _vertexToNodes.Keys.AsEnumerable();
+        if (onlyConnectToObstacles)
+        {
+            allVertices = allVertices.Where(v => _vertexToObstacleMapping.ContainsKey(v.Coordinate));
+        }
+
         var visibilityNeighborVertices = VisibilityGraphGenerator.GetVisibilityNeighborsForVertex(_obstacles,
-            allVertices, _vertexToObstacleMapping, vertexToConnect, visibilityNeighborBinCount,
+            allVertices.ToList(), _vertexToObstacleMapping, vertexToConnect, visibilityNeighborBinCount,
             visibilityNeighborsPerBin)[0];
 
         visibilityNeighborVertices
@@ -507,8 +519,8 @@ public class HybridVisibilityGraph
     private void RemoveNode(NodeData node)
     {
         Graph.RemoveNode(node);
-        _vertexToNodes.Where(pair => pair.Value.Contains(node.Key)).Each(pair => _vertexToNodes.RemoveKey(pair.Key));
-        InitNodeIndex();
+        _vertexIndex.Nearest(node.Position.PositionArray, 0.000001)
+            .Each(kdNode => _vertexToNodes.Remove(kdNode.Node.Value));
     }
 
     private void RemoveEdge(EdgeData edge)

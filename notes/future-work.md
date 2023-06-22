@@ -9,3 +9,5 @@ Here are some thoughts on future work:
 * Better routing profiles for more realistic routes
 * Not many visibility edges → Roads are not well connected → Maybe explicitly connecting road vertices or at least junctions might help (but increases the graph size)
 * Enhance performance of adding source/destination locations to graph as it requires most of the time during routing.
+* When connecting locations to graph: Interprete roads as obstacles (so that shadow area optimization is used) but to not use the convex hull optimization. This should speed up routing queries since the majority of time goes into the connection step.
+	* Also: Currently the agent might walk across all roads directly to the target, if there are no obstacles. This is probably not wantes, even though its technically right (because there are no obstacles)
