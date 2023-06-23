@@ -182,8 +182,12 @@ Finally, an overview of the separate components is given as well as a descriptio
 		All edges have to be considered and, depending on the number of intersections, edges might be processed multiple times (e.g. one visibility edge might intersect with all road edges).
 		This leads to at most $|E_R| \cdot |E_V|$ many merge operations for the routing graph edges $E_R$ and visibility edges $E_V$.
 		Complete graphs have the highest number of edges and therefore the highest number of intersections, which gives the upper bound of $\bigo{|E|^2}$ for the merge operation given all edges $E$.
-		Fortunately, road networks are very sparse and often have a node degree between three and six \cite{zhao-analysis-osm-bejing}\cite{boeing-osmnx}, resulting in a probably much better runtime behavior in practice.
-		\todo[inline]{Maybe analyze this myself for e.g. Germany?}
+		
+		Fortunately, road networks are very sparse and often have a vertex degree between three and six \cite{zhao-analysis-osm-bejing}\cite{boeing-osmnx}, resulting in a probably much better runtime behavior in practice.
+		The road network of Germany's state North Rhine-Westphalia (NRW) and Hamburg (HH) show the following degrees when analyzing using OpenStreetMap data.
+		The state of NRW, which is densely populated and the largest German state in terms of the amount of data, has an average degree of 2.1 but when ignoring dead-ends and touching segments, i.e. when only considering actual junctions, the degree increases to 3.1.
+		The state of HH, which is used for the evaluation of this work, has an average degree of 2.11 and 3.11 respectively.
+		A vertex with a degree of 10 or higher does not exist in either of these two states.
 		\todo[inline]{Link to possible optimizations discussed in later chapters}
 		
 		Despite the disadvantages of this approach, I considered the advantages to be more important.
