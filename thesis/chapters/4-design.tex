@@ -251,11 +251,9 @@ Finally, an overview of the separate components is given as well as a descriptio
 		
 		Another approach with the limitation of no collinear vertices was the plain-sweep algorithm by Ghosh and Mount \cite{ghosh-output-sensitive-vgraph}.
 		Next to the limitation on collinear vertices, they assume x-coordinates to be unique, which would need to be handled as well.
-		Even though coordinates are usually given using floating point numbers, rounding and size limitations
-		
-		
-		However, this condition it is very likely fulfilled in real world datasets, since coordinates are usually floating points numbers and the likelihood of two arbitrary coordinates having the same x-value is therefore very low.
-		\todo[inline]{check this for e.g. Germany is there are multiple equal x-coordinates (and if so: how many?)}
+		Even though coordinates are usually floating point numbers and therefore have a great range of possible values, rounding and size limitations reduce this range and might result in a high number of non-unique x-coordinate values.
+		Counting the number of non-unique x-coordinates in OpenStreetMap illustrates this problem:
+		The OSM dataset of the German state of Hamburg contains over 3.2 million nodes of which 22.8\% have a non-unique x-coordinate.
 		
 		Kapoor and Maheshwari presented a visibility graph creation as well \cite{kapoor-shortest-path-vgraph} but assumed a triangulation of the open space between the obstacles.
 		Such a triangulation can be done quite fast, algorithms with time complexities of $\bigo{n \log{n}}$ and better are known \cite[58-60]{de-berg-computational-geometry}, but libraries such as MARS or the NetTopologySuite do not implement this.
