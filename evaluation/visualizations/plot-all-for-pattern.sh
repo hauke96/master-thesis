@@ -13,8 +13,8 @@ fi
 
 RESULT=$1
 
-DATASET_GRAPH_GEN="../results/$RESULT/pattern_*_performance_GenerateGraph.csv"
-DATASET_ROUTING="../results/$RESULT/pattern_*_performance_Routing.csv"
+DATASET_GRAPH_GEN="../results/$RESULT/*_performance_GenerateGraph.csv"
+DATASET_ROUTING="../results/$RESULT/*_performance_Routing.csv"
 
 # $1 - File name (without .py)
 # $2 - Dataset folder
@@ -40,5 +40,12 @@ run "plot-routing-time-details" "$DATASET_ROUTING"
 run "plot-routing-time-per-length" "$DATASET_ROUTING"
 run "plot-routing-time" "$DATASET_ROUTING"
 run "plot-routing-memory" "$DATASET_ROUTING"
+
+echo "Create output folder"
+mkdir -p $RESULT
+
+echo "Move all .png and .pgf files to ./$RESULT"
+mv *.png $RESULT
+mv *.pgf $RESULT
 
 echo "Done"
