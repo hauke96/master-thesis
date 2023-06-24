@@ -58,7 +58,7 @@ fig_abs, ax_abs = plt.subplots()
 
 common.create_lineplot(
 	dataset,
-	title,
+	#title,
 	ycol='time',
 	ylabel='Time in ms',
 	hue="aspect",
@@ -80,7 +80,7 @@ sns.move_legend(
 	title='Legend'
 )
 
-common.save_to_file(fig_abs, os.path.basename(__file__) + "_absolute", "png")
+common.save_to_file(fig_abs, os.path.basename(__file__) + "_absolute")
 
 #
 # Plot relative numbers
@@ -97,7 +97,7 @@ dataset=dataset_relevant.melt('obstacle_vertices_input', var_name='aspect', valu
 
 common.create_lineplot(
 	dataset,
-	title,
+	#title,
 	ycol='time',
 	ylabel='Share of total time',
 	hue="aspect",
@@ -119,4 +119,4 @@ sns.move_legend(
 	title='Legend'
 )
 
-common.save_to_file(fig_rel, os.path.basename(__file__) + "_relative", "png")
+common.save_to_file(fig_rel, os.path.basename(__file__) + "_relative")

@@ -35,7 +35,7 @@ fig, ax=plt.subplots()
 
 common.create_lineplot(
 	dataset,
-	title,
+	#title,
 	ax=ax,
 	xcol="distance_beeline",
 	xlabel="Beeline distance in km",
@@ -53,7 +53,7 @@ sns.move_legend(
 	title='Vertex count'
 )
 
-common.save_to_file(fig, os.path.basename(__file__) + "_distance", "png")
+common.save_to_file(fig, os.path.basename(__file__) + "_distance")
 
 #
 # x = beeline distance
@@ -72,7 +72,7 @@ dataset["avg_time_per_vertex"]=dataset["avg_time"].div(dataset["obstacle_vertice
 
 common.create_scatter_lineplot(
 	dataset,
-	title,
+	#title,
 	ax=ax,
 	xcol="obstacle_vertices_input",
 	xlabel="Input obstacle vertices",
@@ -91,4 +91,4 @@ common.create_scatter_lineplot(
 #	title='Distance'
 #)
 
-common.save_to_file(fig, os.path.basename(__file__) + "_vertices", "png")
+common.save_to_file(fig, os.path.basename(__file__) + "_vertices")

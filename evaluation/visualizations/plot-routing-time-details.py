@@ -27,7 +27,7 @@ dataset_cols=[
 ]
 dataset_labels=[
 	'A* routing',
-	'Connecting\nsource & destination\nvertices',
+	'Connecting\nsource \\& destination\nvertices',
 	'Restoring original\ngraph',
 ]
 
@@ -51,7 +51,7 @@ fig_abs, ax_abs = plt.subplots()
 
 common.create_lineplot(
 	dataset,
-	title,
+	#title,
 	xcol="distance_beeline",
 	xlabel="Beeline distance in km",
 	ycol='time',
@@ -76,7 +76,7 @@ sns.move_legend(
 	title='Legend',
 )
 
-common.save_to_file(fig_abs, os.path.basename(__file__) + "_absolute", "png")
+common.save_to_file(fig_abs, os.path.basename(__file__) + "_absolute")
 
 #
 # Plot relative numbers
@@ -93,7 +93,7 @@ dataset=dataset_relevant.melt('distance_beeline', var_name='aspect', value_name=
 
 common.create_lineplot(
 	dataset,
-	title,
+	#title,
 	xcol="distance_beeline",
 	xlabel="Beeline distance in km",
 	ycol='time',
@@ -117,4 +117,4 @@ sns.move_legend(
 	title='Legend'
 )
 
-common.save_to_file(fig_rel, os.path.basename(__file__) + "_relative", "png")
+common.save_to_file(fig_rel, os.path.basename(__file__) + "_relative")

@@ -41,7 +41,7 @@ fig, ax=plt.subplots()
 
 common.create_scatter_lineplot(
 	dataset,
-	title,
+	#title,
 	ax=ax,
 	xcol="obstacle_vertices_input",
 	xlabel="Input obstacle vertices",

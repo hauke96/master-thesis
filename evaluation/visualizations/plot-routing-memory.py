@@ -36,14 +36,14 @@ common.init_seaborn(
 
 plot=common.create_lineplot(
 	dataset,
-	title,
+	#title,
 	xcol="distance_beeline",
 	xlabel="Beeline distance in km",
 	ycol=mem_col,
 	ylabel=mem_col_label,
-	hue="total_vertices",
-	style="total_vertices",
+	hue="obstacle_vertices_input",
+	style="obstacle_vertices_input",
 )
-common.set_numeric_legend(plot, "Amount vertices", dataset["total_vertices"])
+common.set_numeric_legend(plot, "Amount vertices", dataset["obstacle_vertices_input"])
 
 common.save_to_file(plot.get_figure(), os.path.basename(__file__))

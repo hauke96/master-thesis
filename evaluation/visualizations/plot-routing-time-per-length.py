@@ -31,7 +31,7 @@ fig, ax=plt.subplots()
 
 common.create_scatter_lineplot(
 	dataset,
-	title,
+	#title,
 	ax=ax,
 	xcol="obstacle_vertices_input",
 	xlabel="Input obstacle vertices",
@@ -39,7 +39,7 @@ common.create_scatter_lineplot(
 	ylabel="Time per meter in ms",
 )
 
-common.save_to_file(fig, os.path.basename(__file__) + "_avg-time", "png")
+common.save_to_file(fig, os.path.basename(__file__) + "_avg-time")
 
 #
 # Relative to astar_avg_time
@@ -52,7 +52,7 @@ fig, ax=plt.subplots()
 
 common.create_scatter_lineplot(
 	dataset,
-	title,
+	#title,
 	ax=ax,
 	xcol="obstacle_vertices_input",
 	xlabel="Input obstacle vertices",
@@ -60,7 +60,7 @@ common.create_scatter_lineplot(
 	ylabel="A* time per meter in ms",
 )
 
-common.save_to_file(fig, os.path.basename(__file__) + "_astar-time", "png")
+common.save_to_file(fig, os.path.basename(__file__) + "_astar-time")
 
 #
 # Relative to add_positions_to_graph_avg_time
@@ -73,7 +73,7 @@ fig, ax=plt.subplots()
 
 common.create_scatter_lineplot(
 	dataset,
-	title,
+	#title,
 	ax=ax,
 	xcol="obstacle_vertices_input",
 	xlabel="Input obstacle vertices",
@@ -81,4 +81,4 @@ common.create_scatter_lineplot(
 	ylabel="Time per meter in ms",
 )
 
-common.save_to_file(fig, os.path.basename(__file__) + "_add-pos-time", "png")
+common.save_to_file(fig, os.path.basename(__file__) + "_add-pos-time")

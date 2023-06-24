@@ -246,13 +246,17 @@ def set_numeric_legend(plot, title, col_values):
 def save_to_file(
 		figure,
 		filename,
-		extension="png",
+		extension=None,
 		no_margin=False
 	):
 
-	figure.tight_layout()
-	figure.savefig(
-		"./"+filename+"."+extension,
-		pad_inches=0 if no_margin else None,
-		bbox_inches='tight' if no_margin else None,
-	)
+	if extension == None:
+		save_to_file(figure, filename, "png", no_margin)
+		save_to_file(figure, filename, "pgf", no_margin)
+	else:
+		figure.tight_layout()
+		figure.savefig(
+			"./"+filename+"."+extension,
+			pad_inches=0 if no_margin else None,
+			bbox_inches='tight' if no_margin else None,
+		)

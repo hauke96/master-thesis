@@ -22,7 +22,7 @@ common.init_seaborn(width=6, height=4, dpi=120)
 
 plot=common.create_lineplot(
 	dataset,
-	title,
+	#title,
 )
 
-common.save_to_file(plot.get_figure(), os.path.basename(__file__), "png")
+common.save_to_file(plot.get_figure(), os.path.basename(__file__))
