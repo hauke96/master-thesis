@@ -20,7 +20,7 @@ dataset=common.load_dataset(dataset_filter)
 dataset["distance_beeline"]=dataset["distance_beeline"] / 1000
 
 # Convert bytes to MiB
-mem_col="avg_mem"
+mem_col="avg_mem_after"
 mem_col_label="Average memory usage in MiB"
 #mem_col="max_mem"
 #mem_col_label="Maximum memory usage in MiB"

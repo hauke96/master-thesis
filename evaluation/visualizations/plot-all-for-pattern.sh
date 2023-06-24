@@ -37,8 +37,8 @@ run "plot-iteration-time-per-vertices" "$DATASET_GRAPH_GEN"
 # Routing
 run "plot-routing-length-factor" "$DATASET_ROUTING"
 run "plot-routing-time-details" "$DATASET_ROUTING"
-run "plot-routing-memory" "$DATASET_ROUTING"
 run "plot-routing-time-per-length" "$DATASET_ROUTING"
 run "plot-routing-time" "$DATASET_ROUTING"
+run "plot-routing-memory" "$DATASET_ROUTING"
 
 echo "Done"

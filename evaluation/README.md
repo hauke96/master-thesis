@@ -56,22 +56,22 @@ This means the merging takes place (even though there are no roads) and routing 
 
 * [ ] Maze like pattern
 	* [x] Create dataset
-	* [ ] Measurement
+	* [x] Measurement
 	* [ ] Visualize
 * [ ] Rectangle pattern
 	* [x] Create dataset
-	* [ ] Measurement
+	* [x] Measurement
 	* [ ] Visualize
 * [ ] Circle pattern
 	* [x] Create dataset
-	* [ ] Measurement
+	* [x] Measurement
 	* [ ] Visualize
 * [ ] OSM "city" dataset without roads (multiple area sizes)
-	* [ ] Create dataset
+	* [x] Create dataset
 	* [ ] Measurement
 	* [ ] Visualize
 * [ ] OSM "rural" dataset without roads (multiple area sizes)
-	* [ ] Create dataset
+	* [x] Create dataset
 	* [ ] Measurement
 	* [ ] Visualize
 
@@ -81,11 +81,11 @@ The import takes place as is, without adjustments. Merging is performed and rout
 
 * [ ] OSM "city" dataset with roads (multiple area sizes)
 	* [x] Create dataset
-	* [ ] Measurement
+	* [x] Measurement
 	* [ ] Visualize
 * [ ] OSM "rural" dataset with roads (multiple area sizes)
 	* [x] Create dataset
-	* [ ] Measurement
+	* [x] Measurement
 	* [ ] Visualize
 
 ### 3. Without obstacles
@@ -94,11 +94,11 @@ The import takes place but without obstacle considerstion. The dataset contains 
 Merging is performed and routing takes place on the resulting visisibility graph.
 
 * [ ] OSM "city" dataset without obstacles (multiple area sizes)
-	* [ ] Create dataset
+	* [x] Create dataset
 	* [ ] Measurement
 	* [ ] Visualize
 * [ ] OSM "rural" dataset without obstacles (multiple area sizes)
-	* [ ] Create dataset
+	* [x] Create dataset
 	* [ ] Measurement
 	* [ ] Visualize
 
