@@ -49,8 +49,26 @@ plot=common.create_lineplot(
 	dataset,
 	ax=ax_rel,
 	ycol="iteration_time_rel",
-	ylabel="Time in ms per vertex",
+	ylabel="Time in ms",
 	#title,
 )
 
 common.save_to_file(fig_rel, os.path.basename(__file__) + "_per-vertex")
+
+#
+# Plot time increase per vertex for each new vertex. I.e. the processing time of every vertex increases by this amount if a new vertex is added
+#
+dataset["iteration_time_rel_added"]=dataset["iteration_time_rel"]/dataset["obstacle_vertices_input"]*1000
+
+fig_rel_added, ax_rel_added= plt.subplots()
+plot=common.create_lineplot(
+	dataset,
+	ax=ax_rel_added,
+	ycol="iteration_time_rel_added",
+	ylabel="Time in µs",
+	scientific_labels=False,
+	yscale="foo"
+	#title,
+)
+
+common.save_to_file(fig_rel_added, os.path.basename(__file__) + "_per-vertex-added")

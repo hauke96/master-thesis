@@ -32,14 +32,14 @@ dataset_cols=[
 dataset_labels=[
 	# Only when yscale='log':
 	'Total time',
-	'Find all $k$\nnearest visibility\nneighbors',
-	'Building the\ngraph from\nvisibility neighbors',
-	'Getting and\npreparing all\nobstacles',
-	'Merge V-Graph\ninto the\nroad graph',
-	'Add attributed\nto POIs',
+	'kNN search',
+	'Create graph',
+	'Get \& prepare\nobstacles',
+	'Merge road\nedges',
+	'Add POI\nattributes',
 ]
 
-common.init_seaborn(width=440, height=260)
+common.init_seaborn(width=440, height=200)
 
 #
 # Plot absolute numbers
@@ -91,7 +91,7 @@ fig_rel, ax_rel = plt.subplots()
 dataset_relevant=dataset_raw[dataset_cols + ["obstacle_vertices_input"]]
 dataset_relevant[dataset_cols]=dataset_raw[dataset_cols].div(dataset_raw["iteration_time"], axis=0)
 dataset=dataset_relevant.melt('obstacle_vertices_input', var_name='aspect', value_name='time')
-dataset["time"] = dataset["time"] / 1000
+#dataset["time"] = dataset["time"] / 1000
 
 common.create_lineplot(
 	dataset,
@@ -99,8 +99,7 @@ common.create_lineplot(
 	ycol='time',
 	ylabel='Share of total time',
 	hue="aspect",
-	yscale='log',
-	ax=ax_rel
+	ax=ax_rel,
 )
 
 handles, labels = ax_abs.get_legend_handles_labels()

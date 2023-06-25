@@ -134,7 +134,7 @@ def create_lineplot(
 
 	if yscale == "log":
 		plot.set(yscale="log")
-	else:
+	elif yscale == None:
 		plot.set_xlim(0, None)
 		plot.set_ylim(0, None)
 
