@@ -1,4 +1,5 @@
 using HybridVisibilityGraphRouting.Geometry;
+using HybridVisibilityGraphRouting.Index;
 using HybridVisibilityGraphRouting.IO;
 using Mars.Common;
 using Mars.Common.Collections;
@@ -28,8 +29,8 @@ public class HybridVisibilityGraph
     private readonly Dictionary<Coordinate, List<Obstacle>> _vertexToObstacleMapping;
     private readonly Dictionary<int, (double, double)> _nodeToAngleArea;
     private readonly QuadTree<int> _edgeIndex;
-    private KdTree<NodeData> _nodeIndex;
-    private KdTree<Vertex> _vertexIndex;
+    private RoundedCoordinateIndex<NodeData> _nodeIndex;
+    private RoundedCoordinateIndex<Vertex> _vertexIndex;
 
     public readonly SpatialGraph Graph;
     public BoundingBox BoundingBox => Graph.BoundingBox;
@@ -61,10 +62,10 @@ public class HybridVisibilityGraph
 
     private void InitNodeIndex()
     {
-        _nodeIndex = new KdTree<NodeData>(2);
+        _nodeIndex = new RoundedCoordinateIndex<NodeData>(6, 6);
         Graph.NodesMap.Values.Each(node => { _nodeIndex.Add(node.Position, node); });
 
-        _vertexIndex = new KdTree<Vertex>(2);
+        _vertexIndex = new RoundedCoordinateIndex<Vertex>(6, 6);
         _vertexToNodes.Keys.Each(vertex => _vertexIndex.Add(vertex.Coordinate.ToPosition(), vertex));
     }
 
@@ -87,11 +88,12 @@ public class HybridVisibilityGraph
         IList<EdgeData> newEdgedForSource = new List<EdgeData>();
         IList<NodeData> newCreatedNodesForDestination = new List<NodeData>();
         IList<EdgeData> newEdgedForDestination = new List<EdgeData>();
-        
+
         if (sourceNodeHasBeenCreated)
         {
             (newCreatedNodesForSource, newEdgedForSource) = ConnectNodeToGraph(sourceNode, false);
         }
+
         if (destinationNodeHasBeenCreated)
         {
             (newCreatedNodesForDestination, newEdgedForDestination) = ConnectNodeToGraph(destinationNode, false);
@@ -136,10 +138,10 @@ public class HybridVisibilityGraph
     /// <returns>The node and a flag which is true when the node is new (false when the node already existed).</returns>
     public (NodeData, bool) AddPositionToGraph(Position positionToAdd)
     {
-        var existingNodeCandidates = _nodeIndex.Nearest(positionToAdd.PositionArray, 0.000001);
+        var existingNodeCandidates = _nodeIndex.Query(positionToAdd);
         if (existingNodeCandidates.Any())
         {
-            return (existingNodeCandidates[0].Node.Value, false);
+            return (existingNodeCandidates.First(), false);
         }
 
         var addedNode = Graph.AddNode(positionToAdd.X, positionToAdd.Y);
@@ -172,9 +174,16 @@ public class HybridVisibilityGraph
             allVertices = allVertices.Where(v => _vertexToObstacleMapping.ContainsKey(v.Coordinate));
         }
 
-        var visibilityNeighborVertices = VisibilityGraphGenerator.GetVisibilityNeighborsForVertex(_obstacles,
+        var visibilityNeighborsBins = VisibilityGraphGenerator.GetVisibilityNeighborsForVertex(_obstacles,
             allVertices.ToList(), _vertexToObstacleMapping, vertexToConnect, visibilityNeighborBinCount,
-            visibilityNeighborsPerBin)[0];
+            visibilityNeighborsPerBin);
+        if (visibilityNeighborsBins.IsEmpty())
+        {
+            Log.D($"No visibility neighbors found for node {nodeToConnect.Key} at {nodeToConnect.Position}");
+            return (newNodes, newEdges);
+        }
+
+        var visibilityNeighborVertices = visibilityNeighborsBins[0];
 
         visibilityNeighborVertices
             .Map(v => _vertexToNodes[v])
@@ -440,7 +449,7 @@ public class HybridVisibilityGraph
         var nodes = new HashSet<NodeData>();
         var createdNewNode = false;
 
-        var potentialNodes = _nodeIndex.Nearest(position.PositionArray, 0.000001);
+        var potentialNodes = _nodeIndex.Query(position);
         if (potentialNodes.IsEmpty())
         {
             // No nodes found within the radius -> create a new node
@@ -452,7 +461,7 @@ public class HybridVisibilityGraph
         else
         {
             // Take one of the nodes, they are all close enough and therefore we can't say for sure which one to take.
-            nodes.AddRange(potentialNodes.Map(n => n.Node.Value));
+            nodes.AddRange(potentialNodes);
         }
 
         return (nodes, createdNewNode);
@@ -491,8 +500,7 @@ public class HybridVisibilityGraph
     private void RemoveNode(NodeData node)
     {
         Graph.RemoveNode(node);
-        _vertexIndex.Nearest(node.Position.PositionArray, 0.000001)
-            .Each(kdNode => _vertexToNodes.Remove(kdNode.Node.Value));
+        _vertexIndex.Query(node.Position).Each(vertex => _vertexToNodes.Remove(vertex));
     }
 
     private void RemoveEdge(EdgeData edge)

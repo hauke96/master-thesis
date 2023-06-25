@@ -244,7 +244,7 @@ public static class HybridVisibilityGraphGenerator
         {
             if (Log.LogLevel == Log.DEBUG && i % (roadSegments.Count / 10) == 0)
             {
-                Log.D($"MergeSegmentIntoGraph {i}/{roadSegments.Count} ({i / (roadSegments.Count / 100)}%)");
+                Log.D($"MergeSegmentIntoGraph {i}/{roadSegments.Count} ({Math.Round(i / (float)roadSegments.Count * 100.0)}%)");
             }
 
             hybridGraph.MergeSegmentIntoGraph(hybridGraph, roadSegment);

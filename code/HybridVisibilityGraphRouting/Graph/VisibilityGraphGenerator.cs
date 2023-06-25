@@ -182,7 +182,7 @@ public static class VisibilityGraphGenerator
         {
             if (Log.LogLevel == Log.DEBUG && i % (vertices.Count / 10) == 0)
             {
-                Log.D($"  {i / (vertices.Count / 100)}% done ({stopWatch.ElapsedMilliseconds}ms)");
+                Log.D($"  {Math.Round(i / (float)vertices.Count * 100.0)}% done ({stopWatch.ElapsedMilliseconds}ms)");
                 stopWatch.Restart();
             }
 
