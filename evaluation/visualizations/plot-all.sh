@@ -7,7 +7,8 @@ if [[ -z $1 ]]
 then
     echo "One argument expected: Name of result directory."
     echo
-    echo "Example: pattern-based-rectangles"
+    echo "Example:"
+    echo "./plot-all.sh pattern-based-rectangles"
     exit 1
 fi
 
