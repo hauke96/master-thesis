@@ -5,7 +5,7 @@ Plots detailed import times of the given dataset.
 
 Parameters: {file-filter}
 
-Example: ./plot-iteration-details-per-vertices.py "../results/pattern-based-rectangles/pattern_*x*_performance_GenerateGraph.csv"
+Example: ./plot-import-details-per-vertices.py "../results/pattern-based-rectangles/pattern_*x*_performance_GenerateGraph.csv"
 '''
 
 import common

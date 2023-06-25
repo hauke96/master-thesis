@@ -39,8 +39,8 @@ echo "Create output folder"
 mkdir -p $RESULT
 
 # Graph generation
-run "plot-iteration-details-per-vertices" "$DATASET_GRAPH_GEN"
-run "plot-iteration-time-per-vertices" "$DATASET_GRAPH_GEN"
+run "plot-import-details-per-vertices" "$DATASET_GRAPH_GEN"
+run "plot-import-time-per-vertices" "$DATASET_GRAPH_GEN"
 
 # Routing
 run "plot-routing-length-factor" "$DATASET_ROUTING"

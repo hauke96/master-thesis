@@ -1,11 +1,11 @@
 #!/bin/python
 
 '''
-Plots the iteration time of the "iteration_time" column of the given dataset.
+Plots the import time ("iteration_time" column) of the given dataset.
 
 Parameters: {file-filter}
 
-Example: ./plot-iteration-time-per-vertices.py "../results/pattern-based-rectangles/pattern_*x*_performance_GenerateGraph.csv"
+Example: ./plot-import-time-per-vertices.py "../results/pattern-based-rectangles/pattern_*x*_performance_GenerateGraph.csv"
 '''
 
 import common
