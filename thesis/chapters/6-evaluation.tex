@@ -33,9 +33,10 @@ For both parts, method and design details are given followed by the respective r
 				\item[Maze pattern] A set of datasets containing maze like geometries, namely only connected linestrings forming a seamless pattern tile that can arbitrarily often be repeated. Many of the contained line obstacles are collinear. No roads are within these datasets.
 				\item[Rectangle pattern] Also a set of pattern-based datasets, which contain simple rectangles of different sizes. No roads are within these datasets.
 				\item[Circle pattern] Like the rectangle datasets but with circles. These datasets have large number of vertices.
-				\item[OSM export] Based on real world data from the OpenStreetMap project within the inner city of Hamburg, Germany. The data has been filtered to remove all over- and underground features since the hybrid routing algorithm has no handling of three dimensional data. This dataset also contains all roads and ways in the respective region.
-				\item[OSM export without roads] Same data from the above OSM export, but without the roads. This is used to show the overhead of the road on the graph generation and routing times.
-				\item[OSM export without obstacles] Same data from the above OSM export, but without the obstacles, i.e. buildings, walls and water areas. This is used to show the overhead of the obstacles on the graph generation and routing times.
+				\item[OSM city] This is a real world export from the OpenStreetMap database with data from the city of Hamburg, Germany. The data has been filtered to remove all over- and underground features since the hybrid routing algorithm has no handling of three dimensional data. This dataset also contains all roads and ways in the respective region.
+				\item[OSM rural] Equivalent to the \enquote{OSM city} dataset, but located outside the city with more natural obstacles (lakes, ditches, forest), more open spaces and less regular buildings.
+				\item[OSM export without roads] Same data from the above OSM exports, but without the roads. This is used to show the overhead of the road on the graph generation and routing times.
+				\item[OSM export without obstacles] Same data from the above OSM exports, but without the obstacles, i.e. buildings, walls and water areas. This is used to show the overhead of the obstacles on the graph generation and routing times.
 			\end{description}
 			
 			The pattern datasets exist in different sizes, since the pattern can arbitrarily often be repeated.
@@ -102,7 +103,135 @@ For both parts, method and design details are given followed by the respective r
 			The hardware consisted of an octa core Intel\textregistered\ Xeon\textregistered\ E3-1231 v3 CPU at 3.40 GHz, a total of 16GB DDR3 1333 MHz RAM and a Samsung EVO 850 SSD.
 			However, the whole algorithm and the \texttt{HikerModel} simulation are single threaded and file system operations are only performed to initially read the input data and to write the measurement results at the end.
 	
-	\subsection{Results}
+	\subsection{Import and graph generation}
+	
+		As mentioned at the beginning of \cref{subsec:related-work:visibility-graph}, the process of generating a visibility graph has an inherent quadratic runtime.
+		This result is clearly visible in measurements of the dataset imports as seen in \cref{fig:eval-import-city-abs} and \cref{fig:eval-import-rural-abs}.
+		
+		\begin{figure}[h!]
+			\begin{minipage}{.48\textwidth}
+				\begin{subfigure}[t]{\linewidth}
+					\begin{figcenter}
+						\input{images/evaluation/osm-based-city/plot-iteration-time-per-vertices.py_absolute.pgf}
+					\end{figcenter}
+					\caption{Absolute total graph generation time for the \enquote{OSM city} dataset.}
+					\label{fig:eval-import-city-abs}
+				\end{subfigure}
+				\\[3ex]
+				\begin{subfigure}[t]{\linewidth}
+					\begin{figcenter}
+						\input{images/evaluation/osm-based-city/plot-iteration-time-per-vertices.py_per-vertex.pgf}
+					\end{figcenter}
+					\caption{Time per input vertex for the \enquote{OSM city} dataset.}
+				\end{subfigure}
+				\\[3ex]
+				\begin{subfigure}[t]{\linewidth}
+					\begin{figcenter}
+						\input{images/evaluation/osm-based-city/plot-iteration-time-per-vertices.py_per-vertex-added.pgf}
+					\end{figcenter}
+					\caption{Increase in processing time per vertex when an additional vertex is added.}
+					\label{fig:eval-import-city-rel-increase}
+				\end{subfigure}
+				\caption{Graph generation times using the \enquote{OSM city} dataset.}
+				\label{fig:eval-import-city}
+			\end{minipage}
+			\hfill
+			\begin{minipage}{.48\textwidth}
+				\begin{subfigure}[t]{\linewidth}
+					\begin{figcenter}
+						\input{images/evaluation/osm-based-rural/plot-iteration-time-per-vertices.py_absolute.pgf}
+					\end{figcenter}
+					\caption{Absolute total graph generation time for the \enquote{OSM rural} dataset.}
+					\label{fig:eval-import-rural-abs}
+				\end{subfigure}
+				\\[3ex]
+				\begin{subfigure}[t]{\linewidth}
+					\begin{figcenter}
+						\input{images/evaluation/osm-based-rural/plot-iteration-time-per-vertices.py_per-vertex.pgf}
+					\end{figcenter}
+					\caption{Time per input vertex for the \enquote{OSM rural} dataset.}
+				\end{subfigure}
+				\\[3ex]
+				\begin{subfigure}[t]{\linewidth}
+					\begin{figcenter}
+						\input{images/evaluation/osm-based-rural/plot-iteration-time-per-vertices.py_per-vertex-added.pgf}
+						% TODO same y-scale in both figures
+					\end{figcenter}
+					\caption{Increase in processing time per vertex when an additional vertex is added.}
+					\label{fig:eval-import-rural-rel-increase}
+				\end{subfigure}
+				\caption{Graph generation times using the \enquote{OSM rural} dataset.}
+				\label{fig:eval-import-rural}
+			\end{minipage}
+		\end{figure}
+		
+		A few aspects regarding the runtime behavior can already be inferred from \cref{fig:eval-import-city} and \cref{fig:eval-import-rural}.
+		
+		First, as mentioned above, the inherent quadratic runtime of the visibility graph creation, which is shown in detail in the following \cref{fig:eval-import-details}.
+		
+		Second, the linear increase in the processing time per vertex, which shows, that the total runtime is in fact quadratic and not, for example, exponential.
+		
+		And third, the additional effort added to each vertex when a new additional vertex is added to the dataset is very small (below one microsecond) and decreases with the size of the dataset.
+		Taking the largest dataset of about 88.000 vertices in \cref{fig:eval-import-city-rel-increase} as an example, adding one new vertex increases the processing time of every vertex by around 0.12 µs.
+		At least for smaller datasets, as \cref{fig:eval-import-rural-rel-increase} shows, this extra time for each additional vertex decreases with the size of the dataset.
+		This indicates a slower growing processing time for larger datasets, however, this effect is negligible as it is not directly visible by the measured data in \cref{fig:eval-import-city-abs} and \cref{fig:eval-import-rural-abs}.
+		
+		\begin{figure}[h!]
+			\begin{figcenter}
+				\begin{subfigure}[t]{\textwidth}
+					\begin{figcenter}
+						\input{images/evaluation/osm-based-city/plot-iteration-details-per-vertices.py_absolute.pgf}
+					\end{figcenter}
+					\caption{Import time of the \enquote{OSM city} dataset by tasks.}
+				\end{subfigure}
+%				\hfill
+%				\begin{subfigure}[t]{.48\textwidth}
+%					\begin{figcenter}
+%						\input{images/evaluation/osm-based-city/plot-iteration-details-per-vertices.py_relative.pgf}
+%					\end{figcenter}
+%					\caption{Relative share of each task on the total import time.}
+%				\end{subfigure}
+			\end{figcenter}
+			\\
+			\begin{figcenter}
+				\begin{subfigure}[t]{\textwidth}
+					\begin{figcenter}
+						\input{images/evaluation/osm-based-rural/plot-iteration-details-per-vertices.py_absolute.pgf}
+					\end{figcenter}
+					\caption{Import time of the \enquote{OSM rural} dataset by tasks.}
+				\end{subfigure}
+%				\hfill
+%				\begin{subfigure}[t]{.48\textwidth}
+%					\begin{figcenter}
+%						\input{images/evaluation/osm-based-rural/plot-iteration-details-per-vertices.py_relative.pgf}
+%					\end{figcenter}
+%					\caption{Relative share of each task on the total import time.}
+%				\end{subfigure}
+			\end{figcenter}
+			\caption{Details of graph generation times for the two datasets \enquote{OSM city} (above) and \enquote{OSM rural} (below).}
+			\label{fig:eval-import-details}
+		\end{figure}
+		
+		In \cref{fig:eval-import-details} both OSM dataset import times are split into the performed tasks.
+		The task with the largest effort in terms of the required time is the $k$ nearest neighbor (kNN) search.
+		This step takes, even for the smallest dataset, at least 50\% of the overall hybrid visibility graph generation time.
+		For the largest dataset in the \enquote{OSM city} set, the share of the kNN search on the total processing time was over 97\%.
+		The second most time consuming step is the merge of the road network with the visibility graph which has a share of not more than 3.5\% in any of the \enquote{OSM city} datasets.
+		All other steps have a negligible effect on the processing performance with a combined share of less than 0.8\% on the total processing time of the \enquote{OSM city} dataset.
+		
+		Very small datasets, meaning only a few thousand vertices, show a different distribution.
+		Even though the kNN search is still the most expensive task, the relative shares of other tasks, especially the marge operation, are significantly higher.
+		\todo[inline]{reasons for this}
+		
+		\todo{Table with values? Absolute or relative?}
+	
+	\subsection{Routing}
+		
+		\todo{General routing times}
+		
+		\todo{Detailed view (as above)}
+		
+		\todo{Times per meter?}
 	
 \section{Routing evaluation}
 
