@@ -21,11 +21,13 @@ common.check_args(1)
 dataset_filter=sys.argv[1]
 
 dataset_cols=[
+	'avg_time',
 	'astar_avg_time',
 	'add_positions_to_graph_avg_time',
 	'restore_avg_time',
 ]
 dataset_labels=[
+	"Total routing\ntime",
 	'A* routing',
 	'Connecting\nsource \\& destination\nvertices',
 	'Restoring original\ngraph',
@@ -33,14 +35,10 @@ dataset_labels=[
 
 dataset_raw=common.load_dataset(dataset_filter)
 dataset_raw["distance_beeline"]=dataset_raw["distance_beeline"] / 1000
-dataset_relevant=dataset_raw[["distance_beeline", "avg_time"] + dataset_cols]
+dataset_relevant=dataset_raw[["distance_beeline"] + dataset_cols]
 dataset=dataset_relevant.melt('distance_beeline', var_name='aspect', value_name='time')
 
-common.init_seaborn(
-	width=7,
-	height=4,
-	dpi=120,
-)
+common.init_seaborn(width=440)
 
 #
 # Plot absolute numbers
@@ -70,7 +68,7 @@ sns.move_legend(
 	"center left",
 	bbox_to_anchor=(1.025, 0.5),
 	handles=handles,
-	labels=["Total routing\ntime"] + dataset_labels,
+	labels=dataset_labels,
 	title_fontsize=common.fontsize_small,
 	fontsize=common.fontsize_small,
 	title='Legend',

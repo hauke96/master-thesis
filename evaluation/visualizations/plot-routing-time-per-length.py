@@ -18,7 +18,7 @@ common.check_args(1)
 dataset_filter=sys.argv[1]
 dataset=common.load_dataset(dataset_filter)
 
-common.init_seaborn(width=6, height=4, dpi=120)
+common.init_seaborn()
 
 #
 # Relative to avg_time

@@ -20,15 +20,13 @@ dataset_filter=sys.argv[1]
 dataset=common.load_dataset(dataset_filter)
 dataset["distance_beeline"]=dataset["distance_beeline"] / 1000
 
-common.init_seaborn(
-	width=6,
-	height=4,
-	dpi=120,
-)
+common.init_seaborn()
 
 #
 # x = beeline distance
 #
+
+common.init_seaborn(width=440)
 
 title="Routing - Durations"
 fig, ax=plt.subplots()
@@ -60,9 +58,6 @@ common.save_to_file(fig, os.path.basename(__file__) + "_distance")
 #
 
 common.init_seaborn(
-	width=6,
-	height=4,
-	dpi=120,
 	palette="custom_blue-red"
 )
 title="Routing - Time per input vertex"

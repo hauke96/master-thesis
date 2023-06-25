@@ -40,23 +40,41 @@ def load_dataset(dataset_filter):
 	dataset_files=glob.glob(dataset_filter)
 	dataset_container=[]
 	for file in dataset_files:
-	    df=pd.read_csv(file)
-	    dataset_container.append(df)
+		df=pd.read_csv(file)
+		dataset_container.append(df)
 	
 	dataset=pd.concat(dataset_container)
 	return dataset
 
+'''
+Converts the given pt sizes into inch, which can be used by seaborn/matplotlib.
+'''
+def get_fig_sizes(width_in_pt, height_in_pt=None, fraction=1):
+	inches_per_pt = 1 / 72.27
+
+	fig_width_in = width_in_pt * inches_per_pt
+
+	if height_in_pt == None:
+		ratio = 0.7
+		fig_height_in = fig_width_in * ratio
+	else:
+		fig_height_in = height_in_pt * inches_per_pt
+
+	fig_dim = (fig_width_in, fig_height_in)
+	return fig_dim
+
+
 def init_seaborn(
-		width=5,
-		height=4,
-		dpi=100,
+		width=220,
+		height=None,
+		dpi=120,
 		palette='colorblind',
 	):
 
 	global color_palette_selected_name
 
 	sns.set(rc={
-		"figure.figsize": (width, height),
+		"figure.figsize": get_fig_sizes(width, height),
 		"figure.dpi": dpi,
 	})
 	
@@ -90,6 +108,7 @@ def create_lineplot(
 		ax=None,
 		color=None,
 		marker="o",
+		scientific_labels=True,
 	):
 
 	err_kws={"elinewidth": 1} if err_style == "bars" else None
@@ -123,6 +142,10 @@ def create_lineplot(
 	plot.set_xlabel(xlabel, labelpad=5, fontsize=fontsize_small)
 	plot.set_ylabel(ylabel, labelpad=5, fontsize=fontsize_small)
 	plot.tick_params(axis="both", which="major", labelsize=fontsize_small)
+
+	if not scientific_labels:
+		plot.ticklabel_format(style='plain', axis='x')
+		plot.ticklabel_format(style='plain', axis='y')
 
 	return plot
 
@@ -252,7 +275,8 @@ def save_to_file(
 
 	if extension == None:
 		save_to_file(figure, filename, "png", no_margin)
-		save_to_file(figure, filename, "pgf", no_margin)
+		save_to_file(figure, filename, "pgf", True)
+		#save_to_file(figure, filename, "pdf", True)
 	else:
 		figure.tight_layout()
 		figure.savefig(

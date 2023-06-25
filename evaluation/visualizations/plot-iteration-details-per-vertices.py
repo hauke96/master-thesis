@@ -39,15 +39,7 @@ dataset_labels=[
 	'Add attributed\nto POIs',
 ]
 
-dataset_raw=common.load_dataset(dataset_filter)
-dataset_relevant=dataset_raw[dataset_cols + ["obstacle_vertices_input"]]
-dataset=dataset_relevant.melt('obstacle_vertices_input', var_name='aspect', value_name='time')
-
-common.init_seaborn(
-	width=7,
-	height=4,
-	dpi=120,
-)
+common.init_seaborn(width=440, height=260)
 
 #
 # Plot absolute numbers
@@ -56,11 +48,16 @@ common.init_seaborn(
 title="HybridVisibilityGraph generation - Durations broken down"
 fig_abs, ax_abs = plt.subplots()
 
+dataset_raw=common.load_dataset(dataset_filter)
+dataset_relevant=dataset_raw[dataset_cols + ["obstacle_vertices_input"]]
+dataset=dataset_relevant.melt('obstacle_vertices_input', var_name='aspect', value_name='time')
+dataset["time"] = dataset["time"] / 1000
+
 common.create_lineplot(
 	dataset,
 	#title,
 	ycol='time',
-	ylabel='Time in ms',
+	ylabel='Time in s',
 	hue="aspect",
 	yscale='log',
 	ax=ax_abs
@@ -94,6 +91,7 @@ fig_rel, ax_rel = plt.subplots()
 dataset_relevant=dataset_raw[dataset_cols + ["obstacle_vertices_input"]]
 dataset_relevant[dataset_cols]=dataset_raw[dataset_cols].div(dataset_raw["iteration_time"], axis=0)
 dataset=dataset_relevant.melt('obstacle_vertices_input', var_name='aspect', value_name='time')
+dataset["time"] = dataset["time"] / 1000
 
 common.create_lineplot(
 	dataset,

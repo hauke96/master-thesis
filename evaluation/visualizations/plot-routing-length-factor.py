@@ -31,11 +31,7 @@ dataset.loc[dataset["distance_factor"] > q, "outlier"]=True
 dataset["distance_factor"]=dataset["distance_factor"].where(dataset["distance_factor"] < q)
 dataset.reset_index(drop=True, inplace=True)
 
-common.init_seaborn(
-	width=6,
-	height=4,
-	dpi=120,
-)
+common.init_seaborn()
 
 fig, ax=plt.subplots()
 
@@ -46,7 +42,7 @@ common.create_scatter_lineplot(
 	xcol="obstacle_vertices_input",
 	xlabel="Input obstacle vertices",
 	ycol="distance_factor",
-	ylabel="Beeline distance / route distance",
+	ylabel="Beeline- / route-distance",
 )
 ax.set_ylim(1, None)
 

@@ -26,9 +26,17 @@ function run()
     echo
     ./$1.py "$2"
     echo
+	echo "Move all output files to ./$RESULT"
+	mv *.png $RESULT
+	mv *.pgf $RESULT
+#	mv *.pdf $RESULT
+	echo
     echo "=========="
     echo
 }
+
+echo "Create output folder"
+mkdir -p $RESULT
 
 # Graph generation
 run "plot-iteration-details-per-vertices" "$DATASET_GRAPH_GEN"
@@ -40,12 +48,5 @@ run "plot-routing-time-details" "$DATASET_ROUTING"
 run "plot-routing-time-per-length" "$DATASET_ROUTING"
 run "plot-routing-time" "$DATASET_ROUTING"
 run "plot-routing-memory" "$DATASET_ROUTING"
-
-echo "Create output folder"
-mkdir -p $RESULT
-
-echo "Move all .png and .pgf files to ./$RESULT"
-mv *.png $RESULT
-mv *.pgf $RESULT
 
 echo "Done"
