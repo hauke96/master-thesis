@@ -45,9 +45,9 @@ Finally, an overview of the separate components is given as well as a descriptio
 %		Even when using an approximation algorithm to determine shortest paths, the results can be checked against all other possible paths to verify the optimality of the resulting path.
 		
 		Another quality requirement is the closeness of the resulting routes to real pedestrian behavior.
-		Unfortunately, this can hardly be measured without having extensive data of real world pedestrians in real world locations.
-		Ideally, the trajectory of a calculated route should be identical to a real world pedestrian trajectory.
-		It should at least make sense to an observer without additional knowledge of the real world location.
+		Unfortunately, this can hardly be measured without having extensive data of pedestrians and their trajectories in the real world.
+		Ideally, the trajectory of a calculated route should be identical to a real-world pedestrian trajectory.
+		It should at least make sense to an observer without additional knowledge of the real-world location.
 		The coordinates of waypoint on the calculated and on real trajectories must not be exactly the same, since real pedestrian behavior is not part of the shortest path calculations but is instead a task for realistic agent modeling.
 		Such behavior includes for example a typical minimum distance kept to obstacles or a minimum radius of walked curves.
 
@@ -96,7 +96,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 		The continuous Dijkstra approach actually creates a shortest path map, so the shortest paths to all reached vertices are calculated.
 		All shortest path edges are then added to the graph for the paused graph-based routing algorithm.
 		
-		A real world example for this approach would be a pedestrian walking down a road, stopping at a junction to decide where to go and choosing the option to cross a park for a shortcut before continuing to follow the roads again.
+		A real-world example for this approach would be a pedestrian walking down a road, stopping at a junction to decide where to go and choosing the option to cross a park for a shortcut before continuing to follow the roads again.
 		Doing the shortcut was not planned but an ad hoc decision, just as the algorithm would do.
 		
 		The advantage of this approach is the realistic behavior of pedestrians not planning the route in beforehand.
@@ -218,7 +218,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 	\subsection{Requirements and considerations for the visibility graph creation}
 	
 		One key requirement for the visibility graph creation is the ability to work in arbitrary obstacles, which primarily includes the fundamental point, linestring and polygon geometries.
-		To work with arbitrary real world datasets, assumptions about the collinearity, position of obstacles and intersections between them cannot be made.
+		To work with arbitrary real-world datasets, assumptions about the collinearity, position of obstacles and intersections between them cannot be made.
 		
 		An important special case arises for linestring obstacles consisting of more than two points.
 		Simply determining visibility edges to and from both sides of the linestring would result in shortest paths leading right through it.
@@ -245,11 +245,11 @@ Finally, an overview of the separate components is given as well as a descriptio
 		Several approaches from the literature have either restrictions on the geometric structures or assume that a certain preprocessing of the data was already performed.
 		
 		The approach by Welzl \cite{welzl-visibility-graph}, for example, explicitly assumes that there are not collinear vertices, i.e. at least three vertices forming a straight line.
-		It may seem unlikely at first that collinear vertices occur in real world datasets, but in fact, at least in OpenStreetMap, it is very common to align touching buildings and other straight obstacles like walls.
+		It may seem unlikely at first that collinear vertices occur in real-world datasets, but in fact, at least in OpenStreetMap, it is very common to align touching buildings and other straight obstacles like walls.
 		\todo[inline]{diagrams/graphics for problems like this alignment thing}
 		
 		An optimization of Welzls approach, by Overmars and Welzl \cite{overmars-weizl-visibility-graph}, only works on non-intersecting line segments.
-		Real world data is unfortunately too diverse to fulfill this criterion as polygons, longer linestrings and other more complex data structures exist.
+		Real-world data is unfortunately too diverse to fulfill this criterion as polygons, longer linestrings and other more complex data structures exist.
 		Preprocessing the data, i.e. cutting all geometries into such non-intersecting line segments, would cause new special cases to solve.
 		For example, cutting a polygon into line segments would add visibility edges within the former polygon, which needs to be avoided e.g. by storing metadata about the relations of these line segment to each other.
 		Handling all those special cases, preventing unwanted edges and still using the approach by Overmars and Welzl would be possible but would also increase the complexity of their approach.

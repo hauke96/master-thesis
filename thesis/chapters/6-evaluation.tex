@@ -9,7 +9,7 @@ For both parts, method and design details are given followed by the respective r
 
 	The performance evaluation uses different datasets to measure graph generation and routing times.
 	Each of these two steps is measured more fine-grained by measuring the execution times of separate method calls.
-	The datasets have different properties and sizes and consist of artificial and real world data.
+	The datasets have different properties and sizes and consist of artificial and real-world data.
 
 	\subsection{Methods \& Measurements}
 
@@ -33,7 +33,7 @@ For both parts, method and design details are given followed by the respective r
 				\item[Maze pattern] A set of datasets containing maze like geometries, namely only connected linestrings forming a seamless pattern tile that can arbitrarily often be repeated. Many of the contained line obstacles are collinear. No roads are within these datasets.
 				\item[Rectangle pattern] Also a set of pattern-based datasets, which contain simple rectangles of different sizes. No roads are within these datasets.
 				\item[Circle pattern] Like the rectangle datasets but with circles. These datasets have large number of vertices.
-				\item[OSM city] This is a real world export from the OpenStreetMap database with data from the city of Hamburg, Germany. The data has been filtered to remove all over- and underground features since the hybrid routing algorithm has no handling of three dimensional data. This dataset also contains all roads and ways in the respective region.
+				\item[OSM city] This is a real-world export from the OpenStreetMap database with data from the city of Hamburg, Germany. The data has been filtered to remove all over- and underground features since the hybrid routing algorithm has no handling of three dimensional data. This dataset also contains all roads and ways in the respective region.
 				\item[OSM rural] Equivalent to the \enquote{OSM city} dataset, but located outside the city with more natural obstacles (lakes, ditches, forest), more open spaces and less regular buildings.
 				\item[OSM export without roads] Same data from the above OSM exports, but without the roads. This is used to show the overhead of the road on the graph generation and routing times.
 				\item[OSM export without obstacles] Same data from the above OSM exports, but without the obstacles, i.e. buildings, walls and water areas. This is used to show the overhead of the obstacles on the graph generation and routing times.
