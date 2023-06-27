@@ -17,9 +17,9 @@
 	Over the last decades, optimizations and the use of more efficient data structures lead to further performance enhancements, making it possible to use such routing algorithms on large scale networks.
 	Even though the performance is good enough for larger networks like the road network of the USA \cite{aviram-optimizing-dijkstra}, answering routing queries using normal shortest path algorithms on dense networks or networks of global scale are still a problem.
 	To solve this, several speedup methods exist that further decrease query times, which will be covered later in \cref{subsec:speedup-methods}.
-	Using such techniques enables global routing request being processed within milliseconds.\footnote{Tested for a routing request from Hamburg, Germany to Beijing, China on \href{https://www.openstreetmap.org/directions?engine=fossgis\_osrm\_car&route=53.55\%2C10.00\%3B39.91\%2C116.39}{openstreetmap.org} using the OSRM car profile which is based on Contraction Hierarchies (s. \cref{subsubsec:ch}). The HTTP request returned the result in under 215ms -- including network latency of several milliseconds.}
+	Using such techniques enables global routing request to be processed within milliseconds.\footnote{Tested for a routing request from Hamburg, Germany to Beijing, China on \href{https://www.openstreetmap.org/directions?engine=fossgis\_osrm\_car&route=53.55\%2C10.00\%3B39.91\%2C116.39}{openstreetmap.org} using the OSRM car profile which is based on Contraction Hierarchies (s. \cref{subsubsec:ch}). The HTTP request returned the result in under 215ms -- including network latency of several milliseconds.}
 	
-	Next to line-based shapes, which are very suitable for routing, the real world also consists of polygonal shapes like market places, parking lots or parks.
+	Aside from line-based shapes, which are very suitable for routing, the real world also consists of polygonal shapes like market places, parking lots or parks.
 	Classical routing algorithms can only interpret the outer edges of these polygons as closed lines and therefore only find paths along these outer edges.
 	Often, auxiliary paths are added to connect opposite sides of polygons, enabling routing algorithms to cross these areas.
 	This is a common practice in OpenStreetMap, a crowdsourced geospatial database, for example on market or playground areas.
@@ -44,7 +44,7 @@
 	
 	The second approach does not create such a graph but stores its shortest path information for each source vertex in a map.
 	Each shortest path map is made for a specific source vertex and consists of several distinct regions.
-	Every location within such region has the same predecessor on the shortest path from the source vertex to this location.
+	Every destination location within such region has the same predecessor on the shortest path from the source vertex to this location.
 	In other words, all paths from a source vertex to any location inside one region go from the source via other vertices to the predecessor of the region and from there directly to the destination location.
 	Recursively following back all predecessors to the source vertex gives the shortest path to a given location.
 	This approach is also called the \term{continuous dijkstra} paradigm and will be described in detail in \cref{subsec:continuous-dijkstra}.
@@ -52,15 +52,17 @@
 \section{Problem and contributions}
 
 	The previous section mentions one of the disadvantages of network-based routing:
-	Source and destination locations are probably not on the graph.
-	Furthermore, trajectories of pedestrians in the real world are often not following edges on routing graphs, which is especially the case for insufficiently connected open spaces.
+	No assumptions can be made on whether source and destination locations are represented as vertices in the graph.
+	Furthermore, trajectories of pedestrians in the real world are often not strictly following edges on routing graphs, which is especially the case for insufficiently connected open spaces.
 	Routes strictly following the edges of a graph are therefore inaccurate for pedestrian routing \cite{graser-osm-open-spaces}, which means the calculated route contains detours and is therefore longer than the actual trajectory and additionally may not reach the exact destination location at all.
 	Such inaccuracies significantly affect the quality of agent-based simulations, as well as the helpfulness and user experience of real-world applications, such as mobile navigation apps.
 
-	In this thesis these issues are solved by proposing, implementing and evaluating a hybrid routing algorithm that combines the accuracy of geometric routing using visibility graphs with the optimizations and wide use of network-based routing.
-	Determining shortest paths using the resulting approach has a simple structure, is fast, enables the use of common speedup techniques and reaches all accessible locations independent of the presence of corresponding vertices in the graph.
-	Any other arbitrary location, for example a location chosen by the user, can be added to the graph quite easily.
-	Real-world applications as well as simulations, such as multi-agent simulations of pedestrian behavior, benefit from this algorithm.
+	In this thesis these issues are solved by proposing and designing a hybrid routing algorithm that combines the accuracy of geometric routing using visibility graphs with the optimizations and wide use of network-based routing.
+	Additionally, an implementation of the proposed algorithm was created and evaluated regarding performance, correctness and usefulness.
+	Determining shortest paths using the resulting approach has a simple structure, enables the use of common speedup techniques and reaches all accessible locations independent of the presence of corresponding vertices in the graph.
+	Any other arbitrary location, for example a location chosen by the user, can be added to the graph.
+	After connecting the newly added vertex to the graph, routing from and to this vertex is possible.
+	Real-world applications as well as simulations, such as multi-agent models simulating the behavior of pedestrians, benefit from this algorithm.
 	
 \section{Structure of this thesis}
 
