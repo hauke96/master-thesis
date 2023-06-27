@@ -128,7 +128,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 %				\item In case the road edge was not the optimal path, then the ad hoc generation stopped before reaching $j$ (due to the distance or any other stopping condition) and the edge $(v, j)$ was never added.
 %			\end{itemize}
 %		\end{itemize}
-%		Even though, this is not a formal proof, generating a preprocessed graph and using a normal routing algorithm is probably as least as good as using the ad hoc generation approach.
+%		Even though this is not a formal proof, generating a preprocessed graph and using a normal routing algorithm is probably as least as good as using the ad hoc generation approach.
 	
 	% Concurrent routing: Use A* and wavefront in parallel and merge the results
 	\subsection{Concurrent routing}
@@ -180,7 +180,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 		The actual merge operation is very simple:
 		Whenever a road edge and a visibility edge intersect, split the edges, create a new vertex at the intersection point and connect the split edges accordingly.
 		
-		Even though, this approach is simple and still fast, the main disadvantage is the graph size.
+		Even though this approach is simple and still fast, the main disadvantage is the graph size.
 		A visibility graph is large and in most cases it will contain many more edges than the road graph, which negatively affects the routing performance.
 		
 		Another disadvantage is the time complexity of the merge operation.

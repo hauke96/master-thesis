@@ -15,7 +15,7 @@
 	
 	Algorithms for network-based routing, like the popular Dijkstra and A* algorithms, are well understood, optimized and used in numerous scientific and real-world applications.
 	Over the last decades, optimizations and the use of more efficient data structures lead to further performance enhancements, making it possible to use such routing algorithms on large scale networks.
-	Even though, the performance is good enough for larger networks like the road network of the USA \cite{aviram-optimizing-dijkstra}, answering routing queries using normal shortest path algorithms on dense networks or networks of global scale are still a problem.
+	Even though the performance is good enough for larger networks like the road network of the USA \cite{aviram-optimizing-dijkstra}, answering routing queries using normal shortest path algorithms on dense networks or networks of global scale are still a problem.
 	To solve this, several speedup methods exist that further decrease query times, which will be covered later in \cref{subsec:speedup-methods}.
 	Using such techniques enables global routing request being processed within milliseconds.\footnote{Tested for a routing request from Hamburg, Germany to Beijing, China on \href{https://www.openstreetmap.org/directions?engine=fossgis\_osrm\_car&route=53.55\%2C10.00\%3B39.91\%2C116.39}{openstreetmap.org} using the OSRM car profile which is based on Contraction Hierarchies (s. \cref{subsubsec:ch}). The HTTP request returned the result in under 215ms -- including network latency of several milliseconds.}
 	
