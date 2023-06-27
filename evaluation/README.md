@@ -56,7 +56,7 @@ This means the merging takes place (even though there are no roads) and routing 
 
 * [ ] Maze like pattern
 	* [x] Create dataset
-	* [x] Measurement
+	* [ ] Measurement
 	* [ ] Visualize
 * [ ] Rectangle pattern
 	* [x] Create dataset
@@ -68,7 +68,7 @@ This means the merging takes place (even though there are no roads) and routing 
 	* [ ] Visualize
 * [ ] OSM "city" dataset without roads (multiple area sizes)
 	* [x] Create dataset
-	* [ ] Measurement
+	* [x] Measurement
 	* [ ] Visualize
 * [ ] OSM "rural" dataset without roads (multiple area sizes)
 	* [x] Create dataset
