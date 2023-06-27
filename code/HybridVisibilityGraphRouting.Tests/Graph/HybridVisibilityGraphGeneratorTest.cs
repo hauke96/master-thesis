@@ -765,6 +765,63 @@ public class HybridVisibilityGraphGeneratorTest
         CollectionAssert.DoesNotContain(edges, new[] { new Position(1, 1), new Position(1, 0) });
     }
 
+    [Ignore("Bug: Equal road and obstacle geometries do not work together. This bug has a very low severity and might get fixed in the future.")]
+    public void MergeRoadsIntoGraph_roadGeometryEqualsObstacleGeometry()
+    {
+        var graph = new SpatialGraph();
+
+        var features = new[]
+        {
+            // road feature
+            new Feature(
+                new LineString(new[]
+                {
+                    new Coordinate(1, 0),
+                    new Coordinate(1, 1),
+                    new Coordinate(0, 2),
+                }),
+                new AttributesTable(
+                    new Dictionary<string, object> { { "highway", "road" } }
+                )
+            ),
+            // road feature touching the above on in the middle
+            new Feature(
+                new LineString(new[]
+                {
+                    new Coordinate(2, 2),
+                    new Coordinate(1, 1),
+                }),
+                new AttributesTable(
+                    new Dictionary<string, object> { { "highway", "road" } }
+                )
+            )
+        };
+        var obstacles = new QuadTree<Obstacle>();
+        ObstacleTestHelper.CreateObstacles(features.Map(f=>f.Geometry).ToArray())
+            .Each(obstacle => obstacles.Insert(obstacle.Envelope, obstacle));
+        
+        var vertexNeighbors = VisibilityGraphGenerator.CalculateVisibleKnn(obstacles, 36, 10);
+        
+        var (hybridVisibilityGraph, _) = HybridVisibilityGraphGenerator.AddVisibilityVerticesAndEdges(vertexNeighbors, obstacles);
+
+        // Act
+        HybridVisibilityGraphGenerator.MergeRoadsIntoGraph(features, hybridVisibilityGraph);
+
+        // Assert
+        var nodePositions = graph.NodesMap.Map(pair => pair.Value.Position);
+        CollectionAssert.Contains(nodePositions, new Position(1, 0));
+        CollectionAssert.Contains(nodePositions, new Position(1, 1));
+        CollectionAssert.Contains(nodePositions, new Position(0, 2));
+        CollectionAssert.Contains(nodePositions, new Position(2, 2));
+        Assert.AreEqual(4, graph.NodesMap.Count);
+
+        AssertEdges(hybridVisibilityGraph, (1,0), (1,1));
+        AssertEdges(hybridVisibilityGraph, (1,1), (0,2));
+        AssertEdges(hybridVisibilityGraph, (1,1), (2,2));
+
+        Assert.AreEqual(6, graph.Edges.Count);
+    }
+
     private static void AssertEdges(HybridVisibilityGraph graph, (double, double) coordinateA,
         (double, double) coordinateB)
     {

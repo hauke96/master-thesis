@@ -240,10 +240,13 @@ public static class VisibilityGraphGenerator
         var degreePerBin = 360.0 / visibilityNeighborBinCount;
 
         var validAngleAreas = GetValidAngleAreasForVertex(vertex);
-
         if (validAngleAreas.IsEmpty())
         {
-            return new List<List<Vertex>>();
+            // This happens for e.g. vertices with three obstacle neighbors and no angle between them of >180°.
+            return new List<List<Vertex>>
+            {
+                new()
+            };
         }
 
         /*

@@ -325,7 +325,8 @@ public class HybridVisibilityGraph
             }
 
             // 1.1. Add intersection node (the node where the existing edge and the segment intersect). A new node
-            // is only added when there's no existing node at the intersection points.
+            // is only added when there's no existing node at the intersection which angle area fits to the
+            // intersection neighbor.
             var (intersectionNodes, createdIntersectionNode) =
                 hybridGraph.GetOrCreateNodeAt(intersectionCoordinate.ToPosition());
             var intersectionNode = Graph.NodesMap[GetNodeForAngle(intersectionNeighbor, intersectionNodes)];
