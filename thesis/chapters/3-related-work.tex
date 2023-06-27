@@ -27,7 +27,7 @@ This section gives an overview about closely related work from these areas.
 		The time complexity of Overmars and Welzls approach was already output sensitive by the number of edges in the output graph \cite{ghosh-output-sensitive-vgraph}.
 		Ghosh and Mount presented another algorithm with an output sensitive complexity of $\bigo{E + n \log n}$, which is a significant improvement, since $E$ is in $\bigo{n^2}$.
 		However, their approach needs $\bigo{E + n}$ space compared to $\bigo{n}$ from the earlier algorithm.
-		Ghosh and Mount use plain-sweeps to create a triangulation of the free space and introduced so called \emph{funnel sequences}, which are sets of vertices visible to parts of an edge.
+		Ghosh and Mount use plain-sweeps to create a triangulation of the free space and introduced so-called \emph{funnel sequences}, which are sets of vertices visible to parts of an edge.
 		To avoid numerous edge cases, their approach assumes no collinear vertices and unique x-coordinates.
 		
 		Kapoor and Maheshwari introduced two algorithms, one for determining shortest paths and one to create a visibility graph, which are based on triangulations as well \cite{kapoor-shortest-path-vgraph}.
@@ -87,7 +87,7 @@ This section gives an overview about closely related work from these areas.
 		Second, the data is used to create a skeletonization graph from it.
 		Third, this graph is used for routing with the A* algorithm.
 		Fourth, the result is smoothed since the skeletonization might yield edges, which will not naturally be used by pedestrians.
-		Even though, this technique works well on large datasets, the reason of skeletonization instead of visibility edges or other generation algorithms, was not further discussed.
+		Even though this technique works well on large datasets, the reason of skeletonization instead of visibility edges or other generation algorithms, was not further discussed.
 		
 		A similar work was presented by Birgit Elias merging multiple data sources, like topographical maps or indoor building plans, into one vector dataset for routing \cite{elias-tailored-geodatabase}.
 		To create a graph from existing maps, she used a skeletonization method based on a Delaunay triangulation.
@@ -123,7 +123,7 @@ This section gives an overview about closely related work from these areas.
 		Shortly after Welzl and others published their work on visibility graphs, which can be used in combination with Dijkstra to find shortest paths, Mitchell presented a pure geometric method to find euclidean shortest paths around obstacles in the plain in 1993\cite{mitchell-shortest-path}.
 		He used wavefronts propagating from the source towards the target vertex.
 		Each origin of a wavefront can be traces back to its source giving the shortest path.
-		Because this algorithm solves the \hyperref[subsubsec:single-source-shortest-path]{\term*{single-source shortest path} problem}, just like the Dijkstra algorithm does on a network, this technique is also called the \term{continuous dijkstra} paradigm.
+		Because this algorithm solves the \hyperref[subsubsec:single-source-shortest-path]{\term*{single-source shortest paths} problem}, just like the Dijkstra algorithm does on a network, this technique is also called the \term{continuous dijkstra} paradigm.
 		
 		% An Optimal Algorithm for Euclidean Shortest Paths in the Plane (Hershberger, Suri, 1999)
 		Another approach solving the geometric single-source shortest path problem was presented by Hershberger and Suri one year later, in 1997 \cite{hershberger-suri}.
@@ -150,7 +150,7 @@ This section gives an overview about closely related work from these areas.
 	This problem is especially interesting since pedestrians have the maximum degree of flexibility/freedom compared to other traffic participants like bikes or cars.
 	Therefore, geometric routing is a good way to find shortest paths for pedestrians.
 	
-	Pedestrian path finding is, however, not only relevant for real world users, who want to know how to get from one location to another.
+	Pedestrian path finding is, however, not only relevant for real-world users, who want to know how to get from one location to another.
 	Such algorithms are also used in (multi) agent simulations of pedestrian behavior.
 	Scenarios in such simulations are for example evacuation or crowd behaviors.
 	The area of pedestrian path planning and simulations is divided into two strategies: Network- and field-based path finding \cite{hartmann-geodesic}.
@@ -158,12 +158,12 @@ This section gives an overview about closely related work from these areas.
 	
 	\subsection{Field-based and dynamic navigation}
 	
-		Next to geometric and network-based routing, potential fields can be used to find shortest paths within this field.
+		Besides geometric and network-based routing, potential fields can also be used to find shortest paths within this field.
 		
 		% online routing: A Navigation Algorithm for Pedestrian Simulation in Dynamic Environments (Teknomo, Millonig, 2007)
 		Teknomo and Millonig created a dynamic algorithm which does not pre-compute the path with one of the above mentioned approaches\cite{teknomo-millonig-routing}.
 		This is interesting, since the probably most common and naive approach is to pre-compute the route used by an agent within a simulation.
-		The term \enquote{dynamic} refers to the fact, that real world pedestrians often only consider the near neighborhood within their path planning.
+		The term \enquote{dynamic} refers to the fact, that real-world pedestrians often only consider the near neighborhood within their path planning.
 		Even if a person knows the hole area, dynamic changes (closed doors, construction work, crowds blocking the way) can still occur at any point in time.
 		Therefore, considering such dynamic changes make agent-based simulations more realistic.
 		

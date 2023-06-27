@@ -45,13 +45,11 @@ Finally, an overview of the separate components is given as well as a descriptio
 %		Even when using an approximation algorithm to determine shortest paths, the results can be checked against all other possible paths to verify the optimality of the resulting path.
 		
 		Another quality requirement is the closeness of the resulting routes to real pedestrian behavior.
-		Unfortunately, this can hardly be measured without having extensive data of real world pedestrians in real world locations.
-		Ideally, the trajectory of a calculated route should be identical to a real world pedestrian trajectory.
-		It should at least make sense to an observer without additional knowledge of the real world location.
+		Unfortunately, this can hardly be measured without having extensive data of pedestrians and their trajectories in the real world.
+		Ideally, the trajectory of a calculated route should be identical to a real-world pedestrian trajectory.
+		It should at least make sense to an observer without additional knowledge of the real-world location.
 		The coordinates of waypoint on the calculated and on real trajectories must not be exactly the same, since real pedestrian behavior is not part of the shortest path calculations but is instead a task for realistic agent modeling.
 		Such behavior includes for example a typical minimum distance kept to obstacles or a minimum radius of walked curves.
-
-		Next to the domain specific requirement, the overall code itself should of course be well documented and tested.
 	
 	\subsection{Constraints}
 	\label{subsec:constraints}
@@ -78,12 +76,17 @@ Finally, an overview of the separate components is given as well as a descriptio
 	The decision of a strategy to combine graph and geometric routing algorithms.
 	A decision on this \enquote{merge} strategy is crucial to the design and architecture of the application.
 	
-	In the following, four approaches are discussed of which the last one is considered to be the most promising, which was therefore implemented.
-	
-	% TODO Maybe remove "Approach candidate x"?
+	The following four approach candidates were considered and are discussed in more details.
+	The last of which was considered to be the most promising and was therefore implemented.
+	\begin{enumerate}
+		\item Ad hoc generation of edges
+		\item Concurrent routing
+		\item Concurrent routing on smaller segments
+		\item Merge an existing network with a visibility graph
+	\end{enumerate}
 	
 	% Ad-hoc creation of edges by stopping A* and continuing with wavefront algorithm
-	\subsection{Approach candidate 1: Ad hoc generation of edges}
+	\subsection{Ad hoc generation of edges}
 	
 		The idea of an ad hoc generation of edges is the following:
 		Whenever the graph routing algorithm reaches a road junction, it's paused and the continuous Dijkstra algorithm is started.
@@ -91,7 +94,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 		The continuous Dijkstra approach actually creates a shortest path map, so the shortest paths to all reached vertices are calculated.
 		All shortest path edges are then added to the graph for the paused graph-based routing algorithm.
 		
-		A real world example for this approach would be a pedestrian walking down a road, stopping at a junction to decide where to go and choosing the option to cross a park for a shortcut before continuing to follow the roads again.
+		A real-world example for this approach would be a pedestrian walking down a road, stopping at a junction to decide where to go and choosing the option to cross a park for a shortcut before continuing to follow the roads again.
 		Doing the shortcut was not planned but an ad hoc decision, just as the algorithm would do.
 		
 		The advantage of this approach is the realistic behavior of pedestrians not planning the route in beforehand.
@@ -123,10 +126,10 @@ Finally, an overview of the separate components is given as well as a descriptio
 %				\item In case the road edge was not the optimal path, then the ad hoc generation stopped before reaching $j$ (due to the distance or any other stopping condition) and the edge $(v, j)$ was never added.
 %			\end{itemize}
 %		\end{itemize}
-%		Even though, this is not a formal proof, generating a preprocessed graph and using a normal routing algorithm is probably as least as good as using the ad hoc generation approach.
+%		Even though this is not a formal proof, generating a preprocessed graph and using a normal routing algorithm is probably as least as good as using the ad hoc generation approach.
 	
 	% Concurrent routing: Use A* and wavefront in parallel and merge the results
-	\subsection{Approach candidate 2: Concurrent routing}
+	\subsection{Concurrent routing}
 	
 		A different approach would be two concurrent routing queries, one on the normal road graph and one using a visibility or otherwise generated graph.
 		Having the two shortest paths, they could be merged into one path, which results in segments with alternating source graph.
@@ -141,7 +144,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 		Only if the two routes are intersecting frequently enough, the selection of segments based on the weight function could actually result in good routes.
 	
 	% Concurrent routing for segments (e.g. start new routing calls every 100m)
-	\subsection{Approach candidate 3: Concurrent routing on smaller segments}
+	\subsection{Concurrent routing on smaller segments}
 	
 		This approach is very similar to the one above, but it tries to fix the uncertainty of intersections between the two resulting paths.
 		Multiple ways are conceivable to ensure that there are enough intersections or to otherwise guarantee that segments are small enough to be merged.
@@ -168,14 +171,14 @@ Finally, an overview of the separate components is given as well as a descriptio
 		Even though the second idea might work well for appropriate segments lengths, the complexity and definite time overhead make it an unfavorable choice.
 	
 	% Merge of networks
-	\subsection{Approach candidate 4: Merge an existing network with a visibility graph}
+	\subsection{Merge an existing network with a visibility graph}
 	
 		Previous approach candidates tried to first calculate shortest paths and then merge their results.
 		This last approach, which is the currently used one, first merges a generated visibility graph with an existing road graph.
 		The actual merge operation is very simple:
 		Whenever a road edge and a visibility edge intersect, split the edges, create a new vertex at the intersection point and connect the split edges accordingly.
 		
-		Even though, this approach is simple and still fast, the main disadvantage is the graph size.
+		Even though this approach is simple and still fast, the main disadvantage is the graph size.
 		A visibility graph is large and in most cases it will contain many more edges than the road graph, which negatively affects the routing performance.
 		
 		Another disadvantage is the time complexity of the merge operation.
@@ -213,7 +216,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 	\subsection{Requirements and considerations for the visibility graph creation}
 	
 		One key requirement for the visibility graph creation is the ability to work in arbitrary obstacles, which primarily includes the fundamental point, linestring and polygon geometries.
-		To work with arbitrary real world datasets, assumptions about the collinearity, position of obstacles and intersections between them cannot be made.
+		To work with arbitrary real-world datasets, assumptions about the collinearity, position of obstacles and intersections between them cannot be made.
 		
 		An important special case arises for linestring obstacles consisting of more than two points.
 		Simply determining visibility edges to and from both sides of the linestring would result in shortest paths leading right through it.
@@ -240,17 +243,17 @@ Finally, an overview of the separate components is given as well as a descriptio
 		Several approaches from the literature have either restrictions on the geometric structures or assume that a certain preprocessing of the data was already performed.
 		
 		The approach by Welzl \cite{welzl-visibility-graph}, for example, explicitly assumes that there are not collinear vertices, i.e. at least three vertices forming a straight line.
-		It may seem unlikely at first that collinear vertices occur in real world datasets, but in fact, at least in OpenStreetMap, it is very common to align touching buildings and other straight obstacles like walls.
+		It may seem unlikely at first that collinear vertices occur in real-world datasets, but in fact, at least in OpenStreetMap, it is very common to align touching buildings and other straight obstacles like walls.
 		\todo[inline]{diagrams/graphics for problems like this alignment thing}
 		
 		An optimization of Welzls approach, by Overmars and Welzl \cite{overmars-weizl-visibility-graph}, only works on non-intersecting line segments.
-		Real world data is unfortunately too diverse to fulfill this criterion as polygons, longer linestrings and other more complex data structures exist.
+		Real-world data is unfortunately too diverse to fulfill this criterion as polygons, longer linestrings and other more complex data structures exist.
 		Preprocessing the data, i.e. cutting all geometries into such non-intersecting line segments, would cause new special cases to solve.
 		For example, cutting a polygon into line segments would add visibility edges within the former polygon, which needs to be avoided e.g. by storing metadata about the relations of these line segment to each other.
 		Handling all those special cases, preventing unwanted edges and still using the approach by Overmars and Welzl would be possible but would also increase the complexity of their approach.
 		
 		Another approach with the limitation of no collinear vertices was the plain-sweep algorithm by Ghosh and Mount \cite{ghosh-output-sensitive-vgraph}.
-		Next to the limitation on collinear vertices, they assume x-coordinates to be unique, which would need to be handled as well.
+		In addition to the limitation on collinear vertices, they assume x-coordinates to be unique, which would need to be handled as well.
 		Even though coordinates are usually floating point numbers and therefore have a great range of possible values, rounding and size limitations reduce this range and might result in a high number of non-unique x-coordinate values.
 		Counting the number of non-unique x-coordinates in OpenStreetMap illustrates this problem:
 		The OSM dataset of the German state of Hamburg contains over 3.2 million nodes of which 22.8\% have a non-unique x-coordinate.
@@ -286,7 +289,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 \label{sec:components}
 
 	The hybrid routing algorithm consists of two main components, which present public interfaces.
-	Generating the underlying routing graph, the so called \term{hybrid visibility graph}, is the first step and resides in its own component, the \texttt{HybridVisibilityGraphGenerator} class.
+	Generating the underlying routing graph, the so-called \term{hybrid visibility graph}, is the first step and resides in its own component, the \texttt{HybridVisibilityGraphGenerator} class.
 	The hybrid visibility graph itself is contained in the \texttt{HybridVisibilityGraph} class, which primarily contains the graph structure and is used to answer routing queries.
 	A third component, which is not intended to be used from outside the algorithm, is the \texttt{VisibilityGraphGenerator}.
 	Its purpose is the determination of visibility edges for the routable hybrid visibility graph.
