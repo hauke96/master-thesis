@@ -43,7 +43,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		Cartesian coordinate systems with two dimensions only work on flat surfaces, therefore a \term*[map projection]{projection} is required to turn each spherical location on the ellipsoid into a two-dimensional planar location in the coordinate system \cite[17]{ordenance-survey-booklet}.
 		
 		Analogous to the horizontal datum, a \term{vertical datum} can be used to define the height of data \cite{ordenance-survey-booklet}.
-		This is done by defining a so called \term{geoid}, which defined the level of zero height.
+		This is done by defining a so-called \term{geoid}, which defined the level of zero height.
 		Such a geoid can be modeled using another ellipsoidal sphere but that would result in very inaccurate data.
 		Instead, local reference levels for height data are used, such as the Ordnance Datum Newlyn (\term*{ODN}) for Britain or Normalhöhennull (\term*{NHN}) for Germany.
 		Since it is often based on the water level of oceans, the level of zero height on landmasses is extrapolated based on the gravitational field of the Earth.
@@ -253,7 +253,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			
 		\subsubsection{Contributions to OSM}
 		
-			Uploads to OSM always happen in so called \term[changeset]{changesets} combining multiple changes on the map\cite{osm-wiki-changeset}, they can therefore be seen as a kind of transaction.
+			Uploads to OSM always happen in so-called \term[changeset]{changesets} combining multiple changes on the map\cite{osm-wiki-changeset}, they can therefore be seen as a kind of transaction.
 			Like features, each changeset itself can have tags adding metadata to the change.
 			The \texttt{created\_by}, \texttt{comment} and \texttt{source} tags are the most common ones but more details can be added depending on the editor being used.
 			
@@ -333,46 +333,46 @@ Hence, the topic of agents and simulations will be covered as well.
 	\subsection{Theoretic considerations}
 	\label{subsec:routing-theoretic-considerations}	
 	
-		Graph-based routing takes place on a graph $G=(V, E)$ with $V$ being the set of vertices and $E \subset V \times V$ being the set of edges connecting the vertices.
-		Routing is the process of finding a path from a source vertex $s \in V$ to a destination (or target) $t \in V$ of minimal weight using a weight function $w: E \rightarrow \mathbb{R}$.
+		Graph-based routing takes place on a graph $G=(V, E)$ with $V$ being the set of vertices and $E \subseteq V \times V$ being the set of edges connecting the vertices.
+		Routing is the process of finding a path from a source $s \in V$ to a destination (or target) $t \in V$ of minimal weight using a weight function $w: E \rightarrow \mathbb{R}$.
 		A path $p=\left\langle v_0, v_1, \dots v_n \right\rangle$ is an ordered list of connected vertices $v_0, v_1, \dots, v_n \in V$, which means for two consecutive vertices $v_i$ and $v_{i+1}$, $(v_i, v_{i+1}) \in E$ must hold.
 		
-		Often, the shortest path should be determines, which means the weight function is used to calculate the length of an edge, which is not necessarily bound to geographic lengths of edges.
-		Even though the following sections refer to the shortest paths, determining \enquote{optimal} (or minimal) paths is the general case.
-		Thus, routing a minimization problem, trying to find a path $p$ with the minimum sum $w(p) = \sum_i{w(v_i, v_{i+1})}$ \cite[645]{cormen-introduction-to-alg}.
+		Often, the shortest path should be determined, thus the weight function is used to calculate the length of an edge, which is not necessarily bound to the geographic length of the edge.
+		Even though the following sections refer to shortest paths, determining \enquote{optimal} (or minimal) paths is the general case.
+		Thus, routing is a minimization problem, trying to find a path $p$ with the minimum sum $w(p) = \sum_i{w(v_i, v_{i+1})}$ \cite[645]{cormen-introduction-to-alg}.
 		
-		In theoretic computer science, the fundamental problem behind routing algorithms is called the \term{shortest path problem}, which exists in several variants\cite[644]{cormen-introduction-to-alg}:
+		In theoretic computer science, the fundamental problem behind routing algorithms is called the \term{shortest paths problem}, which exists in several variants\cite[644]{cormen-introduction-to-alg}.
 		
-		\subsubsection{\term*[single-source shortest path]{Single-source shortest paths}}
+		\subsubsection{\term*[single-source shortest paths]{Single-source shortest paths}}
 		\label{subsubsec:single-source-shortest-path}
 		
 			One source vertex is given and the shortest paths to all other vertices should be determined.
-			Algorithms that solve this problem are for example the Dijkstra algorithm, described in detail in \cref{subsubsec:dijkstra}, or the Bellman-Ford algorithm, which additionally can handle negative edge weights \cite[651]{cormen-introduction-to-alg}.
+			Algorithms that solve this problem are for example the Dijkstra algorithm, described in detail in \cref{subsubsec:dijkstra}, or the Bellman-Ford algorithm, which can additionally handle negative edge weights \cite[651]{cormen-introduction-to-alg}.
 		
-		\subsubsection{\term*[single-destination shortest path]{Single-destination shortest paths}}
+		\subsubsection{\term*[single-destination shortest paths]{Single-destination shortest paths}}
 		
 			This is the opposite to the above problem.
 			All shortest paths to a specific vertex from any other vertex should be found.
 			However, no new algorithms are needed to solve this problem.
 			Instead, the direction of each edge can be reversed, turning this problem into the single-source problem.
 		
-		\subsubsection{\term*[single-pair shortest path]{Single-pair shortest paths}}
+		\subsubsection{\term*[single-pair shortest paths]{Single-pair shortest paths}}
 		
-			Like the single-source problem, but shortest paths from one source to one specific destination vertex are requested.
-			Even though algorithms like TRANSIT (described in \cref{subsubsec:transit}) solve this problem efficiently, approaches solving the single-source problem, like Dijkstra or algorithms based on it, are used more often.
+			The shortest path from one specific source to one specific destination vertex should be determined.
+			Even though there are specialized algorithms for this problem like TRANSIT (described in \cref{subsubsec:transit}), more general approaches solving the single-source problem, such as Dijkstra or algorithms based on it, are used more often.
 			% TODO source on that
 		
-		\subsubsection{\term*[all-pair shortest path]{All-pair shortest paths}}
+		\subsubsection{\term*[all-pair shortest paths]{All-pair shortest paths}}
 		\label{subsubsec:all-pair-shortest-path}
 		
-			This problem is similar to the single-pair problem but is not restricted to a single source vertex.
-			A naive approach would be to use an algorithm solving the single-pair problem on each vertex, but there are faster ways to solve this.
-			Two popular algorithms solving this problem are the Floyd-Warshall algorithm, allowing negative edge weights by assuming no negative cycles exist \cite[693]{cormen-introduction-to-alg}, and Johnson's algorithm, which also detects negative cycles and terminates in such case \cite[700]{cormen-introduction-to-alg}.
+			This problem is similar to the single-source problem but every vertex is a source vertex.
+			A naive approach would therefore be to use an algorithm solving the single-source problem on each vertex, but there are faster ways to solve this.
+			Two popular algorithms solving this problem are the Floyd-Warshall algorithm, allowing negative edge weights by assuming that no negative cycles exist \cite[693]{cormen-introduction-to-alg}, and Johnson's algorithm, which detects negative cycles and terminates in such a case \cite[700]{cormen-introduction-to-alg}.
 		
 	\subsection{Routing engines and shortest path algorithms}
 	\label{subsec:routing-engines}
 		
-		A \term{routing engine} is a software built to create an optimal route between a source and destination location.
+		A \term{routing engine} is a software built to find an optimal route between a source and destination location.
 		The optimality of this route is determined by a routing profile, which is a weighting function assigning a weight to each edge in the input graph.
 		Routing engines might perform other operations as well, such as map matching or calculation of isochrones.
 		Map matching is a technique to determine equal features in different datasets, for example one dataset is a recorded bicycle tour, the other dataset is an OSM dump and all OSM-ways used in the bicycle tour should be determined \cite{saki-map-matching}.
@@ -382,10 +382,10 @@ Hence, the topic of agents and simulations will be covered as well.
 		
 		To find desirable paths, the weight function $w$ mentioned in \cref{subsec:routing-theoretic-considerations} needs to be carefully chosen based on the domain of the application, vehicle type, personal preferences and other influencing factors.
 		Applications in our everyday life bundle these aspects into a \term{routing profile}, which maps attributes from the input data to a certain weight.
-		The input data might consist of multiple data sources like a road network graph and a digital elevation model (DEM).
+		The input data might consist of multiple data sources like a road network graph and a digital elevation model.
 		Common types of weight functions predict the expected speed on an edge \cite{graphhopper-profile-bike-speeds}, use the length of an edge \cite{graphhopper-profile-shortest} or numerically represent a combination of attributes \cite{graphhopper-profile-short-fastest}.
 		
-		Routing engines, such as Graphhopper, come with predefined profiles for different modalities and situations.
+		The open source software Graphhopper is one example of a routing engine and comes with predefined profiles for different modalities and situations.
 		For example the \texttt{car\_delivery} profile is made for delivery services using cars and therefore allows driving on private roads \cite{graphhopper-routing-profiles}.
 		
 		To enhance performance, speedup methods were developed allowing routing queries of continental or even global sizes to be answered quickly.
@@ -395,7 +395,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		\subsubsection{Dijkstra}
 		\label{subsubsec:dijkstra}
 		
-			Dijkstra's algorithm, often just called \term{Dijkstra}, is an rather old algorithm from the 1950s solving the single-source shortest paths problem.
+			Dijkstra's algorithm, often just called \term{Dijkstra}, is originated in the 1950s and can be used to solve the \term*{single-source shortest paths} problem.
 			When no destination vertex is given, this algorithm creates a spanning tree rooted in the source vertex $s$ containing solely shortest paths to all other vertices.
 			Despite its age, Dijkstra's algorithm and optimized versions of it are frequently used in science and real-world applications and are mentioned quite often in this thesis.
 			\Cref{alg:dijkstra} is an already enhanced version using a priority queue for the vertices \cite[658]{cormen-introduction-to-alg}.
@@ -422,7 +422,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			\end{algorithm}
 			\noindent
 			Once a vertex is taken from the queue, it is considered as \emph{visited} by adding it to $S$.
-			It can be proven that for each visited vertex $v$ after the inner for-loop, the distance $v.d$ is optimal \cite[659-661]{cormen-introduction-to-alg}.
+			It can be proven that for each visited vertex $v$ the distance $v.d$ after the last iteration of the inner for-loop is optimal\cite[659-661]{cormen-introduction-to-alg}.
 			This also means following back the predecessor relation $v.\pi$ yields the shortest path.
 			Therefore, stopping the algorithm after line \ref{alg:dijkstra:end-inner-loop} when $u$ is equal to a destination vertex $t$ is possible since the optimal path from $s$ to $t$ has been found.
 		
@@ -430,7 +430,8 @@ Hence, the topic of agents and simulations will be covered as well.
 		\label{subsubsec:astar}
 		
 			The A* shortest path algorithm was introduced in 1968 and uses a heuristic $h : V \rightarrow \mathbb{R}$ in combination with a distance function $g : V \rightarrow \mathbb{R}$ to decide which vertex to visit next \cite{astar}.
-			The heuristic $h$ estimates the distance from a vertex $v$ to the destination (or target) vertex $t$, while the distance function $g$ gives the already determined distance from the source vertex $s$ to $v$.
+			The heuristic $h$ is used to estimate the distance from a given vertex $v$ to the destination (or target) vertex $t$.
+			The distance function $g$ yields the already determined distance from the source vertex $s$ to $v$.
 			Summing up the two functions to $f(v) = g(v) + h(v)$, gives the estimated length of a shortest path from $s$ via $v$ to $t$ and is used to decide which successor of $v$ to process next.
 			The structure of A* is rather simple and \cref{alg:astar} expresses it in pseudocode.
 			
@@ -456,7 +457,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			The optimal branching factor is 1 and a good heuristic has a factor of close to 1.
 			Having $b^*$ and the number of vertices $n$ in the shortest path, a general runtime complexity of $\bigo{(b^*)^n}$ can be assumed.
 			Since all closed vertices have to be stored in the output graph $G$, the space complexity is equal to the time complexity.
-			This is the major drawback of A*, since a bad heuristic can turn A* into an algorithm with exponential and therefore unmanageable complexity.
+			This is the major drawback of A*, since a bad heuristic can turn A* into an algorithm with potentially unmanageable exponential runtime complexity.
 		
 	\subsection{Speedup methods}
 	\label{subsec:speedup-methods}
@@ -464,7 +465,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		\subsubsection{Contraction Hierarchies}
 		\label{subsubsec:ch}
 		
-			Contraction hierarchies are based on the idea to reduce the amount vertices a routing algorithm has to visit by adding so called \emph{shortcut edges} \cite{geisberger-contraction-hierarchies}.
+			Contraction hierarchies are based on the idea to reduce the number of vertices a routing algorithm has to visit by adding so-called \emph{shortcut edges} \cite{geisberger-contraction-hierarchies}.
 			Consider a vertex $u$ with incoming edge $(v, u)$ and outgoing edge $(u, w)$, meaning there is a path from $v$ via $u$ to $w$.
 			Vertex $u$ is \emph{contracted} by adding a new edge $e = (v, w)$ with weight $w(e) = w(v, u) + w(u, w)$.
 			If $e$ already exists with a higher weight, its weight is decreased accordingly.
@@ -472,39 +473,42 @@ Hence, the topic of agents and simulations will be covered as well.
 			A very important part of this technique is the selection of vertices to contract \cite[14]{geisberger-contraction-hierarchies}.
 			The vertices are selected by a total order $<$ defining a level of importance for each vertex.
 			Selecting the correct order is difficult and heuristics are used to approximate a perfect ordering.
-			Such heuristic can for example be the difference in edge counts from before and after contraction, the uniformity of the distribution of contractions in the Graph or the resulting size of the query search space.
+			Such heuristic can for example be the difference in edge counts from before and after contraction, the uniformity of the distribution of contractions in the graph or the resulting size of the query search space.
 			Multiple heuristics can be combined leading to even better results \cite[49]{geisberger-contraction-hierarchies}.
-			The vertices are stored in a priority queue based on a linear combination of all used heuristics and the most attractive vertex is processed first.
+			The vertices are stored in a priority queue based on a linear combination of all used heuristics and the highest prioritized vertex is processed first.
 			
 			The contraction hierarchy can be used with an adjusted bidirectional Dijkstra algorithm \cite[29-30]{geisberger-contraction-hierarchies}.
-			A query for the shortest path is done on two graphs, an upward and downward graph.
+			A query for the shortest path is performed using two graphs, an upward and downward graph.
 			The upward graph contains only edges from lower to higher order vertices and the downward graph only from higher to lower order vertices.
-			The query finishes, when the two queries (bidirectional) meet \emph{and} there is no lower weighted edge to vertices still waiting in the priority queue.
-			All shortcut edges must now be recursively relaxed to create the actual shortest path.
+			Each of these graphs performs one sub-query, which eventually meet in the same vertex.
+			If this happens \emph{and} no lower weighted edge towards a vertex remaining in the priority queue exists, then the overall queries terminate.
+			All shortcut edges must now be recursively relaxed to create the actual shortest path, which means the shortcut edges are turned back into the original edges that were used to create them.
 		
 		\subsubsection{Landmarks}
 		
-			A popular usage of so called \term[landmark]{landmarks} is the ALT algorithm, which stands for A*, landmarks and triangle inequality \cite{goldberg-landmarks}.
+			A popular usage of so-called \term[landmark]{landmarks} is the ALT algorithm, which stands for A*, landmarks and triangle inequality \cite{goldberg-landmarks}.
 			As described in \cref{subsubsec:astar}, the A* algorithm needs a heuristic leading the search for the shortest path towards the target vertex.
 			This heuristic is often the euclidean distance divided by a certain speed, which is simple but rather inaccurate.
 			
-			A better, but also more complex, approach is to use a set of landmarks $L$.
+			A better, but also more complex approach is to use a set of landmarks $L$.
 			Landmarks are vertices to which all distances are calculated in a precomputation step.
 			
-			Consider a distance function $d : V \times V \rightarrow \mathbb{R}$, two vertices $u, v \in V$ as well as a landmark $l \in L$.
-			The triangle inequality says $d(u,v) \geq d(u,l) - d(v,l)$ for the distances \emph{to} $l$ but also $d(u,v) \geq d(l,u) - d(l,v)$ for distances \emph{from} $l$.
-			This can be used to build the heuristic $h(u) = \max \{ d(u,l)-d(v,l), d(l,u)-d(l,v) \}$ for all landmarks $l$.
+			% TODO remove this math-part? Not really necessary ...
+			Consider a distance function $d : V \times V \rightarrow \mathbb{R}$, two vertices $v, w \in V$ as well as a landmark $l \in L$.
+			The triangle inequality can be expressed as $d(v,w) \geq d(v,l) - d(w,l)$ for the distances \emph{to} $l$ but also $d(v,w) \geq d(l,w) - d(l,v)$ for distances \emph{from} $l$.
+			This can be used to build the heuristic $h(v, w) = \max \{ d(v,l)-d(w,l), d(l,w)-d(l,v) \}$ for all landmarks $l$.
+			Since the actual distance from $v$ to $w$ is larger than the heuristic, using the $\max$ function yields the most accurate estimation for this distance.
 			
 			The critical part regarding the landmarks is their selection.
-			A naive approach selects them at random, which already works, but selecting them in a way that maximized the minimum distance between the landmarks works better.
+			A naive approach selects them at random, which already works, but selecting them in a way that maximizes the minimum distance between the landmarks, i.e. choosing them further apart from each other, works better.
 			
 			Thanks to the triangle inequality, the A* algorithm can use this to determine good choices for next vertices.
-			Since the heuristic consist of the tightest bound by using the $\max$ function, the estimated distance to $t$ using the heuristic is likely to increase or decrease when the actual distance does the same.
+			Since the heuristic consists of the tightest bound by using the $\max$ function, the estimated distance to $t$ using the heuristic is likely to increase when the actual distance does the same (or decrease respectively).
 		
 		\subsubsection{Transit nodes}
 		\label{subsubsec:transit}
 		
-			The routing algorithm called \term{TRANSIT} uses specially selected vertices, so called \term[transit node]{transit nodes}, and the distances to all other vertices in the graph to find shortest paths very quickly \cite{bast-transit}.
+			The routing algorithm called \term{TRANSIT} uses specially selected vertices, so-called \term[transit node]{transit nodes}, and the distances to all other vertices in the graph to find shortest paths very quickly \cite{bast-transit}.
 		
 			First, the graph is divided into smaller rectangular cells and Dijkstra queries are then used to determine the transit nodes.
 			For each cell, the neighboring cells of a $5 \times 5$ (inner neighbors) and $9 \times 9$ (outer neighbors) neighborhood are determined.
@@ -514,41 +518,41 @@ Hence, the topic of agents and simulations will be covered as well.
 			Since Dijkstra solves the \hyperref[subsubsec:single-source-shortest-path]{single-source shortest paths problem}, all distances from a normal vertex to its nearest transit nodes are stored.
 			The final step of the preprocessing is the calculation of the distances between all transit nodes, which means solving the \hyperref[subsubsec:all-pair-shortest-path]{all-pair shortest path problem}.
 			
-			For a source vertex $src \in V$ and destination vertex $dst \in V$, the distances from $src$ to its transit nodes $T_{src} \subset V$, the distances from $dst$ to it transit nodes $T_{dst} \subset V$ and also the distances between the vertices from $T_{src}$ and $T_{dst}$ are known.
+			For a source vertex $src \in V$ and destination vertex $dst \in V$, the distances from $src$ to its transit nodes $T_{src} \subset V$, the distances from $dst$ to its transit nodes $T_{dst} \subset V$ and also the distances between the vertices from $T_{src}$ and $T_{dst}$ are known.
 			To determine the shortest path, these distances are used including the total shortest path distance $d(src, dst)$.
 			
 			The first routine calculates this distance $d(src, dst)$.
-			For each closest transit node $t_{src} \in T_{src}$ of $src$, all distances $d(src, t_{src})$ were already precomputed an known.
-			Same holds for all distances $d(t_{dst}, dst)$ from each closest transit node $t_{dst} \in T_{dst}$ to $dst$.
+			For each closest transit node $t_{src} \in T_{src}$ of $src$, all distances $d(src, t_{src})$ were already precomputed and are known.
+			The same applies to all distances $d(t_{dst}, dst)$ from each closest transit node $t_{dst} \in T_{dst}$ to $dst$.
 			The minimal distance between $src$ and $dst$ can be found by going through all pairs of the closest transit nodes $t_{src} \in T_{src}$ and $t_{dst} \in T_{dst}$ and calculating $d(src, dst) = d(src, t_{src}) + d(t_{src}, t_{dst}) + d(t_{dst}, dst)$.
 			
 			With the total distance $d(src, dst)$ of the shortest path, it is possible to iteratively pick the next vertex in the shortest path.
 			For each vertex $v$ on the shortest path, the next vertex $v'$ on that path can be found as follows:
 			the one neighbor vertex $v'$ for which $d(src, v) + d(v, v') + d(v', dst) = d(src, dst)$ holds is the next vertex on the shortest path.
 			Therefore, it is essential to know the distance $d(src, dst)$.
-			After reaching $dst$, the list of stored vertices build the shortest path.
+			After reaching $dst$, the list of stored vertices yield the shortest path.
 		
 		\subsubsection{Hub labels}
 		
 			The \term{hub label} strategy \cite{bast-transportation-networks} is a labeling algorithm calculating labels $L(v)$ for each vertex $v$.
-			Each label contains a set of vertices (so called \emph{hubs}) and the length of the shortest path to each of the hubs.
+			Each label contains a set of vertices (called \emph{hubs}) and the length of the shortest path to each of the hubs.
 			A label must fulfill the following two properties.
 			
 			First, the distance $d(u, v)$ from vertex $u$ to $v$ must be determinable using only their labels $L(u)$ and $L(v)$.
 			Since $u$ and $v$ can be arbitrary vertices, the vertex $v$ is not necessarily within $L(u)$.
-			To not traverse through all labels to find $v$ from $u$, the second property (so called \emph{cover property}) is very important:
+			To not traverse through all labels to find $v$ from $u$, the second property (called \emph{cover property}) is very important:
 			For two arbitrary vertices $u$ to $v$, the set $L(u) \cap L(v)$ must contain at least one common hub $h$ on the shortest path from $u$ to $v$.
 			This can be used to solve fulfill the first property.
 			
-			The labels can be determined with the mechanism from contraction hierarchies (see \hyperref[subsubsec:ch]{above}) forming the upward graph.
-			In fact, any order on vertices can be used to create a correct labeling.
+			The labels can be determined with the mechanism from contraction hierarchies forming the upward graph based on a vertex ordering $<$.
+			In fact, any such order can be used to create a correct labeling.
 
-			Routing requests for a shortest path from $u$ to $v$ are simple and fast to answer:
-			Get the labels $L(u)$ and $L(v)$ and find all common hubs.
-			When storing the hubs in a sorted list during preprocessing, building the intersection can be done in linear time time.
-			Find the hub pair $h_u$ and $h_v$ in the intersection with the minimum distance sum and return their paths.
+			Routing requests for a shortest path from $u$ to $v$ are simple and answered in the following way.
+			First, the labels $L(u)$, $L(v)$ and their common hubs are determined.
+			When storing the hubs in a sorted list during preprocessing, building the intersection can be done in linear time.
+			Finally, the hub $h \in L(u) \cap L(v)$ with the minimum distance sum $d(u, h) + d(h, v)$ is returned as it is on the shortest path from $u$ to $v$.
 			
-			Even though the requests can be answered incredibly fast, actually faster than most other routing methods, it needs a lot of space and preprocessing time to store and determine all the labels.
+			Even though the requests can be answered very fast, actually faster than most other routing methods, it needs a lot of space and preprocessing time to store and determine all the labels.
 		
 		\subsubsection{Compressed path databases}
 		\label{subsubsec:cpd}
@@ -565,8 +569,8 @@ Hence, the topic of agents and simulations will be covered as well.
 			The path from cell $u$ to $v$ is requested, so the grid $u$ is used first.
 			On that grid, the cell for $u$ is empty (since it is the source cell) and the cell for $v$ stores the first step to take from $u$ in order to get to $v$.
 			This first step (on a grid for example the direction \enquote{north east}) leads to a new cell $u'$.
-			The grid for $u'$ is then looked at and, just as before, the cell $v$ tells the algorithm what direction to take.
-			This goes on until the cell $v$ is found.
+			The grid for $u'$ is then looked at and, just as before, the cell $v$ contains the direction to take.
+			This is repeated until the cell $v$ is reached.
 			
 			The construction of a CPD \cite{botea-cpd-2013} is similarly simple.
 			For each vertex $v$, the shortest paths to all other vertices are calculated, which can be done using Dijkstra or any other single-source or all-pairs shortest path algorithm.
@@ -574,8 +578,8 @@ Hence, the topic of agents and simulations will be covered as well.
 			Uncompressed data is usually too large as the space requirement is in $\bigo{n^2}$ or even $\bigo{n^2 \log n}$ for graphs.
 			
 			There are multiple possible ways to compress a raw CPD.
-			The original paper uses a decomposition of rectangles with common movement directions to reduce the amount of redundant data.
-			A new approach presented two years later uses general purpose compression techniques like run-length encoding (RLE) and sliding-window compression (SWC) as well as a special list-trimming using default movements to reduce the amount of information being explicitly stored.
+			The original paper Botea et al.\cite{botea-cpd-2011} uses a decomposition of rectangles with common movement directions to reduce the amount of redundant data.
+			A new approach presented two years later uses general purpose compression techniques like run-length encoding (RLE) and sliding-window compression (SWC) as well as a special list-trimming using default movements to reduce the amount of information being explicitly stored\cite{botea-cpd-2013}.
 			
 			The original approach already showed good results.
 			Using the originally proposed compression (rectangle decomposition only) on a road network yields a CPD with a compression factor of about 180.
@@ -595,7 +599,7 @@ Hence, the topic of agents and simulations will be covered as well.
 	
 		The first mechanism creates edges and then utilizes a normal graph-based routing algorithm to actually find the shortest path.
 		There are multiple ways on how to create such edges.
-		A well known and often used mechanism is the creation of a so called \term{visibility graph}, which is a normal graph with edges between vertices that are visible to each other.
+		A well known and often used mechanism is the creation of a so-called \term{visibility graph}, which is a normal graph with edges between vertices that are visible to each other.
 		Or in other words, for any two $u, v \in V$ there is an edge $(u, v) \in E$ if and only if there is no obstacle intersecting this edge.
 		Since a visibility graph might become very large, some edges might be removed or other strategies are more efficient.
 		In fact, the worst-case of a visibility graph is a complete graph with $\bigo{|V|^2}$ many edges.

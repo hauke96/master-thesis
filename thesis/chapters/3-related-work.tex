@@ -27,7 +27,7 @@ This section gives an overview about closely related work from these areas.
 		The time complexity of Overmars and Welzls approach was already output sensitive by the number of edges in the output graph \cite{ghosh-output-sensitive-vgraph}.
 		Ghosh and Mount presented another algorithm with an output sensitive complexity of $\bigo{E + n \log n}$, which is a significant improvement, since $E$ is in $\bigo{n^2}$.
 		However, their approach needs $\bigo{E + n}$ space compared to $\bigo{n}$ from the earlier algorithm.
-		Ghosh and Mount use plain-sweeps to create a triangulation of the free space and introduced so called \emph{funnel sequences}, which are sets of vertices visible to parts of an edge.
+		Ghosh and Mount use plain-sweeps to create a triangulation of the free space and introduced so-called \emph{funnel sequences}, which are sets of vertices visible to parts of an edge.
 		To avoid numerous edge cases, their approach assumes no collinear vertices and unique x-coordinates.
 		
 		Kapoor and Maheshwari introduced two algorithms, one for determining shortest paths and one to create a visibility graph, which are based on triangulations as well \cite{kapoor-shortest-path-vgraph}.
@@ -123,7 +123,7 @@ This section gives an overview about closely related work from these areas.
 		Shortly after Welzl and others published their work on visibility graphs, which can be used in combination with Dijkstra to find shortest paths, Mitchell presented a pure geometric method to find euclidean shortest paths around obstacles in the plain in 1993\cite{mitchell-shortest-path}.
 		He used wavefronts propagating from the source towards the target vertex.
 		Each origin of a wavefront can be traces back to its source giving the shortest path.
-		Because this algorithm solves the \hyperref[subsubsec:single-source-shortest-path]{\term*{single-source shortest path} problem}, just like the Dijkstra algorithm does on a network, this technique is also called the \term{continuous dijkstra} paradigm.
+		Because this algorithm solves the \hyperref[subsubsec:single-source-shortest-path]{\term*{single-source shortest paths} problem}, just like the Dijkstra algorithm does on a network, this technique is also called the \term{continuous dijkstra} paradigm.
 		
 		% An Optimal Algorithm for Euclidean Shortest Paths in the Plane (Hershberger, Suri, 1999)
 		Another approach solving the geometric single-source shortest path problem was presented by Hershberger and Suri one year later, in 1997 \cite{hershberger-suri}.
