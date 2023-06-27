@@ -22,7 +22,7 @@ public static class HybridVisibilityGraphGenerator
         "natural!=.*grass.*",
         "obstacle",
         "poi",
-        "railway",
+        "railway!=^(abandoned)$",
         "waterway"
     };
 
