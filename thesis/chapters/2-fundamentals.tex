@@ -37,11 +37,10 @@ Hence, the topic of agents and simulations will be covered as well.
 		Types of coordinate systems are for example Cartesian (coordinates in meters or foot) and ellipsoidal (coordinates in degrees) \cite[11-13]{ordenance-survey-booklet}.
 		The \term{horizontal datum} (also \term{Terrestrial Reference System} or \term{geodetic datum}) defines the origin and orientation of the coordinate system and is therefore a mapping from a numeric coordinate to a real location on Earth based on a specific ellipsoid.
 		
-		Since the Earth is a spherical body, the horizontal datum is always tied to an ellipsoid.
 		\term[ellipsoid]{Ellipsoids} are deformed spheres, which describe either the whole Earth or a part of it, e.g. a single continent or country, as accurately as possible.
 		Depending on this ellipsoid, the horizontal datum either defines a global or local reference system.
 		The latter is more accurate in certain places while a global system is designed to find good approximations for every location on Earth.
-		Cartesian coordinate systems with two dimensions only work on flat surfaces, therefore a \term*[map projection]{projection} is required to turn each spherical location on the ellipsoid into a two dimensional planar location in the coordinate system \cite[17]{ordenance-survey-booklet}.
+		Cartesian coordinate systems with two dimensions only work on flat surfaces, therefore a \term*[map projection]{projection} is required to turn each spherical location on the ellipsoid into a two-dimensional planar location in the coordinate system \cite[17]{ordenance-survey-booklet}.
 		
 		Analogous to the horizontal datum, a \term{vertical datum} can be used to define the height of data \cite{ordenance-survey-booklet}.
 		This is done by defining a so called \term{geoid}, which defined the level of zero height.
@@ -88,17 +87,18 @@ Hence, the topic of agents and simulations will be covered as well.
 		\subsubsection{Standardization}
 		
 			Standards exist to keep a data source consistent but to also allow interoperability between systems.
-			Common standards were defined by organizations like the OGC but companies or government agencies define standards as well.
+			Common standards were defined by organizations like the OGC as well as companies or government agencies.
 			
-			A widely used proprietary standard established by the company Esri Inc. is the Shapefile file format.
-			This format will be covered in more detail in \cref{subsubsec:shapefile}.
+			A widely used proprietary standard established by the company Esri Inc. is the Shapefile file format, which will be covered in more detail in \cref{subsubsec:shapefile}.
 			
-			One example for a governmental standard, is the INSPIRE standard.
+			One example for a governmental standard is the INSPIRE standard.
 			It was established based on an initiative of the European Commission and defines fixed attributes with keys and values as well as specifications for metadata.
 			This standard works on a high level of detail with numerous separate specifications for different types of features, for example there exists a single specification just for protected sites, such as natural reserves \cite[31]{inspire-protected-sites}.
 		
-			A standardization strategy based on democratic votes is used by \term*{OpenStreetMap} (\term*{OSM}), a crowdsourced spatial database (covered in \cref{subsec:osm} with more details).
-			The standardization of OSM takes place in the projects Wiki, which defines certain keys and values but also explicitly allows arbitrary tags (key-value pairs) to ensure a high degree of flexibility \cite{osm-wiki-proposal-process}.
+			A standardization strategy based on democratic votes is used by \term*{OpenStreetMap}.
+			This procedure takes place in the project's Wiki, where voting takes place and keys with their according values are defined.
+			However, arbitrary tags (key-value pairs) are still explicitly allowed to ensure a high degree of flexibility \cite{osm-wiki-proposal-process}.
+			Details on OSM are given in \cref{subsec:osm}.
 			
 	% TODO kürzen
 	\subsection{File formats}
@@ -121,7 +121,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			Even though the first byte of every geometry in the shapefile encodes its type, the standard allows only one type of geometry per shapefile \cite{esri-shapefile-spec}.
 			Storing for example points and polygons would require two separate shapefiles even though the data might belong together.
 			Attributes have limitations in their size and structure.
-			One major limitation is the maximum length of 10 characters per attribute name and a maximum of 254 characters per value \cite{esri-shapefile-limitations}.
+			Two major limitations are the maximum length of 10 characters per attribute name and a maximum of 254 characters per value \cite{esri-shapefile-limitations}.
 			The maximum number of attributes per geometry is limited by 255.
 			The default CRS is based on latitudes and longitudes using the North American Darum from 1927 (NAD 27)\cite{esri-shapefile-coordinate-system}.
 			
@@ -129,9 +129,9 @@ Hence, the topic of agents and simulations will be covered as well.
 		
 			Another popular spatial format is the \term[kml]{Keyhole Markup Language} (KML), which was standardized by the OGC in 2008\cite{ogc-kml-2.2}.
 			A KML file consists of a single XML structured file.
-			Since it follows the XML standard, which is plain text, the amount of geometries and attributes are not restricted.
-			KML files may contain more information than just features:
-			Features can be grouped and hierarchically organized, temporal data can be added to define the lifetime of a feature and camera views for visualization applications can be defined \cite{ogc-kml-2.3}.
+			Since it follows the XML standard, which is plain text, the number of geometries and attributes is not restricted.
+			KML files may contain more information than just features.
+			They can be grouped and hierarchically organized, temporal data can be added to define the lifetime of a feature and camera views for visualization applications can be defined \cite{ogc-kml-2.3}.
 			The CRS can be specified but WGS 84 with latitudes and longitudes is used by default.
 		
 		\subsubsection{GeoJSON}
@@ -139,14 +139,17 @@ Hence, the topic of agents and simulations will be covered as well.
 		
 			Another open but not OGC-standardized format is \term{GeoJSON}, which is the most important format for this thesis as all used datasets were in this file format.
 			As the name suggests, a GeoJSON file follows the JSON specification as defined in \href{https://datatracker.ietf.org/doc/html/rfc7946}{RFC7946} \cite{ietf-geojson}.
-			The file can contain a collection of features (object of type \texttt{FeatureCollection}), where each feature contains a geometry, or the file just contains a list of geometries (\texttt{GeometryCollection}, which itself is a geometry type) without attributes.
-			The length of attributes, amount of attributes, character choice and amount of geometries are not restricted.
+			The file can either contain a collection of features or geometries.
+			Both collections are represented by a designated type, namely \texttt{GeometryCollection} and \texttt{FeatureCollection}.
+			A \texttt{GeometryCollection} is itself one possible geometry type.
+			Each feature in a \texttt{FeatureCollection} consists of a geometry and, in contract to elements in a \texttt{GeometryCollection}, attributes adding additional information to the feature.
+			The number of geometries per feature as well as the length, number and character choice of attributes is not restricted.
 			The CRS is fixed and has been set to WGS 84.
 			
 		\subsubsection{GeoTIFF}
 		
-			All formats mentioned so far store vector data, however, raster data can be georeferenced as well.
-			One format to store such raster data in form of an image, is the OGC-standardized \term{GeoTIFF} format \cite{ogc-geotiff}.
+			All formats mentioned so far store vector data, but raster data can be georeferenced as well.
+			One format to store such raster data in form of an image is the OGC-standardized \term{GeoTIFF} format \cite{ogc-geotiff}.
 			As the name suggests, it is an TIFF formatted image with spatial metadata such as the CRS and a mapping of pixel to coordinates.
 			Typical use cases for such images are aerial or satellite imagery and \term*[digital elevation model]{digital elevation models} (\term*{DEM}).
 		
@@ -156,14 +159,14 @@ Hence, the topic of agents and simulations will be covered as well.
 			
 			A \emph{comma-separated value} (\term*{CSV}) file can also serve as a spatial file format where certain columns contain geographical information.
 			The simplicity of this format is its biggest advantage and it is used as transportation format for many public datasets.
-			One example is the public available timetable data of the HVV (public transport network in Hamburg, Germany) \cite{hvv-fahrplandaten}.
+			One example is the publicly available timetable data of the HVV (public transport network in Hamburg, Germany) \cite{hvv-fahrplandaten}.
 			This uses the \term{GTFS} format, which is based on CSV files (even though each file has the ending \texttt{.txt}) and also contains a \texttt{shapes.txt} CSV file to describe which routes the vehicles take \cite{google-gtfs}.
 			However, there is no popular standard using CSV files to store spatial data only.
 			
 			The \term{Well-known Text} (\term*{WKT}) format is a simple, text-based format specified by the OGC\cite[51]{ogc-sfa}.
 			One popular use case is communication with databases.
 			One example is PostGIS, an extension to the PostgreSQL database management system, which uses WKT as one exchange format to read and write spatial data\cite{postgis-doc-wkt}.
-			The WKT format also exists as a binary version called \term{Well-known Binary} (\term*{WKB}), which consumes less space.
+			The WKT format also exists as a binary version called \term{Well-known Binary} (\term*{WKB}), which requires less space.
 			
 			More complex formats are \term{SpatiaLite} and \term{GeoPackage}.
 			SpatiaLite specifies an extension to file-based SQLite database engine and offers additional geodata specific functionality\cite{spatialite-website}.
@@ -202,7 +205,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		
 		The term GIS is very broad and describes nearly all systems working with spatial data.
 		This includes databases like Postgres with the PostGIS extension, processing tools like GDAL, libraries like the Net Topology Suite, servers like GeoServer and desktop applications like ArcMap or QGIS.
-		The latter often combine multiple functionalities to visualize, analyze or otherwise process the data.
+		Such desktop application often combine multiple functionalities to visualize, analyze or otherwise process the data.
 	
 	\subsection{OpenStreetMap}
 	\label{subsec:osm}
@@ -216,12 +219,12 @@ Hence, the topic of agents and simulations will be covered as well.
 		
 		\subsubsection{Data model}
 		
-			The model of OSM is much simpler compared to many of the \hyperref[subsec:file-formats]{aforementioned mentioned} data formats.
+			The model of OSM is much simpler compared to many of the \hyperref[subsec:file-formats]{aforementioned} data formats.
 			There are three main data types in OSM: \term{node}, \term{way} and \term[relation]{relations}\cite{osm-wiki-data-model}.
 			
 			Nodes and ways are analogous to \texttt{Point} and \texttt{LineString} from the OGC \term*{Simple Feature Access} (\term*{SFA}) specification described in \cref{subsec:data-structures}.
-			Areas also exist but they are modeled as closed ways, therefore they do not form a new type of geometry.
-			A way is closed, when the first and last coordinates are identical and certain area compatible attributes exist.
+			Areas also exist but they are modeled as closed ways and therefore do not form a new type of geometry.
+			A way is closed when the first and last coordinates are identical and certain area compatible attributes exist.
 			
 			Relations form multi-geometries, so they are analogous to \texttt{MultiPoint}, \texttt{MultiLineString} and \texttt{MultiPolygon} of the SFA specification.
 			Typical use cases are multipolygons, turn restrictions and bus routes.
@@ -232,46 +235,43 @@ Hence, the topic of agents and simulations will be covered as well.
 		\label{subsubsec:osm-attributes}
 			
 			Attributes are called \term[tag]{tags} and are simple unrestricted key-value pairs.
-			The Wiki of OpenStreetMap standardizes many tags with designated values via a special proposal process, but it is still allowed to use new, reasonable and unstandardized values \cite{osm-wiki-proposal-process}.
-			
 			Most tags describe the properties of the feature.
-			For example a node may have tags making it a restaurant with additional tags for the name, address, the served food, the opening hours and whether or not the toilets are barrier free.
+			For example a node may have tags making it a restaurant with additional tags for the name, address and opening hours.
 			
-			Some tags, however, like \texttt{area=[yes|no]} or the \texttt{type} key used for relations, influence the type of geometry.
-			A closed way with \texttt{area=no} does, in fact, \textit{not} represent a polygon, but just a closed line.
-			This of course affects visualizations but may also needs to be considered in other processing and analysis tasks.
+			Some tags, like \texttt{area=[yes|no]} or the \texttt{type} key used for relations, influence the type of geometry.
+			A closed way with \texttt{area=no} does, in fact, \textit{not} represent a polygon, but a closed line.
+			This not only affects visualizations but may also need to be considered in other processing and analysis tasks.
 			
 			Other tags add metadata to objects, for example the last time the feature was surveyed, the source of the data or internal notes to other mappers.
 			
-			There are two ways to turn a key-value-pair into an \enquote{official} tag:
-			By using it so often that it is de-facto accepted or by a proposal followed by a voting.
+			Standardization of tags takes place in the project's wiki via a special proposal process.
+			To ensure flexibility, it is explicitly allowed to use new, reasonable and unstandardized tags \cite{osm-wiki-proposal-process}, which are de-facto accepted if they are commonly used.
 			The community tries to organize and professionalize the development of new tags using the proposal process.
-			Not only is a proposed tagging scheme accepted or rejected by a democratic vote, a mandatory public discussion of a minimum duration needs to take place earlier.
-			Due to the vast amount of contributors, different opinions, different editors and different knowledge about the tagging schemes, multiple competing schemes might evolve (for example \texttt{phone=*} and \texttt{contact:phone=*}).
+			Not only can a proposed tagging scheme be accepted or rejected by a democratic vote, a mandatory public discussion of a minimum duration needs to take place earlier.
+			Due to the vast amount of contributors, different opinions, use cases, editors and knowledge about the tagging schemes, multiple competing schemes might evolve (for example \texttt{phone=*} and \texttt{contact:phone=*}).
 			Tagging schemes change over time and some may become deprecated or are officially abandoned via a proposal, leading to outdated tags on objects.
 			
 		\subsubsection{Contributions to OSM}
 		
 			Uploads to OSM always happen in so called \term[changeset]{changesets} combining multiple changes on the map\cite{osm-wiki-changeset}, they can therefore be seen as a kind of transaction.
-			Each changeset itself can have tags, just like features can.
-			However, tags on a changeset specify certain metadata to the change.
+			Like features, each changeset itself can have tags adding metadata to the change.
 			The \texttt{created\_by}, \texttt{comment} and \texttt{source} tags are the most common ones but more details can be added depending on the editor being used.
 			
+			% TODO kürzen/weglassen?
 			Because some mappers also perform manual quality assurance by reviews, each changeset should fulfill certain quality criteria.
-			The simplest one is a good changeset comment answering questions like \textit{what changed?} and \textit{why was the change necessary?}.
+			The simplest one is a good changeset comment containing information about \textit{what} changed and \textit{why} the change was necessary.
 			For legal reasons, specifying the source is very important since the ODbL is not necessarily compatible with licenses of other data sources.
-			Ideally a changeset should be coherent, which means that it should focus on one thematic aspect in one local area.
+			Ideally, a changeset should be coherent, which means that it should focus on one thematic aspect in one local area.
 			Too large and crowded changesets are difficult to maintain and therefore might get reverted.
 			
 		\subsubsection{Data contained in OSM}
 		
 			Since OSM has no focus on specific topics and due to the flexible tagging scheme \hyperref[subsubsec:osm-attributes]{mentioned above}, nearly anything can be added to OSM.
-			However, there are some types of features that are very common according to \href{https://taginfo.openstreetmap.org/keys}{taginfo.openstreetmap.org}, a service providing daily updated statistics on currently used keys and values covering the entire OSM database\cite{taginfo-keys}.
-			
+			However, there are some types of features that are very common according to \href{https://taginfo.openstreetmap.org/keys}{taginfo.openstreetmap.org}, a service providing daily updated statistics on keys and values in OSM\cite{taginfo-keys}.
 			According to these statistics, the most common objects are buildings with over 542 million occurrences.
-			In fact, 6\% of all objects and nearly 60\% of all ways, which includes polygons as well, in OSM are buildings.
-			Highways (mainly roads and streets but also paths, bridleways, railways and more) are the second common type of features with over 233 million occurrences.
-			Addresses are also very common, about 32\% of all nodes and 7\% of all ways have a house number.
+			In fact, 6\% of all objects and nearly 60\% of all ways are buildings.
+			Highways (mainly roads and streets but also paths, bridleways, railways and more) are the second common type of features with over 219 million ways (23\% of all ways).
+			Addresses are also very common, about 32\% of all nodes and 7\% of all ways (mainly building) have a house number.
 			Other often added area features are forests and lakes as well as line features like barriers and waterways.
 			
 		\subsubsection{Data \textit{not} contained in OSM}
@@ -282,7 +282,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			First, some data is too detailed and therefore people will not invest the time necessary to create or maintain that data.
 			For example a tree can have tags specifying its genus, species, taxon, Wikipedia and Wikidata references to each of these, leaf type, leaf cycle, protection, circumference, height, an image and even more. Some, especially older, protected or locally important trees, do have some of these tags, but the vast majority has none of these tags apart from the necessary \texttt{natural=tree}.
 			
-			Second, OSM follows some strategies on what to add and what not.
+			Second, OSM follows some strategies on what and what not to add.
 			One important strategy is the verifiability of objects on the ground.
 			Anyone visiting a certain place should be able to find the data from OSM and therefore verify its existence and correctness.
 			
@@ -298,7 +298,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			However, automatic inference of tags always leads to a certain amount of errors.
 			
 			Private areas are often not part of OSM or contain only very little details.
-			This is mainly due to the second reason from above, since private areas can often not be entered and are therefore unverifiable for unauthorized mappers, and is also based on a general awareness of privacy towards companies and residents.
+			This is mainly due to the second reason from above, that private areas can often not be entered and are therefore unverifiable for unauthorized mappers, and is also based on a general awareness of privacy towards companies and residents.
 			
 		\subsubsection{Data used in this thesis}
 		
