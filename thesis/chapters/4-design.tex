@@ -50,8 +50,6 @@ Finally, an overview of the separate components is given as well as a descriptio
 		It should at least make sense to an observer without additional knowledge of the real-world location.
 		The coordinates of waypoint on the calculated and on real trajectories must not be exactly the same, since real pedestrian behavior is not part of the shortest path calculations but is instead a task for realistic agent modeling.
 		Such behavior includes for example a typical minimum distance kept to obstacles or a minimum radius of walked curves.
-
-		Next to the domain specific requirement, the overall code itself should of course be well documented and tested.
 	
 	\subsection{Constraints}
 	\label{subsec:constraints}
@@ -255,7 +253,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 		Handling all those special cases, preventing unwanted edges and still using the approach by Overmars and Welzl would be possible but would also increase the complexity of their approach.
 		
 		Another approach with the limitation of no collinear vertices was the plain-sweep algorithm by Ghosh and Mount \cite{ghosh-output-sensitive-vgraph}.
-		Next to the limitation on collinear vertices, they assume x-coordinates to be unique, which would need to be handled as well.
+		In addition to the limitation on collinear vertices, they assume x-coordinates to be unique, which would need to be handled as well.
 		Even though coordinates are usually floating point numbers and therefore have a great range of possible values, rounding and size limitations reduce this range and might result in a high number of non-unique x-coordinate values.
 		Counting the number of non-unique x-coordinates in OpenStreetMap illustrates this problem:
 		The OSM dataset of the German state of Hamburg contains over 3.2 million nodes of which 22.8\% have a non-unique x-coordinate.

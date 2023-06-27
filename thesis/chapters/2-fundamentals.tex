@@ -19,7 +19,7 @@ Hence, the topic of agents and simulations will be covered as well.
 	Geodata with an additional time dimension is also categorized as \term{spatiotemporal data}\cite{iso-19108} and even though the time dimension is relevant to many real-world use cases, this type of data is of less importance for this thesis as well.
 	The term \emph{geodata} in this thesis refers to data structures as described below in \cref{subsec:data-structures}.
 	
-	Next to the mentioned explicit references to locations, such as coordinates, implicit location references can be encoded within metadata of datasets as well.
+	Besides the mentioned explicit references to locations, such as coordinates, implicit location references can be encoded within metadata of datasets as well.
 	This is for example the case with the image-based GeoTIFF format, which stores the geographic extent of the image in the metadata of a normal TIFF image file\cite{ogc-geotiff}.
 	The exact coordinate of a data point (in this case a pixel in the TIFF image), must then be calculated using this metadata.
 
@@ -43,7 +43,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		The latter is more accurate in certain places while a global system is designed to find good approximations for every location on Earth.
 		Cartesian coordinate systems with two dimensions only work on flat surfaces, therefore a \term*[map projection]{projection} is required to turn each spherical location on the ellipsoid into a two dimensional planar location in the coordinate system \cite[17]{ordenance-survey-booklet}.
 		
-		Next to the horizontal datum, a \term{vertical datum} can be used to define the height of data \cite{ordenance-survey-booklet}.
+		Analogous to the horizontal datum, a \term{vertical datum} can be used to define the height of data \cite{ordenance-survey-booklet}.
 		This is done by defining a so called \term{geoid}, which defined the level of zero height.
 		Such a geoid can be modeled using another ellipsoidal sphere but that would result in very inaccurate data.
 		Instead, local reference levels for height data are used, such as the Ordnance Datum Newlyn (\term*{ODN}) for Britain or Normalhöhennull (\term*{NHN}) for Germany.
@@ -105,8 +105,8 @@ Hence, the topic of agents and simulations will be covered as well.
 	\label{subsec:file-formats}
 	
 		Spatial data can be stored in a variety of different file formats with different properties and use cases.
-		Next to proprietary formats, there are many open standards.
-		The \term[OGC]{Open Geospatial Consortium} (OGC) published open standard definitions and schemas for some of these open file formats.
+		Both proprietary and open standards exist and are used frequently in scientific and real-world applications.
+		The \term[OGC]{Open Geospatial Consortium} (OGC) publishes open standard definitions and schemas for some of these open file formats.
 		This section gives an overview of some popular formats.
 		
 		\subsubsection{Esri shapefile}
@@ -171,7 +171,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			
 	\subsection{OGC web services}
 	
-		Next to file-based formats, web-based standards exist as well.
+		Besides file-based formats, web-based standards exist as well.
 		The OGC standardized some APIs for web-based services.
 		Popular standards are the \term{Web Map Service} (\term*{WMS}), \term{Web Map Tile Service} (\term*{WMTS}) and \term{Web Feature Service} (\term*{WFS}).
 		
@@ -193,7 +193,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		
 			To access raw data, a \term*{Web Feature Service} can be used \cite{ogc-wfs}.
 			As the name suggests, it returns features instead of a rendered map.
-			Next to query operations like \texttt{GetFeature}, the API specification also describes an optional \texttt{Transaction} operation to change the data.
+			In addition to query operations like \texttt{GetFeature}, the API specification also describes an optional \texttt{Transaction} operation to change the data.
 	
 	\subsection{GIS}
 	
@@ -307,7 +307,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			
 			One example of such a fragmented source is provided by the state office for geoinformation and surveying (Landesbetrieb für Geoinformationen und Vermesseung -- LGV) in Hamburg, Germany.
 			The road network and building data can be downloaded via the official website \href{https://geoportal-hamburg.de}{geoportal-hamburg.de} but are contained in two different datasets (called \enquote{HH-SIB} and \enquote{ALKIS}).
-			Next to the fragmentation, official data is not necessarily made to be used in routing algorithms.
+			In addition to the fragmentation, official data is not necessarily made to be used in routing algorithms.
 			In fact, the road network of the \enquote{HH-SIB} dataset contains numerous line segments representing ways and roads, which are not connected to the general road network.
 			The \enquote{ALKIS} dataset also contains road data, but only the area a road occupies, which cannot be used in common graph-based routing algorithms.
 			OpenStreetMap, however, offers free access to numerous usable features in one single dataset.
