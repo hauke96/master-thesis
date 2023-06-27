@@ -35,36 +35,88 @@ dataset_labels=[
 
 dataset_raw=common.load_dataset(dataset_filter)
 dataset_raw["distance_beeline"]=dataset_raw["distance_beeline"] / 1000
-dataset_relevant=dataset_raw[["distance_beeline"] + dataset_cols]
-dataset=dataset_relevant.melt('distance_beeline', var_name='aspect', value_name='time')
 
-common.init_seaborn(width=440)
+dataset_ids=dataset_raw["obstacle_vertices_input"].unique();
+
+max_beeline_distance=max(dataset_raw["distance_beeline"]);
 
 #
 # Plot absolute numbers
 #
 
-title="Routing - Durations broken down"
-fig_abs, ax_abs = plt.subplots()
+for id in dataset_ids:
+	dataset_filtered=dataset_raw[dataset_raw["obstacle_vertices_input"] == id];
+	dataset_relevant=dataset_filtered[["distance_beeline"] + dataset_cols]
+	dataset=dataset_relevant.melt('distance_beeline', var_name='aspect', value_name='time')
+
+	common.init_seaborn(width=440)
+
+	title="Routing - Durations broken down"
+	fig, ax = plt.subplots()
+
+	plot=common.create_lineplot(
+		dataset,
+		#title,
+		xcol="distance_beeline",
+		xlabel="Beeline distance in km",
+		ycol='time',
+		ylabel='Time in ms',
+		hue="aspect",
+		yscale='log',
+		#errorbar=("pi", 50),
+		ax=ax
+	)
+
+	plot.set_xlim(0, max_beeline_distance)
+
+	handles, labels = ax_abs.get_legend_handles_labels()
+	handles=[h for h in handles if not isinstance(h, container.ErrorbarContainer)]
+
+	sns.move_legend(
+		ax,
+		"center left",
+		bbox_to_anchor=(1.025, 0.5),
+		handles=handles,
+		labels=dataset_labels,
+		title_fontsize=common.fontsize_small,
+		fontsize=common.fontsize_small,
+		title='Legend',
+	)
+
+	common.save_to_file(fig, os.path.basename(__file__) + "_absolute_" + str(id))
+
+#
+# Plot details through all dataset sizes for one route request
+#
+
+# The longest distance of the smallest dataset -> longest distance that exists in all datasets
+# (assuming all have the same waypoints, which is usually the case)
+min_dataset_size=min(dataset_raw["obstacle_vertices_input"]);
+beeline_distance_to_plot=max(dataset_raw[dataset_raw["obstacle_vertices_input"] == min_dataset_size]["distance_beeline"])
+
+dataset_filtered=dataset_raw[dataset_raw["distance_beeline"] == beeline_distance_to_plot];
+dataset_relevant=dataset_filtered[["obstacle_vertices_input"] + dataset_cols]
+dataset=dataset_relevant.melt('obstacle_vertices_input', var_name='aspect', value_name='time')
+
+common.init_seaborn(width=440)
+
+fig, ax = plt.subplots()
 
 common.create_lineplot(
 	dataset,
-	#title,
-	xcol="distance_beeline",
-	xlabel="Beeline distance in km",
 	ycol='time',
 	ylabel='Time in ms',
 	hue="aspect",
-	yscale='log',
+	#yscale='log',
 	#errorbar=("pi", 50),
-	ax=ax_abs
+	ax=ax
 )
 
-handles, labels = ax_abs.get_legend_handles_labels()
+handles, labels = ax.get_legend_handles_labels()
 handles=[h for h in handles if not isinstance(h, container.ErrorbarContainer)]
 
 sns.move_legend(
-	ax_abs,
+	ax,
 	"center left",
 	bbox_to_anchor=(1.025, 0.5),
 	handles=handles,
@@ -74,45 +126,89 @@ sns.move_legend(
 	title='Legend',
 )
 
-common.save_to_file(fig_abs, os.path.basename(__file__) + "_absolute")
+common.save_to_file(fig, os.path.basename(__file__) + "_absolute_all")
 
 #
 # Plot relative numbers
 #
 
-title="Routing - Durations relative share"
-fig_rel, ax_rel = plt.subplots()
+for id in dataset_ids:
+	fig, ax = plt.subplots()
 
-#dataset_raw.reset_index(drop=True, inplace=True)
-#dataset_relevant.reset_index(drop=True, inplace=True)
-dataset_relevant=dataset_raw[dataset_cols + ["distance_beeline"]]
-dataset_relevant[dataset_cols]=dataset_raw[dataset_cols].div(dataset_raw["avg_time"], axis=0)
-dataset=dataset_relevant.melt('distance_beeline', var_name='aspect', value_name='time')
+	#dataset_raw.reset_index(drop=True, inplace=True)
+	#dataset_relevant.reset_index(drop=True, inplace=True)
+	dataset_filtered=dataset_raw[dataset_raw["obstacle_vertices_input"] == id];
+	dataset_relevant=dataset_filtered[["distance_beeline"] + dataset_cols]
+	dataset_relevant[dataset_cols]=dataset_filtered[dataset_cols].div(dataset_filtered["avg_time"], axis=0)
+	dataset=dataset_relevant.melt('distance_beeline', var_name='aspect', value_name='time')
+
+	common.create_lineplot(
+		dataset,
+		xcol="distance_beeline",
+		xlabel="Beeline distance in km",
+		ycol='time',
+		ylabel='Share of total time',
+		hue="aspect",
+		#yscale='log',
+		ax=ax
+	)
+
+	handles, labels = ax.get_legend_handles_labels()
+	handles=[h for h in handles if not isinstance(h, container.ErrorbarContainer)]
+
+	sns.move_legend(
+		ax,
+		"center left",
+		bbox_to_anchor=(1.025, 0.5),
+		handles=handles,
+		labels=dataset_labels,
+		title_fontsize=common.fontsize_small,
+		fontsize=common.fontsize_small,
+		title='Legend'
+	)
+
+	common.save_to_file(fig, os.path.basename(__file__) + "_relative_" + format(id, '05d'))
+
+#
+# Plot relative share details through all dataset sizes for one route request
+#
+
+# The longest distance of the smallest dataset -> longest distance that exists in all datasets
+# (assuming all have the same waypoints, which is usually the case)
+min_dataset_size=min(dataset_raw["obstacle_vertices_input"]);
+beeline_distance_to_plot=max(dataset_raw[dataset_raw["obstacle_vertices_input"] == min_dataset_size]["distance_beeline"])
+
+dataset_filtered=dataset_raw[dataset_raw["distance_beeline"] == beeline_distance_to_plot];
+dataset_relevant=dataset_filtered[["obstacle_vertices_input"] + dataset_cols]
+dataset_relevant[dataset_cols]=dataset_filtered[dataset_cols].div(dataset_filtered["avg_time"], axis=0)
+dataset=dataset_relevant.melt('obstacle_vertices_input', var_name='aspect', value_name='time')
+
+common.init_seaborn(width=440)
+
+fig, ax = plt.subplots()
 
 common.create_lineplot(
 	dataset,
-	#title,
-	xcol="distance_beeline",
-	xlabel="Beeline distance in km",
 	ycol='time',
-	ylabel='Share of total time',
+	ylabel='Time in ms',
 	hue="aspect",
 	#yscale='log',
-	ax=ax_rel
+	#errorbar=("pi", 50),
+	ax=ax
 )
 
-handles, labels = ax_abs.get_legend_handles_labels()
+handles, labels = ax.get_legend_handles_labels()
 handles=[h for h in handles if not isinstance(h, container.ErrorbarContainer)]
 
 sns.move_legend(
-	ax_rel,
+	ax,
 	"center left",
 	bbox_to_anchor=(1.025, 0.5),
 	handles=handles,
 	labels=dataset_labels,
 	title_fontsize=common.fontsize_small,
 	fontsize=common.fontsize_small,
-	title='Legend'
+	title='Legend',
 )
 
-common.save_to_file(fig_rel, os.path.basename(__file__) + "_relative")
+common.save_to_file(fig, os.path.basename(__file__) + "_relative_all")
