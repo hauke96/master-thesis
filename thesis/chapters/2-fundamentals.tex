@@ -590,23 +590,24 @@ Hence, the topic of agents and simulations will be covered as well.
 \label{sec:geometric-routing}
 
 	Geometric routing determines shortest paths through open spaces by avoiding obstacles.
-	Because this way of routing is based on geometric properties, attributes of edges (for example the surface conditions of roads) are of no use.
+	This routing technique takes place under the absence of roads and ways, therefore attributes on these edges, for example surface conditions, are of no use.
 	There are to main strategies for finding shortest paths:
 	Create edges through open spaces for graph-based routing or create a shortest paths map, a structure similar to CPDs.
 	
 	\subsection{Visibility graphs}
 	\label{subsec:visibility-graph}
 	
-		The first mechanism creates edges and then utilizes a normal graph-based routing algorithm to actually find the shortest path.
+		The first mechanism generates edges and then uses a normal graph-based routing algorithm to actually find the shortest path.
 		There are multiple ways on how to create such edges.
-		A well known and often used mechanism is the creation of a so-called \term{visibility graph}, which is a normal graph with edges between vertices that are visible to each other.
+		One approach is the creation of a so-called \term{visibility graph}, which is a normal graph with edges between vertices that are visible to each other.
 		Or in other words, for any two $u, v \in V$ there is an edge $(u, v) \in E$ if and only if there is no obstacle intersecting this edge.
 		Since a visibility graph might become very large, some edges might be removed or other strategies are more efficient.
 		In fact, the worst-case of a visibility graph is a complete graph with $\bigo{|V|^2}$ many edges.
 		
-		Alternatives to the visibility method are based on Voronoi diagrams or skeletonization methods.
-		However, routing results on such graphs are not be optimal anymore, since a straight edge between visible vertices is the shortest possible connection and those alternatives so not always create such direct edges \cite{graser-osm-open-spaces}.
-		Another property of graph generating methods is, that the start and destination locations must still be on the graph to be precisely reachable by routing algorithms.
+		Alternatives to the visibility graph generation are based on Voronoi diagrams or skeletonization methods.
+		However, routing results on such graphs are not necessarily optimal, since a straight edge between visible vertices is the shortest possible connection.
+		These alternatives do not always create such direct edges \cite{graser-osm-open-spaces}, which leads to detours and longer paths.
+		Another property of graph generating methods is that the start and destination locations must still be on the graph to be precisely reachable by routing algorithms.
 	
 	\subsection{Continuous Dijkstra}
 	\label{subsec:continuous-dijkstra}
@@ -615,17 +616,17 @@ Hence, the topic of agents and simulations will be covered as well.
 		Each region of this map stores the predecessor vertex, which can be used to determine shortest paths by following the predecessor relations from any given location back to $s$.
 
 		This map can also be seen as a tree with $s$ as its root and each region as a leaf.
-		Such a tree might remind one of Dijkstras algorithm, which creates such a shortest path tree as well.
+		Such a tree might remind one of Dijkstra's algorithm, which creates such a shortest path tree as well.
 		Due to this similarity, this strategy is also called the \term{continuous dijkstra} paradigm \cite{mitchell-discrete-geodesic}.
 		
 		To precisely determine these regions, one popular approach is to create \term[wavefront]{wavefronts} (sometimes also called \term[wavelet]{wavelets}) propagating through open spaces.
-		A well fitting analogy for this approach is the propagation of sound or water waves traveling through space, folding around obstacles and finally reaching the destination location.
+		A well-fitting analogy for this approach is the propagation of sound or water waves traveling through space, folding around obstacles and finally reaching the destination location.
 		Recursively following each wave back to its origin yields the shortest path from the source to the destination.
 		
-		Each wavefront can interact with edges and vertices but also with other wavelets.
+		Each wavefront can interact with edges and vertices but also with other wavefronts.
 		Interactions in this case are collisions creating the borders of the regions.
 		For each region the origin of the wavefront is known, which enables the query routine to follow these predecessors back to the source.
-		The key difficulty of this approach is the efficient propagation of these wavefronts, which means the fast detection of collision with obstacles and other wavefronts \cite{hershberger-suri}.
+		The key difficulty of this approach is the efficient propagation of these wavefronts, which means the fast detection of collisions with obstacles and other wavefronts \cite{hershberger-suri}.
 
 \section{Agent-based systems and simulations}
 
@@ -640,7 +641,7 @@ Hence, the topic of agents and simulations will be covered as well.
 	More complex agents may have a specific goal, are able to adapt themselves to their environment and thus must be able to memorize and plan things.
 	
 	An agent might be a simulated person but could also be a company, car or other non-living part of the simulated world.
-	Many simulations use pedestrians (or generally humans) as agents to better understand human behaviors but many more scenarios are thinkable \cite{macal-introductory-tutorial}.
+	Many simulations use pedestrians (or generally humans) as agents to better understand human behaviors but many more scenarios with other types of agents can be simulated \cite{macal-introductory-tutorial}.
 
 	Studying the behavior of pedestrians requires a spatial environment where agents can move and interact with each other.
 	Since uncontrolled movement is rather uninteresting, most of the time, algorithms finding optimal paths are involved \cite{kneidl-borrmann-hartmann-navigation,gloor-hybrid-pedestrian-routing,teknomo-millonig-routing}.
@@ -650,9 +651,11 @@ Hence, the topic of agents and simulations will be covered as well.
 	
 		The algorithm presented in this work was implemented to enhance agent-based simulations created using the framework MARS (Multi-Agent Research and Simulation).
 		MARS is a C\#/.NET framework developed by the MARS group, an academic research group of the Hamburg University of Applied Sciences (HAW) in Hamburg, Germany, to create and execute agent-based simulations \cite{mars}.
-		The framework offers the necessary concepts and code to create tick-based simulations consisting of multiple agents, different layers and numerous static entities.
+		The framework offers the necessary components, algorithms and tools to create tick-based simulations consisting of multiple agents, different layers of data and numerous static entities populating the environment.
 		
-		Among many other technical functionalities, the MARS framework contains several data structures and algorithms for path finding.
-		This includes, for example, a class for spatial graphs as well as the A* algorithm determining shortest paths on such a graph.
-		This work is based on the MARS framework in order to be usable by simulations and therefore uses the spatial graph and A* algorithm as well.
-		More details on the design and implementation are given in \cref{chap:design} and \ref{chap:implementation} respectively.
+		The MARS framework contains several data structures and algorithms for spatial data and especially for path finding.
+		This includes a class representing spatial graphs as well as the A* algorithm, which can determine shortest paths on such graphs.
+		MARS also contains numerous spatial indices, mathematical operations and I/O classes, for example to serialize the trajectories of agents.
+		 
+		This work is based on the MARS framework to be directly usable by simulations, which is why, among other parts, the spatial graph and A* algorithm of MARS are used.
+		More details on the design and implementation are given in \cref{chap:design} and \ref{chap:implementation}.
