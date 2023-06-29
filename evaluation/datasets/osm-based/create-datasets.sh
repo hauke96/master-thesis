@@ -27,9 +27,8 @@ function process()
 function cleanup-intermediate()
 {
 	echo "Clean up intermediate files"
-	rm -rf hamburg-latest-clipped.osm.pbf \
-		hamburg-latest.geojson \
-	    hamburg-latest-filtered.geojson
+	rm -rf hamburg-latest-clipped* \
+	    hamburg-latest-filtered*
 }
 
 cleanup-intermediate
@@ -50,18 +49,18 @@ do
 	rm -rf "./dataset-$TYPE"
 	
 	echo "Clip PBF by largest BBOX file (4km2)"
-	osmium extract --polygon "./bbox-$TYPE/4km2.geojson" -o hamburg-latest-clipped.osm.pbf hamburg-latest.osm.pbf --overwrite
+	osmium extract --polygon "./bbox-$TYPE/4km2.geojson" -o hamburg-latest-clipped.osm hamburg-latest.osm.pbf --overwrite
 	
-	echo "Convert PBF to GeoJSON"
-	osmium export hamburg-latest-clipped.osm.pbf -o hamburg-latest.geojson --overwrite
+	echo "Convert OSM to GeoJSON"
+	osmtogeojson hamburg-latest-clipped.osm > hamburg-latest-clipped.geojson
 
-	if grep -q "\"level\":" hamburg-latest.geojson
+	if grep -q "\"level\":" hamburg-latest-clipped.geojson
 	then
-		echo "Extract features that are not underground"
-		ogr2ogr hamburg-latest-filtered.geojson hamburg-latest.geojson -where "\"level\" IS NULL OR \"level\"='0'" -overwrite
+		echo "Extract features, which are not underground"
+		ogr2ogr hamburg-latest-filtered.geojson hamburg-latest-clipped.geojson -where "\"level\" IS NULL OR \"level\"='0'" -overwrite
 	else
 		echo "No 'level' in GeoJSON-file -> no filtering"
-		cp hamburg-latest.geojson hamburg-latest-filtered.geojson
+		cp hamburg-latest-clipped.geojson hamburg-latest-filtered.geojson
 	fi
 	
 	echo "Extract feature within BBOXes"
@@ -77,7 +76,15 @@ do
 	OUT=$IN-no-roads
 	rm -rf $OUT
 	mkdir $OUT
-	ogr2ogr $OUT/data.geojson $IN/4km2/4km2.geojson -where "highway IS NULL OR tunnel IS NOT NULL"
+	if grep -q "\"tunnel\":" hamburg-latest-clipped.geojson
+	then
+		echo "Add tunnel filtering to query"
+		TUNNEL_QUERY="OR tunnel IS NOT NULL"
+	else
+		echo "No tunnel values exist, so no additional filtering will be added"
+		TUNNEL_QUERY=""
+	fi
+	ogr2ogr $OUT/data.geojson $IN/4km2/4km2.geojson -where "highway IS NULL $TUNNEL_QUERY"
 	cp $IN/4km2/waypoints.geojson $OUT/
 	
 	echo "$TYPE - Without obstacles"

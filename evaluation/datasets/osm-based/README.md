@@ -5,6 +5,14 @@ For each such files exists a waypoint file, e.g. `waypoints-3km2.geojson` for th
 Additionally, several types of datasets can be created, e.g. the "city" and "rural" types.
 They are structures in the same way, just their location is different so that they cover different types of landscapes and obstacles.
 
+# Requirements
+
+The following tools must be installed. Arch Linux package names in parentheses:
+
+* `ogr2ogr` (`ogr2ogr`)
+* `osmium` (`osmium-tool`)
+* `osmtogeojson` (`osmtogeojson`)
+
 # Creation
 
 The files can be (re)created using the `create-datasets.sh` script.
