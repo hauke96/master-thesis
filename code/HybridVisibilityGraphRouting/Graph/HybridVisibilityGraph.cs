@@ -1,5 +1,4 @@
 using HybridVisibilityGraphRouting.Geometry;
-using HybridVisibilityGraphRouting.IO;
 using Mars.Common;
 using Mars.Common.Collections;
 using Mars.Common.Collections.Graph;
@@ -87,17 +86,16 @@ public class HybridVisibilityGraph
         IList<EdgeData> newEdgedForSource = new List<EdgeData>();
         IList<NodeData> newCreatedNodesForDestination = new List<NodeData>();
         IList<EdgeData> newEdgedForDestination = new List<EdgeData>();
-        
+
         if (sourceNodeHasBeenCreated)
         {
             (newCreatedNodesForSource, newEdgedForSource) = ConnectNodeToGraph(sourceNode, false);
         }
+
         if (destinationNodeHasBeenCreated)
         {
             (newCreatedNodesForDestination, newEdgedForDestination) = ConnectNodeToGraph(destinationNode, false);
         }
-
-        Exporter.WriteGraphToFile(Graph, "graph-with-source-destination.geojson");
 
         var routingResult = Graph.AStarAlgorithm(sourceNode.Key, destinationNode.Key, heuristic);
 
@@ -109,7 +107,10 @@ public class HybridVisibilityGraph
         newCreatedNodesForDestination.Each(RemoveNode);
         InitNodeIndex();
 
-        Exporter.WriteGraphToFile(Graph, "graph-restored.geojson");
+        if (routingResult.IsEmpty())
+        {
+            return new List<Position>();
+        }
 
         return routingResult
             .Aggregate(new List<Position>(), (list, edge) =>
@@ -299,14 +300,33 @@ public class HybridVisibilityGraph
             // 1.1. Add intersection node (the node where the existing edge and the segment intersect). A new node
             // is only added when there's no existing node at the intersection which angle area fits to the
             // intersection neighbor.
-            var (intersectionNodes, createdIntersectionNode) =
+            var (intersectionNodeEnumerable, createdIntersectionNode) =
                 hybridGraph.GetOrCreateNodeAt(intersectionCoordinate.ToPosition());
-            var intersectionNode = Graph.NodesMap[GetNodeForAngle(intersectionNeighbor, intersectionNodes)];
-            intersectionNodeIds.Add(intersectionNode);
-            if (createdIntersectionNode)
+            var intersectionNodes = intersectionNodeEnumerable.ToList();
+            var nodesForAngle = GetNodeForAngle(intersectionNeighbor, intersectionNodes).ToList();
+            NodeData intersectionNode;
+            if (!onlyConsiderRoads && nodesForAngle.IsEmpty())
             {
-                newNodes.Add(intersectionNode);
+                // We're in the mode of adding road segments to the graph AND we have not found any valid intersection
+                // nodes. This is fine when adding roads because if the road segment, which should be added, intersects
+                // with an obstacle-vertex here, then this just means that the obstacle is passable at this location
+                // (for example via a gate in a fence). Because no node is clearly better than the other, the first one
+                // is taken.
+                intersectionNode = intersectionNodes[0];
+                // The "intersectionNode" is definitely an existing one because new intersection nodes always cover a
+                // 360° angle and are therefore always valid (which was not the case here). Therefore, the node here is
+                // not added to the list of new nodes.
             }
+            else
+            {
+                intersectionNode = Graph.NodesMap[nodesForAngle.First()];
+                if (createdIntersectionNode)
+                {
+                    newNodes.Add(intersectionNode);
+                }
+            }
+
+            intersectionNodeIds.Add(intersectionNode);
 
             // Check if any new edges would be created.
             var edge1WouldNotBeCreated = existingEdge.From == intersectionNode.Key ||
@@ -333,19 +353,54 @@ public class HybridVisibilityGraph
 
         // 2. Split the segment at existing edges.
 
-        // Find or create from-node and to-node of the unsplit segment
-        var (fromNodes, fromNodeHasBeenCreated) = hybridGraph.GetOrCreateNodeAt(segmentFromPosition);
-        var fromNode = Graph.NodesMap[GetNodeForAngle(segmentToCoordinate, fromNodes)];
-        if (fromNodeHasBeenCreated)
+        // Find or create from-node of the unsplit segment
+        var (fromNodesEnumerable, fromNodeHasBeenCreated) = hybridGraph.GetOrCreateNodeAt(segmentFromPosition);
+        var fromNodes = fromNodesEnumerable.ToList();
+        var fromNodesForAngle = GetNodeForAngle(segmentToCoordinate, fromNodes).ToList();
+        NodeData fromNode;
+        if (!onlyConsiderRoads && fromNodesForAngle.IsEmpty())
         {
-            newNodes.Add(fromNode);
+            // We're in the mode of adding road segments to the graph AND we have not found any valid neighbors. This
+            // is fine when adding roads because then we're taking the road segment then as-is. For example if two road
+            // segments meet at a line-obstacle, this obstacle is passable, because a road leads right through it. Same
+            // goes for building passages.
+            fromNode = fromNodes[0];
+            // The "intersectionNode" is definitely an existing one because new intersection nodes always cover a
+            // 360° angle and are therefore always valid (which was not the case here). Therefore, the node here is
+            // not added to the list of new nodes.
+        }
+        else
+        {
+            fromNode = Graph.NodesMap[fromNodesForAngle[0]];
+            if (fromNodeHasBeenCreated)
+            {
+                newNodes.Add(fromNode);
+            }
         }
 
-        var (toNodes, toNodeHasBeenCreated) = hybridGraph.GetOrCreateNodeAt(segmentToPosition);
-        var toNode = Graph.NodesMap[GetNodeForAngle(segmentFromCoordinate, toNodes)];
-        if (toNodeHasBeenCreated)
+        // Find or create to-node of the unsplit segment
+        var (toNodesEnumerable, toNodeHasBeenCreated) = hybridGraph.GetOrCreateNodeAt(segmentToPosition);
+        var toNodes = toNodesEnumerable.ToList();
+        var toNodesForAngle = GetNodeForAngle(segmentFromCoordinate, toNodes).ToList();
+        NodeData toNode;
+        if (!onlyConsiderRoads && toNodesForAngle.IsEmpty())
         {
-            newNodes.Add(toNode);
+            // We're in the mode of adding road segments to the graph AND we have not found any valid neighbors. This
+            // is fine when adding roads because then we're taking the road segment then as-is. For example if two road
+            // segments meet at a line-obstacle, this obstacle is passable, because a road leads right through it. Same
+            // goes for building passages.
+            toNode = toNodes[0];
+            // The "intersectionNode" is definitely an existing one because new intersection nodes always cover a
+            // 360° angle and are therefore always valid (which was not the case here). Therefore, the node here is
+            // not added to the list of new nodes.
+        }
+        else
+        {
+            toNode = Graph.NodesMap[toNodesForAngle[0]];
+            if (toNodeHasBeenCreated)
+            {
+                newNodes.Add(toNode);
+            }
         }
 
         // If there are any intersection nodes:
@@ -399,9 +454,9 @@ public class HybridVisibilityGraph
             .ToList();
     }
 
-    private int GetNodeForAngle(Coordinate coordinate, IEnumerable<NodeData> nodeCandidates)
+    private IEnumerable<int> GetNodeForAngle(Coordinate coordinate, IEnumerable<NodeData> nodeCandidates)
     {
-        return GetNodeForAngle(coordinate.ToPosition(), nodeCandidates.Map(n => n.Key)).First();
+        return GetNodeForAngle(coordinate.ToPosition(), nodeCandidates.Map(n => n.Key));
     }
 
     /// <summary>
@@ -434,29 +489,21 @@ public class HybridVisibilityGraph
     }
 
     /// <summary>
-    /// Gets the nearest node at the given location. Is no node was found, a new one is created and returned.
+    /// Gets the nearest node at the given location. If no node was found, a new one is created, added to the node
+    /// index and returned. This means whenever the returned boolean is "true", the enumerable has exactly one element.
     /// </summary>
     private (IEnumerable<NodeData>, bool) GetOrCreateNodeAt(Position position)
     {
-        var nodes = new HashSet<NodeData>();
-        var createdNewNode = false;
-
         var potentialNodes = _nodeIndex.Nearest(position.PositionArray, 0.000001);
-        if (potentialNodes.IsEmpty())
+        if (!potentialNodes.IsEmpty())
         {
-            // No nodes found within the radius -> create a new node
-            var node = Graph.AddNode(position.X, position.Y);
-            nodes.Add(node);
-            _nodeIndex.Add(position, node);
-            createdNewNode = true;
-        }
-        else
-        {
-            // Take one of the nodes, they are all close enough and therefore we can't say for sure which one to take.
-            nodes.AddRange(potentialNodes.Map(n => n.Node.Value));
+            return (potentialNodes.Map(n => n.Node.Value), false);
         }
 
-        return (nodes, createdNewNode);
+        // No nodes found within the radius -> create a new node
+        var node = Graph.AddNode(position.X, position.Y);
+        _nodeIndex.Add(position, node);
+        return (new[] { node }, true);
     }
 
     private IList<int> GetEdgesWithin(Envelope envelope)

@@ -7,7 +7,6 @@ using Mars.Interfaces.Annotations;
 using Mars.Interfaces.Environments;
 using Mars.Interfaces.Layers;
 using NetTopologySuite.Geometries;
-using NetTopologySuite.Operation.Distance;
 using Position = Mars.Interfaces.Environments.Position;
 
 namespace HikerModel.Model
@@ -44,7 +43,8 @@ namespace HikerModel.Model
             _hikerLayer = layer;
             _hikerLayer.InitEnvironment(ObstacleLayer.Features, this);
 
-            _stepSize = new Position(_hikerLayer.BBOX.MinX, _hikerLayer.BBOX.MinY).DistanceInMTo(new Position(_hikerLayer.BBOX.MaxX, _hikerLayer.BBOX.MaxY)) / 2500;
+            _stepSize = new Position(_hikerLayer.BBOX.MinX, _hikerLayer.BBOX.MinY).DistanceInMTo(
+                new Position(_hikerLayer.BBOX.MaxX, _hikerLayer.BBOX.MaxY)) / 2500;
         }
 
         public void Tick()

@@ -6,7 +6,15 @@ public static class PolygonTriangulator
 {
     public static Geometry[] Triangulate(Polygon polygon)
     {
-        return ((GeometryCollection)NetTopologySuite.Triangulate.Polygon.PolygonTriangulator.Triangulate(polygon))
-            .Geometries;
+        try
+        {
+            return ((GeometryCollection)NetTopologySuite.Triangulate.Polygon.PolygonTriangulator.Triangulate(polygon))
+                .Geometries;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(polygon);
+            throw;
+        }
     }
 }
