@@ -9,6 +9,8 @@ They are structures in the same way, just their location is different so that th
 
 The following tools must be installed. Arch Linux package names in parentheses:
 
+* `grep` (`grep`)
+* `wget` (`wget`)
 * `ogr2ogr` (`ogr2ogr`)
 * `osmium` (`osmium-tool`)
 * `osmtogeojson` (`osmtogeojson`)
@@ -26,12 +28,3 @@ This is not the case here since each dataset file has its own waypoint file, hen
 
 The data gets filtered, so no under- and overground objects are within the resulting datasets.
 This is done due to the fact that the hybrid routing algorithm has no special handling for this third spatial dimension.
-
-## Requirements
-
-Some external tools are needed for this script:
-
-* `wget`
-* 'grep'
-* `osmium`
-* `ogr2ogr`
