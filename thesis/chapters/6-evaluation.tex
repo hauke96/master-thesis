@@ -13,7 +13,6 @@ For both parts, method and design details are given followed by the respective r
 
 	\subsection{Methods \& Measurements}
 
-		% what was measured?
 		\subsubsection{Collected data}
 		
 			The collected data consists of time measurement, many of them on the level of separate methods.
@@ -24,7 +23,6 @@ For both parts, method and design details are given followed by the respective r
 			
 			% TODO table with all columns of the measured data including a description and example value?
 		
-		% datasets
 		\subsubsection{Datasets}
 		
 			There are multiple categories of datasets that were used:
@@ -45,7 +43,6 @@ For both parts, method and design details are given followed by the respective r
 			
 			\todo{List sizes/statistics of datasets?}
 		
-		% optimizations
 		\subsubsection{Optimizations}
 		
 			As \Cref{chap:implementation} already mentioned, there were several optimizations made to the implementation.
@@ -60,24 +57,30 @@ For both parts, method and design details are given followed by the respective r
 				\item[Convex hull] The restriction to only consider vertices on the convex hull of obstacles was removed.
 				\item[Valid angle areas] Considering only potential visibility neighbors within certain angular ranges was deactivated.
 				\item[$k$-NN search] The $k$ of the k-NN search was deactivated to determine all visibility neighbors in all directions.
-			\end{description}			
-		% how were times measured? HikerModel
+			\end{description}		
+			
 		\subsubsection{Measurement method}
 		
 			Measuring the performance was done by a small agent-based simulation project called \texttt{HikerModel}, which consists of one agent, a list of coordinates and the input dataset.
 			Each coordinate from the input list is visited by the agent using the hybrid routing algorithm to determine the path to the next location.
 			The time of the graph generation as well as the time of each routing request are measured.
+			
+			The waypoints for the agent are chosen in the following way.
+			For each dataset category (e.g. the \enquote{rectangle pattern} datasets), a GeoJSON file was prepared containing one linestring which acted as the list of coordinates required by the \texttt{HikerModel}.
+			Each coordinate of this linestring is within the range of the dataset, meaning each coordinate was surrounded by obstacles.
+			The euclidean distances (beeline distances) of the line segments within this linestring were distributed evenly to measure the required routing time relative to the distance and dataset size.
+			
+			Because the OSM datasets within a category (\enquote{city} or \enquote{rural}) cover differently sizes areas, the waypoint linestring for each dataset differ but share the first few coordinates.
+			In other words, the second smallest dataset contains all waypoints of the smallest plus some additional ones.
+			The third smallest contains all waypoints of the second smallest plus some additional ones, and so on.
 		
-		% changes to the code
-		% difficulties in C#
 		\subsubsection{Technical considerations}
 		
 			The measurement was done by a helper class \texttt{PerformanceMeasurement} providing a method that accepts an arbitrary function which execution time should be measured.
 			
 			Unfortunately, C\# does not provide any method to disable the garbage collector.
 			Also, the just-in-time (JIT) compilation cannot be turned of for normal .NET executions via \texttt{dotnet program.dll}.
-			The alternative would be an ahead-of-time (AOT) compilation, which slows down LINQ operations.
-			\todo[inline]{source on that + test it}
+			The alternative would be an ahead-of-time (AOT) compilation, which slows down LINQ operations\footnote{According to \url{https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot/?tabs=net7}}.
 
 			Because both compilation strategies have disadvantages, the normal .NET-based execution was chosen, even though it contains JIT compilation.
 			To mitigate this dynamic behavior and to generally get resilient results, three warm-up iterations were performed before measuring the times of five actual execution iterations.
@@ -88,7 +91,7 @@ For both parts, method and design details are given followed by the respective r
 			Using these two methods forces a garbage collection and waits for it to finish\cite{ms-gc}.
 			
 			To prevent the garbage collection from interfering with the execution, a 256 MiB large no-GC-region is placed around the function call via \texttt{GC.TryStartNoGCRegion(256 * 1024 * 1024)}.
-			Although this only works if enough memory is available\cite{ms-no-gc-region}, the system had this memory and introduction this no-GC-region significantly stabilized the results.
+			However, this only works if enough memory is available\cite{ms-no-gc-region}, which was the case and introducing this no-GC-region stabilized the results.
 			\todo[inline]{test this and maybe give an example result (standard deviation or so?)}
 			
 			Another step is the increase of the process priority.
@@ -103,131 +106,191 @@ For both parts, method and design details are given followed by the respective r
 			The hardware consisted of an octa core Intel\textregistered\ Xeon\textregistered\ E3-1231 v3 CPU at 3.40 GHz, a total of 16GB DDR3 1333 MHz RAM and a Samsung EVO 850 SSD.
 			However, the whole algorithm and the \texttt{HikerModel} simulation are single threaded and file system operations are only performed to initially read the input data and to write the measurement results at the end.
 	
-	\subsection{Import and graph generation}
+	\subsection{OSM-based evaluation}
+		
+		\subsubsection{Import and graph generation}
+		
+			As mentioned at the beginning of \Cref{subsec:related-work:visibility-graph}, the process of generating a visibility graph has an inherent quadratic runtime.
+			This result is clearly visible in measurements of the dataset imports as seen in \Cref{fig:eval-import-city-abs} and \Cref{fig:eval-import-rural-abs}.
+			
+			\begin{figure}[h!]
+				\begin{minipage}{.48\textwidth}
+					\begin{subfigure}[t]{\linewidth}
+						\begin{figcenter}
+							\input{images/evaluation/osm-based-city/plot-import-time-per-vertices.py_absolute.pgf}
+						\end{figcenter}
+						\caption{Absolute total graph generation time for the \enquote{OSM city} dataset.}
+						\label{fig:eval-import-city-abs}
+					\end{subfigure}
+					\\[3ex]
+					\begin{subfigure}[t]{\linewidth}
+						\begin{figcenter}
+							\input{images/evaluation/osm-based-city/plot-import-time-per-vertices.py_per-vertex.pgf}
+						\end{figcenter}
+						\caption{Time per input vertex for the \enquote{OSM city} dataset.}
+					\end{subfigure}
+					\\[3ex]
+					\begin{subfigure}[t]{\linewidth}
+						\begin{figcenter}
+							\input{images/evaluation/osm-based-city/plot-import-time-per-vertices.py_per-vertex-added.pgf}
+						\end{figcenter}
+						\caption{Increase in processing time per vertex when an additional vertex is added.}
+						\label{fig:eval-import-city-rel-increase}
+					\end{subfigure}
+					\caption{Graph generation times using the \enquote{OSM city} dataset.}
+					\label{fig:eval-import-city}
+				\end{minipage}
+				\hfill
+				\begin{minipage}{.48\textwidth}
+					\begin{subfigure}[t]{\linewidth}
+						\begin{figcenter}
+							\input{images/evaluation/osm-based-rural/plot-import-time-per-vertices.py_absolute.pgf}
+						\end{figcenter}
+						\caption{Absolute total graph generation time for the \enquote{OSM rural} dataset.}
+						\label{fig:eval-import-rural-abs}
+					\end{subfigure}
+					\\[3ex]
+					\begin{subfigure}[t]{\linewidth}
+						\begin{figcenter}
+							\input{images/evaluation/osm-based-rural/plot-import-time-per-vertices.py_per-vertex.pgf}
+						\end{figcenter}
+						\caption{Time per input vertex for the \enquote{OSM rural} dataset.}
+					\end{subfigure}
+					\\[3ex]
+					\begin{subfigure}[t]{\linewidth}
+						\begin{figcenter}
+							\input{images/evaluation/osm-based-rural/plot-import-time-per-vertices.py_per-vertex-added.pgf}
+							% TODO same y-scale in both figures
+						\end{figcenter}
+						\caption{Increase in processing time per vertex when an additional vertex is added.}
+						\label{fig:eval-import-rural-rel-increase}
+					\end{subfigure}
+					\caption{Graph generation times using the \enquote{OSM rural} dataset.}
+					\label{fig:eval-import-rural}
+				\end{minipage}
+			\end{figure}
+			
+			A few aspects regarding the runtime behavior can already be inferred from \Cref{fig:eval-import-city} and \Cref{fig:eval-import-rural}.
+			
+			First, as mentioned above, the inherent quadratic runtime of the visibility graph creation, which is shown in detail in the following \Cref{fig:eval-import-details}.
+			
+			Second, the linear increase in the processing time per vertex, which shows, that the total runtime is in fact quadratic and not, for example, exponential.
+			
+			And third, the additional effort added to each vertex when a new additional vertex is added to the dataset is very small (below one microsecond) and decreases with the size of the dataset.
+			Taking the largest dataset of about 88.000 vertices in \Cref{fig:eval-import-city-rel-increase} as an example, adding one new vertex increases the processing time of every vertex by around 0.12 µs.
+			At least for smaller datasets, as \Cref{fig:eval-import-rural-rel-increase} shows, this extra time for each additional vertex decreases with the size of the dataset.
+			This indicates a slower growing processing time for larger datasets, however, this effect is negligible as it is not directly visible by the measured data in figures \ref{fig:eval-import-city-abs} and \ref{fig:eval-import-rural-abs}.
+			
+			\begin{figure}[h!]
+				\begin{figcenter}
+					\begin{subfigure}[t]{\textwidth}
+						\begin{figcenter}
+							\input{images/evaluation/osm-based-city/plot-import-details-per-vertices.py_absolute.pgf}
+						\end{figcenter}
+						\caption{Import time of the \enquote{OSM city} dataset by tasks.}
+					\end{subfigure}
+					\\[3ex]
+					\begin{subfigure}[t]{\textwidth}
+						\begin{figcenter}
+							\input{images/evaluation/osm-based-rural/plot-import-details-per-vertices.py_absolute.pgf}
+						\end{figcenter}
+						\caption{Import time of the \enquote{OSM rural} dataset by tasks.}
+					\end{subfigure}
+				\end{figcenter}
+				\caption{Details of graph generation times for the two datasets \enquote{OSM city} (above) and \enquote{OSM rural} (below).}
+				\label{fig:eval-import-details}
+			\end{figure}
+			
+			In \Cref{fig:eval-import-details} both OSM dataset import times are split into the performed tasks.
+			The task with the largest effort in terms of the required time is the $k$ nearest neighbor (kNN) search.
+			This step takes, even for the smallest dataset, at least 50\% of the overall hybrid visibility graph generation time.
+			For the largest dataset in the \enquote{OSM city} set, the share of the kNN search on the total processing time was over 97\%.
+			The second most time consuming step is the merge of the road network with the visibility graph which has a share of not more than 3.5\% in any of the \enquote{OSM city} datasets.
+			All other steps have a negligible effect on the processing performance with a combined share of less than 0.8\% on the total processing time of the \enquote{OSM city} dataset.
+			
+			Very small datasets, meaning only a few thousand vertices, show a different distribution.
+			Even though the kNN search is still the most expensive task, the relative shares of other tasks, especially the marge operation, are significantly higher.
+			\todo[inline]{reasons for this}
+			
+			\todo{Table with values? Absolute or relative?}
 	
-		As mentioned at the beginning of \Cref{subsec:related-work:visibility-graph}, the process of generating a visibility graph has an inherent quadratic runtime.
-		This result is clearly visible in measurements of the dataset imports as seen in \Cref{fig:eval-import-city-abs} and \Cref{fig:eval-import-rural-abs}.
+		\subsubsection{Routing}
 		
-		\begin{figure}[h!]
-			\begin{minipage}{.48\textwidth}
-				\begin{subfigure}[t]{\linewidth}
-					\begin{figcenter}
-						\input{images/evaluation/osm-based-city/plot-import-time-per-vertices.py_absolute.pgf}
-					\end{figcenter}
-					\caption{Absolute total graph generation time for the \enquote{OSM city} dataset.}
-					\label{fig:eval-import-city-abs}
-				\end{subfigure}
-				\\[3ex]
-				\begin{subfigure}[t]{\linewidth}
-					\begin{figcenter}
-						\input{images/evaluation/osm-based-city/plot-import-time-per-vertices.py_per-vertex.pgf}
-					\end{figcenter}
-					\caption{Time per input vertex for the \enquote{OSM city} dataset.}
-				\end{subfigure}
-				\\[3ex]
-				\begin{subfigure}[t]{\linewidth}
-					\begin{figcenter}
-						\input{images/evaluation/osm-based-city/plot-import-time-per-vertices.py_per-vertex-added.pgf}
-					\end{figcenter}
-					\caption{Increase in processing time per vertex when an additional vertex is added.}
-					\label{fig:eval-import-city-rel-increase}
-				\end{subfigure}
-				\caption{Graph generation times using the \enquote{OSM city} dataset.}
-				\label{fig:eval-import-city}
-			\end{minipage}
-			\hfill
-			\begin{minipage}{.48\textwidth}
-				\begin{subfigure}[t]{\linewidth}
-					\begin{figcenter}
-						\input{images/evaluation/osm-based-rural/plot-import-time-per-vertices.py_absolute.pgf}
-					\end{figcenter}
-					\caption{Absolute total graph generation time for the \enquote{OSM rural} dataset.}
-					\label{fig:eval-import-rural-abs}
-				\end{subfigure}
-				\\[3ex]
-				\begin{subfigure}[t]{\linewidth}
-					\begin{figcenter}
-						\input{images/evaluation/osm-based-rural/plot-import-time-per-vertices.py_per-vertex.pgf}
-					\end{figcenter}
-					\caption{Time per input vertex for the \enquote{OSM rural} dataset.}
-				\end{subfigure}
-				\\[3ex]
-				\begin{subfigure}[t]{\linewidth}
-					\begin{figcenter}
-						\input{images/evaluation/osm-based-rural/plot-import-time-per-vertices.py_per-vertex-added.pgf}
-						% TODO same y-scale in both figures
-					\end{figcenter}
-					\caption{Increase in processing time per vertex when an additional vertex is added.}
-					\label{fig:eval-import-rural-rel-increase}
-				\end{subfigure}
-				\caption{Graph generation times using the \enquote{OSM rural} dataset.}
-				\label{fig:eval-import-rural}
-			\end{minipage}
-		\end{figure}
+			The time required for routing is influences by several different factors.
+			First of all, routing consists of several tasks, each contributing to the overall routing time by different proportions.
+			Second, the dataset size is a strong influencing factor but has differently strong influence on the several routing tasks.
+			Third, the structure of the data, meaning the number, size and distribution of obstacles, also influences the required time for routing.
+			In fact, the size of the dataset is the strongest influence on the overall routing time as it affects all tasks during routing.
 		
-		A few aspects regarding the runtime behavior can already be inferred from \Cref{fig:eval-import-city} and \Cref{fig:eval-import-rural}.
-		
-		First, as mentioned above, the inherent quadratic runtime of the visibility graph creation, which is shown in detail in the following \Cref{fig:eval-import-details}.
-		
-		Second, the linear increase in the processing time per vertex, which shows, that the total runtime is in fact quadratic and not, for example, exponential.
-		
-		And third, the additional effort added to each vertex when a new additional vertex is added to the dataset is very small (below one microsecond) and decreases with the size of the dataset.
-		Taking the largest dataset of about 88.000 vertices in \Cref{fig:eval-import-city-rel-increase} as an example, adding one new vertex increases the processing time of every vertex by around 0.12 µs.
-		At least for smaller datasets, as \Cref{fig:eval-import-rural-rel-increase} shows, this extra time for each additional vertex decreases with the size of the dataset.
-		This indicates a slower growing processing time for larger datasets, however, this effect is negligible as it is not directly visible by the measured data in figures \ref{fig:eval-import-city-abs} and \ref{fig:eval-import-rural-abs}.
-		
-		\begin{figure}[h!]
-			\begin{figcenter}
-				\begin{subfigure}[t]{\textwidth}
-					\begin{figcenter}
-						\input{images/evaluation/osm-based-city/plot-import-details-per-vertices.py_absolute.pgf}
-					\end{figcenter}
-					\caption{Import time of the \enquote{OSM city} dataset by tasks.}
-				\end{subfigure}
-%				\hfill
-%				\begin{subfigure}[t]{.48\textwidth}
-%					\begin{figcenter}
-%						\input{images/evaluation/osm-based-city/plot-import-details-per-vertices.py_relative.pgf}
-%					\end{figcenter}
-%					\caption{Relative share of each task on the total import time.}
-%				\end{subfigure}
-			\end{figcenter}
-			\\
-			\begin{figcenter}
-				\begin{subfigure}[t]{\textwidth}
-					\begin{figcenter}
-						\input{images/evaluation/osm-based-rural/plot-import-details-per-vertices.py_absolute.pgf}
-					\end{figcenter}
-					\caption{Import time of the \enquote{OSM rural} dataset by tasks.}
-				\end{subfigure}
-%				\hfill
-%				\begin{subfigure}[t]{.48\textwidth}
-%					\begin{figcenter}
-%						\input{images/evaluation/osm-based-rural/plot-import-details-per-vertices.py_relative.pgf}
-%					\end{figcenter}
-%					\caption{Relative share of each task on the total import time.}
-%				\end{subfigure}
-			\end{figcenter}
-			\caption{Details of graph generation times for the two datasets \enquote{OSM city} (above) and \enquote{OSM rural} (below).}
-			\label{fig:eval-import-details}
-		\end{figure}
-		
-		In \Cref{fig:eval-import-details} both OSM dataset import times are split into the performed tasks.
-		The task with the largest effort in terms of the required time is the $k$ nearest neighbor (kNN) search.
-		This step takes, even for the smallest dataset, at least 50\% of the overall hybrid visibility graph generation time.
-		For the largest dataset in the \enquote{OSM city} set, the share of the kNN search on the total processing time was over 97\%.
-		The second most time consuming step is the merge of the road network with the visibility graph which has a share of not more than 3.5\% in any of the \enquote{OSM city} datasets.
-		All other steps have a negligible effect on the processing performance with a combined share of less than 0.8\% on the total processing time of the \enquote{OSM city} dataset.
-		
-		Very small datasets, meaning only a few thousand vertices, show a different distribution.
-		Even though the kNN search is still the most expensive task, the relative shares of other tasks, especially the marge operation, are significantly higher.
-		\todo[inline]{reasons for this}
-		
-		\todo{Table with values? Absolute or relative?}
-	
-	\subsection{Routing}
-		
-		\todo{General routing times}
+			\begin{figure}[h]
+				\begin{figcenter}
+					\begin{subfigure}[t]{\textwidth}
+						\begin{figcenter}
+							\input{images/evaluation/osm-based-city/plot-routing-time.py_distance.pgf}
+						\end{figcenter}
+						\caption{Total routing times of all datasets.}
+					\end{subfigure}
+					\\[3ex]
+					\begin{subfigure}[t]{\textwidth}
+						\begin{figcenter}
+							\input{images/evaluation/osm-based-city/plot-routing-time-details.py_absolute_45018.pgf}
+						\end{figcenter}
+						\caption{Each task during routing of the largest dataset with 45018 input vertices.}
+						\label{fig:eval-city-routing-details-b}
+					\end{subfigure}
+					\\[3ex]
+					\begin{subfigure}[t]{\textwidth}
+						\begin{figcenter}
+							\input{images/evaluation/osm-based-city/plot-routing-time-details.py_relative_45018.pgf}
+						\end{figcenter}
+						\caption{Same as \Cref{fig:eval-city-routing-details-b} but showing the relative shares on the total time.}
+					\end{subfigure}
+					\\[3ex]
+					\begin{subfigure}[t]{\textwidth}
+						\begin{figcenter}
+							\input{images/evaluation/osm-based-city/plot-routing-time-details.py_absolute_all.pgf}
+						\end{figcenter}
+						\caption{Details of routing between the furthest waypoints, which appear in all datasets (distance between the waypoints: 600 m).}
+					\end{subfigure}
+				\end{figcenter}
+				\caption{Routing time statistics of the \enquote{OSM city} datasets.}
+			\end{figure}
+			
+			\begin{figure}[h!]
+				\begin{figcenter}
+					\begin{subfigure}[t]{\textwidth}
+						\begin{figcenter}
+							\input{images/evaluation/osm-based-rural/plot-routing-time.py_distance.pgf}
+						\end{figcenter}
+						\caption{Total routing times of all datasets.}
+					\end{subfigure}
+					\\[3ex]
+					\begin{subfigure}[t]{\textwidth}
+						\begin{figcenter}
+							\input{images/evaluation/osm-based-rural/plot-routing-time-details.py_absolute_06055.pgf}
+						\end{figcenter}
+						\caption{Detailed routing times of the largest dataset with 6055 input vertices.}
+						\label{fig:eval-rural-routing-details-b}
+					\end{subfigure}
+					\\[3ex]
+					\begin{subfigure}[t]{\textwidth}
+						\begin{figcenter}
+							\input{images/evaluation/osm-based-rural/plot-routing-time-details.py_relative_06055.pgf}
+						\end{figcenter}
+						\caption{Same as \Cref{fig:eval-rural-routing-details-b} but showing the relative shares on the total time.}
+					\end{subfigure}
+					\\[3ex]
+					\begin{subfigure}[t]{\textwidth}
+						\begin{figcenter}
+							\input{images/evaluation/osm-based-rural/plot-routing-time-details.py_absolute_all.pgf}
+						\end{figcenter}
+						\caption{Details of routing between the furthest waypoints, which appear in all datasets (distance between the waypoints: 600 m).}
+					\end{subfigure}
+				\end{figcenter}
+				\caption{Routing time statistics of the \enquote{OSM rural} datasets.}
+			\end{figure}
+			
+			\todo{Why is the rural-routing slower for shorter distances? And what happened at the jump between 1.0 and 1.5km?}
 		
 		\todo{Detailed view (as above)}
 		
