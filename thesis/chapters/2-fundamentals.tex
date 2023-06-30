@@ -470,11 +470,11 @@ Hence, the topic of agents and simulations will be covered as well.
 			Vertex $u$ is \emph{contracted} by adding a new edge $e = (v, w)$ with weight $w(e) = w(v, u) + w(u, w)$.
 			If $e$ already exists with a higher weight, its weight is decreased accordingly.
 			
-			A very important part of this technique is the selection of vertices to contract \cite[14]{geisberger-contraction-hierarchies}.
-			The vertices are selected by a total order $<$ defining a level of importance for each vertex.
-			Selecting the correct order is difficult and heuristics are used to approximate a perfect ordering.
-			Such heuristic can for example be the difference in edge counts from before and after contraction, the uniformity of the distribution of contractions in the graph or the resulting size of the query search space.
-			Multiple heuristics can be combined leading to even better results \cite[49]{geisberger-contraction-hierarchies}.
+			A crucial part of this technique is the selection of vertices to contract \cite[14]{geisberger-contraction-hierarchies}.
+			The vertices are selected by a total order defining the level of importance for each vertex.
+			Creating a good order is difficult and heuristics are used to approximate an optimal ordering.
+			Such heuristics can for example be the difference in edge counts from before and after contraction, the uniformity of the distribution of contractions in the graph or the resulting size of the query search space.
+			Multiple heuristics can be combined, leading to even better results \cite[49]{geisberger-contraction-hierarchies}.
 			The vertices are stored in a priority queue based on a linear combination of all used heuristics and the highest prioritized vertex is processed first.
 			
 			The contraction hierarchy can be used with an adjusted bidirectional Dijkstra algorithm \cite[29-30]{geisberger-contraction-hierarchies}.
@@ -483,6 +483,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			Each of these graphs performs one sub-query, which eventually meet in the same vertex.
 			If this happens \emph{and} no lower weighted edge towards a vertex remaining in the priority queue exists, then the overall queries terminate.
 			All shortcut edges must now be recursively relaxed to create the actual shortest path, which means the shortcut edges are turned back into the original edges that were used to create them.
+			% TODO Illustration of routing? Or removal of details.
 		
 		\subsubsection{Landmarks}
 		
@@ -493,7 +494,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			A better, but also more complex approach is to use a set of landmarks $L$.
 			Landmarks are vertices to which all distances are calculated in a precomputation step.
 			
-			% TODO remove this math-part? Not really necessary ...
+			% TODO Remove this math-part? Not really necessary ... Add a illustration otherwise
 			Consider a distance function $d : V \times V \rightarrow \mathbb{R}$, two vertices $v, w \in V$ as well as a landmark $l \in L$.
 			The triangle inequality can be expressed as $d(v,w) \geq d(v,l) - d(w,l)$ for the distances \emph{to} $l$ but also $d(v,w) \geq d(l,w) - d(l,v)$ for distances \emph{from} $l$.
 			This can be used to build the heuristic $h(v, w) = \max \{ d(v,l)-d(w,l), d(l,w)-d(l,v) \}$ for all landmarks $l$.
@@ -534,17 +535,17 @@ Hence, the topic of agents and simulations will be covered as well.
 		
 		\subsubsection{Hub labels}
 		
-			The \term{hub label} strategy \cite{bast-transportation-networks} is a labeling algorithm calculating labels $L(v)$ for each vertex $v$.
+			The \term{hub label} strategy \cite{bast-transportation-networks} is a labeling algorithm for calculating labels $L(v)$ for each vertex $v$.
 			Each label contains a set of vertices (called \emph{hubs}) and the length of the shortest path to each of the hubs.
 			A label must fulfill the following two properties.
 			
 			First, the distance $d(u, v)$ from vertex $u$ to $v$ must be determinable using only their labels $L(u)$ and $L(v)$.
 			Since $u$ and $v$ can be arbitrary vertices, the vertex $v$ is not necessarily within $L(u)$.
-			To not traverse through all labels to find $v$ from $u$, the second property (called \emph{cover property}) is very important:
+			To avoid traverse all labels to find $v$ from $u$, the second property (called \emph{cover property}) is very important:
 			For two arbitrary vertices $u$ to $v$, the set $L(u) \cap L(v)$ must contain at least one common hub $h$ on the shortest path from $u$ to $v$.
-			This can be used to solve fulfill the first property.
+			This can be used to fulfill the first property.
 			
-			The labels can be determined with the mechanism from contraction hierarchies forming the upward graph based on a vertex ordering $<$.
+			The labels can be determined with the mechanism from contraction hierarchies forming the upward graph based on a vertex ordering.
 			In fact, any such order can be used to create a correct labeling.
 
 			Routing requests for a shortest path from $u$ to $v$ are simple and answered in the following way.
@@ -552,7 +553,9 @@ Hence, the topic of agents and simulations will be covered as well.
 			When storing the hubs in a sorted list during preprocessing, building the intersection can be done in linear time.
 			Finally, the hub $h \in L(u) \cap L(v)$ with the minimum distance sum $d(u, h) + d(h, v)$ is returned as it is on the shortest path from $u$ to $v$.
 			
-			Even though the requests can be answered very fast, actually faster than most other routing methods, it needs a lot of space and preprocessing time to store and determine all the labels.
+			Even though the requests can be answered very fast, actually faster than most other routing methods, a lot of space and preprocessing time to store and determine all the labels is required.
+			
+			% TODO Illustration?
 		
 		\subsubsection{Compressed path databases}
 		\label{subsubsec:cpd}
@@ -561,9 +564,10 @@ Hence, the topic of agents and simulations will be covered as well.
 			In other words, the solution of the all-pair shortest paths problem from \cref{subsubsec:all-pair-shortest-path} can be stored in a CPD without having extensive memory requirements.
 			
 			The simplest form of a CPD works on a grid rather than a graph, where the number of neighbors is limited and visualization, calculations and compression is simpler.
-			Such grid-based CPDs actually consist not of one but of $n$ many grids, each one storing movement information from a fixed cell $v$ to all other cells.
+			Such grid-based CPDs actually consist not of one but of $n$ grids, each one storing movement information from a fixed cell $v$ to all other cells.
 			When having $n$ cells per grid, $n$ grids are needed so that for each cell, one grid with movement information exists.
 			However, movement information here means, that only a single step is stored in a grid.
+			% TODO Illustration?
 			
 			Consider the following example:
 			The path from cell $u$ to $v$ is requested, so the grid $u$ is used first.
@@ -591,8 +595,8 @@ Hence, the topic of agents and simulations will be covered as well.
 
 	Geometric routing determines shortest paths through open spaces by avoiding obstacles.
 	This routing technique takes place under the absence of roads and ways, therefore attributes on these edges, for example surface conditions, are of no use.
-	There are to main strategies for finding shortest paths:
-	Create edges through open spaces for graph-based routing or create a shortest paths map, a structure similar to CPDs.
+	There are two main strategies for finding shortest paths:
+	Generating edges through open spaces for graph-based routing or generating a shortest paths map, a structure similar to CPDs.
 	
 	\subsection{Visibility graphs}
 	\label{subsec:visibility-graph}
@@ -601,13 +605,12 @@ Hence, the topic of agents and simulations will be covered as well.
 		There are multiple ways on how to create such edges.
 		One approach is the creation of a so-called \term{visibility graph}, which is a normal graph with edges between vertices that are visible to each other.
 		Or in other words, for any two $u, v \in V$ there is an edge $(u, v) \in E$ if and only if there is no obstacle intersecting this edge.
-		Since a visibility graph might become very large, some edges might be removed or other strategies are more efficient.
-		In fact, the worst-case of a visibility graph is a complete graph with $\bigo{|V|^2}$ many edges.
+		A visibility graph might become very large, in fact, the worst-case regarding the size is a complete graph with $\bigo{|V|^2}$ many edges.
 		
 		Alternatives to the visibility graph generation are based on Voronoi diagrams or skeletonization methods.
 		However, routing results on such graphs are not necessarily optimal, since a straight edge between visible vertices is the shortest possible connection.
-		These alternatives do not always create such direct edges \cite{graser-osm-open-spaces}, which leads to detours and longer paths.
-		Another property of graph generating methods is that the start and destination locations must still be on the graph to be precisely reachable by routing algorithms.
+		These alternative generation approaches do not always create such direct edges \cite{graser-osm-open-spaces}, which leads to detours and longer paths.
+		Even though start and destination locations must still be part of the graph to be reachable by routing algorithms, additional edges from and to these locations can be generated with the same algorithm used to create the graph.
 	
 	\subsection{Continuous Dijkstra}
 	\label{subsec:continuous-dijkstra}
@@ -619,19 +622,20 @@ Hence, the topic of agents and simulations will be covered as well.
 		Such a tree might remind one of Dijkstra's algorithm, which creates such a shortest path tree as well.
 		Due to this similarity, this strategy is also called the \term{continuous dijkstra} paradigm \cite{mitchell-discrete-geodesic}.
 		
-		To precisely determine these regions, one popular approach is to create \term[wavefront]{wavefronts} (sometimes also called \term[wavelet]{wavelets}) propagating through open spaces.
+		To precisely determine these regions, one popular approach is to create \term[wavefront]{wavefronts} propagating through open spaces.
 		A well-fitting analogy for this approach is the propagation of sound or water waves traveling through space, folding around obstacles and finally reaching the destination location.
 		Recursively following each wave back to its origin yields the shortest path from the source to the destination.
+		These wavefronts are also called \term[wavelet]{wavelets}), because they only cover a certain angular range due to collisions and the presence of obstacles.
 		
-		Each wavefront can interact with edges and vertices but also with other wavefronts.
-		Interactions in this case are collisions creating the borders of the regions.
+		Each wavefront can collide with edges and vertices but also with other wavefronts.
+		After detecting such a collision, the angular region of the wavefront is adjusted depending on the type of collision.
 		For each region the origin of the wavefront is known, which enables the query routine to follow these predecessors back to the source.
 		The key difficulty of this approach is the efficient propagation of these wavefronts, which means the fast detection of collisions with obstacles and other wavefronts \cite{hershberger-suri}.
 
 \section{Agent-based systems and simulations}
 
-	Simulating complex systems with numerous individuals is a complex task.
-	Agent-based models help to break down this complexity by simulating each individual separately with its own behavior and decision-making \cite{macal-introductory-tutorial}.
+	Simulating complex systems with numerous autonomous individuals, called \term[agent]{agents}, is a complex task.
+	Agent-based models help to break down this complexity by simulating each agent separately with its own behavior and decision-making \cite{macal-introductory-tutorial}.
 	Interactions between agents and the environment as well as agents with other agents are an essential part of agent-based simulations.
 	Each interaction can affect other agents and the environment.
 	
@@ -641,7 +645,7 @@ Hence, the topic of agents and simulations will be covered as well.
 	More complex agents may have a specific goal, are able to adapt themselves to their environment and thus must be able to memorize and plan things.
 	
 	An agent might be a simulated person but could also be a company, car or other non-living part of the simulated world.
-	Many simulations use pedestrians (or generally humans) as agents to better understand human behaviors but many more scenarios with other types of agents can be simulated \cite{macal-introductory-tutorial}.
+	Many simulations use pedestrians (or generally humans) as agents to better understand human behavior but many more scenarios with other types of agents can be simulated as well \cite{macal-introductory-tutorial}.
 
 	Studying the behavior of pedestrians requires a spatial environment where agents can move and interact with each other.
 	Since uncontrolled movement is rather uninteresting, most of the time, algorithms finding optimal paths are involved \cite{kneidl-borrmann-hartmann-navigation,gloor-hybrid-pedestrian-routing,teknomo-millonig-routing}.
