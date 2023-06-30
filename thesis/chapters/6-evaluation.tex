@@ -48,13 +48,13 @@ For both parts, method and design details are given followed by the respective r
 		% optimizations
 		\subsubsection{Optimizations}
 		
-			As \cref{chap:implementation} already mentioned, there were several optimizations made to the implementation.
+			As \Cref{chap:implementation} already mentioned, there were several optimizations made to the implementation.
 			Some of which are on the level of data structures, some on the algorithmic level.
 			The effectiveness of these optimization was also evaluated using the OSM dataset.
 			Each of the following optimizations was deactivated for the evaluation:
 
 			\begin{description}
-				\item[Shadow areas] Instead, every visibility check was performed using the custom intersection check described in \cref{subsubsec:intersection-checks}.
+				\item[Shadow areas] Instead, every visibility check was performed using the custom intersection check described in \Cref{subsubsec:intersection-checks}.
 				\item[Custom intersection check] The custom intersection check was replaced by the \todo[inline]{probably \texttt{RobustLineIntersector}?} class from the NTS to determine intersections between line segments.
 				\item[BinIndex] Instead, the \texttt{BinTree} from the NTS was used.
 				\item[Convex hull] The restriction to only consider vertices on the convex hull of obstacles was removed.
@@ -105,8 +105,8 @@ For both parts, method and design details are given followed by the respective r
 	
 	\subsection{Import and graph generation}
 	
-		As mentioned at the beginning of \cref{subsec:related-work:visibility-graph}, the process of generating a visibility graph has an inherent quadratic runtime.
-		This result is clearly visible in measurements of the dataset imports as seen in \cref{fig:eval-import-city-abs} and \cref{fig:eval-import-rural-abs}.
+		As mentioned at the beginning of \Cref{subsec:related-work:visibility-graph}, the process of generating a visibility graph has an inherent quadratic runtime.
+		This result is clearly visible in measurements of the dataset imports as seen in \Cref{fig:eval-import-city-abs} and \Cref{fig:eval-import-rural-abs}.
 		
 		\begin{figure}[h!]
 			\begin{minipage}{.48\textwidth}
@@ -165,15 +165,15 @@ For both parts, method and design details are given followed by the respective r
 			\end{minipage}
 		\end{figure}
 		
-		A few aspects regarding the runtime behavior can already be inferred from \cref{fig:eval-import-city} and \cref{fig:eval-import-rural}.
+		A few aspects regarding the runtime behavior can already be inferred from \Cref{fig:eval-import-city} and \Cref{fig:eval-import-rural}.
 		
-		First, as mentioned above, the inherent quadratic runtime of the visibility graph creation, which is shown in detail in the following \cref{fig:eval-import-details}.
+		First, as mentioned above, the inherent quadratic runtime of the visibility graph creation, which is shown in detail in the following \Cref{fig:eval-import-details}.
 		
 		Second, the linear increase in the processing time per vertex, which shows, that the total runtime is in fact quadratic and not, for example, exponential.
 		
 		And third, the additional effort added to each vertex when a new additional vertex is added to the dataset is very small (below one microsecond) and decreases with the size of the dataset.
-		Taking the largest dataset of about 88.000 vertices in \cref{fig:eval-import-city-rel-increase} as an example, adding one new vertex increases the processing time of every vertex by around 0.12 µs.
-		At least for smaller datasets, as \cref{fig:eval-import-rural-rel-increase} shows, this extra time for each additional vertex decreases with the size of the dataset.
+		Taking the largest dataset of about 88.000 vertices in \Cref{fig:eval-import-city-rel-increase} as an example, adding one new vertex increases the processing time of every vertex by around 0.12 µs.
+		At least for smaller datasets, as \Cref{fig:eval-import-rural-rel-increase} shows, this extra time for each additional vertex decreases with the size of the dataset.
 		This indicates a slower growing processing time for larger datasets, however, this effect is negligible as it is not directly visible by the measured data in figures \ref{fig:eval-import-city-abs} and \ref{fig:eval-import-rural-abs}.
 		
 		\begin{figure}[h!]
@@ -212,7 +212,7 @@ For both parts, method and design details are given followed by the respective r
 			\label{fig:eval-import-details}
 		\end{figure}
 		
-		In \cref{fig:eval-import-details} both OSM dataset import times are split into the performed tasks.
+		In \Cref{fig:eval-import-details} both OSM dataset import times are split into the performed tasks.
 		The task with the largest effort in terms of the required time is the $k$ nearest neighbor (kNN) search.
 		This step takes, even for the smallest dataset, at least 50\% of the overall hybrid visibility graph generation time.
 		For the largest dataset in the \enquote{OSM city} set, the share of the kNN search on the total processing time was over 97\%.
