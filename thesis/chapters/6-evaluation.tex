@@ -85,10 +85,10 @@ For both parts, method and design details are given followed by the respective r
 			
 			Additionally, the garbage collector was triggered during each of the eight iterations just before calling the function to measure.
 			This is done by the \texttt{GC.Collect()} and \texttt{GC.WaitForPendingFinalizers()} from the \texttt{GC} class of the .NET framework.
-			Using these two methods forces a garbage collection and waits for it to finish \cite{ms-gc}.
+			Using these two methods forces a garbage collection and waits for it to finish\cite{ms-gc}.
 			
 			To prevent the garbage collection from interfering with the execution, a 256 MiB large no-GC-region is placed around the function call via \texttt{GC.TryStartNoGCRegion(256 * 1024 * 1024)}.
-			Although this only works if enough memory is available \cite{ms-no-gc-region}, the system had this memory and introduction this no-GC-region significantly stabilized the results.
+			Although this only works if enough memory is available\cite{ms-no-gc-region}, the system had this memory and introduction this no-GC-region significantly stabilized the results.
 			\todo[inline]{test this and maybe give an example result (standard deviation or so?)}
 			
 			Another step is the increase of the process priority.

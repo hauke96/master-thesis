@@ -21,16 +21,16 @@ This section gives an overview about closely related work from these areas.
 		% with some assumptions like no collinear vertices (even though these assumptions are not necessary): Constructing the visibility graph for n-line segments in O(n²) time (Emo Welzl, 1985)
 		The construction of visibility graphs in $\bigo{n^2}$ time and space (with $n$ line segments), under the condition of no collinear vertices and no intersecting line segments, was presented by Welzl in 1985\cite{welzl-visibility-graph}.
 		
-		A few years later in 1988, Overmars and Welzl presented two new methods reducing the space complexity to $\bigo{n}$ \cite{overmars-weizl-visibility-graph} and one of these methods has a time complexity of $\bigo{E \log n}$ with $E$ being the number of output edges.
+		A few years later in 1988, Overmars and Welzl presented two new methods reducing the space complexity to $\bigo{n}$\cite{overmars-weizl-visibility-graph} and one of these methods has a time complexity of $\bigo{E \log n}$ with $E$ being the number of output edges.
 		Their new algorithms are based on Welzls earlier paper and implement the idea of a rotational sweep through neighboring vertices.
 		
-		The time complexity of Overmars and Welzls approach is output sensitive with respect to the number of edges in the output graph \cite{ghosh-output-sensitive-vgraph}.
+		The time complexity of Overmars and Welzls approach is output sensitive with respect to the number of edges in the output graph\cite{ghosh-output-sensitive-vgraph}.
 		Ghosh and Mount presented an algorithm with an output sensitive complexity of $\bigo{E + n \log n}$, which is a significant improvement, since $E$ is in $\bigo{n^2}$.
 		However, their approach needs $\bigo{E + n}$ space compared to $\bigo{n}$ from the algorithms by Overmars and Welzl.
 		Ghosh and Mount use plain sweeps to create a triangulation of the free space and introduced so-called \emph{funnel sequences}, which are sets of vertices visible to parts of an edge.
 		To avoid numerous edge cases, their approach assumes no collinear vertices and unique x-coordinates.
 		
-		Kapoor and Maheshwari introduced two algorithms, one for determining shortest paths and one to create a visibility graph, which are based on triangulations as well \cite{kapoor-shortest-path-vgraph}.
+		Kapoor and Maheshwari introduced two algorithms, one for determining shortest paths and one to create a visibility graph, which are based on triangulations as well\cite{kapoor-shortest-path-vgraph}.
 		Finding shortest paths in the presence of $m$ polygonal obstacles works in $\bigo{m^2 \log{n} + n\log{n}}$ with their approach but only uses a certain subset of the visibility graph to actually determine the shortest path.
 		Their visibility graph creation is done in $\bigo{E+T}$, with $T$ being the time needed to triangulate the space between the obstacles, and therefore has the same complexity as Ghosh and Mounts algorithm since a triangulation of the space between $n$ obstacles can be done in $\bigo{n \log{n}}$.
 		% TODO https://www.researchgate.net/profile/Vasyl-Tereshchenko/publication/321979941_Triangulating_a_region_between_arbitrary_polygons/links/5a6b1b94458515b2d0539612/Triangulating-a-region-between-arbitrary-polygons.pdf
@@ -44,7 +44,7 @@ This section gives an overview about closely related work from these areas.
 	
 		Graph generation techniques can be used to fill missing data in routing graphs or enhance these in case of a low degree of detail.
 		
-		Funke et al. achieved this by filling holes in an existing road graph, which was the OpenStreetMap network in their case \cite{funke-osm-extrapolation}.
+		Funke et al. achieved this by filling holes in an existing road graph, which was the OpenStreetMap network in their case\cite{funke-osm-extrapolation}.
 		To do so, they developed a metric to detect holes in an existing graph based on the following idea:
 		If the shortest path between two vertices is much longer than the euclidean distance, there is probably a hole in the network.
 		However, this metric leads to false positives when large obstacles, such as rivers, are between the two vertices.
@@ -54,7 +54,7 @@ This section gives an overview about closely related work from these areas.
 		Unfortunately, the use of other graph generation algorithms (for example generating a visibility graph) was not discussed.
 		
 		% https://drops.dagstuhl.de/opus/volltexte/2015/5459/pdf/10.pdf
-		Andreev et al. also worked on the existing OpenStreetMap graph but they added sidewalks to roads for more realistic routing and also tried to handle arbitrary source and destination locations of routing queries \cite{andreev-osm-generate-sidewalks}.
+		Andreev et al. also worked on the existing OpenStreetMap graph but they added sidewalks to roads for more realistic routing and also tried to handle arbitrary source and destination locations of routing queries\cite{andreev-osm-generate-sidewalks}.
 		They not only added sidewalks but also dealt with open spaces such as plazas and parks.
 		For each plaza, which usually do not contain designated footways, they create a visibility graph to generate edges within the plaza.
 		Edges not relevant for paths through the plaza are removed afterwards.
@@ -68,10 +68,10 @@ This section gives an overview about closely related work from these areas.
 		A task, which is more relevant for this thesis, is filling open spaces with edges for navigation purposes.
 		This can be done by using one of several approaches.
 	
-		Kneidl, Borrmann and Hartmann used visibility graphs to produce a sparse graph suitable for navigation \cite{kneidl-borrmann-hartmann-navigation}.
+		Kneidl, Borrmann and Hartmann used visibility graphs to produce a sparse graph suitable for navigation\cite{kneidl-borrmann-hartmann-navigation}.
 		They chose the construction of a visibility graph over generalized Voronoi diagrams for more realistic edges.
 		
-		The same strategy was used by Liu and Zlatanova for indoor routing through open spaces \cite{liu-indoor-routing}, however, they took the size of a pedestrians into account and added a buffer area around obstacles by calculating their Minkowski sum.
+		The same strategy was used by Liu and Zlatanova for indoor routing through open spaces\cite{liu-indoor-routing}, however, they took the size of a pedestrians into account and added a buffer area around obstacles by calculating their Minkowski sum.
 		Xu et al. also created a precise indoor navigation algorithm but they used a certain Delaunay triangulation, which is faster than the visibility graph creation yields paths that are comparable in quality to those determined on a visibility graph\cite{xu-indoor-delaunay}.
 		
 		Another interesting paper on enhancing existing navigation graphs was presented in 2016 by Anita Graser, where she integrated visibility graph edges into the existing OSM data model\cite{graser-osm-open-spaces}.
@@ -81,7 +81,7 @@ This section gives an overview about closely related work from these areas.
 	\subsection{Generate graphs from existing maps}
 	\label{subsection:generate-graphs-from-maps}
 	
-		A graph is not always available, which motivated Walter et al. to create a procedure using raster maps \cite{walter-raster-maps}.
+		A graph is not always available, which motivated Walter et al. to create a procedure using raster maps\cite{walter-raster-maps}.
 		They proposed an algorithm with four steps:
 		First, the raster data is classified in obstacle and non-obstacle pixels.
 		Second, the data is used to create a skeletonization graph from it.
@@ -89,7 +89,7 @@ This section gives an overview about closely related work from these areas.
 		Fourth, the result is smoothed since the skeletonization might yield edges, which will not naturally be used by pedestrians.
 		Even though this technique works well on large datasets, the reason of skeletonization instead of visibility edges or other generation algorithms, was not further discussed.
 		
-		A similar work was presented by Birgit Elias merging multiple data sources, like topographical maps or indoor building plans, into one vector dataset for routing \cite{elias-tailored-geodatabase}.
+		A similar work was presented by Birgit Elias merging multiple data sources, like topographical maps or indoor building plans, into one vector dataset for routing\cite{elias-tailored-geodatabase}.
 		To create a graph from existing maps, she used a skeletonization method based on a Delaunay triangulation.
 		She also took into account that important point like structures, like entrances or other \term*{points of interest}, need to be connected to the graph as well.
 		This was solves by creating a perpendicular line to the nearest edge of the graph.
@@ -100,12 +100,12 @@ This section gives an overview about closely related work from these areas.
 		All graph generation method presented so far are algorithmic approaches.
 		However, mobile devices can store the users location and trajectory, which can be used as a data source to construct a navigation graph.
 		
-		Kasemsuppakorn et al. use GPS traces to create a pedestrian navigation graph \cite{kasemsuppakorn-gps-traces-pedestrain-network}.
+		Kasemsuppakorn et al. use GPS traces to create a pedestrian navigation graph\cite{kasemsuppakorn-gps-traces-pedestrain-network}.
 		Due to the inherent inaccuracies, outliers and general noise of GPS data, the traces are preprocessed to ensure a certain level of quality (for example by only allowing points created using at least four satellites).
 		The graph generation process takes one trace at a time and first determines the most significant points on that trace, which build a simplified shape of the trace.
 		New segments are created and possibly merged with existing closely located segments having an almost parallel trajectory.
 		
-		Zhou et al. introduced another approach using crowd sourced location data to create a navigation graph \cite{zhou-crowd-sourced-navigation}.
+		Zhou et al. introduced another approach using crowd sourced location data to create a navigation graph\cite{zhou-crowd-sourced-navigation}.
 		They also filtered out anomalies, due to inaccuracies in the GPS data, and created a density map from this cleaned location data.
 		The ridge lines of this density map were turned in to edges, since many people walked along these ridge lines.
 		An evaluation of their approach showed that even small amounts of data are enough to create a sufficient routing network.
@@ -124,7 +124,7 @@ This section gives an overview about closely related work from these areas.
 		His approach creates a shortest path map of size $\bigo{n}$ for one specific source vertex, which allows routing request to be answered in $\bigo{\log{n}}$.
 		Generating this map has a subquadratic time and space complexity of $\bigo{n^{\nicefrac{5}{3}+\epsilon}}$.
 		
-		Another approach to solve the geometric single-source shortest path problem was presented by Hershberger and Suri one year later, in 1997 \cite{hershberger-suri}.
+		Another approach to solve the geometric single-source shortest path problem was presented by Hershberger and Suri one year later, in 1997\cite{hershberger-suri}.
 		They also use the \term*{continuous dijkstra} paradigm but increase performance by introducing a special quad-tree like structure as a smart subdivision of the plane and also introduce approximate wavefronts.
 		The difficult part is the collision handling of non neighboring wavelets.
 		Maintaining some important properties is crucial to the efficiency when creating the subdivision, most important is the $\bigo{1}$ amount of neighboring cells around an edge.
@@ -150,12 +150,12 @@ This section gives an overview about closely related work from these areas.
 	
 		The topic of network-based routing, meaning the problem of determining shortest path in a graph, is a well studied area with widely used algorithms.
 		
-		One of the most popular algorithms is the A* algorithm introduced by Hart, Nilsson and Raphael in 1968 \cite{astar}.
+		One of the most popular algorithms is the A* algorithm introduced by Hart, Nilsson and Raphael in 1968\cite{astar}.
 		A detailed description of A* including its time and space complexities can be found in \cref{subsubsec:astar}.
 
 		Because the result of this thesis can be used with any network-based algorithm, all previously described \hyperref[subsec:routing-engines]{routing algorithms} and \hyperref[subsec:speedup-methods]{speedup methods} are related to this thesis.
-		The combination of speedup methods is also possible and has been studied by Bauer et al. \cite{bauer-combining-speedup-methods} with promising results on the combination of arc-flags and highway hierarchies, which they called CHASE.
-		A comparison by Bast et al. showed the performance increase against normal speedup methods \cite{bast-transportation-networks}, for example compared to contraction hierarchies, which had a 19 times slower query time but a six times faster preprocessing.
+		The combination of speedup methods is also possible and has been studied by Bauer et al.\cite{bauer-combining-speedup-methods} with promising results on the combination of arc-flags and highway hierarchies, which they called CHASE.
+		A comparison by Bast et al. showed the performance increase against normal speedup methods\cite{bast-transportation-networks}, for example compared to contraction hierarchies, which had a 19 times slower query time but a six times faster preprocessing.
 
 \section{Pedestrian path finding}
 \label{sec:pedestrian-path-planning}
@@ -167,7 +167,7 @@ This section gives an overview about closely related work from these areas.
 	Pedestrian path finding is, however, not only relevant for real-world users, who want to know how to get from one location to another.
 	Such algorithms are also used in (multi) agent simulations of pedestrian behavior.
 	Scenarios in such simulations are for example evacuation or crowd behaviors.
-	The area of pedestrian path planning and simulations is divided into two strategies: Network- and field-based path finding \cite{hartmann-geodesic}.
+	The area of pedestrian path planning and simulations is divided into two strategies: Network- and field-based path finding\cite{hartmann-geodesic}.
 	Works from both strategies will be covered in the following.
 	
 	\subsection{Field-based and dynamic navigation}
@@ -196,7 +196,7 @@ This section gives an overview about closely related work from these areas.
 		Two approaches were presented: A potential field-based method, which is used in navigation when needed, and a visibility graph, which is merged into the existing hiking network.
 		For the performance evaluation, they used an evacuation scenario and the results showed, that both navigation mechanisms are comparably fast.
 		
-		The work of Kneidl et al. from \cref{subsec:filling-open-spaces} was used by Kielar et al. as a basis for a generalized routing model for pedestrian simulations \cite{kielar-unified-pedestrian-routing} taking cognitive models of agents into account.
+		The work of Kneidl et al. from \cref{subsec:filling-open-spaces} was used by Kielar et al. as a basis for a generalized routing model for pedestrian simulations\cite{kielar-unified-pedestrian-routing} taking cognitive models of agents into account.
 		Cognitive models take into account that humans create their own mixed and fuzzy path finding behavior, which differs from optimal mathematical algorithms like Dijkstra.
 		Basic behaviors of human crowds are herding and learning from others, which makes communication and observation between agents necessary.
 		

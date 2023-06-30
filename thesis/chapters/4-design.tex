@@ -98,7 +98,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 		Doing the shortcut was not planned but an ad hoc decision, just as the algorithm would do.
 		
 		The advantage of this approach is the realistic behavior of pedestrians not planning the route in beforehand.
-		In fact Teknomo and Millonig introduced a routing mechanism for agent-based simulations with the assumption of little to no apriori knowledge of agents about their environment \cite{teknomo-millonig-routing}.
+		In fact Teknomo and Millonig introduced a routing mechanism for agent-based simulations with the assumption of little to no apriori knowledge of agents about their environment\cite{teknomo-millonig-routing}.
 		This approach would therefore implement their assumptions on agents behaviors.
 		
 		One disadvantage is a relatively high complexity since no standard algorithm from frequently used software frameworks support a pause functionality, so any routing algorithm has to be manually adjusted or implemented from scratch.
@@ -106,7 +106,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 		Also this approach will likely cause performance issues.
 		When using Dijkstra as graph-based routing algorithm, $\bigo{|V|}$ many vertices are visited, which leads to $\bigo{|V|}$ routing requests using the geometric continuous Dijkstra algorithm.
 %		Because a simple caching of the shortest path map is not possible, at least not without a smart and complex caching strategy, this decreases the runtime of the whole routing process significantly.
-		Even when using the continuous Dijkstra approach from Hershberger and Suri \cite{hershberger-suri} with only $\bigo{n \log n}$ time requirement, the number $n$ of vertices in obstacles is expected to be much higher than the size of $V$ resulting in a somehow quadratic runtime.
+		Even when using the continuous Dijkstra approach from Hershberger and Suri\cite{hershberger-suri} with only $\bigo{n \log n}$ time requirement, the number $n$ of vertices in obstacles is expected to be much higher than the size of $V$ resulting in a somehow quadratic runtime.
 		Caching the shortest path map using a \term*{CPD} (see \cref{subsubsec:cpd}) would be possible but would also increase complexity during query time and reduce performance during preprocessing time.
 		Storing precomputed edges in a simple map would reduce complexity, still increase query time but also still reduce precomputation time.
 		
@@ -162,7 +162,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 		Meaning from $v_i$ paths to $v_{i+1}, v_{i+2}, ..., v_n$ are determined, which unfortunately results in $O(n^2)$ many routing queries.
 		Finally, all these paths on the generated graph can be merged together with the query result of the road graph to form a new intermediate graph..
 		Finally, one last routing query on this intermediate graph is performed to get the final optimal routing result by using a weight function analogous to the previous approach.
-		Instead of an intermediate graph, other combinatorial approaches can be used as well since the shortest path problem can be solved using linear programming \cite{handler-zang-lp-duality}.
+		Instead of an intermediate graph, other combinatorial approaches can be used as well since the shortest path problem can be solved using linear programming\cite{handler-zang-lp-duality}.
 		
 		There are probably more possible ways to ensure a sufficient amount of segments or intersections, however, this idea was not further pursued.
 		
@@ -186,7 +186,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 		This leads to at most $|E_R| \cdot |E_V|$ many merge operations for the routing graph edges $E_R$ and visibility edges $E_V$.
 		Complete graphs have the highest number of edges and therefore the highest number of intersections, which gives the upper bound of $\bigo{|E|^2}$ for the merge operation given all edges $E$.
 		
-		Fortunately, road networks are very sparse and often have a vertex degree between three and six \cite{zhao-analysis-osm-bejing}\cite{boeing-osmnx}, resulting in a probably much better runtime behavior in practice.
+		Fortunately, road networks are very sparse and often have a vertex degree between three and six\cite{zhao-analysis-osm-bejing}\cite{boeing-osmnx}, resulting in a probably much better runtime behavior in practice.
 		The road network of Germany's state North Rhine-Westphalia (NRW) and Hamburg (HH) show the following degrees when analyzing using OpenStreetMap data.
 		The state of NRW, which is densely populated and the largest German state in terms of the amount of data, has an average degree of 2.1 but when ignoring dead-ends and touching segments, i.e. when only considering actual junctions, the degree increases to 3.1.
 		The state of HH, which is used for the evaluation of this work, has an average degree of 2.11 and 3.11 respectively.
@@ -242,24 +242,24 @@ Finally, an overview of the separate components is given as well as a descriptio
 		The largest and most influential design decision was the decision against an approach from the literature as presented in \cref{subsec:related-work:visibility-graph}.
 		Several approaches from the literature have either restrictions on the geometric structures or assume that a certain preprocessing of the data was already performed.
 		
-		The approach by Welzl \cite{welzl-visibility-graph}, for example, explicitly assumes that there are not collinear vertices, i.e. at least three vertices forming a straight line.
+		The approach by Welzl\cite{welzl-visibility-graph}, for example, explicitly assumes that there are not collinear vertices, i.e. at least three vertices forming a straight line.
 		It may seem unlikely at first that collinear vertices occur in real-world datasets, but in fact, at least in OpenStreetMap, it is very common to align touching buildings and other straight obstacles like walls.
 		\todo[inline]{diagrams/graphics for problems like this alignment thing}
 		
-		An optimization of Welzls approach, by Overmars and Welzl \cite{overmars-weizl-visibility-graph}, only works on non-intersecting line segments.
+		An optimization of Welzls approach, by Overmars and Welzl\cite{overmars-weizl-visibility-graph}, only works on non-intersecting line segments.
 		Real-world data is unfortunately too diverse to fulfill this criterion as polygons, longer linestrings and other more complex data structures exist.
 		Preprocessing the data, i.e. cutting all geometries into such non-intersecting line segments, would cause new special cases to solve.
 		For example, cutting a polygon into line segments would add visibility edges within the former polygon, which needs to be avoided e.g. by storing metadata about the relations of these line segment to each other.
 		Handling all those special cases, preventing unwanted edges and still using the approach by Overmars and Welzl would be possible but would also increase the complexity of their approach.
 		
-		Another approach with the limitation of no collinear vertices was the plain-sweep algorithm by Ghosh and Mount \cite{ghosh-output-sensitive-vgraph}.
+		Another approach with the limitation of no collinear vertices was the plain-sweep algorithm by Ghosh and Mount\cite{ghosh-output-sensitive-vgraph}.
 		In addition to the limitation on collinear vertices, they assume x-coordinates to be unique, which would need to be handled as well.
 		Even though coordinates are usually floating point numbers and therefore have a great range of possible values, rounding and size limitations reduce this range and might result in a high number of non-unique x-coordinate values.
 		Counting the number of non-unique x-coordinates in OpenStreetMap illustrates this problem:
 		The OSM dataset of the German state of Hamburg contains over 3.2 million nodes of which 22.8\% have a non-unique x-coordinate.
 		
-		Kapoor and Maheshwari presented a visibility graph creation as well \cite{kapoor-shortest-path-vgraph} but assumed a triangulation of the open space between the obstacles.
-		Such a triangulation can be done quite fast, algorithms with time complexities of $\bigo{n \log{n}}$ and better are known \cite[58-60]{de-berg-computational-geometry}, but libraries such as MARS or the NetTopologySuite do not implement this.
+		Kapoor and Maheshwari presented a visibility graph creation as well\cite{kapoor-shortest-path-vgraph} but assumed a triangulation of the open space between the obstacles.
+		Such a triangulation can be done quite fast, algorithms with time complexities of $\bigo{n \log{n}}$ and better are known\cite[58-60]{de-berg-computational-geometry}, but libraries such as MARS or the NetTopologySuite do not implement this.
 		They only provide triangulation methods for polygons but not for the space between them.
 		Implementing an algorithm for this task would be needed in addition to the visibility graph creation itself.
 		

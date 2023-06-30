@@ -30,7 +30,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 %	\subsection{Chosen approach and potentially faster known algorithms}
 %
 %		Due to the step by step development by turning the former continuous dijkstra preprocessing into a visibility graph generator, the implemented approach does not follow algorithms described in the literature.
-%		The performance of this implementation, as shown in \todo[inline]{link to evaluation chapter}, is still enough for practical use, but a well designed and fast algorithm, like the one presented by Overmars and Welzl \cite{overmars-weizl-visibility-graph} or the one by Ghosh and Mount \cite{ghosh-output-sensitive-vgraph}, would clearly increase performance.
+%		The performance of this implementation, as shown in \todo[inline]{link to evaluation chapter}, is still enough for practical use, but a well designed and fast algorithm, like the one presented by Overmars and Welzl\cite{overmars-weizl-visibility-graph} or the one by Ghosh and Mount\cite{ghosh-output-sensitive-vgraph}, would clearly increase performance.
 %		However, this performance enhancement would only affect the generation of a visibility graph and not the performance of the routing queries.
 			
 	\subsection{Algorithm steps}
@@ -334,7 +334,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			
 			The reason for this filtering is quite simple:
 			Vertices not being on a convex hull will never be part of a shortest path.
-			This is the case, since the convex hull itself is by definition the smallest set of points that creates an areas, which in turn contains all other points of the geometry \cite[2]{de-berg-computational-geometry}.
+			This is the case, since the convex hull itself is by definition the smallest set of points that creates an areas, which in turn contains all other points of the geometry\cite[2]{de-berg-computational-geometry}.
 			Interpreting the convex hull as one possible path around a shape, the triangle inequality implies that this path is in deed the shortest path around the shape.
 			When determining shortest paths, the part of a route bending around an obstacle will therefore always be a subset of its convex hull.
 			
@@ -450,7 +450,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			In fact, there are two types of intersection checks implemented:
 			One function to check for an intersection between two arbitrary line segments and one to check if a point lies within a triangle.
 			
-			The line segment intersection check uses an approach based on cross products as presented in \emph{Introduction to algorithms} by Thomas H Cormen et al. \cite[1018]{cormen-introduction-to-alg}.
+			The line segment intersection check uses an approach based on cross products as presented in \emph{Introduction to algorithms} by Thomas H Cormen et al.\cite[1018]{cormen-introduction-to-alg}.
 			Even though this method only works on single line segments, it is significantly faster than general purpose checks provided by the NetTopologySuite.
 			This is still true when checking if a single line segments intersects any of multiple obstacles.
 			
