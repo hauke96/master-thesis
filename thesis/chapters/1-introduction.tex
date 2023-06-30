@@ -43,11 +43,8 @@
 	A variety of different approaches exist to generate such auxiliary edges\cite{graser-osm-open-spaces} which will be covered in detail in \cref{subsec:visibility-graph}.
 	
 	The second approach does not create such a graph but stores its shortest path information for each source vertex in a map.
-	Each shortest path map is made for a specific source vertex and consists of several distinct regions.
-	Every destination location within such region has the same predecessor on the shortest path from the source vertex to this location.
-	In other words, all paths from a source vertex to any location inside one region go from the source via other vertices to the predecessor of the region and from there directly to the destination location.
-	Recursively following back all predecessors to the source vertex gives the shortest path to a given location.
-	This approach is also called the \term{continuous dijkstra} paradigm and will be described in detail in \cref{subsec:continuous-dijkstra}.
+	This map consists of regions of equal predecessors, which means for a location in a specific region, the shortest path goes from the source vertex, via this predecessor vertex to the destination location this region.
+	Details on geometric routing approaches are given in \cref{subsec:continuous-dijkstra}.
 	
 \section{Problem and contributions}
 

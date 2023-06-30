@@ -593,7 +593,7 @@ Hence, the topic of agents and simulations will be covered as well.
 \section{Geometric routing}
 \label{sec:geometric-routing}
 
-	Geometric routing determines shortest paths through open spaces by avoiding obstacles.
+	Finding paths in a geometric domain, also called the \term{euclidean shortest path} problem, is the process of determining shortest paths through open spaces by avoiding obstacles.
 	This routing technique takes place under the absence of roads and ways, therefore attributes on these edges, for example surface conditions, are of no use.
 	There are two main strategies for finding shortest paths:
 	Generating edges through open spaces for graph-based routing or generating a shortest paths map, a structure similar to CPDs.
@@ -619,8 +619,8 @@ Hence, the topic of agents and simulations will be covered as well.
 		Each region of this map stores the predecessor vertex, which can be used to determine shortest paths by following the predecessor relations from any given location back to $s$.
 
 		This map can also be seen as a tree with $s$ as its root and each region as a leaf.
-		Such a tree might remind one of Dijkstra's algorithm, which creates such a shortest path tree as well.
-		Due to this similarity, this strategy is also called the \term{continuous dijkstra} paradigm \cite{mitchell-discrete-geodesic}.
+		Such a tree might remind one of Dijkstra's algorithm, which creates such a shortest path tree as well to solve the \hyperref[subsubsec:single-source-shortest-path]{single-source shortest path problem}.
+		Due to this similarity, this strategy is also called the \term{continuous Dijkstra} paradigm \cite{mitchell-discrete-geodesic}.
 		
 		To precisely determine these regions, one popular approach is to create \term[wavefront]{wavefronts} propagating through open spaces.
 		A well-fitting analogy for this approach is the propagation of sound or water waves traveling through space, folding around obstacles and finally reaching the destination location.
