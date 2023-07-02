@@ -447,7 +447,7 @@ public static class VisibilityGraphGenerator
                     var angleFrom = Angle.GetBearing(vertex.Coordinate.ToPosition(), neighbor);
                     var angleTo = Angle.GetBearing(vertex.Coordinate.ToPosition(), vertex.ObstacleNeighbors[nextIndex]);
 
-                    if (Angle.Difference(angleFrom, angleTo) > 180)
+                    if (Angle.Difference(angleFrom, angleTo) >= 180)
                     {
                         validAngleAreas.Add((angleFrom, Angle.Normalize(angleTo - 180)));
                         validAngleAreas.Add((Angle.Normalize(angleFrom - 180), angleTo));
