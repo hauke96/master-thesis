@@ -313,9 +313,7 @@ public static class HybridVisibilityGraphGenerator
     }
 
     /// <summary>
-    /// Determines the correct node for the given position based on the angle from the position to the node. This method
-    /// does *not* find the node *at* this position. Therefore, the <code>position</code> parameter can be seen as a
-    /// neighbor of the given node candidates.
+    /// Filters the given node candidates and keeps each node for which the given position is within its angle area.
     /// </summary>
     public static IEnumerable<int> GetNodeForAngle(Position position, IEnumerable<int> nodeCandidates,
         Dictionary<int, (double, double)> nodeToAngleArea, IDictionary<int, NodeData> nodesMap)
