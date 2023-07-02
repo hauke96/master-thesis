@@ -19,3 +19,5 @@ Here are some thoughts on future work:
 		* 1. Needs a class but I have NodeData (struct) -> wrapper class needed -> no problem
 		* 2. Doesn't support adding data to the exact same location (which i need due to the splitting of nodes for their angle areas): "When an inserted point is snapped to a (existing) node then a new node is not created but the count of the existing node is incremented.". Therefore, the "Query()" method just returns one node, not a list. -> NTS implementation not usable
 	* Map based approach: Define accuracy/tolerance -> round every coordinate to that accuracy -> store in map and do queries accordingly
+* Maybe directly splitting vertices by their valid angle area (and then determining KNN within the vertex's angle area) makes the implementation simpler
+* Convex hull-filtering: Not working for polygons with vertices that are hidden to the outside (snail-like polygons for example; s. wekan)
