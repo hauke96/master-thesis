@@ -99,8 +99,6 @@ public class HybridVisibilityGraph
 
         var routingResult = Graph.AStarAlgorithm(sourceNode.Key, destinationNode.Key, heuristic);
 
-        Exporter.WriteGraphToFile(Graph, "graph-with-start-and-dest.geojson");
-
         // Remove temporarily created nodes (which automatically removes the edges too) to have a clean graph for
         // further routing requests.
         newEdgedForSource.Each(RemoveEdge);
