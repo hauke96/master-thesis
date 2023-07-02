@@ -80,7 +80,17 @@ public static class HybridVisibilityGraphGenerator
         var obstacleGeometries = GeometryHelper.UnwrapAndTriangulate(importedObstacles, true);
 
         var convexHullCoordinates = obstacleGeometries
-            .Map(g => g.Value.ConvexHull().Coordinates)
+            .Map(g =>
+            {
+                if (g.Value.OgcGeometryType == OgcGeometryType.Polygon)
+                {
+                    // Only take the convex hull of polygons into account. Line based obstacles might bend around other
+                    // obstacles so that the convex hull would prevent the generation of important edges.
+                    return g.Value.Coordinates;
+                }
+
+                return g.Value.Coordinates;
+            })
             .SelectMany(x => x)
             .Distinct()
             .ToSet();
