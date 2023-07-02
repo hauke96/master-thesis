@@ -122,18 +122,17 @@ public static class HybridVisibilityGraphGenerator
         var graph = new SpatialGraph();
         var watch = Stopwatch.StartNew();
         var vertexToNode = new Dictionary<Vertex, int[]>();
-        var nodeToBinVertices = new Dictionary<int, List<Vertex>>();
         var nodeToAngleArea = new Dictionary<int, (double, double)>();
-        var verticesOnConvexHull = vertexNeighbors.Keys;
+        var vertices = vertexNeighbors.Keys;
 
         // Create a node for every vertex in the dataset. Also store the mapping between node keys and vertices.
-        verticesOnConvexHull.Each(vertex =>
+        vertices.Each(vertex =>
         {
             List<List<Vertex>> vertexNeighborBin =
                 vertex.IsOnConvexHull ? vertexNeighbors[vertex] : new List<List<Vertex>>();
 
             vertexToNode[vertex] = new int[vertexNeighborBin.Count];
-            vertexNeighborBin.Each((i, bin) =>
+            vertexNeighborBin.Each((i, _) =>
             {
                 // For debug porposes to see the different nodes in the GeoJSON file.
                 // var nodePosition = PositionHelper.CalculatePositionByBearing(vertex.Position.X, vertex.Position.Y,
@@ -142,7 +141,6 @@ public static class HybridVisibilityGraphGenerator
                 var nodeKey = graph.AddNode(vertex.Coordinate.X, vertex.Coordinate.Y, new Dictionary<string, object>())
                     .Key;
                 vertexToNode[vertex][i] = nodeKey;
-                nodeToBinVertices[nodeKey] = bin;
 
                 // Determine covered angle area of the current bin
                 double binFromAngle = 0;
@@ -160,7 +158,7 @@ public static class HybridVisibilityGraphGenerator
 
         // Create visibility edges in the graph. This is done on a per-bin basis. Each bin got a separate node and this
         // node is then correctly connected to the node of its visibility vertices.
-        verticesOnConvexHull.Each(vertex =>
+        vertices.Each(vertex =>
         {
             if (!vertex.IsOnConvexHull)
             {
