@@ -145,8 +145,14 @@ public class VisibilityGraphGeneratorTest
 
         // Bottom middle
         bin = visibleKnn[vertices1[1]];
-        // No entries due to no valid angle area
-        Assert.AreEqual(0, bin.Count);
+        // Two entries each due to slim valid angle area (to- and from-angle of both valid angle areas are equal)
+        Assert.AreEqual(2, bin.Count);
+        Assert.AreEqual(2, bin[0].Count);
+        Assert.Contains(vertices1[0], bin[0]);
+        Assert.Contains(vertices2[1], bin[0]);
+        Assert.AreEqual(2, bin[1].Count);
+        Assert.Contains(vertices1[0], bin[0]);
+        Assert.Contains(vertices2[1], bin[1]);
 
         // Bottom right
         bin = visibleKnn[vertices2[1]];
@@ -403,6 +409,34 @@ public class VisibilityGraphGeneratorTest
             Assert.AreEqual(2, visibilityNeighbors[0].Count);
             CollectionAssert.Contains(visibilityNeighbors[0], obstacle.Vertices[0]);
             CollectionAssert.Contains(visibilityNeighbors[0], obstacle.Vertices[1]);
+        }
+
+        [Test]
+        public void GetVisibilityNeighborsForVertex_touchingObstacles()
+        {
+            var obstacle2 = ObstacleTestHelper.CreateObstacle(new LineString(new[]
+            {
+                // r-shaped obstacle touching the one from the setup
+                new Coordinate(2, 0),
+                new Coordinate(2, 1),
+                new Coordinate(3, 1),
+            }));
+            obstacleIndex.Insert(obstacle2.Envelope, obstacle2);
+            coordinateToObstacles.Add(obstacle2.Coordinates[0], new List<Obstacle> { obstacle2 });
+            coordinateToObstacles[obstacle2.Coordinates[1]].Add(obstacle2);
+            coordinateToObstacles.Add(obstacle2.Coordinates[2], new List<Obstacle> { obstacle2 });
+            vertices.AddRange(obstacle2.Vertices);
+
+            var vertex = new Vertex(new Coordinate(2, 2)); // right above intersection point
+
+            var visibilityNeighbors = VisibilityGraphGenerator.GetVisibilityNeighborsForVertex(obstacleIndex, vertices,
+                coordinateToObstacles, vertex, 5, 1);
+
+            Assert.AreEqual(1, visibilityNeighbors.Count);
+            Assert.AreEqual(3, visibilityNeighbors[0].Count);
+            CollectionAssert.Contains(visibilityNeighbors[0], obstacle.Vertices[0]);
+            CollectionAssert.Contains(visibilityNeighbors[0], obstacle2.Vertices[1]);
+            CollectionAssert.Contains(visibilityNeighbors[0], obstacle2.Vertices[2]);
         }
     }
 
@@ -796,40 +830,49 @@ public class VisibilityGraphGeneratorTest
     [Test]
     public void SortVisibleNeighborsIntoBins_onlyConvexNeighbors_touchingLinearObstacle()
     {
-        var obstacleNeighbors = new List<Position>
+        /*
+         * Form of the two obstacles 1 and 2 with no valid angle area for shared middle vertex "1/2":
+         * 
+         *      2
+         *      |
+         * 1---1/2
+         *       \
+         *        1
+         */
+        var obstacle1Neighbors = new List<Position>
         {
             new(2, 0), // 135° from vertex
             new(1, 1), // vertex
             new(0, 1), // 270° from vertex
         };
-        var otherObstacleNeighbors = new List<Position>
+        var obstacle2Neighbors = new List<Position>
         {
             new(1, 2), // 0° from vertex
             new(1, 1), // vertex
         };
 
-        var obstacleNeighborVertices = new List<Vertex>
+        var obstacle1NeighborVertices = new List<Vertex>
         {
-            new(obstacleNeighbors[0].ToCoordinate(), new[] { obstacleNeighbors[1] }, true),
-            new(obstacleNeighbors[1].ToCoordinate(),
-                new[] { obstacleNeighbors[0], obstacleNeighbors[2], otherObstacleNeighbors[0] }, true),
-            new(obstacleNeighbors[2].ToCoordinate(), new[] { obstacleNeighbors[1] }, true)
+            new(obstacle1Neighbors[0].ToCoordinate(), new[] { obstacle1Neighbors[1] }, true),
+            new(obstacle1Neighbors[1].ToCoordinate(),
+                new[] { obstacle1Neighbors[0], obstacle1Neighbors[2], obstacle2Neighbors[0] }, true),
+            new(obstacle1Neighbors[2].ToCoordinate(), new[] { obstacle1Neighbors[1] }, true)
         };
-        var otherObstacleNeighborVertices = new List<Vertex>
+        var obstacle2NeighborVertices = new List<Vertex>
         {
-            new(otherObstacleNeighbors[0].ToCoordinate(), new[] { otherObstacleNeighbors[1] }, true),
-            obstacleNeighborVertices[1], // vertices are shared between obstacles
+            new(obstacle2Neighbors[0].ToCoordinate(), new[] { obstacle2Neighbors[1] }, true),
+            obstacle1NeighborVertices[1], // vertices are shared between obstacles
         };
 
-        var obstacle = new Obstacle(
-            new LineString(obstacleNeighbors.Map(n => n.ToCoordinate()).ToArray()),
-            new LineString(obstacleNeighbors.Map(n => n.ToCoordinate()).ToArray()),
-            obstacleNeighborVertices
+        var obstacle1 = new Obstacle(
+            new LineString(obstacle1Neighbors.Map(n => n.ToCoordinate()).ToArray()),
+            new LineString(obstacle1Neighbors.Map(n => n.ToCoordinate()).ToArray()),
+            obstacle1NeighborVertices
         );
-        var otherObstacle = new Obstacle(
-            new LineString(otherObstacleNeighbors.Map(n => n.ToCoordinate()).ToArray()),
-            new LineString(otherObstacleNeighbors.Map(n => n.ToCoordinate()).ToArray()),
-            otherObstacleNeighborVertices
+        var obstacle2 = new Obstacle(
+            new LineString(obstacle2Neighbors.Map(n => n.ToCoordinate()).ToArray()),
+            new LineString(obstacle2Neighbors.Map(n => n.ToCoordinate()).ToArray()),
+            obstacle2NeighborVertices
         );
 
         // None of these should appear in any bin.
@@ -849,7 +892,7 @@ public class VisibilityGraphGeneratorTest
             new(0.5, 0.5),
         }.Map(n => new Vertex(n.ToCoordinate(), true));
 
-        var allVertices = otherVertices.Concat(obstacle.Vertices).Concat(otherObstacle.Vertices).Distinct().ToList();
+        var allVertices = otherVertices.Concat(obstacle1.Vertices).Concat(obstacle2.Vertices).Distinct().ToList();
         // The order of the neighbors matters (from smallest angle to largest):
         allVertices.Each(v => v.SortObstacleNeighborsByAngle());
         var coordinateToObstacles = allVertices.ToDictionary(v => v.Coordinate,
@@ -857,19 +900,20 @@ public class VisibilityGraphGeneratorTest
                 { new(new Point(v.Coordinate), new Point(v.Coordinate), new List<Vertex> { v }) });
 
         var obstacleIndex = new QuadTree<Obstacle>();
-        obstacleIndex.Insert(obstacle.Envelope, obstacle);
-        obstacleIndex.Insert(otherObstacle.Envelope, otherObstacle);
+        obstacleIndex.Insert(obstacle1.Envelope, obstacle1);
+        obstacleIndex.Insert(obstacle2.Envelope, obstacle2);
         otherVertices.Each(
             v => obstacleIndex.Insert(new Envelope(v.Coordinate), coordinateToObstacles[v.Coordinate][0]));
 
-        var vertex = obstacleNeighborVertices[1];
+        var vertex = obstacle1NeighborVertices[1];
 
         // Act
         var bins = VisibilityGraphGenerator.GetVisibilityNeighborsForVertex(obstacleIndex, allVertices,
             coordinateToObstacles, vertex, 30, 10);
 
         // Assert
-        Assert.AreEqual(0, bins.Count);
+        Assert.AreEqual(1, bins.Count);
+        Assert.AreEqual(0, bins[0].Count);
     }
 
     [Test]
@@ -1069,6 +1113,43 @@ public class VisibilityGraphGeneratorTest
         // Assert
         CollectionAssert.AreEquivalent(otherVertices, bins[0]);
         Assert.AreEqual(1, bins.Count);
+    }
+
+    [Test]
+    public void GetValidAngleAreasForVertex()
+    {
+        var obstacleNeighbors = new List<Position>
+        {
+            new(1, 1),
+            new(0, 0),
+            new(1, 0),
+        };
+        var obstacleNeighborVertices = new List<Vertex>
+        {
+            new(obstacleNeighbors[0].ToCoordinate(), new[] { obstacleNeighbors[1] }, true),
+            new(obstacleNeighbors[1].ToCoordinate(), new[] { obstacleNeighbors[0], obstacleNeighbors[2] }, true),
+            new(obstacleNeighbors[2].ToCoordinate(), new[] { obstacleNeighbors[1] }, true)
+        };
+        var obstacle = new Obstacle(
+            new LineString(obstacleNeighbors.Map(n => n.ToCoordinate()).ToArray()),
+            new LineString(obstacleNeighbors.Map(n => n.ToCoordinate()).ToArray()),
+            obstacleNeighborVertices
+        );
+
+        List<(double, double)> validAngleAreas;
+
+        validAngleAreas = VisibilityGraphGenerator.GetValidAngleAreasForVertex(obstacle.Vertices[0]);
+        Assert.AreEqual(1, validAngleAreas.Count);
+        CollectionAssert.Contains(validAngleAreas, (0, 360));
+
+        validAngleAreas = VisibilityGraphGenerator.GetValidAngleAreasForVertex(obstacle.Vertices[1]);
+        Assert.AreEqual(2, validAngleAreas.Count);
+        CollectionAssert.Contains(validAngleAreas, (90, 225));
+        CollectionAssert.Contains(validAngleAreas, (270, 45));
+
+        validAngleAreas = VisibilityGraphGenerator.GetValidAngleAreasForVertex(obstacle.Vertices[2]);
+        Assert.AreEqual(1, validAngleAreas.Count);
+        CollectionAssert.Contains(validAngleAreas, (0, 360));
     }
 
     private static Dictionary<Coordinate, List<Coordinate>> GetPositionToNeighborMap(List<Obstacle> obstacles)

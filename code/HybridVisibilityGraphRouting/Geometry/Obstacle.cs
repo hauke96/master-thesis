@@ -70,7 +70,7 @@ namespace HybridVisibilityGraphRouting.Geometry
                     indexOfEndCoordinate = i;
                 }
             }
-
+            
             if (indexOfStartCoordinate != -1 && indexOfEndCoordinate != -1)
             {
                 return IntersectBetweenVerticesOnOpenObstacle(coordinateStart, coordinateEnd, indexOfStartCoordinate,
@@ -136,7 +136,8 @@ namespace HybridVisibilityGraphRouting.Geometry
 
         /// <summary>
         /// Checks if the given line string defined by the coordinate parameters, intersects with any line segment of
-        /// the obstacle.
+        /// the obstacle. It is assumes that the line segment between the given two coordinates is NOT part of this
+        /// obstacle.
         /// </summary>
         private bool IntersectsWithLineString(Coordinate coordinateStart, Coordinate coordinateEnd)
         {
@@ -145,8 +146,17 @@ namespace HybridVisibilityGraphRouting.Geometry
             {
                 var coordinate = Coordinates[i - 1];
 
-                intersectsWithSegment |=
-                    Intersect.DoIntersect(coordinateStart, coordinateEnd, coordinate, Coordinates[i]);
+                var coordinateInCommon = coordinateStart.Equals(coordinate) || coordinateStart.Equals(Coordinates[i]) ||
+                                         coordinateEnd.Equals(coordinate) || coordinateEnd.Equals(Coordinates[i]);
+
+                // If there's a coordinate in common, then it's considered to be neither an intersection nor a
+                // touch-situation. Therefore, intersection checks are only performed for line segments that are
+                // completely unrelated to this obstacle.
+                if (!coordinateInCommon)
+                {
+                    intersectsWithSegment |=
+                        Intersect.DoIntersectOrTouch(coordinateStart, coordinateEnd, coordinate, Coordinates[i]);
+                }
             }
 
             return intersectsWithSegment;

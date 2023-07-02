@@ -423,7 +423,7 @@ public static class VisibilityGraphGenerator
     /// Valid angle areas are determined depending on the obstacle neighbors of the given vertex. Angle areas that
     /// would enlarge the convex hull of the obstacle (without removing the given vertex from it) are determined.
     /// </summary>
-    private static List<(double, double)> GetValidAngleAreasForVertex(Vertex vertex)
+    public static List<(double, double)> GetValidAngleAreasForVertex(Vertex vertex)
     {
         var validAngleAreas = new List<(double, double)>();
         if (vertex.ObstacleNeighbors.Count <= 1)
@@ -447,7 +447,7 @@ public static class VisibilityGraphGenerator
                     var angleFrom = Angle.GetBearing(vertex.Coordinate.ToPosition(), neighbor);
                     var angleTo = Angle.GetBearing(vertex.Coordinate.ToPosition(), vertex.ObstacleNeighbors[nextIndex]);
 
-                    if (Angle.Difference(angleFrom, angleTo) > 180)
+                    if (Angle.Difference(angleFrom, angleTo) >= 180)
                     {
                         validAngleAreas.Add((angleFrom, Angle.Normalize(angleTo - 180)));
                         validAngleAreas.Add((Angle.Normalize(angleFrom - 180), angleTo));

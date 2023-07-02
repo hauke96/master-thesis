@@ -17,7 +17,7 @@ Hence, the topic of agents and simulations will be covered as well.
 	Examples are customer information (address information of each customer), meteorological data (measured temperature and humidity with a coordinate and altitude) and, primarily used in this thesis, road and path data suitable for routing.
 	Since addresses are not globally standardized, describe only a vague location and usually belong to a whole area, they are of less importance for this thesis.
 	Geodata with an additional time dimension is also categorized as \term{spatiotemporal data}\cite{iso-19108} and even though the time dimension is relevant to many real-world use cases, this type of data is of less importance for this thesis as well.
-	The term \emph{geodata} in this thesis refers to data structures as described below in \cref{subsec:data-structures}.
+	The term \emph{geodata} in this thesis refers to data structures as described below in \Cref{subsec:data-structures}.
 	
 	Besides the mentioned explicit references to locations, such as coordinates, implicit location references can be encoded within metadata of datasets as well.
 	This is for example the case with the image-based GeoTIFF format, which stores the geographic extent of the image in the metadata of a normal TIFF image file\cite{ogc-geotiff}.
@@ -29,20 +29,20 @@ Hence, the topic of agents and simulations will be covered as well.
 		However, the Earth is not a perfect sphere but rather an ellipsoid.
 		But even this ellipsoid is not smooth and has slightly different radii in different regions.
 		Furthermore, most regions on Earth move due to continental drift and therefore constantly change their positions and distances relative to each other.
-		Even though the continental plates move slowly, this effect adds up to a significant distance rendering very accurate measurements potentially unusable over time \cite[7]{ordenance-survey-booklet}.
+		Even though the continental plates move slowly, this effect adds up to a significant distance rendering very accurate measurements potentially unusable over time\cite[7]{ordenance-survey-booklet}.
 		These properties of Earth's surface make it necessary to have a variety of different reference systems and projections for spatial data covering different parts of the planet.
 		
 		A \term{coordinate reference system} (CRS) defines the combination of a coordinate system and an approximation of the surface of the Earth.
 		The \term{coordinate system} defines the extent, meaning the spatial boundaries, and unit of coordinates.
-		Types of coordinate systems are for example Cartesian (coordinates in meters or foot) and ellipsoidal (coordinates in degrees) \cite[11-13]{ordenance-survey-booklet}.
+		Types of coordinate systems are for example Cartesian (coordinates in meters or foot) and ellipsoidal (coordinates in degrees)\cite[11-13]{ordenance-survey-booklet}.
 		The \term{horizontal datum} (also \term{Terrestrial Reference System} or \term{geodetic datum}) defines the origin and orientation of the coordinate system and is therefore a mapping from a numeric coordinate to a real location on Earth based on a specific ellipsoid.
 		
 		\term[ellipsoid]{Ellipsoids} are deformed spheres, which describe either the whole Earth or a part of it, e.g. a single continent or country, as accurately as possible.
 		Depending on this ellipsoid, the horizontal datum either defines a global or local reference system.
 		The latter is more accurate in certain places while a global system is designed to find good approximations for every location on Earth.
-		Cartesian coordinate systems with two dimensions only work on flat surfaces, therefore a \term*[map projection]{projection} is required to turn each spherical location on the ellipsoid into a two-dimensional planar location in the coordinate system \cite[17]{ordenance-survey-booklet}.
+		Cartesian coordinate systems with two dimensions only work on flat surfaces, therefore a \term*[map projection]{projection} is required to turn each spherical location on the ellipsoid into a two-dimensional planar location in the coordinate system\cite[17]{ordenance-survey-booklet}.
 		
-		Analogous to the horizontal datum, a \term{vertical datum} can be used to define the height of data \cite{ordenance-survey-booklet}.
+		Analogous to the horizontal datum, a \term{vertical datum} can be used to define the height of data\cite{ordenance-survey-booklet}.
 		This is done by defining a so-called \term{geoid}, which defined the level of zero height.
 		Such a geoid can be modeled using another ellipsoidal sphere but that would result in very inaccurate data.
 		Instead, local reference levels for height data are used, such as the Ordnance Datum Newlyn (\term*{ODN}) for Britain or Normalhöhennull (\term*{NHN}) for Germany.
@@ -52,7 +52,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		The map can be two-dimensional but digital maps can also be rendered on a three-dimensional sphere.
 		Since the projections of the data and map can differ, transformations between the projections are needed.
 		
-		For better communication, the European Petroleum Survey Group (\term*{EPSG}) created a database with definitions for coordinate reference systems and transformations \cite{epsg}.
+		For better communication, the European Petroleum Survey Group (\term*{EPSG}) created a database with definitions for coordinate reference systems and transformations\cite{epsg}.
 		Each entry in this database has an ID with the prefix \enquote{EPSG:} followed by a numeric code, for example EPSG:4326 refers to the global and widely used World Geodetic System 1984 (WGS 84), a global ellipsoidal horizontal datum used for example in GPS.
 		
 	\subsection{Data structures}
@@ -63,7 +63,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		An overview of common data structures in spatial data is given in this section.
 		
 		The \term{Simple Feature Access} (\term*{SFA}) standard by the Open Geospatial Consortium (\term*{OGC}) defines numerous geometry types\cite{ogc-sfa}, however, not all of them are implemented in all data formats and most of them are not relevant for this thesis.
-		The GeoJSON file format (described in more detail in \cref{subsubsec:geojson}) implements the most important geometries and data structures of the SFA standard\cite{ietf-geojson}.
+		The GeoJSON file format (described in more detail in \Cref{subsubsec:geojson}) implements the most important geometries and data structures of the SFA standard\cite{ietf-geojson}.
 		Therefore, an overview of these geometry types as well as an introduction to the concept of features is given in this section.
 		
 		\subsubsection{Geometries}
@@ -89,16 +89,16 @@ Hence, the topic of agents and simulations will be covered as well.
 			Standards exist to keep a data source consistent but to also allow interoperability between systems.
 			Common standards were defined by organizations like the OGC as well as companies or government agencies.
 			
-			A widely used proprietary standard established by the company Esri Inc. is the Shapefile file format, which will be covered in more detail in \cref{subsubsec:shapefile}.
+			A widely used proprietary standard established by the company Esri Inc. is the Shapefile file format, which will be covered in more detail in \Cref{subsubsec:shapefile}.
 			
 			One example for a governmental standard is the INSPIRE standard.
 			It was established based on an initiative of the European Commission and defines fixed attributes with keys and values as well as specifications for metadata.
-			This standard works on a high level of detail with numerous separate specifications for different types of features, for example there exists a single specification just for protected sites, such as natural reserves \cite[31]{inspire-protected-sites}.
+			This standard works on a high level of detail with numerous separate specifications for different types of features, for example there exists a single specification just for protected sites, such as natural reserves\cite[31]{inspire-protected-sites}.
 		
 			A standardization strategy based on democratic votes is used by \term*{OpenStreetMap}.
 			This procedure takes place in the project's Wiki, where voting takes place and keys with their according values are defined.
-			However, arbitrary tags (key-value pairs) are still explicitly allowed to ensure a high degree of flexibility \cite{osm-wiki-proposal-process}.
-			Details on OSM are given in \cref{subsec:osm}.
+			However, arbitrary tags (key-value pairs) are still explicitly allowed to ensure a high degree of flexibility\cite{osm-wiki-proposal-process}.
+			Details on OSM are given in \Cref{subsec:osm}.
 			
 	% TODO kürzen
 	\subsection{File formats}
@@ -118,10 +118,10 @@ Hence, the topic of agents and simulations will be covered as well.
 			Additional files are optional and can contain additional indices or details about the CRS (\texttt{.prj}).
 			Shapefiles are very popular\cite{spatial-file-formats-trends} but have several significant technical limitations regarding the containing geometries and attributes.
 			
-			Even though the first byte of every geometry in the shapefile encodes its type, the standard allows only one type of geometry per shapefile \cite{esri-shapefile-spec}.
+			Even though the first byte of every geometry in the shapefile encodes its type, the standard allows only one type of geometry per shapefile\cite{esri-shapefile-spec}.
 			Storing for example points and polygons would require two separate shapefiles even though the data might belong together.
 			Attributes have limitations in their size and structure.
-			Two major limitations are the maximum length of 10 characters per attribute name and a maximum of 254 characters per value \cite{esri-shapefile-limitations}.
+			Two major limitations are the maximum length of 10 characters per attribute name and a maximum of 254 characters per value\cite{esri-shapefile-limitations}.
 			The maximum number of attributes per geometry is limited by 255.
 			The default CRS is based on latitudes and longitudes using the North American Darum from 1927 (NAD 27)\cite{esri-shapefile-coordinate-system}.
 			
@@ -131,14 +131,14 @@ Hence, the topic of agents and simulations will be covered as well.
 			A KML file consists of a single XML structured file.
 			Since it follows the XML standard, which is plain text, the number of geometries and attributes is not restricted.
 			KML files may contain more information than just features.
-			They can be grouped and hierarchically organized, temporal data can be added to define the lifetime of a feature and camera views for visualization applications can be defined \cite{ogc-kml-2.3}.
+			They can be grouped and hierarchically organized, temporal data can be added to define the lifetime of a feature and camera views for visualization applications can be defined\cite{ogc-kml-2.3}.
 			The CRS can be specified but WGS 84 with latitudes and longitudes is used by default.
 		
 		\subsubsection{GeoJSON}
 		\label{subsubsec:geojson}
 		
 			Another open but not OGC-standardized format is \term{GeoJSON}, which is the most important format for this thesis as all used datasets were in this file format.
-			As the name suggests, a GeoJSON file follows the JSON specification as defined in \href{https://datatracker.ietf.org/doc/html/rfc7946}{RFC7946} \cite{ietf-geojson}.
+			As the name suggests, a GeoJSON file follows the JSON specification as defined in \href{https://datatracker.ietf.org/doc/html/rfc7946}{RFC7946}\cite{ietf-geojson}.
 			The file can either contain a collection of features or geometries.
 			Both collections are represented by a designated type, namely \texttt{GeometryCollection} and \texttt{FeatureCollection}.
 			A \texttt{GeometryCollection} is itself one possible geometry type.
@@ -149,7 +149,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		\subsubsection{GeoTIFF}
 		
 			All formats mentioned so far store vector data, but raster data can be georeferenced as well.
-			One format to store such raster data in form of an image is the OGC-standardized \term{GeoTIFF} format \cite{ogc-geotiff}.
+			One format to store such raster data in form of an image is the OGC-standardized \term{GeoTIFF} format\cite{ogc-geotiff}.
 			As the name suggests, it is an TIFF formatted image with spatial metadata such as the CRS and a mapping of pixel to coordinates.
 			Typical use cases for such images are aerial or satellite imagery and \term*[digital elevation model]{digital elevation models} (\term*{DEM}).
 		
@@ -159,8 +159,8 @@ Hence, the topic of agents and simulations will be covered as well.
 			
 			A \emph{comma-separated value} (\term*{CSV}) file can also serve as a spatial file format where certain columns contain geographical information.
 			The simplicity of this format is its biggest advantage and it is used as transportation format for many public datasets.
-			One example is the publicly available timetable data of the HVV (public transport network in Hamburg, Germany) \cite{hvv-fahrplandaten}.
-			This uses the \term{GTFS} format, which is based on CSV files (even though each file has the ending \texttt{.txt}) and also contains a \texttt{shapes.txt} CSV file to describe which routes the vehicles take \cite{google-gtfs}.
+			One example is the publicly available timetable data of the HVV (public transport network in Hamburg, Germany)\cite{hvv-fahrplandaten}.
+			This uses the \term{GTFS} format, which is based on CSV files (even though each file has the ending \texttt{.txt}) and also contains a \texttt{shapes.txt} CSV file to describe which routes the vehicles take\cite{google-gtfs}.
 			However, there is no popular standard using CSV files to store spatial data only.
 			
 			The \term{Well-known Text} (\term*{WKT}) format is a simple, text-based format specified by the OGC\cite[51]{ogc-sfa}.
@@ -183,24 +183,24 @@ Hence, the topic of agents and simulations will be covered as well.
 		
 		\subsubsection{WMS -- Web Map Service}
 		
-			A \term*{Web Map Service} provides access to rendered images but not to the underlying raw data \cite{ogc-wms}.
+			A \term*{Web Map Service} provides access to rendered images but not to the underlying raw data\cite{ogc-wms}.
 			However, one optional operation a WMS API might support, is the \texttt{GetFeatureInfo} operation, which returns more information about features in the image, but does not necessarily return the raw data.
 		
 		\subsubsection{WMTS -- Web Map Tile Service}
 		
-			Similar to a WMS service, the \term*{Web Map Tile Service} specification was created to provide a more scalable service providing rendered map tiles \cite{ogc-wmts}.
+			Similar to a WMS service, the \term*{Web Map Tile Service} specification was created to provide a more scalable service providing rendered map tiles\cite{ogc-wmts}.
 			Each request returns a tile with a fixed bounding box, making caching on the server and client side possible.
 			While a WMS can be used for data changing over time, WMTS puts the focus on more static data, which can be prerendered to increase request performance.
 		
 		\subsubsection{WFS -- Web Feature Service}
 		
-			To access raw data, a \term*{Web Feature Service} can be used \cite{ogc-wfs}.
+			To access raw data, a \term*{Web Feature Service} can be used\cite{ogc-wfs}.
 			As the name suggests, it returns features instead of a rendered map.
 			In addition to query operations like \texttt{GetFeature}, the API specification also describes an optional \texttt{Transaction} operation to change the data.
 	
 	\subsection{GIS}
 	
-		A file format alone, as described in \cref{subsec:file-formats}, is only useful when it comes to storing or transferring data ensuring interoperability.
+		A file format alone, as described in \Cref{subsec:file-formats}, is only useful when it comes to storing or transferring data ensuring interoperability.
 		Processing the data is part of applications referred to as \term[geographic information system]{geographic information systems} (\term*{GIS}).
 		
 		The term GIS is very broad and describes nearly all systems working with spatial data.
@@ -215,14 +215,14 @@ Hence, the topic of agents and simulations will be covered as well.
 		All spatial data used in this thesis is data from the OSM database.
 		In 2006, two years after the OSM project started, the OpenStreetMap Foundation was established to perform fund-raising, maintain the servers and also act as a legal entity for the project.
 		People contributing to OSM are called \textit{mappers} or simply \textit{contributors} and most of them are volunteers, often mapping their local vicinity or concentrating on specific topics.
-		However, a rising number of companies with payed mappers contribute as well, adding data beneficial for their business model \cite{osm-corporate-mappers}.
+		However, a rising number of companies with payed mappers contribute as well, adding data beneficial for their business model\cite{osm-corporate-mappers}.
 		
 		\subsubsection{Data model}
 		
 			The model of OSM is much simpler compared to many of the \hyperref[subsec:file-formats]{aforementioned} data formats.
 			There are three main data types in OSM: \term{node}, \term{way} and \term[relation]{relations}\cite{osm-wiki-data-model}.
 			
-			Nodes and ways are analogous to \texttt{Point} and \texttt{LineString} from the OGC \term*{Simple Feature Access} (\term*{SFA}) specification described in \cref{subsec:data-structures}.
+			Nodes and ways are analogous to \texttt{Point} and \texttt{LineString} from the OGC \term*{Simple Feature Access} (\term*{SFA}) specification described in \Cref{subsec:data-structures}.
 			Areas also exist but they are modeled as closed ways and therefore do not form a new type of geometry.
 			A way is closed when the first and last coordinates are identical and certain area compatible attributes exist.
 			
@@ -245,7 +245,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			Other tags add metadata to objects, for example the last time the feature was surveyed, the source of the data or internal notes to other mappers.
 			
 			Standardization of tags takes place in the project's wiki via a special proposal process.
-			To ensure flexibility, it is explicitly allowed to use new, reasonable and unstandardized tags \cite{osm-wiki-proposal-process}, which are de-facto accepted if they are commonly used.
+			To ensure flexibility, it is explicitly allowed to use new, reasonable and unstandardized tags\cite{osm-wiki-proposal-process}, which are de-facto accepted if they are commonly used.
 			The community tries to organize and professionalize the development of new tags using the proposal process.
 			Not only can a proposed tagging scheme be accepted or rejected by a democratic vote, a mandatory public discussion of a minimum duration needs to take place earlier.
 			Due to the vast amount of contributors, different opinions, use cases, editors and knowledge about the tagging schemes, multiple competing schemes might evolve (for example \texttt{phone=*} and \texttt{contact:phone=*}).
@@ -339,7 +339,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		
 		Often, the shortest path should be determined, thus the weight function is used to calculate the length of an edge, which is not necessarily bound to the geographic length of the edge.
 		Even though the following sections refer to shortest paths, determining \enquote{optimal} (or minimal) paths is the general case.
-		Thus, routing is a minimization problem, trying to find a path $p$ with the minimum sum $w(p) = \sum_i{w(v_i, v_{i+1})}$ \cite[645]{cormen-introduction-to-alg}.
+		Thus, routing is a minimization problem, trying to find a path $p$ with the minimum sum $w(p) = \sum_i{w(v_i, v_{i+1})}$\cite[645]{cormen-introduction-to-alg}.
 		
 		In theoretic computer science, the fundamental problem behind routing algorithms is called the \term{shortest paths problem}, which exists in several variants\cite[644]{cormen-introduction-to-alg}.
 		
@@ -347,7 +347,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		\label{subsubsec:single-source-shortest-path}
 		
 			One source vertex is given and the shortest paths to all other vertices should be determined.
-			Algorithms that solve this problem are for example the Dijkstra algorithm, described in detail in \cref{subsubsec:dijkstra}, or the Bellman-Ford algorithm, which can additionally handle negative edge weights \cite[651]{cormen-introduction-to-alg}.
+			Algorithms that solve this problem are for example the Dijkstra algorithm, described in detail in \Cref{subsubsec:dijkstra}, or the Bellman-Ford algorithm, which can additionally handle negative edge weights\cite[651]{cormen-introduction-to-alg}.
 		
 		\subsubsection{\term*[single-destination shortest paths]{Single-destination shortest paths}}
 		
@@ -359,7 +359,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		\subsubsection{\term*[single-pair shortest paths]{Single-pair shortest paths}}
 		
 			The shortest path from one specific source to one specific destination vertex should be determined.
-			Even though there are specialized algorithms for this problem like TRANSIT (described in \cref{subsubsec:transit}), more general approaches solving the single-source problem, such as Dijkstra or algorithms based on it, are used more often.
+			Even though there are specialized algorithms for this problem like TRANSIT (described in \Cref{subsubsec:transit}), more general approaches solving the single-source problem, such as Dijkstra or algorithms based on it, are used more often.
 			% TODO source on that
 		
 		\subsubsection{\term*[all-pair shortest paths]{All-pair shortest paths}}
@@ -367,7 +367,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		
 			This problem is similar to the single-source problem but every vertex is a source vertex.
 			A naive approach would therefore be to use an algorithm solving the single-source problem on each vertex, but there are faster ways to solve this.
-			Two popular algorithms solving this problem are the Floyd-Warshall algorithm, allowing negative edge weights by assuming that no negative cycles exist \cite[693]{cormen-introduction-to-alg}, and Johnson's algorithm, which detects negative cycles and terminates in such a case \cite[700]{cormen-introduction-to-alg}.
+			Two popular algorithms solving this problem are the Floyd-Warshall algorithm, allowing negative edge weights by assuming that no negative cycles exist\cite[693]{cormen-introduction-to-alg}, and Johnson's algorithm, which detects negative cycles and terminates in such a case\cite[700]{cormen-introduction-to-alg}.
 		
 	\subsection{Routing engines and shortest path algorithms}
 	\label{subsec:routing-engines}
@@ -375,22 +375,22 @@ Hence, the topic of agents and simulations will be covered as well.
 		A \term{routing engine} is a software built to find an optimal route between a source and destination location.
 		The optimality of this route is determined by a routing profile, which is a weighting function assigning a weight to each edge in the input graph.
 		Routing engines might perform other operations as well, such as map matching or calculation of isochrones.
-		Map matching is a technique to determine equal features in different datasets, for example one dataset is a recorded bicycle tour, the other dataset is an OSM dump and all OSM-ways used in the bicycle tour should be determined \cite{saki-map-matching}.
-		Isochrones are a way to visualize the reachability of a region \cite{allen-isochrones}.
+		Map matching is a technique to determine equal features in different datasets, for example one dataset is a recorded bicycle tour, the other dataset is an OSM dump and all OSM-ways used in the bicycle tour should be determined\cite{saki-map-matching}.
+		Isochrones are a way to visualize the reachability of a region\cite{allen-isochrones}.
 		Each isochrone is an area reachable from a given source location within the same amount of time, thus isochrones often form ring like structures.
 		Depending on the underlying algorithm, finding optimal paths is a central algorithmic task to perform map matching or to create isochrones.
 		
-		To find desirable paths, the weight function $w$ mentioned in \cref{subsec:routing-theoretic-considerations} needs to be carefully chosen based on the domain of the application, vehicle type, personal preferences and other influencing factors.
+		To find desirable paths, the weight function $w$ mentioned in \Cref{subsec:routing-theoretic-considerations} needs to be carefully chosen based on the domain of the application, vehicle type, personal preferences and other influencing factors.
 		Applications in our everyday life bundle these aspects into a \term{routing profile}, which maps attributes from the input data to a certain weight.
 		The input data might consist of multiple data sources like a road network graph and a digital elevation model.
-		Common types of weight functions predict the expected speed on an edge \cite{graphhopper-profile-bike-speeds}, use the length of an edge \cite{graphhopper-profile-shortest} or numerically represent a combination of attributes \cite{graphhopper-profile-short-fastest}.
+		Common types of weight functions predict the expected speed on an edge\cite{graphhopper-profile-bike-speeds}, use the length of an edge\cite{graphhopper-profile-shortest} or numerically represent a combination of attributes\cite{graphhopper-profile-short-fastest}.
 		
 		The open source software Graphhopper is one example of a routing engine and comes with predefined profiles for different modalities and situations.
-		For example the \texttt{car\_delivery} profile is made for delivery services using cars and therefore allows driving on private roads \cite{graphhopper-routing-profiles}.
+		For example the \texttt{car\_delivery} profile is made for delivery services using cars and therefore allows driving on private roads\cite{graphhopper-routing-profiles}.
 		
 		To enhance performance, speedup methods were developed allowing routing queries of continental or even global sizes to be answered quickly.
 		Popular methods are \term{contraction hierarchies} or the use of \term[landmark]{landmarks}, \term[transit node]{transit nodes} and \term[hub label]{hub labels}.
-		Even though there are several more approaches to increase performance, the mentioned techniques will be described in \cref{subsec:speedup-methods}.
+		Even though there are several more approaches to increase performance, the mentioned techniques will be described in \Cref{subsec:speedup-methods}.
 		
 		\subsubsection{Dijkstra}
 		\label{subsubsec:dijkstra}
@@ -398,7 +398,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			Dijkstra's algorithm, often just called \term{Dijkstra}, is originated in the 1950s and can be used to solve the \term*{single-source shortest paths} problem.
 			When no destination vertex is given, this algorithm creates a spanning tree rooted in the source vertex $s$ containing solely shortest paths to all other vertices.
 			Despite its age, Dijkstra's algorithm and optimized versions of it are frequently used in science and real-world applications and are mentioned quite often in this thesis.
-			\Cref{alg:dijkstra} is an already enhanced version using a priority queue for the vertices \cite[658]{cormen-introduction-to-alg}.
+			\Cref{alg:dijkstra} is an already enhanced version using a priority queue for the vertices\cite[658]{cormen-introduction-to-alg}.
 			
 			\begin{algorithm}[h]
 				\begin{algorithmic}[1]
@@ -429,11 +429,11 @@ Hence, the topic of agents and simulations will be covered as well.
 		\subsubsection{A*}
 		\label{subsubsec:astar}
 		
-			The A* shortest path algorithm was introduced in 1968 and uses a heuristic $h : V \rightarrow \mathbb{R}$ in combination with a distance function $g : V \rightarrow \mathbb{R}$ to decide which vertex to visit next \cite{astar}.
+			The A* shortest path algorithm was introduced in 1968 and uses a heuristic $h : V \rightarrow \mathbb{R}$ in combination with a distance function $g : V \rightarrow \mathbb{R}$ to decide which vertex to visit next\cite{astar}.
 			The heuristic $h$ is used to estimate the distance from a given vertex $v$ to the destination (or target) vertex $t$.
 			The distance function $g$ yields the already determined distance from the source vertex $s$ to $v$.
 			Summing up the two functions to $f(v) = g(v) + h(v)$, gives the estimated length of a shortest path from $s$ via $v$ to $t$ and is used to decide which successor of $v$ to process next.
-			The structure of A* is rather simple and \cref{alg:astar} expresses it in pseudocode.
+			The structure of A* is rather simple and \Cref{alg:astar} expresses it in pseudocode.
 			
 			\begin{algorithm}[h]
 				\begin{algorithmic}[1]
@@ -448,12 +448,12 @@ Hence, the topic of agents and simulations will be covered as well.
 					\EndWhile
 					\State Take $G$, follow $t$ back to the source $s$ and output the path
 				\end{algorithmic}
-				\caption{Pseudocode of the originally proposed A* algorithm \cite{astar}.}
+				\caption{Pseudocode of the originally proposed A* algorithm\cite{astar}.}
 				\label{alg:astar}
 			\end{algorithm}
 			
-			The performance of A* relies heavily on the quality of the heuristic and therefore no general complexity formula can be given \cite{russell-norvig-ai-modern-approach}.
-			However, given a specific problem, a so-called \term{effective branching factor} $b^*$ can be determined which approximates the number of new open vertices per processed vertex (see line \ref{alg:astar-open-1} and \ref{alg:astar-open-2} in \cref{alg:astar}).
+			The performance of A* relies heavily on the quality of the heuristic and therefore no general complexity formula can be given\cite{russell-norvig-ai-modern-approach}.
+			However, given a specific problem, a so-called \term{effective branching factor} $b^*$ can be determined which approximates the number of new open vertices per processed vertex (see line \ref{alg:astar-open-1} and \ref{alg:astar-open-2} in \Cref{alg:astar}).
 			The optimal branching factor is 1 and a good heuristic has a factor of close to 1.
 			Having $b^*$ and the number of vertices $n$ in the shortest path, a general runtime complexity of $\bigo{(b^*)^n}$ can be assumed.
 			Since all closed vertices have to be stored in the output graph $G$, the space complexity is equal to the time complexity.
@@ -465,35 +465,36 @@ Hence, the topic of agents and simulations will be covered as well.
 		\subsubsection{Contraction Hierarchies}
 		\label{subsubsec:ch}
 		
-			Contraction hierarchies are based on the idea to reduce the number of vertices a routing algorithm has to visit by adding so-called \emph{shortcut edges} \cite{geisberger-contraction-hierarchies}.
+			Contraction hierarchies are based on the idea to reduce the number of vertices a routing algorithm has to visit by adding so-called \emph{shortcut edges}\cite{geisberger-contraction-hierarchies}.
 			Consider a vertex $u$ with incoming edge $(v, u)$ and outgoing edge $(u, w)$, meaning there is a path from $v$ via $u$ to $w$.
 			Vertex $u$ is \emph{contracted} by adding a new edge $e = (v, w)$ with weight $w(e) = w(v, u) + w(u, w)$.
 			If $e$ already exists with a higher weight, its weight is decreased accordingly.
 			
-			A very important part of this technique is the selection of vertices to contract \cite[14]{geisberger-contraction-hierarchies}.
-			The vertices are selected by a total order $<$ defining a level of importance for each vertex.
-			Selecting the correct order is difficult and heuristics are used to approximate a perfect ordering.
-			Such heuristic can for example be the difference in edge counts from before and after contraction, the uniformity of the distribution of contractions in the graph or the resulting size of the query search space.
-			Multiple heuristics can be combined leading to even better results \cite[49]{geisberger-contraction-hierarchies}.
+			A crucial part of this technique is the selection of vertices to contract\cite[14]{geisberger-contraction-hierarchies}.
+			The vertices are selected by a total order defining the level of importance for each vertex.
+			Creating a good order is difficult and heuristics are used to approximate an optimal ordering.
+			Such heuristics can for example be the difference in edge counts from before and after contraction, the uniformity of the distribution of contractions in the graph or the resulting size of the query search space.
+			Multiple heuristics can be combined, leading to even better results\cite[49]{geisberger-contraction-hierarchies}.
 			The vertices are stored in a priority queue based on a linear combination of all used heuristics and the highest prioritized vertex is processed first.
 			
-			The contraction hierarchy can be used with an adjusted bidirectional Dijkstra algorithm \cite[29-30]{geisberger-contraction-hierarchies}.
+			The contraction hierarchy can be used with an adjusted bidirectional Dijkstra algorithm\cite[29-30]{geisberger-contraction-hierarchies}.
 			A query for the shortest path is performed using two graphs, an upward and downward graph.
 			The upward graph contains only edges from lower to higher order vertices and the downward graph only from higher to lower order vertices.
 			Each of these graphs performs one sub-query, which eventually meet in the same vertex.
 			If this happens \emph{and} no lower weighted edge towards a vertex remaining in the priority queue exists, then the overall queries terminate.
 			All shortcut edges must now be recursively relaxed to create the actual shortest path, which means the shortcut edges are turned back into the original edges that were used to create them.
+			% TODO Illustration of routing? Or removal of details.
 		
 		\subsubsection{Landmarks}
 		
-			A popular usage of so-called \term[landmark]{landmarks} is the ALT algorithm, which stands for A*, landmarks and triangle inequality \cite{goldberg-landmarks}.
-			As described in \cref{subsubsec:astar}, the A* algorithm needs a heuristic leading the search for the shortest path towards the target vertex.
+			A popular usage of so-called \term[landmark]{landmarks} is the ALT algorithm, which stands for A*, landmarks and triangle inequality\cite{goldberg-landmarks}.
+			As described in \Cref{subsubsec:astar}, the A* algorithm needs a heuristic leading the search for the shortest path towards the target vertex.
 			This heuristic is often the euclidean distance divided by a certain speed, which is simple but rather inaccurate.
 			
 			A better, but also more complex approach is to use a set of landmarks $L$.
 			Landmarks are vertices to which all distances are calculated in a precomputation step.
 			
-			% TODO remove this math-part? Not really necessary ...
+			% TODO Remove this math-part? Not really necessary ... Add a illustration otherwise
 			Consider a distance function $d : V \times V \rightarrow \mathbb{R}$, two vertices $v, w \in V$ as well as a landmark $l \in L$.
 			The triangle inequality can be expressed as $d(v,w) \geq d(v,l) - d(w,l)$ for the distances \emph{to} $l$ but also $d(v,w) \geq d(l,w) - d(l,v)$ for distances \emph{from} $l$.
 			This can be used to build the heuristic $h(v, w) = \max \{ d(v,l)-d(w,l), d(l,w)-d(l,v) \}$ for all landmarks $l$.
@@ -508,7 +509,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		\subsubsection{Transit nodes}
 		\label{subsubsec:transit}
 		
-			The routing algorithm called \term{TRANSIT} uses specially selected vertices, so-called \term[transit node]{transit nodes}, and the distances to all other vertices in the graph to find shortest paths very quickly \cite{bast-transit}.
+			The routing algorithm called \term{TRANSIT} uses specially selected vertices, so-called \term[transit node]{transit nodes}, and the distances to all other vertices in the graph to find shortest paths very quickly\cite{bast-transit}.
 		
 			First, the graph is divided into smaller rectangular cells and Dijkstra queries are then used to determine the transit nodes.
 			For each cell, the neighboring cells of a $5 \times 5$ (inner neighbors) and $9 \times 9$ (outer neighbors) neighborhood are determined.
@@ -534,17 +535,17 @@ Hence, the topic of agents and simulations will be covered as well.
 		
 		\subsubsection{Hub labels}
 		
-			The \term{hub label} strategy \cite{bast-transportation-networks} is a labeling algorithm calculating labels $L(v)$ for each vertex $v$.
+			The \term{hub label} strategy\cite{bast-transportation-networks} is a labeling algorithm for calculating labels $L(v)$ for each vertex $v$.
 			Each label contains a set of vertices (called \emph{hubs}) and the length of the shortest path to each of the hubs.
 			A label must fulfill the following two properties.
 			
 			First, the distance $d(u, v)$ from vertex $u$ to $v$ must be determinable using only their labels $L(u)$ and $L(v)$.
 			Since $u$ and $v$ can be arbitrary vertices, the vertex $v$ is not necessarily within $L(u)$.
-			To not traverse through all labels to find $v$ from $u$, the second property (called \emph{cover property}) is very important:
+			To avoid traverse all labels to find $v$ from $u$, the second property (called \emph{cover property}) is very important:
 			For two arbitrary vertices $u$ to $v$, the set $L(u) \cap L(v)$ must contain at least one common hub $h$ on the shortest path from $u$ to $v$.
-			This can be used to solve fulfill the first property.
+			This can be used to fulfill the first property.
 			
-			The labels can be determined with the mechanism from contraction hierarchies forming the upward graph based on a vertex ordering $<$.
+			The labels can be determined with the mechanism from contraction hierarchies forming the upward graph based on a vertex ordering.
 			In fact, any such order can be used to create a correct labeling.
 
 			Routing requests for a shortest path from $u$ to $v$ are simple and answered in the following way.
@@ -552,18 +553,21 @@ Hence, the topic of agents and simulations will be covered as well.
 			When storing the hubs in a sorted list during preprocessing, building the intersection can be done in linear time.
 			Finally, the hub $h \in L(u) \cap L(v)$ with the minimum distance sum $d(u, h) + d(h, v)$ is returned as it is on the shortest path from $u$ to $v$.
 			
-			Even though the requests can be answered very fast, actually faster than most other routing methods, it needs a lot of space and preprocessing time to store and determine all the labels.
+			Even though the requests can be answered very fast, actually faster than most other routing methods, a lot of space and preprocessing time to store and determine all the labels is required.
+			
+			% TODO Illustration?
 		
 		\subsubsection{Compressed path databases}
 		\label{subsubsec:cpd}
 		
-			A \term{compressed path database} (\term*{CPD}) itself is not directly a routing algorithm but rather a technique to efficiently store shortest paths between any two locations of a domain \cite{botea-cpd-2013}.
-			In other words, the solution of the all-pair shortest paths problem from \cref{subsubsec:all-pair-shortest-path} can be stored in a CPD without having extensive memory requirements.
+			A \term{compressed path database} (\term*{CPD}) itself is not directly a routing algorithm but rather a technique to efficiently store shortest paths between any two locations of a domain\cite{botea-cpd-2013}.
+			In other words, the solution of the all-pair shortest paths problem from \Cref{subsubsec:all-pair-shortest-path} can be stored in a CPD without having extensive memory requirements.
 			
 			The simplest form of a CPD works on a grid rather than a graph, where the number of neighbors is limited and visualization, calculations and compression is simpler.
-			Such grid-based CPDs actually consist not of one but of $n$ many grids, each one storing movement information from a fixed cell $v$ to all other cells.
+			Such grid-based CPDs actually consist not of one but of $n$ grids, each one storing movement information from a fixed cell $v$ to all other cells.
 			When having $n$ cells per grid, $n$ grids are needed so that for each cell, one grid with movement information exists.
 			However, movement information here means, that only a single step is stored in a grid.
+			% TODO Illustration?
 			
 			Consider the following example:
 			The path from cell $u$ to $v$ is requested, so the grid $u$ is used first.
@@ -572,7 +576,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			The grid for $u'$ is then looked at and, just as before, the cell $v$ contains the direction to take.
 			This is repeated until the cell $v$ is reached.
 			
-			The construction of a CPD \cite{botea-cpd-2013} is similarly simple.
+			The construction of a CPD\cite{botea-cpd-2013} is similarly simple.
 			For each vertex $v$, the shortest paths to all other vertices are calculated, which can be done using Dijkstra or any other single-source or all-pairs shortest path algorithm.
 			After converting the shortest paths into a compatible format (in the above case a grid), the data needs to be compressed.
 			Uncompressed data is usually too large as the space requirement is in $\bigo{n^2}$ or even $\bigo{n^2 \log n}$ for graphs.
@@ -589,10 +593,10 @@ Hence, the topic of agents and simulations will be covered as well.
 \section{Geometric routing}
 \label{sec:geometric-routing}
 
-	Geometric routing determines shortest paths through open spaces by avoiding obstacles.
+	Finding paths in a geometric domain, also called the \term{euclidean shortest path} problem, is the process of determining shortest paths through open spaces by avoiding obstacles.
 	This routing technique takes place under the absence of roads and ways, therefore attributes on these edges, for example surface conditions, are of no use.
-	There are to main strategies for finding shortest paths:
-	Create edges through open spaces for graph-based routing or create a shortest paths map, a structure similar to CPDs.
+	There are two main strategies for finding shortest paths:
+	Generating edges through open spaces for graph-based routing or generating a shortest paths map, a structure similar to CPDs.
 	
 	\subsection{Visibility graphs}
 	\label{subsec:visibility-graph}
@@ -601,13 +605,12 @@ Hence, the topic of agents and simulations will be covered as well.
 		There are multiple ways on how to create such edges.
 		One approach is the creation of a so-called \term{visibility graph}, which is a normal graph with edges between vertices that are visible to each other.
 		Or in other words, for any two $u, v \in V$ there is an edge $(u, v) \in E$ if and only if there is no obstacle intersecting this edge.
-		Since a visibility graph might become very large, some edges might be removed or other strategies are more efficient.
-		In fact, the worst-case of a visibility graph is a complete graph with $\bigo{|V|^2}$ many edges.
+		A visibility graph might become very large, in fact, the worst-case regarding the size is a complete graph with $\bigo{|V|^2}$ many edges.
 		
 		Alternatives to the visibility graph generation are based on Voronoi diagrams or skeletonization methods.
 		However, routing results on such graphs are not necessarily optimal, since a straight edge between visible vertices is the shortest possible connection.
-		These alternatives do not always create such direct edges \cite{graser-osm-open-spaces}, which leads to detours and longer paths.
-		Another property of graph generating methods is that the start and destination locations must still be on the graph to be precisely reachable by routing algorithms.
+		These alternative generation approaches do not always create such direct edges\cite{graser-osm-open-spaces}, which leads to detours and longer paths.
+		Even though start and destination locations must still be part of the graph to be reachable by routing algorithms, additional edges from and to these locations can be generated with the same algorithm used to create the graph.
 	
 	\subsection{Continuous Dijkstra}
 	\label{subsec:continuous-dijkstra}
@@ -616,22 +619,23 @@ Hence, the topic of agents and simulations will be covered as well.
 		Each region of this map stores the predecessor vertex, which can be used to determine shortest paths by following the predecessor relations from any given location back to $s$.
 
 		This map can also be seen as a tree with $s$ as its root and each region as a leaf.
-		Such a tree might remind one of Dijkstra's algorithm, which creates such a shortest path tree as well.
-		Due to this similarity, this strategy is also called the \term{continuous dijkstra} paradigm \cite{mitchell-discrete-geodesic}.
+		Such a tree might remind one of Dijkstra's algorithm, which creates such a shortest path tree as well to solve the \hyperref[subsubsec:single-source-shortest-path]{single-source shortest path problem}.
+		Due to this similarity, this strategy is also called the \term{continuous Dijkstra} paradigm\cite{mitchell-discrete-geodesic}.
 		
-		To precisely determine these regions, one popular approach is to create \term[wavefront]{wavefronts} (sometimes also called \term[wavelet]{wavelets}) propagating through open spaces.
+		To precisely determine these regions, one popular approach is to create \term[wavefront]{wavefronts} propagating through open spaces.
 		A well-fitting analogy for this approach is the propagation of sound or water waves traveling through space, folding around obstacles and finally reaching the destination location.
 		Recursively following each wave back to its origin yields the shortest path from the source to the destination.
+		These wavefronts are also called \term[wavelet]{wavelets}), because they only cover a certain angular range due to collisions and the presence of obstacles.
 		
-		Each wavefront can interact with edges and vertices but also with other wavefronts.
-		Interactions in this case are collisions creating the borders of the regions.
+		Each wavefront can collide with edges and vertices but also with other wavefronts.
+		After detecting such a collision, the angular region of the wavefront is adjusted depending on the type of collision.
 		For each region the origin of the wavefront is known, which enables the query routine to follow these predecessors back to the source.
-		The key difficulty of this approach is the efficient propagation of these wavefronts, which means the fast detection of collisions with obstacles and other wavefronts \cite{hershberger-suri}.
+		The key difficulty of this approach is the efficient propagation of these wavefronts, which means the fast detection of collisions with obstacles and other wavefronts\cite{hershberger-suri}.
 
 \section{Agent-based systems and simulations}
 
-	Simulating complex systems with numerous individuals is a complex task.
-	Agent-based models help to break down this complexity by simulating each individual separately with its own behavior and decision-making \cite{macal-introductory-tutorial}.
+	Simulating complex systems with numerous autonomous individuals, called \term[agent]{agents}, is a complex task.
+	Agent-based models help to break down this complexity by simulating each agent separately with its own behavior and decision-making\cite{macal-introductory-tutorial}.
 	Interactions between agents and the environment as well as agents with other agents are an essential part of agent-based simulations.
 	Each interaction can affect other agents and the environment.
 	
@@ -641,16 +645,16 @@ Hence, the topic of agents and simulations will be covered as well.
 	More complex agents may have a specific goal, are able to adapt themselves to their environment and thus must be able to memorize and plan things.
 	
 	An agent might be a simulated person but could also be a company, car or other non-living part of the simulated world.
-	Many simulations use pedestrians (or generally humans) as agents to better understand human behaviors but many more scenarios with other types of agents can be simulated \cite{macal-introductory-tutorial}.
+	Many simulations use pedestrians (or generally humans) as agents to better understand human behavior but many more scenarios with other types of agents can be simulated as well\cite{macal-introductory-tutorial}.
 
 	Studying the behavior of pedestrians requires a spatial environment where agents can move and interact with each other.
-	Since uncontrolled movement is rather uninteresting, most of the time, algorithms finding optimal paths are involved \cite{kneidl-borrmann-hartmann-navigation,gloor-hybrid-pedestrian-routing,teknomo-millonig-routing}.
-	This not only includes \hyperref[sec:graph-routing]{graph-based routing} but often utilizes \hyperref[sec:geometric-routing]{geometric routing} as well \cite{kneidl-borrmann-hartmann-navigation}.
+	Since uncontrolled movement is rather uninteresting, most of the time, algorithms finding optimal paths are involved\cite{kneidl-borrmann-hartmann-navigation,gloor-hybrid-pedestrian-routing,teknomo-millonig-routing}.
+	This not only includes \hyperref[sec:graph-routing]{graph-based routing} but often utilizes \hyperref[sec:geometric-routing]{geometric routing} as well\cite{kneidl-borrmann-hartmann-navigation}.
 	
 	\subsection{The MARS framework}
 	
 		The algorithm presented in this work was implemented to enhance agent-based simulations created using the framework MARS (Multi-Agent Research and Simulation).
-		MARS is a C\#/.NET framework developed by the MARS group, an academic research group of the Hamburg University of Applied Sciences (HAW) in Hamburg, Germany, to create and execute agent-based simulations \cite{mars}.
+		MARS is a C\#/.NET framework developed by the MARS group, an academic research group of the Hamburg University of Applied Sciences (HAW) in Hamburg, Germany, to create and execute agent-based simulations\cite{mars}.
 		The framework offers the necessary components, algorithms and tools to create tick-based simulations consisting of multiple agents, different layers of data and numerous static entities populating the environment.
 		
 		The MARS framework contains several data structures and algorithms for spatial data and especially for path finding.
@@ -658,4 +662,4 @@ Hence, the topic of agents and simulations will be covered as well.
 		MARS also contains numerous spatial indices, mathematical operations and I/O classes, for example to serialize the trajectories of agents.
 		 
 		This work is based on the MARS framework to be directly usable by simulations, which is why, among other parts, the spatial graph and A* algorithm of MARS are used.
-		More details on the design and implementation are given in \cref{chap:design} and \ref{chap:implementation}.
+		More details on the design and implementation are given in \Cref{chap:design} and \ref{chap:implementation}.

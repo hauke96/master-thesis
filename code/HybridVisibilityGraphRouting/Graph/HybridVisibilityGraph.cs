@@ -215,7 +215,8 @@ public class HybridVisibilityGraph
                     .IsEmpty()) // can happen due to convex-hull filtering so that not every vertex is represented by a node 
             .Each(nodeCandidates =>
             {
-                GetNodeForAngle(nodeToConnect.Position, nodeCandidates)
+                HybridVisibilityGraphGenerator
+                    .GetNodeForAngle(nodeToConnect.Position, nodeCandidates, _nodeToAngleArea, Graph.NodesMap)
                     .Each(node =>
                     {
                         // Create the bi-directional edge between node to add and this visibility node and collect its IDs for
@@ -485,38 +486,10 @@ public class HybridVisibilityGraph
             .ToList();
     }
 
-    private IEnumerable<int> GetNodeForAngle(Coordinate coordinate, IEnumerable<NodeData> nodeCandidates)
+    public IEnumerable<int> GetNodeForAngle(Coordinate coordinate, IEnumerable<NodeData> nodeCandidates)
     {
-        return GetNodeForAngle(coordinate.ToPosition(), nodeCandidates.Map(n => n.Key));
-    }
-
-    /// <summary>
-    /// Determines the correct node for the given position based on the angle from the position to the node. This method
-    /// does *not* find the node *at* this position. Therefore, the <code>position</code> parameter can be seen as a
-    /// neighbor of the given node candidates.
-    /// </summary>
-    public IEnumerable<int> GetNodeForAngle(Position position, IEnumerable<int> nodeCandidates)
-    {
-        // We have all corresponding nodes for the given position ("nodeCandidates") but we only want the one node
-        // whose angle area includes the position to add. So its angle area should include the angle from that
-        // node candidate to the position.
-        return Enumerable.Where(nodeCandidates, nodeCandidate =>
-            // There are some cases:
-            // 1. The node does not exist in the dictionary. This happens for nodes that were added during a routing
-            // request. We assume they cover a 360° area.
-            !_nodeToAngleArea.ContainsKey(nodeCandidate)
-            ||
-            // 2. The angle area has equal "from" and "to" value, which means it covers a range of 360°. In this case,
-            // no further checks are needed since this node candidate is definitely the one we want to connect to.
-            _nodeToAngleArea[nodeCandidate].Item1 == _nodeToAngleArea[nodeCandidate].Item2
-            ||
-            // 3. In case the angles are not identical, we need to perform a check is the position is within the covered
-            // angle area of this node candidate.
-            Angle.IsBetweenEqual(
-                _nodeToAngleArea[nodeCandidate].Item1,
-                Angle.GetBearing(Graph.NodesMap[nodeCandidate].Position, position),
-                _nodeToAngleArea[nodeCandidate].Item2
-            ));
+        return HybridVisibilityGraphGenerator.GetNodeForAngle(coordinate.ToPosition(), nodeCandidates.Map(n => n.Key),
+            _nodeToAngleArea, Graph.NodesMap);
     }
 
     /// <summary>

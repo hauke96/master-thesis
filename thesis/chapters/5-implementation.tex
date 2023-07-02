@@ -13,7 +13,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 	\subsection{Frameworks and technology}
 	\label{subsec:frameworks-technology}
 	
-		As mentioned in \cref{subsec:constraints} about the constraints, the used programming language is C\# due to the dependency to the MARS framework.
+		As mentioned in \Cref{subsec:constraints} about the constraints, the used programming language is C\# due to the dependency to the MARS framework.
 		The MARS framework is based on the widely used C\# library \term{NetTopologySuite} (\term*{NTS}), which contains numerous data structures, algorithms and helper function to handle and process geospatial data.
 		
 		Primarily, the NTS was used for basic data structures like coordinates, geometries and features but also for simple operations, e.g. the calculation of distances.
@@ -30,7 +30,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 %	\subsection{Chosen approach and potentially faster known algorithms}
 %
 %		Due to the step by step development by turning the former continuous dijkstra preprocessing into a visibility graph generator, the implemented approach does not follow algorithms described in the literature.
-%		The performance of this implementation, as shown in \todo[inline]{link to evaluation chapter}, is still enough for practical use, but a well designed and fast algorithm, like the one presented by Overmars and Welzl \cite{overmars-weizl-visibility-graph} or the one by Ghosh and Mount \cite{ghosh-output-sensitive-vgraph}, would clearly increase performance.
+%		The performance of this implementation, as shown in \todo[inline]{link to evaluation chapter}, is still enough for practical use, but a well designed and fast algorithm, like the one presented by Overmars and Welzl\cite{overmars-weizl-visibility-graph} or the one by Ghosh and Mount\cite{ghosh-output-sensitive-vgraph}, would clearly increase performance.
 %		However, this performance enhancement would only affect the generation of a visibility graph and not the performance of the routing queries.
 			
 	\subsection{Algorithm steps}
@@ -43,7 +43,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 		\label{subsubsec:graph-generation}
 		
 			The \texttt{HybridVisibilityGraphGenerator} class provides a factory method to create an instance of the \texttt{HybridVisibilityGraph} class from a given collection of features.
-			This factory method consists of the following top level steps, which are all described in \cref{sec:visibility-graph-creation} in more detail:
+			This factory method consists of the following top level steps, which are all described in \Cref{sec:visibility-graph-creation} in more detail:
 			\begin{enumerate}
 				\item \hyperref[subsec:step-1-preprocessing]{Filter the given features for obstacles}
 				\item \hyperref[subsec:step-2-knn-search]{Determine the visibility neighbors}
@@ -58,7 +58,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 		
 			To enable answering routing requests between arbitrary locations the resulting graph needs to be extended with edges from and to the given start and end locations.
 			These edges themselves are visibility edges and can therefore be created and merged just like the visibility edges before.
-			Further details are given in \cref{sec:answering-queries} describing the following steps:
+			Further details are given in \Cref{sec:answering-queries} describing the following steps:
 			\begin{enumerate}
 				\item Determine visibility edges for source and destination coordinates\label{itm:step-merging-source-dest}
 				\item Merge these edges into the graph such that they can be removed afterwards
@@ -139,12 +139,12 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			\label{fig:shadow-area}
 		\end{figure}
 		
-		The angular range is determined by two vertices, the \emph{bounding vertices} as marked in red in \cref{fig:shadow-area}, one with the smallest and one with the largest angle from the processed vertex $v$.
+		The angular range is determined by two vertices, the \emph{bounding vertices} as marked in red in \Cref{fig:shadow-area}, one with the smallest and one with the largest angle from the processed vertex $v$.
 		Thus, the shadow area covers the largest possible angular range for the obstacle it belongs to.
 		
 		Having the distances from $v$ the two bounding vertices, the larger distance is the overall distance of the shadow area.
 		Choosing any other distance, e.g. the smaller distance of these two, would result in a shadow area leading to false positive visibility checks, meaning the checked vertex is within the shadow but it is actually visible from $v$.
-		Taking the larger distance into account results in false negative results (as for $v'$ in \cref{fig:shadow-area}), meaning the vertex is not within a shadow but not visible, which can be handled by a full visibility check.
+		Taking the larger distance into account results in false negative results (as for $v'$ in \Cref{fig:shadow-area}), meaning the vertex is not within a shadow but not visible, which can be handled by a full visibility check.
 		Additionally when using the larger distance, positive results, meaning the checked vertex is within a shadow and seems to be not visible from $v$, are always true positive results and need no further checking.
 		
 		Calculating the shadow area of an obstacle is a linear time operation (linear in the amount of vertices of the obstacle) and requires just a few arithmetic operations.
@@ -152,7 +152,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 		For example for the currently processed vertex $v$, a shadow area can range from 45° to 90° and starts at a distance of 5 meters.
 		This means a vertex at 60° and 3 meters distance might be visible from $v$ but a visibility check is needed.
 		A vertex at 60° and 6 meters distance is definitely not visible.
-		This scenario is illustrated in \cref{fig:shadow-area} with vertices $v'$ and $v''$.
+		This scenario is illustrated in \Cref{fig:shadow-area} with vertices $v'$ and $v''$.
 		
 		In terms of data structures, each shadow is an interval (between 0 and 360) of certain distance, which turns the visibility problem into an interval intersection problem.
 		Thus, checking whether a certain coordinate is within any shadow area is a simple operation using just a few arithmetic operations.
@@ -256,7 +256,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 \section{Routing graph creation}
 \label{sec:visibility-graph-creation}
 		
-	This section presents implementation details on the steps given in \cref{subsubsec:graph-generation} for graph generation, which includes generating a visibility graph and merging it with a road network.
+	This section presents implementation details on the steps given in \Cref{subsubsec:graph-generation} for graph generation, which includes generating a visibility graph and merging it with a road network.
 
 	\subsection{Step 1: Obstacle filtering and feature preprocessing}
 	\label{subsec:step-1-preprocessing}
@@ -334,12 +334,12 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			
 			The reason for this filtering is quite simple:
 			Vertices not being on a convex hull will never be part of a shortest path.
-			This is the case, since the convex hull itself is by definition the smallest set of points that creates an areas, which in turn contains all other points of the geometry \cite[2]{de-berg-computational-geometry}.
+			This is the case, since the convex hull itself is by definition the smallest set of points that creates an areas, which in turn contains all other points of the geometry\cite[2]{de-berg-computational-geometry}.
 			Interpreting the convex hull as one possible path around a shape, the triangle inequality implies that this path is in deed the shortest path around the shape.
 			When determining shortest paths, the part of a route bending around an obstacle will therefore always be a subset of its convex hull.
 			
 			Of course, a routing query might start within a concave part of the obstacle or somewhere completely else.
-			This case, however, is independent of the graph generation and belongs to answering routing queries, which is covered later in \cref{sec:answering-queries}.
+			This case, however, is independent of the graph generation and belongs to answering routing queries, which is covered later in \Cref{sec:answering-queries}.
 			
 			Also, the weighting function for the routing queries might not determine shortest, but for example fastest routes.
 			In such case, the above filtering might result in inaccurate and suboptimal paths.
@@ -351,11 +351,11 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			Eventually the path switches from following the convex hull to following a visibility edge, which leads to another obstacle and therefore another convex hull part.
 			
 			This means, a shortest path consists of many convex hull parts that either are connected by straight lines or touch each other.
-			Connecting lines, i.e. line segments connecting one convex hull part with another, always follow the clockwise or counter clockwise direction of the line segments of each convex hull as illustrated in \cref{fig:convex-hull}.
+			Connecting lines, i.e. line segments connecting one convex hull part with another, always follow the clockwise or counter clockwise direction of the line segments of each convex hull as illustrated in \Cref{fig:convex-hull}.
 			If the convex hull part bends in counter clockwise direction, it means that the bearing of each line segment decreases and increases for clockwise hulls respectively.
 			In other words, line segments of a counter clockwise convex hull only make left turns, the ones of a clockwise hull only make right turns.
 			The connecting line to the next convex hull follows this turning direction.
-			Another way to think about this is the following with \cref{fig:convex-hull} as an example:
+			Another way to think about this is the following with \Cref{fig:convex-hull} as an example:
 			if the destination vertex $v_2$ of the connecting line $(v_1, v_2)$ would be added to the obstacle of the source vertex (in this example $o_1$), then the connecting line would be part of the convex hull of this new expanded obstacle.
 			Since the convex hull is the shortest path around an obstacle, the path $(v_0, v_1, v_2)$ is the shortest path on the expanded obstacle from $v_0$ to $v_2$ since it is a part of its convex hull.
 			Because $v_2$ is not actually part of $o_1$, it means the path $(v_0, v_1, v_2)$ is generally the shortest from $v_0$ to $v_2$.
@@ -419,12 +419,12 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			\end{figure}
 			
 			Allowing connecting lines against the turning direction of the source obstacle hull would result in edges that will never be part of a shortest path.
-			For example, the line segment $(v_1, v_3)$ in \cref{fig:convex-hull} is not part of any shortest path, which has $v_1$ is an intermediate vertex.
+			For example, the line segment $(v_1, v_3)$ in \Cref{fig:convex-hull} is not part of any shortest path, which has $v_1$ is an intermediate vertex.
 			This is due to the properties described at the beginning:
 			convex hulls themselves build shortest paths around obstacles, the overall shortest path is a sequence of convex hull parts, connecting lines connect these hull parts by following their turn direction and therefore they are part of the overall shortest path as well.
 			Breaking the criterion of the turn directions, i.e. by allowing connecting lines against the turn direction of the source hull, leads to non-shortest paths.
 			This connecting line, which was created against the hull's turning direction, can be relaxed to a new connecting line that follows the turning direction and is shorter due to the triangle inequality.
-			In \cref{fig:convex-hull}, the path $(v_0, v_1, v_3)$ with the connecting line $(v_1, v_3)$, which turns to the right even though $o_1$'s hull turns to the left, can be relaxed to $(v_0, v_3)$ forming the actual shortest path.
+			In \Cref{fig:convex-hull}, the path $(v_0, v_1, v_3)$ with the connecting line $(v_1, v_3)$, which turns to the right even though $o_1$'s hull turns to the left, can be relaxed to $(v_0, v_3)$ forming the actual shortest path.
 			
 			Following the idea of expanding the source obstacle illustrates the contradiction that appears for breaking the turn direction criterion.
 			Considering the obstacle $o_1$ and expanding it with the candidate vertex $v_3$ to $o'_1=o_1 \cup \{v_3\}$ yields the path $(s, v_0, v_3)$, which is the shortest path for the actual existing obstacles from $s$ to $v_3$, because it follows the convex hull of the hypothetical obstacle $o'_1$.
@@ -435,7 +435,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			Thus, creating connecting lines against the turning direction of the source obstacle creates lines, which are not part of any shortest path.
 			
 			Only connecting lines fulfilling the above described turning direction criterion need to be considered, which restricts the relevant vertices to certain angular ranges.
-			The marked green and blue angle areas in \cref{fig:convex-hull} represent these \term{valid angle areas} for potential visibility neighbors.
+			The marked green and blue angle areas in \Cref{fig:convex-hull} represent these \term{valid angle areas} for potential visibility neighbors.
 			Vertices at other angles will be ignored since the resulting edges will never be part of any shortest path.
 			
 			Since this is solely a performance optimization, the same considerations apply as in the above shown convex hull filtering.
@@ -450,7 +450,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			In fact, there are two types of intersection checks implemented:
 			One function to check for an intersection between two arbitrary line segments and one to check if a point lies within a triangle.
 			
-			The line segment intersection check uses an approach based on cross products as presented in \emph{Introduction to algorithms} by Thomas H Cormen et al. \cite[1018]{cormen-introduction-to-alg}.
+			The line segment intersection check uses an approach based on cross products as presented in \emph{Introduction to algorithms} by Thomas H Cormen et al.\cite[1018]{cormen-introduction-to-alg}.
 			Even though this method only works on single line segments, it is significantly faster than general purpose checks provided by the NetTopologySuite.
 			This is still true when checking if a single line segments intersects any of multiple obstacles.
 			
@@ -494,7 +494,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 		\subsubsection{Shadow area operations}
 			
 			The shadow areas are stored in the previously described \hyperref[subsec:binindex]{BinIndex} data structure.
-			Inserting of the intervals therefore works as described in \cref{subsec:binindex}.
+			Inserting of the intervals therefore works as described in \Cref{subsec:binindex}.
 			
 			Shadow areas are always determined for a single vertex $v$.
 			Checking if a different vertex $u$ is within any shadow area, and therefore not visible from $v$, is quite simple.
@@ -529,7 +529,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			Determining the obstacle neighbors is relatively simple and straight forward.
 			Each vertex $v$ of an obstacle $o$ is processed by looking at the previous and next vertices $v_p$ and $v_n$ on the same obstacle, which are both potential obstacle neighbors.
 			If the line segment $(v, v_p)$, same applies to $v_n$, does not intersect with any other obstacle and is not an edge on any other obstacle, it is considered an obstacle neighbor.
-			Latter case can be seen in \cref{fig:obstacle-neighbors-touching} at the line segment $(v_1, v_3)$, which is part of two touching obstacles.
+			Latter case can be seen in \Cref{fig:obstacle-neighbors-touching} at the line segment $(v_1, v_3)$, which is part of two touching obstacles.
 						
 			\begin{figure}[h]
 				\begin{minipage}[t]{0.475\textwidth}
@@ -603,12 +603,12 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 				\item If $u$ is visible, store it in the according bin for its angle and continue with the next vertex
 			\end{enumerate}
 			Having all visibility neighbors according to the amount and size of the bins, they are sorted in new bins based on the obstacle neighbors.
-			This procedure is described in the following section and its result is stored for the graph creation, which is described below in \cref{subsec:step-3-graph-creation}.
+			This procedure is described in the following section and its result is stored for the graph creation, which is described below in \Cref{subsec:step-3-graph-creation}.
 		
 		\subsubsection{Step 2.3: Sort resulting visibility neighbors into bins}
 		
 			A naive approach to create a visibility graph would be to create edges between vertices that are visible to each other.
-			This would make routing through line-based obstacles possible as \cref{fig:routing-through-line-obstacle} illustrates.
+			This would make routing through line-based obstacles possible as \Cref{fig:routing-through-line-obstacle} illustrates.
 			Such routing behavior is, of course, not desired.
 			
 			\begin{figure}[h]
@@ -738,8 +738,8 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 				\label{fig:visibility-bin-sorting}
 			\end{figure}
 			
-			To correctly split and connect vertices, as illustrated for vertex $v$ in \cref{fig:routing-through-line-obstacle}, it must be known which visibility neighbors are within the angular range of which adjacent obstacle neighbors.
-			Knowing this enables the graph generation to sort all visibility neighbors into bins, as shown in \cref{fig:visibility-bin-sorting}.
+			To correctly split and connect vertices, as illustrated for vertex $v$ in \Cref{fig:routing-through-line-obstacle}, it must be known which visibility neighbors are within the angular range of which adjacent obstacle neighbors.
+			Knowing this enables the graph generation to sort all visibility neighbors into bins, as shown in \Cref{fig:visibility-bin-sorting}.
 			Each of the resulting bins of a vertex $v$ covers the area between two adjacent obstacle neighbors.
 			Later, in \hyperref[subsec:step-3-graph-creation]{step 3}, each bin leads to one new vertex.
 			In the mentioned illustration, there would be two bins, one containing $n_a$ and one containing $n_b$, leading to two new vertices $v_a$ and $v_b$.
@@ -752,12 +752,12 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 		
 		As described at the end of the previous step, one node is created for each bin of neighboring vertices.
 		Therefore, mappings between nodes, vertices and neighbor bins have to be created.
-		For an example, consider \cref{fig:routing-through-line-obstacle-b} where neighbor vertex $n_a$ should be connected to $v$.
+		For an example, consider \Cref{fig:routing-through-line-obstacle-b} where neighbor vertex $n_a$ should be connected to $v$.
 		Since $v$ is split into two vertices, two nodes are created in the graph and therefore a mapping from node to bin is needed in order to connect the right nodes with each other.
 		Two iterations over all vertices are used to first create the nodes with the respective bin-mapping and then, in the second iteration, this mapping is used to correctly connect all nodes.
 		
 		Without this mapping, it would not be clear to what node to connect.
-		As the example in \cref{fig:routing-through-line-obstacle} shows, without a mapping between visibility neighbor bins and nodes, it is unclear whether to connect $n_a$ to $v_a$ or to $v_b$ because they both are on the exact same location.
+		As the example in \Cref{fig:routing-through-line-obstacle} shows, without a mapping between visibility neighbor bins and nodes, it is unclear whether to connect $n_a$ to $v_a$ or to $v_b$ because they both are on the exact same location.
 		
 		The resulting spatial graph together with some of the mappings, which will be used to \hyperref[sec:answering-queries]{answer routing queries}, are stored in an instance of the \texttt{HybridVisibilityGraph} class.
 		It contains the final spatial graph, as an instance of the \texttt{SpatialGraph} class provided by the MARS framework, along with all information needed to correctly add and connect new nodes.
@@ -842,7 +842,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 		Therefore, up to $|E_R| \cdot (2 \cdot |E_V| + 1)$ new edges and $|E_R| \cdot |E_V|$ new nodes are created.
 		Even though it does not scale worse than linear in the input size $|E_R|$ of the road edges, the size of the output graph is significantly higher than the input road network, which are typically quite sparse networks.
 
-		Measured graph sizes and effects on the routing performance are presented and discussed in \cref{chap:evaluation}.
+		Measured graph sizes and effects on the routing performance are presented and discussed in \Cref{chap:evaluation}.
 	
 \section{Answering shortest path queries}
 \label{sec:answering-queries}
@@ -860,7 +860,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 	
 	Because step \ref{itm:answering-queries-vis-edges} is already implemented for the general graph generation, the core method \texttt{VisibilityGraphGenerator.GetVisibilityNeighborsForVertex()} can be reused without further adjustments.
 	The most complex part is to determine the correct node to connect to.
-	Thanks to the mappings of neighbor bins and their covered angle areas, as introduced in \cref{subsec:step-3-graph-creation}, the correct bin for a location can be determined and a bidirectional edge be created.
+	Thanks to the mappings of neighbor bins and their covered angle areas, as introduced in \Cref{subsec:step-3-graph-creation}, the correct bin for a location can be determined and a bidirectional edge be created.
 	These are mostly simple filtering operations on the bins and can be implemented with very little code.
 	
 	Fortunately, the \texttt{SpatialGraph.RemoveNode(int)} method removes the node given by its ID and also removes all edges, which are connected to the given node.

@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using HybridVisibilityGraphRouting.Geometry;
 using HybridVisibilityGraphRouting.Graph;
-using HybridVisibilityGraphRouting.IO;
 using Mars.Common;
 using Mars.Common.Collections;
 using Mars.Common.Collections.Graph;
@@ -765,7 +764,8 @@ public class HybridVisibilityGraphGeneratorTest
         CollectionAssert.DoesNotContain(edges, new[] { new Position(1, 1), new Position(1, 0) });
     }
 
-    [Ignore("Bug: Equal road and obstacle geometries do not work together. This bug has a very low severity and might get fixed in the future.")]
+    [Ignore(
+        "Bug: Equal road and obstacle geometries do not work together. This bug has a very low severity and might get fixed in the future.")]
     public void MergeRoadsIntoGraph_roadGeometryEqualsObstacleGeometry()
     {
         var graph = new SpatialGraph();
@@ -797,12 +797,13 @@ public class HybridVisibilityGraphGeneratorTest
             )
         };
         var obstacles = new QuadTree<Obstacle>();
-        ObstacleTestHelper.CreateObstacles(features.Map(f=>f.Geometry).ToArray())
+        ObstacleTestHelper.CreateObstacles(features.Map(f => f.Geometry).ToArray())
             .Each(obstacle => obstacles.Insert(obstacle.Envelope, obstacle));
-        
+
         var vertexNeighbors = VisibilityGraphGenerator.CalculateVisibleKnn(obstacles, 36, 10);
-        
-        var (hybridVisibilityGraph, _) = HybridVisibilityGraphGenerator.AddVisibilityVerticesAndEdges(vertexNeighbors, obstacles);
+
+        var (hybridVisibilityGraph, _) =
+            HybridVisibilityGraphGenerator.AddVisibilityVerticesAndEdges(vertexNeighbors, obstacles);
 
         // Act
         HybridVisibilityGraphGenerator.MergeRoadsIntoGraph(features, hybridVisibilityGraph);
@@ -815,9 +816,9 @@ public class HybridVisibilityGraphGeneratorTest
         CollectionAssert.Contains(nodePositions, new Position(2, 2));
         Assert.AreEqual(4, graph.NodesMap.Count);
 
-        AssertEdges(hybridVisibilityGraph, (1,0), (1,1));
-        AssertEdges(hybridVisibilityGraph, (1,1), (0,2));
-        AssertEdges(hybridVisibilityGraph, (1,1), (2,2));
+        AssertEdges(hybridVisibilityGraph, (1, 0), (1, 1));
+        AssertEdges(hybridVisibilityGraph, (1, 1), (0, 2));
+        AssertEdges(hybridVisibilityGraph, (1, 1), (2, 2));
 
         Assert.AreEqual(6, graph.Edges.Count);
     }
@@ -847,7 +848,7 @@ public class HybridVisibilityGraphGeneratorTest
 
     private static int GetNodeForNeighbor(HybridVisibilityGraph graph, Coordinate coordinate, Coordinate neighbor)
     {
-        return graph.GetNodeForAngle(neighbor.ToPosition(), GetNodes(graph.Graph, coordinate).Map(n => n.Key)).First();
+        return graph.GetNodeForAngle(neighbor, GetNodes(graph.Graph, coordinate)).First();
     }
 
     private static void AssertEdges(SpatialGraph graph, int nodeA, int nodeB)

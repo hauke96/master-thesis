@@ -9,6 +9,7 @@ using Mars.Interfaces.Environments;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using ServiceStack;
+using Position = Mars.Interfaces.Environments.Position;
 
 namespace HybridVisibilityGraphRouting.Graph;
 
@@ -155,7 +156,17 @@ public static class HybridVisibilityGraphGenerator
         var obstacleGeometries = GeometryHelper.UnwrapAndTriangulate(importedObstacles, true);
 
         var convexHullCoordinates = obstacleGeometries
-            .Map(g => g.Value.ConvexHull().Coordinates)
+            .Map(g =>
+            {
+                if (g.Value.OgcGeometryType == OgcGeometryType.Polygon)
+                {
+                    // Only take the convex hull of polygons into account. Line based obstacles might bend around other
+                    // obstacles so that the convex hull would prevent the generation of important edges.
+                    return g.Value.Coordinates;
+                }
+
+                return g.Value.Coordinates;
+            })
             .SelectMany(x => x)
             .Distinct()
             .ToSet();
@@ -186,18 +197,17 @@ public static class HybridVisibilityGraphGenerator
         var graph = new SpatialGraph();
         var watch = Stopwatch.StartNew();
         var vertexToNode = new Dictionary<Vertex, int[]>();
-        var nodeToBinVertices = new Dictionary<int, List<Vertex>>();
         var nodeToAngleArea = new Dictionary<int, (double, double)>();
-        var verticesOnConvexHull = vertexNeighbors.Keys;
+        var vertices = vertexNeighbors.Keys;
 
         // Create a node for every vertex in the dataset. Also store the mapping between node keys and vertices.
-        verticesOnConvexHull.Each(vertex =>
+        vertices.Each(vertex =>
         {
             List<List<Vertex>> vertexNeighborBin =
                 vertex.IsOnConvexHull ? vertexNeighbors[vertex] : new List<List<Vertex>>();
 
             vertexToNode[vertex] = new int[vertexNeighborBin.Count];
-            vertexNeighborBin.Each((i, bin) =>
+            vertexNeighborBin.Each((i, _) =>
             {
                 // For debug porposes to see the different nodes in the GeoJSON file.
                 // var nodePosition = PositionHelper.CalculatePositionByBearing(vertex.Position.X, vertex.Position.Y,
@@ -206,7 +216,6 @@ public static class HybridVisibilityGraphGenerator
                 var nodeKey = graph.AddNode(vertex.Coordinate.X, vertex.Coordinate.Y, new Dictionary<string, object>())
                     .Key;
                 vertexToNode[vertex][i] = nodeKey;
-                nodeToBinVertices[nodeKey] = bin;
 
                 // Determine covered angle area of the current bin
                 double binFromAngle = 0;
@@ -224,8 +233,7 @@ public static class HybridVisibilityGraphGenerator
 
         // Create visibility edges in the graph. This is done on a per-bin basis. Each bin got a separate node and this
         // node is then correctly connected to the node of its visibility vertices.
-        var nodeNeighbors = new Dictionary<int, List<int>>();
-        verticesOnConvexHull.Each(vertex =>
+        vertices.Each(vertex =>
         {
             if (!vertex.IsOnConvexHull)
             {
@@ -236,23 +244,45 @@ public static class HybridVisibilityGraphGenerator
             neighborBins.Each((i, neighborBin) =>
             {
                 var vertexNode = vertexToNode[vertex][i];
-                nodeNeighbors[vertexNode] = new List<int>();
 
-                // Connect each visibility neighbors to the node of the current vertex.
-                neighborBin.Each(otherVertex =>
+                // Connect each visibility neighbor to the node of the current vertex.
+                neighborBin.Each(targetVertex =>
                 {
-                    // We only have a vertex but need a node, so we get all nodes for the location of the vertex but
-                    // only take the one node that belongs to the current bin.
-                    var otherVertexNodes = vertexToNode[otherVertex].Where(potentialOtherVertexNode =>
-                    {
-                        return nodeToBinVertices[potentialOtherVertexNode].Contains(vertex);
-                    }).ToList();
+                    // Get the correct node to connect to.
+                    var targetVertexNode = GetNodeForAngle(vertex.Coordinate.ToPosition(), vertexToNode[targetVertex],
+                            nodeToAngleArea, graph.NodesMap)
+                        .Where(node =>
+                            // If "node" is not an obstacle neighbor, then the filtering from GetNodeForAngle was
+                            // already sufficient. For obstacle neighbors: Each obstacle neighbor is in two neighbor
+                            // bins and we need to find out which one is the correct.
+                            !vertex.ObstacleNeighbors.Contains(targetVertex.Coordinate.ToPosition()) ||
+                            // If the to- and from-angle of the current vertex are equal (=360° covering area), then
+                            // we definitely want to connect to the target, since this is the end of a line.
+                            Angle.AreEqual(nodeToAngleArea[vertexNode].Item1, nodeToAngleArea[vertexNode].Item2) ||
+                            // If the to- and from-angle of the target vertex are equal (=360° covering area), then
+                            // we definitely want to connect to it, since it is the end of a line.
+                            Angle.AreEqual(nodeToAngleArea[node].Item1, nodeToAngleArea[node].Item2) ||
+                            // Only connect to obstacle neighbors if the from-angle of the current nodes angle area
+                            // meets the to-angle of the target nodes angle area (or vice versa). If both to-angle
+                            // areas (or from-angles) meet, then we would connect wrong nodes with each other.
+                            Angle.AreEqual(nodeToAngleArea[vertexNode].Item1, nodeToAngleArea[node].Item2 - 180) ||
+                            Angle.AreEqual(nodeToAngleArea[vertexNode].Item2, nodeToAngleArea[node].Item1 - 180))
+                        .ToList();
 
-                    otherVertexNodes.Each(otherVertexNode =>
+                    // Due to the valid angle area filtering, it can indeed happen, that a vertex has no
+                    // corresponding node (e.g. for a T-shaped crossing where no angle area is >180°).
+                    if (targetVertexNode.Any())
                     {
-                        nodeNeighbors[vertexNode].Add(otherVertexNode);
-                        graph.AddEdge(vertexNode, otherVertexNode);
-                    });
+                        if (!graph.EdgesMap.ContainsKey((vertexNode, targetVertexNode.First())))
+                        {
+                            graph.AddEdge(vertexNode, targetVertexNode.First());
+                        }
+
+                        if (!graph.EdgesMap.ContainsKey((targetVertexNode.First(), vertexNode)))
+                        {
+                            graph.AddEdge(targetVertexNode.First(), vertexNode);
+                        }
+                    }
                 });
             });
         });
@@ -355,5 +385,34 @@ public static class HybridVisibilityGraphGenerator
                     nearestNodes[0].Data.AddRange(f.Attributes.ToObjectDictionary());
                 }
             });
+    }
+
+    /// <summary>
+    /// Filters the given node candidates and keeps each node for which the given position is within its angle area.
+    /// </summary>
+    public static IEnumerable<int> GetNodeForAngle(Position position, IEnumerable<int> nodeCandidates,
+        Dictionary<int, (double, double)> nodeToAngleArea, IDictionary<int, NodeData> nodesMap)
+    {
+        // We have all corresponding nodes for the given position ("nodeCandidates") but we only want the one node
+        // whose angle area includes the position to add. So its angle area should include the angle from that
+        // node candidate to the position.
+        return nodeCandidates.Where(nodeCandidate =>
+            // There are some cases:
+            // 1. The node does not exist in the dictionary. This happens for nodes that were added during a routing
+            // request. We assume they cover a 360° area.
+            !nodeToAngleArea.ContainsKey(nodeCandidate)
+            ||
+            // 2. The angle area has equal "from" and "to" value, which means it covers a range of 360°. In this case,
+            // no further checks are needed since this node candidate is definitely the one we want to connect to.
+            nodeToAngleArea[nodeCandidate].Item1 == nodeToAngleArea[nodeCandidate].Item2
+            ||
+            // 3. In case the angles are not identical, we need to perform a check is the position is within the covered
+            // angle area of this node candidate.
+            Angle.IsBetweenEqual(
+                nodeToAngleArea[nodeCandidate].Item1,
+                Angle.GetBearing(nodesMap[nodeCandidate].Position, position),
+                nodeToAngleArea[nodeCandidate].Item2
+            )
+        );
     }
 }
