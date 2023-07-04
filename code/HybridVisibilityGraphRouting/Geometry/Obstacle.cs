@@ -1,5 +1,4 @@
 using NetTopologySuite.Geometries;
-using ServiceStack.Text;
 
 namespace HybridVisibilityGraphRouting.Geometry
 {
@@ -12,9 +11,6 @@ namespace HybridVisibilityGraphRouting.Geometry
         public readonly NetTopologySuite.Geometries.Geometry OriginalGeometry;
 
         private readonly int _hash;
-
-        public static int check;
-        public static int check_triangle;
 
         public Obstacle(NetTopologySuite.Geometries.Geometry geometry,
             NetTopologySuite.Geometries.Geometry originalGeometry, List<Vertex> vertices)
@@ -75,7 +71,7 @@ namespace HybridVisibilityGraphRouting.Geometry
                     indexOfEndCoordinate = i;
                 }
             }
-            
+
             if (indexOfStartCoordinate != -1 && indexOfEndCoordinate != -1)
             {
                 return IntersectBetweenVerticesOnOpenObstacle(coordinateStart, coordinateEnd, indexOfStartCoordinate,
@@ -125,15 +121,17 @@ namespace HybridVisibilityGraphRouting.Geometry
             return
                 IsClosed &&
                 (
-                    IsInTriangle(coordinateStart.X, coordinateStart.Y,
-                        Coordinates[0].X, Coordinates[0].Y,
-                        Coordinates[1].X, Coordinates[1].Y,
-                        Coordinates[2].X, Coordinates[2].Y
+                    IsInTriangle(
+                        Coordinates[0],
+                        Coordinates[1],
+                        Coordinates[2],
+                        coordinateStart
                     ) ||
-                    IsInTriangle(coordinateEnd.X, coordinateEnd.Y,
-                        Coordinates[0].X, Coordinates[0].Y,
-                        Coordinates[1].X, Coordinates[1].Y,
-                        Coordinates[2].X, Coordinates[2].Y
+                    IsInTriangle(
+                        Coordinates[0],
+                        Coordinates[1],
+                        Coordinates[2],
+                        coordinateEnd
                     )
                 ) ||
                 IntersectsWithLineString(coordinateStart, coordinateEnd);
@@ -174,18 +172,18 @@ namespace HybridVisibilityGraphRouting.Geometry
         /// If "x" and "y" build a location on an edge or corner of the triangle, it's not
         /// considered "inside" and returns false.
         /// </summary>
-        private static bool IsInTriangle(double x, double y, double x1, double y1, double x2, double y2, double x3,
-            double y3)
+        // public static bool IsInTriangle(double x, double y, double x1, double y1, double x2, double y2, double x3,
+        public static bool IsInTriangle(Coordinate p, Coordinate c1, Coordinate c2, Coordinate c3)
         {
-            var d = (x2 - x1) * (y3 - y1) - (x3 - x1) * (y2 - y1);
+            var d = (c2.X - c1.X) * (c3.Y - c1.Y) - (c3.X - c1.X) * (c2.Y - c1.Y);
 
-            var u = ((x2 - x) * (y3 - y) - (x3 - x) * (y2 - y)) / d;
-            var v = ((x3 - x) * (y1 - y) - (x1 - x) * (y3 - y)) / d;
-            var w = ((x1 - x) * (y2 - y) - (x2 - x) * (y1 - y)) / d;
+            var u = (c2.X - p.X) * (c3.X - p.Y) - (c3.X - p.X) * (c2.Y - p.Y);
+            var v = (c3.X - p.X) * (c1.Y - p.Y) - (c1.X - p.X) * (c3.Y - p.Y);
+            var w = (c1.X - p.X) * (c2.Y - p.Y) - (c2.X - p.X) * (c1.Y - p.Y);
 
-            return 0 < u && u < 1 &&
-                   0 < v && v < 1 &&
-                   0 < w && w < 1;
+            return 0 < u && u < d &&
+                   0 < v && v < d &&
+                   0 < w && w < d;
         }
 
         public bool HasLineSegment(Coordinate coordinateStart, Coordinate coordinateEnd)

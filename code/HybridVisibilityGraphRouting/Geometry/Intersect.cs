@@ -11,15 +11,6 @@ namespace HybridVisibilityGraphRouting.Geometry
     public static class Intersect
     {
         /// <summary>
-        /// Precondition: The segments p, q and r are collinear (-> Orientation(p, q, r) should return 0).
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsOnSegment(Coordinate start, Coordinate end, Coordinate p)
-        {
-            return IsOnSegment(start, end, p, Orientation(start, end, p));
-        }
-
-        /// <summary>
         /// Precondition: The segments p, q and r are collinear (-> Orientation(p, q, r) == 0).
         ///
         /// <param name="orientation">The orientation of p to the other coordinates. Only a collinear p (with means
@@ -57,41 +48,6 @@ namespace HybridVisibilityGraphRouting.Geometry
             return (val > 0) ? 1 : -1;
         }
 
-        public static bool DoIntersect(Coordinate start1, Coordinate end1, Coordinate start2, Coordinate end2)
-        {
-            if (
-                start1.X > start2.X && start1.X > end2.X && end1.X > start2.X && end1.X > end2.X ||
-                start1.X < start2.X && start1.X < end2.X && end1.X < start2.X && end1.X < end2.X ||
-                start1.Y > start2.Y && start1.Y > end2.Y && end1.Y > start2.Y && end1.Y > end2.Y ||
-                start1.Y < start2.Y && start1.Y < end2.Y && end1.Y < start2.Y && end1.Y < end2.Y
-            )
-            {
-                return false;
-            }
-
-            if (start1.Equals(start2) || end1.Equals(end2) ||
-                start1.Equals(end2) || end1.Equals(start2))
-            {
-                return false;
-            }
-
-            var orientation1 = Orientation(start2, end2, start1);
-            var orientation2 = Orientation(start2, end2, end1);
-            if (orientation1 == orientation2)
-            {
-                return false;
-            }
-
-            var orientation3 = Orientation(start1, end1, start2);
-            var orientation4 = Orientation(start1, end1, end2);
-            if (orientation3 == orientation4)
-            {
-                return false;
-            }
-
-            return !AreTouching(start1, end1, start2, end2, orientation1, orientation2, orientation3, orientation4);
-        }
-
         public static bool DoIntersectOrTouch(Coordinate start1, Coordinate end1, Coordinate start2, Coordinate end2)
         {
             if (
@@ -112,34 +68,14 @@ namespace HybridVisibilityGraphRouting.Geometry
 
             var orientation1 = Orientation(start2, end2, start1);
             var orientation2 = Orientation(start2, end2, end1);
-            var orientation3 = Orientation(start1, end1, start2);
-            var orientation4 = Orientation(start1, end1, end2);
-
-            if (AreTouching(start1, end1, start2, end2, orientation1, orientation2, orientation3, orientation4))
-            {
-                return true;
-            }
-            
             if (orientation1 == orientation2)
             {
                 return false;
             }
-            
-            if (orientation3 == orientation4)
-            {
-                return false;
-            }
 
-            return true;
-        }
-
-        private static bool AreTouching(Coordinate start1, Coordinate end1, Coordinate start2, Coordinate end2,
-            int orientation1, int orientation2, int orientation3, int orientation4)
-        {
-            return IsOnSegment(start2, end2, start1, orientation1) ||
-                   IsOnSegment(start2, end2, end1, orientation2) ||
-                   IsOnSegment(start1, end1, start2, orientation3) ||
-                   IsOnSegment(start1, end1, end2, orientation4);
+            var orientation3 = Orientation(start1, end1, start2);
+            var orientation4 = Orientation(start1, end1, end2);
+            return orientation3 != orientation4;
         }
     }
 }
