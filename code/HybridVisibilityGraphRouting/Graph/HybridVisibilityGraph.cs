@@ -1,5 +1,4 @@
 using HybridVisibilityGraphRouting.Geometry;
-using HybridVisibilityGraphRouting.IO;
 using Mars.Common;
 using Mars.Common.Collections;
 using Mars.Common.Collections.Graph;
@@ -178,20 +177,41 @@ public class HybridVisibilityGraph
             visibilityNeighborsPerBin)[0];
 
         visibilityNeighborVertices
-            .Map(v => _vertexToNodes[v])
-            .Where(nodeCandidates =>
-                !nodeCandidates
-                    .IsEmpty()) // can happen due to convex-hull filtering so that not every vertex is represented by a node 
-            .Each(nodeCandidates =>
+            .Each(vertex =>
             {
+                if (_vertexToNodes[vertex].IsEmpty())
+                {
+                    // might happen due to convex-hull filtering so that not every vertex is represented by a node 
+                    return;
+                }
+
+                var angleFromSourceToTarget =
+                    Angle.GetBearing(vertex.Coordinate, nodeToConnect.Position.ToCoordinate());
+                // Check for both vertices if the generated edge would be in valid angle areas for both
+                // vertices. As soon as there is one vertex where the line would *not* be in any valid angle
+                // area, this means that this edge will never be part of any shortest path. Therefore we can
+                // therefore abort here.
+                if (!vertex.ValidAngleAreas.Any(area =>
+                        Angle.IsBetweenEqual(area.Item1, angleFromSourceToTarget, area.Item2)))
+                {
+                    return;
+                }
+
                 HybridVisibilityGraphGenerator
-                    .GetNodeForAngle(nodeToConnect.Position, nodeCandidates, _nodeToAngleArea, Graph.NodesMap)
+                    .GetNodeForAngle(nodeToConnect.Position, _vertexToNodes[vertex], _nodeToAngleArea, Graph.NodesMap)
                     .Each(node =>
                     {
                         // Create the bi-directional edge between node to add and this visibility node and collect its IDs for
                         // later clean up.
-                        newEdges.Add(Graph.AddEdge(nodeToConnect.Key, node));
-                        newEdges.Add(Graph.AddEdge(node, nodeToConnect.Key));
+                        if (!Graph.EdgesMap.ContainsKey((nodeToConnect.Key, node)))
+                        {
+                            newEdges.Add(Graph.AddEdge(nodeToConnect.Key, node));
+                        }
+
+                        if (!Graph.EdgesMap.ContainsKey((node, nodeToConnect.Key)))
+                        {
+                            newEdges.Add(Graph.AddEdge(node, nodeToConnect.Key));
+                        }
                     });
             });
 

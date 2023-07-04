@@ -173,8 +173,26 @@ public static class HybridVisibilityGraphGenerator
                 // Connect each visibility neighbor to the node of the current vertex.
                 neighborBin.Each(targetVertex =>
                 {
+                    // Check for both vertices if the generated edge would be in valid angle areas for both
+                    // vertices. As soon as there is one vertex where the line would *not* be in any valid angle
+                    // area, this means that this edge will never be part of any shortest path. Therefore we can
+                    // therefore abort here.
+                    var angleFromSourceToTarget = Angle.GetBearing(vertex.Coordinate, targetVertex.Coordinate);
+                    if (!vertex.ValidAngleAreas.Any(area =>
+                            Angle.IsBetweenEqual(area.Item1, angleFromSourceToTarget, area.Item2)))
+                    {
+                        return;
+                    }
+
+                    var angleFromTargetToSource = Angle.Normalize(angleFromSourceToTarget - 180);
+                    if (!targetVertex.ValidAngleAreas.Any(area =>
+                            Angle.IsBetweenEqual(area.Item1, angleFromTargetToSource, area.Item2)))
+                    {
+                        return;
+                    }
+
                     // Get the correct node to connect to.
-                    var targetVertexNode = GetNodeForAngle(vertex.Coordinate.ToPosition(), vertexToNode[targetVertex],
+                    var targetVertexNodes = GetNodeForAngle(vertex.Coordinate.ToPosition(), vertexToNode[targetVertex],
                             nodeToAngleArea, graph.NodesMap)
                         .Where(node =>
                             // If "node" is not an obstacle neighbor, then the filtering from GetNodeForAngle was
@@ -196,16 +214,29 @@ public static class HybridVisibilityGraphGenerator
 
                     // Due to the valid angle area filtering, it can indeed happen, that a vertex has no
                     // corresponding node (e.g. for a T-shaped crossing where no angle area is >180°).
-                    if (targetVertexNode.Any())
+                    if (targetVertexNodes.Any())
                     {
-                        if (!graph.EdgesMap.ContainsKey((vertexNode, targetVertexNode.First())))
+                        var targetVertexNode = targetVertexNodes.First();
+
+                        // Check if the node's angle area is >=180°, in other words, check if this is a convex corner.
+                        var isSourceVertexConvex = Angle.Difference(nodeToAngleArea[vertexNode].Item1,
+                            nodeToAngleArea[vertexNode].Item2) >= 180;
+                        var isTargetVertexConvex = Angle.Difference(nodeToAngleArea[targetVertexNode].Item1,
+                            nodeToAngleArea[targetVertexNode].Item2) >= 180;
+                        if (!isSourceVertexConvex || !isTargetVertexConvex)
                         {
-                            graph.AddEdge(vertexNode, targetVertexNode.First());
+                            return;
                         }
 
-                        if (!graph.EdgesMap.ContainsKey((targetVertexNode.First(), vertexNode)))
+                        // Actually create bidirectional edges, if not already exist.
+                        if (!graph.EdgesMap.ContainsKey((vertexNode, targetVertexNode)))
                         {
-                            graph.AddEdge(targetVertexNode.First(), vertexNode);
+                            graph.AddEdge(vertexNode, targetVertexNode);
+                        }
+
+                        if (!graph.EdgesMap.ContainsKey((targetVertexNode, vertexNode)))
+                        {
+                            graph.AddEdge(targetVertexNode, vertexNode);
                         }
                     }
                 });
