@@ -301,7 +301,27 @@ For both parts, method and design details are given followed by the respective r
 	\subsection{Correctness}
 	
 		% is the shortest route really the shortest
-
+		The hybrid routing algorithm is considered \emph{correct} if the resulting path between any two given locations is the shortest possible path with respect to the obstacled of the dataset.
+		Edges on a visibility graph, which was constructed using vertices from obstacles in the plain, represents shortest segments between vertices of obstacles.
+		In other words, for any two vertices $v$ and $v'$, the edge $e$ from the visibility graph is the shortest possible connection between these two vertices without intersecting with any obstacle.
+		A shortest path through a visibility graph is therefore equal to a shortest geometric path around obstacles in the plain.
+		
+		For shortest paths algorithms, such as A* or Dijkstra, the term \emph{correct} refers to the fact that their result is the shortest possible path between two vertices in a graph.
+		The correctness of the hybrid routing algorithm presented in this thesis is identical to this and follows from the argumentation above.
+		
+		In addition to routing on a visibility graph, the presented hybrid routing algorithm actively connects locations to the graph as part of answering the routing query yielding a temporarily augmented graph.
+		This means the resulting path $p$ from vertex $s$ to $t$ contains two additional edges $(s, v_s)$ and $(v_t, t)$, which are not part of the normal hybrid visibility graph, resulting in $p=\left\langle s, v_s, ..., v_t, t \right\rangle$.
+		These two additional edges are visibility edges and the correctness argument applies to them as well, meaning that the overall path $p$ is shortest on the augmented visibility graph and therefore shortest in the geometric domain of obstacles in the plain.
+		
+		Two aspects are noteworthy in the context of correctness.
+		
+		First, the A* implementation of MARS accepts other weight functions than the default \enquote{shortest}-function.
+		This is also possible in the hybrid routing algorith when calling the \texttt{OptimalPath} method, which accepts a \texttt{Func} delegate as weight function.
+		
+		Second, filtering the potential visibility neighbors as described in \Cref{subsec:step-2-knn-search} might result in missing edges.
+		This has a direct effect on the quality of the resulting paths since they may not be optimal anymore.
+		\todo[inline]{Determine: Number of edges missing vs. performance boost}
+		
 	\subsection{Usefulness of routes}
 	
 		% How realistic are the routes (= can I go there in real life)? If not: Why not?
