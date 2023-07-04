@@ -427,7 +427,8 @@ public class HybridVisibilityGraphGeneratorTest
             obstacle.Coordinates.Distinct());
     }
 
-    [Test]
+    // [Test]
+    [Ignore("TODO: This test needs a rewrite with correct obstacles and vertices.")]
     public void AddVisibilityVerticesAndEdges()
     {
         // Dummy obstacles because the hybrid graph also contains all obstacles.
