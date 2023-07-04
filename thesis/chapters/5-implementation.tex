@@ -350,18 +350,21 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			As mentioned above, a subsection of a shortest path bending around an obstacle always follows a part of the obstacle's convex hull.
 			Eventually the path switches from following the convex hull to following a visibility edge, which leads to another obstacle and therefore another convex hull part.
 			
-			This means, a shortest path consists of many convex hull parts that either are connected by straight lines or touch each other.
-			Connecting lines, i.e. line segments connecting one convex hull part with another, always follow the clockwise or counter clockwise direction of the line segments of each convex hull as illustrated in \Cref{fig:convex-hull}.
-			If the convex hull part bends in counter clockwise direction, it means that the bearing of each line segment decreases and increases for clockwise hulls respectively.
-			In other words, line segments of a counter clockwise convex hull only make left turns, the ones of a clockwise hull only make right turns.
-			The connecting line to the next convex hull follows this turning direction.
-			Another way to think about this is the following with \Cref{fig:convex-hull} as an example:
-			if the destination vertex $v_2$ of the connecting line $(v_1, v_2)$ would be added to the obstacle of the source vertex (in this example $o_1$), then the connecting line would be part of the convex hull of this new expanded obstacle.
-			Since the convex hull is the shortest path around an obstacle, the path $(v_0, v_1, v_2)$ is the shortest path on the expanded obstacle from $v_0$ to $v_2$ since it is a part of its convex hull.
-			Because $v_2$ is not actually part of $o_1$, it means the path $(v_0, v_1, v_2)$ is generally the shortest from $v_0$ to $v_2$.
-			Only connecting lines, which fulfill this expansion criterion, can be part of any shortest path.
-			Furthermore, this criterion is only fulfilled for connecting lines following the turning direction of the obstacle, as $(v_1, v_2)$ does for the hull of $o_1$.
-
+			This means, a shortest path consists of many convex hull parts that are either connected by straight lines or touching each other.
+			Connecting lines, i.e. line segments connecting two convex hull parts, are the shortest connections between the two convex hull parts on that shortest path.
+			In other word, they cannot be relaxed to an alternative edge, which is shorter.
+			
+			Assuming a shortest path, which contains a convex hull edge $e_h=(u, v)$ followed by a connecting line edge $e_c=(v, w)$, then there is no relaxation possible to an edge $e_r=(u, w)$.
+			According to the triangle inequality, such edge $e_r$ would be shorter than the two others, which means $d(e_r) < d(e_h) + d(e_c)$ would hold true.
+			But since $e_h$ and $e_c$ are on the shortest path, no such $e_r$ can exist because then the shortest path would not have been shortest.
+			This scenario is illustrated in \Cref{fig:convex-hull} with the convex hull segment $(v_0, v_1)$, the connecting line $(v_1, v_2)$ and the impossible relaxation $(v_0, v_2)$.
+			
+			In fact, edges, which can be relaxed as described, will \emph{never} be part of \emph{any} shortest path.
+			If such an edge would be part of an shortest path, then the path is not shortest and would rather contain the relaxed edge.
+			Determining these relaxable and therefore irrelevant edges is the key motivation of angular ranges, called \term[valid angle area]{valid angle areas}.
+			Only visible vertices within any valid angle area are possible subsequent vertices in shortest paths.
+			
+			% TODO Numbering is weird
 			\begin{figure}[h]
 				\begin{figcenter}
 					\begin{tikzpicture}
@@ -374,7 +377,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 							-- ++(-1.4,-0.35) coordinate (c05)
 							-- (c00);
 						\node[above right = 0.15 and 1.6 of c00] {$o_1$};
-							
+						
 						\coordinate (c10) at (2.5,3.85);
 						\draw (c10)
 							-- ++(-0.4,-0.4) coordinate (c11)
@@ -388,7 +391,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 						\filldraw[thin,Green4!35!white] ($(c03)+(0,\d)$) -- +(180:0.35) arc [start angle=180, delta angle=-97.126, radius=0.35];
 						\draw[thin,Green4] (c03) -- (intersection of c03--[shift=(c03)]82.874:3 and c12--c13);
 						\draw[thin,Green4] ($(c03)+(0,\d)$) -- +(180:4);
-%							
+						%							
 						\filldraw[thin,DodgerBlue3!35!white] ($(c12)+(0,-\d)$) -- +(279.462:0.4) arc [start angle=279.462, delta angle=80.538, radius=0.4];
 						\draw[thin,DodgerBlue3] (c12) -- (intersection of c12--[shift=(c12)]279.462:1 and c03--c04);
 						\draw[thin,DodgerBlue3] ($(c12)+(0,-\d)$) -- +(0:4);
@@ -398,6 +401,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 						\tikzDot[label={right:$v_1$}]{(c03)}{v1}
 						\tikzDot[label={left:$v_2$}]{(c12)}{v2}
 						\tikzDot[label={below:$v_3$}]{(c13)}{v3}
+						\tikzDot[label={above:$v_4$}]{(c04)}{v4}
 						\tikzDot[label={left:$t$}]{(c10)}{t}
 						
 						\draw[->,Red2,thick] (s) -- (v0);
@@ -407,36 +411,29 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 						\draw[->,Red2,thick] (c11) -- (t);
 					\end{tikzpicture}
 				\end{figcenter}
-				\caption{The path from $s$ via $v_1$ and $v_2$ to $t$ bends along the convex hulls of $o_1$ and $o_2$.
+				\caption{
+					The path from $s$ via $v_1$ and $v_2$ to $t$ bends along the convex hulls of $o_1$ and $o_2$.
 					The segment from $v_1$ to $v_2$ is a connecting line between the hull parts.
 					% Suppose $v_2$ would be part of $o_1$, then the path from $s$ via $v_1$ to $v_2$ would be on its convex hull. Same holds true for $v_1$ and $o_2$ respectively.
 					\\
-					The green angle at $v_1$ indicates one angle area in which all visibility neighbors of $v_1$, in case they would be added to $o_1$, would expand $o_1$'s convex hull without removing $v_1$ from it. Same applies to the blue angle for $o_2$ and $v_2$ respectively.
+					The angle area at $v_1$ marked in green indicates one of its valid angle areas.
+					A visibility neighbors within this angle area can appear as a successor to $v_1$ in a shortest path.
 					\\
-					Vertex $v_3$, however, is not a potential neighbor for $v_1$.
-					Adding it to $o_1$ would not only remove $v_1$ from $o_1$'s convex hull but would also remove $v_1$ from the shortest path.}
+					Vertex $v_3$, however, will never be a successor of $v_1$ on any shortest path.
+				}
 				\label{fig:convex-hull}
 			\end{figure}
 			
-			Allowing connecting lines against the turning direction of the source obstacle hull would result in edges that will never be part of a shortest path.
-			For example, the line segment $(v_1, v_3)$ in \Cref{fig:convex-hull} is not part of any shortest path, which has $v_1$ is an intermediate vertex.
-			This is due to the properties described at the beginning:
-			convex hulls themselves build shortest paths around obstacles, the overall shortest path is a sequence of convex hull parts, connecting lines connect these hull parts by following their turn direction and therefore they are part of the overall shortest path as well.
-			Breaking the criterion of the turn directions, i.e. by allowing connecting lines against the turn direction of the source hull, leads to non-shortest paths.
-			This connecting line, which was created against the hull's turning direction, can be relaxed to a new connecting line that follows the turning direction and is shorter due to the triangle inequality.
-			In \Cref{fig:convex-hull}, the path $(v_0, v_1, v_3)$ with the connecting line $(v_1, v_3)$, which turns to the right even though $o_1$'s hull turns to the left, can be relaxed to $(v_0, v_3)$ forming the actual shortest path.
+			These valid angle areas of a vertex $v$ are determined by its obstacle neighbors.
+			For each pair of adjacent obstacle neighbors being at least $180^\circ$ apart from each other, two valid angle areas exist and are calculated as shown in the following example.
+			Consider \Cref{fig:convex-hull} with the vertex $v_1$ and both obstacle neighbors $v_0$ and $v_4$.
+			The area marked in green represents one of $v_1$'s valid angle areas determined by the two bearings $b(v_1, v_0)$ and $b(v_1, v_4)$ resulting in the angle interval $[b(v_1, v_4), b(v_1, v_0) - 180^\circ] = [270^\circ, 187.125^\circ - 180^\circ] = [270^\circ, 7.125^\circ]$.
+			Subtracting $180^\circ$ of both bearings yields the second valid angle area of $[b(v_1, v_4) - 180^\circ, b(v_1, v_0)] = [90^\circ, 187.125^\circ]$.
 			
-			Following the idea of expanding the source obstacle illustrates the contradiction that appears for breaking the turn direction criterion.
-			Considering the obstacle $o_1$ and expanding it with the candidate vertex $v_3$ to $o'_1=o_1 \cup \{v_3\}$ yields the path $(s, v_0, v_3)$, which is the shortest path for the actual existing obstacles from $s$ to $v_3$, because it follows the convex hull of the hypothetical obstacle $o'_1$.
-			Assume the segment $(v_1, v_3)$, created against $o_1$'s and $o'_1$'s convex hull turning direction, would be part of the shortest path from $s$ to $v_3$.
-			In this case, which means the path would be $(s, v_0, v_1, v_3)$, the vertex $v_1$ would not be part of the convex hull of $o'_1$.
-			The hull of $o'_1$, however, is in fact the shortest path around $o'_1$, meaning it contains the shortest path from $s$ to $v_3$ since both vertices are on its convex hull.
-			Because $(v_1, v_3)$ is \emph{not} part of this convex hull, it cannot be part of the shortest path.
-			Thus, creating connecting lines against the turning direction of the source obstacle creates lines, which are not part of any shortest path.
-			
-			Only connecting lines fulfilling the above described turning direction criterion need to be considered, which restricts the relevant vertices to certain angular ranges.
-			The marked green and blue angle areas in \Cref{fig:convex-hull} represent these \term{valid angle areas} for potential visibility neighbors.
-			Vertices at other angles will be ignored since the resulting edges will never be part of any shortest path.
+			If one or no obstacle neighbor exists, then there is only one valid angle area covering $360^\circ$.
+			No valid angle areas exist for obstacle neighbors being less than $180^\circ$ apart.
+			A maximum of four valid abgle areas exist for the central vertex of three collinear vertices, in other words for one vertex with to obstacle neighbors being exactly $180^\circ$ apart.
+			The valid angle areas in such case have a range of $0^\circ$ but are still used in the implementation to create edges for collinear neighbors.
 			
 			Since this is solely a performance optimization, the same considerations apply as in the above shown convex hull filtering.
 			As soon as the weighting function is not creating a shortest path, this optimization might lead to suboptimal paths.
