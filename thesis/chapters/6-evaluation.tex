@@ -36,8 +36,9 @@ For both parts, method and design details are given followed by the respective r
 				\item[OSM export without roads] Same data from the above OSM exports, but without the roads. This is used to show the overhead of the road on the graph generation and routing times.
 				\item[OSM export without obstacles] Same data from the above OSM exports, but without the obstacles, i.e. buildings, walls and water areas. This is used to show the overhead of the obstacles on the graph generation and routing times.
 			\end{description}
-			
 			The pattern datasets exist in different sizes, since the pattern can arbitrarily often be repeated.
+			The \enquote{OSM city} and \enquote{OSM rural} categories each contain six dataset of the sizes 0.5, 1, 1.5, 2, 3 and 4 km\textsuperscript{2}.
+			The two OSM categories without roads and obstacles both use the 4 km\textsuperscript{2} datasets from the city and rural categories.
 			
 			\todo{Illustrate this as a diagram or list? Also list the number of raw vertices within the datasets.}
 			
@@ -92,7 +93,6 @@ For both parts, method and design details are given followed by the respective r
 			
 			To prevent the garbage collection from interfering with the execution, a 256 MiB large no-GC-region is placed around the function call via \texttt{GC.TryStartNoGCRegion(256 * 1024 * 1024)}.
 			However, this only works if enough memory is available\cite{ms-no-gc-region}, which was the case and introducing this no-GC-region stabilized the results.
-			\todo[inline]{test this and maybe give an example result (standard deviation or so?)}
 			
 			Another step is the increase of the process priority.
 			This ideally leads to an exclusive use of one CPU core on which the single threaded application runs.
