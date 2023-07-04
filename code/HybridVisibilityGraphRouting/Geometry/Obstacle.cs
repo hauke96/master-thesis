@@ -1,4 +1,5 @@
 using NetTopologySuite.Geometries;
+using ServiceStack.Text;
 
 namespace HybridVisibilityGraphRouting.Geometry
 {
@@ -12,7 +13,11 @@ namespace HybridVisibilityGraphRouting.Geometry
 
         private readonly int _hash;
 
-        public Obstacle(NetTopologySuite.Geometries.Geometry geometry, NetTopologySuite.Geometries.Geometry originalGeometry, List<Vertex> vertices)
+        public static int check;
+        public static int check_triangle;
+
+        public Obstacle(NetTopologySuite.Geometries.Geometry geometry,
+            NetTopologySuite.Geometries.Geometry originalGeometry, List<Vertex> vertices)
         {
             if (geometry is not Polygon && geometry is not LineString && geometry is not Point)
             {
@@ -35,9 +40,9 @@ namespace HybridVisibilityGraphRouting.Geometry
             }
 
             Vertices = vertices;
-            _hash = (int)geometry.Coordinates.Sum(coordinate => coordinate.X * 7919 + coordinate.Y * 4813);
             Envelope = geometry.EnvelopeInternal;
             OriginalGeometry = originalGeometry;
+            _hash = (Coordinates, IsClosed, Vertices, Envelope, OriginalGeometry).GetHashCode();
         }
 
         public bool CanIntersect(Envelope envelope)
@@ -185,26 +190,25 @@ namespace HybridVisibilityGraphRouting.Geometry
 
         public bool HasLineSegment(Coordinate coordinateStart, Coordinate coordinateEnd)
         {
-            // Initialize start indices far away from each other because the distance matters below.
-            var indexStart = -10;
-            var indexEnd = -20;
-            for (var i = 0; i < Coordinates.Count && (indexStart < 0 || indexEnd < 0); i++)
+            // Offset of 1 for closed obstacles because first and last coordinates are the same.
+            var offset = IsClosed ? 1 : 0;
+            var indexBefore = Coordinates.Count - 1 - offset; // last coordinate
+            var indexAfter = 1; // second coordinate
+
+            for (var i = 0; i < Coordinates.Count - offset; i++)
             {
                 if (Coordinates[i].Equals(coordinateStart))
                 {
-                    indexStart = i;
+                    // The coordinateStart is at index i, check if coordinateEnd is right before/after it.
+                    return Coordinates[indexBefore].Equals(coordinateEnd) ||
+                           Coordinates[indexAfter].Equals(coordinateEnd);
                 }
-                else if (Coordinates[i].Equals(coordinateEnd))
-                {
-                    indexEnd = i;
-                }
+
+                indexBefore = (indexBefore + 1) % (Coordinates.Count - 1);
+                indexAfter = (indexAfter + 1) % (Coordinates.Count - 1);
             }
 
-            // Start and end coordinates are right next to each other, no other vertex is in between them. This has
-            // also to be checked if the first and last coordinates are found.
-            return Math.Abs(indexStart - indexEnd) == 1 ||
-                   indexStart == 0 && indexEnd == Coordinates.Count - 2 ||
-                   indexEnd == 0 && indexStart == Coordinates.Count - 2;
+            return false;
         }
 
         /// <summary>
