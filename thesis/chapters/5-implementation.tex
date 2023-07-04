@@ -442,14 +442,19 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 		\subsubsection{Intersection checks}
 		\label{subsubsec:intersection-checks}
 			
-			All intersection checks are performed using own implementations instead of method from the the NetTopologySuite, which are more generalized and therefore slower.
-			\todo[inline]{Evaluation by executing 10k (or so) random collision checks with several other method from NTS (s. wekan ticket)}
-			In fact, there are two types of intersection checks implemented:
-			One function to check for an intersection between two arbitrary line segments and one to check if a point lies within a triangle.
+			There are two types of intersection checks needed.
+			One for line segment intersections and one to check whether or not a point lies within a triangle.
+			Both intersection checks are performed using an own implementation instead of methods from the the NetTopologySuite.
+			This has solely performance reasons since this specially tailored implementations are faster than the NTS methods.
+			
+			Performing ten million collision checks on random line segments with the custom implementation takes 195 ms on average, the fastes NTS method was \texttt{IntersectionComputer.Intersection()} and took 371 ms.
+			Other method like the \texttt{RobustLineIntersector} (746 ms) or \texttt{LineSegment.Intersection} (1552 ms) were slower.
+			
+			Analoguously, performing one million random triangle intersection checks required 138 ms on average using the custom implementation and 174 ms using the fastest NTS method \texttt{Triangle.Intersects()}.
+			Other method like \texttt{IPreparedGeometry.Intersects()} (406 ms), the \texttt{IndexedPointInAreaLocator} (707 ms) or the simple \texttt{Polygon.Intersects()} (2424 ms) were slower.
 			
 			The line segment intersection check uses an approach based on cross products as presented in \emph{Introduction to algorithms} by Thomas H Cormen et al.\cite[1018]{cormen-introduction-to-alg}.
-			Even though this method only works on single line segments, it is significantly faster than general purpose checks provided by the NetTopologySuite.
-			This is still true when checking if a single line segments intersects any of multiple obstacles.
+			Due to the performance of this approach, it is used to check whether a line segment intersects with a whole obstacle by performing this intersection check for each segment of the obstacle.
 			
 			\begin{figure}[h]
 				\begin{figcenter}
@@ -481,12 +486,13 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 				\label{fig:barycentric-triangle}
 			\end{figure}
 			
-			Checking if a vertex lies inside a triangle is done by a barycentric collision check and used for closed obstacles, which got triangulated during \hyperref[subsec:step-1-preprocessing]{preprocessing}.
+			Checking if a vertex lies inside a triangle is used for closed obstacles, which got triangulated during \hyperref[subsec:step-1-preprocessing]{preprocessing}.
 			This method creates a barycentric coordinate system in which each coordinate has the form $(\lambda_1,\lambda_2,\lambda_3)$.
 			For each corner of the triangle, exactly one value of the coordinate is one and the other two values are zero.
 			\Cref{fig:barycentric-triangle} illustrates this with some exemplary points.
-			Due to the properties of this coordinate system, a point $p$ is inside the triangle when the condition $0 < \lambda_i < 1$ is satisfied for each of the three values.
-			Even though it sounds complex to create a whole coordinate system for a single collision check, this method only uses a few basic arithmetic operations and is therefore very fast.
+			Due to the properties of this coordinate system, a point $p$ is inside the triangle when the condition $0 < \lambda_i < 1$ is satisfied for all three values.
+			
+			Even though it sounds complex to create a whole coordinate system for a single collision check, this method only requires a few lines of code, uses only multiplications, additions and boolean operations and is therefore very fast.
 			
 		\subsubsection{Shadow area operations}
 			
