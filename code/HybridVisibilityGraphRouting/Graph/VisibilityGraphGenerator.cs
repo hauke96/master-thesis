@@ -21,7 +21,7 @@ public static class VisibilityGraphGenerator
     /// This neighbor relation is stored on the vertices of the obstacles. They therefore need to share the vertex
     /// instances for identical vertices.
     /// </summary>
-    public static void AddObstacleNeighborsForObstacles(
+    public static HashSet<Vertex> AddObstacleNeighborsForObstacles(
         IList<Obstacle> obstacles,
         Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles,
         bool debugModeActive = false)
@@ -50,6 +50,9 @@ public static class VisibilityGraphGenerator
 
         obstacles.Each(obstacle => { AddObstacleNeighborsForObstacle(obstacle, IsCoordinateHidden); });
 
+        var allVertices = obstacles.Map(o => o.Vertices).SelectMany(x => x).Where(v => v.IsOnConvexHull).ToSet();
+        allVertices.Each(v => v.SortObstacleNeighborsByAngle());
+
         if (!PerformanceMeasurement.IsActive && debugModeActive)
         {
             var positionToObstacleNeighbors = new Dictionary<Coordinate, HashSet<Position>>();
@@ -58,6 +61,8 @@ public static class VisibilityGraphGenerator
                 .Each(v => positionToObstacleNeighbors[v.Coordinate] = v.ObstacleNeighbors.ToSet());
             Exporter.WriteVertexNeighborsToFile(positionToObstacleNeighbors);
         }
+
+        return allVertices;
     }
 
     /// <summary>
@@ -119,7 +124,6 @@ public static class VisibilityGraphGenerator
                     vertex.ObstacleNeighbors.Add(n);
                 }
             });
-            vertex.SortObstacleNeighborsByAngle();
         });
     }
 
@@ -142,10 +146,7 @@ public static class VisibilityGraphGenerator
         Log.D("Get direct neighbors on each obstacle geometry");
         var allObstacles = obstacles.QueryAll();
         var coordinateToObstacles = GetCoordinateToObstaclesMapping(allObstacles);
-        AddObstacleNeighborsForObstacles(allObstacles, coordinateToObstacles, debugModeActive);
-
-        Log.D("Collect all unique vertices");
-        var allVertices = allObstacles.Map(o => o.Vertices).SelectMany(x => x).Where(v => v.IsOnConvexHull).ToSet();
+        var allVertices = AddObstacleNeighborsForObstacles(allObstacles, coordinateToObstacles, debugModeActive);
 
         Log.D("Calculate KNN to get visible vertices");
         var vertexNeighbors = CalculateVisibleKnnInternal(obstacles, coordinateToObstacles, allVertices,
@@ -239,8 +240,7 @@ public static class VisibilityGraphGenerator
 
         var degreePerBin = 360.0 / visibilityNeighborBinCount;
 
-        var validAngleAreas = GetValidAngleAreasForVertex(vertex);
-        if (validAngleAreas.IsEmpty())
+        if (vertex.ValidAngleAreas.IsEmpty())
         {
             // This happens for e.g. vertices with three obstacle neighbors and no angle between them of >180°.
             return new List<List<Vertex>>
@@ -263,7 +263,7 @@ public static class VisibilityGraphGenerator
                 continue;
             }
 
-            if (!validAngleAreas.Any(area => Angle.IsBetweenEqual(area.Item1,
+            if (!vertex.ValidAngleAreas.Any(area => Angle.IsBetweenEqual(area.Item1,
                     Angle.GetBearing(vertex.Coordinate, otherVertex.Coordinate), area.Item2)))
             {
                 continue;
@@ -410,52 +410,6 @@ public static class VisibilityGraphGenerator
         }
 
         return SortVisibilityNeighborsIntoBins(vertex, allVisibilityNeighbors.ToList());
-    }
-
-    /// <summary>
-    /// Calculates the valid angle areas for the given vertex.
-    ///
-    /// A valid angle area is an angle area in which potential visibility neighbors are. Not all neighboring nodes
-    /// are potential visibility neighbors since not all resulting visibility edges would be part of shortest paths.
-    /// To avoid unnecessary checks, only nodes which have a chance to be on a shortest path are selected. To do this,
-    /// certain angle areas are used to exclude irrelevant nodes.
-    ///
-    /// Valid angle areas are determined depending on the obstacle neighbors of the given vertex. Angle areas that
-    /// would enlarge the convex hull of the obstacle (without removing the given vertex from it) are determined.
-    /// </summary>
-    public static List<(double, double)> GetValidAngleAreasForVertex(Vertex vertex)
-    {
-        var validAngleAreas = new List<(double, double)>();
-        if (vertex.ObstacleNeighbors.Count <= 1)
-        {
-            validAngleAreas.Add((0, 360));
-        }
-        else if (vertex.ObstacleNeighbors.Count >= 2)
-        {
-            // We only need to search for two obstacle neighbors with an angle area of >180°. All other angle areas
-            // form concave parts and are therefore irrelevant. Only up to one angle between two adjacent obstacle
-            // neighbors can be >180°. This means none or two valid angle areas exist.
-            vertex.ObstacleNeighbors
-                .Each((thisIndex, neighbor) =>
-                {
-                    var nextIndex = thisIndex + 1;
-                    if (thisIndex == vertex.ObstacleNeighbors.Count - 1)
-                    {
-                        nextIndex = 0;
-                    }
-
-                    var angleFrom = Angle.GetBearing(vertex.Coordinate.ToPosition(), neighbor);
-                    var angleTo = Angle.GetBearing(vertex.Coordinate.ToPosition(), vertex.ObstacleNeighbors[nextIndex]);
-
-                    if (Angle.Difference(angleFrom, angleTo) >= 180)
-                    {
-                        validAngleAreas.Add((angleFrom, Angle.Normalize(angleTo - 180)));
-                        validAngleAreas.Add((Angle.Normalize(angleFrom - 180), angleTo));
-                    }
-                });
-        }
-
-        return validAngleAreas;
     }
 
     /// <summary>

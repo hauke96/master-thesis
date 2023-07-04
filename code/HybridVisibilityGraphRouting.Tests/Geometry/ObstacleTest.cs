@@ -229,7 +229,10 @@ public class ObstacleTest
             new Coordinate(3, 1),
             new Coordinate(2, 1),
         };
-        var obstacles = ObstacleTestHelper.CreateObstacles(new LineString(triangle1), new LineString(triangle2));
+        var obstacles = ObstacleTestHelper.CreateObstacles(
+            new Polygon(new LinearRing(triangle1)),
+            new Polygon(new LinearRing(triangle2))
+        );
         var obstacle1 = obstacles[0];
         var obstacle2 = obstacles[1];
         var coordinateToObstacles = VisibilityGraphGenerator.GetCoordinateToObstaclesMapping(obstacles);

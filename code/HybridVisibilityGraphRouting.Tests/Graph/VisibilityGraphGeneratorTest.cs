@@ -1138,16 +1138,16 @@ public class VisibilityGraphGeneratorTest
 
         List<(double, double)> validAngleAreas;
 
-        validAngleAreas = VisibilityGraphGenerator.GetValidAngleAreasForVertex(obstacle.Vertices[0]);
+        validAngleAreas = obstacle.Vertices[0].ValidAngleAreas;
         Assert.AreEqual(1, validAngleAreas.Count);
         CollectionAssert.Contains(validAngleAreas, (0, 360));
 
-        validAngleAreas = VisibilityGraphGenerator.GetValidAngleAreasForVertex(obstacle.Vertices[1]);
+        validAngleAreas = obstacle.Vertices[1].ValidAngleAreas;
         Assert.AreEqual(2, validAngleAreas.Count);
         CollectionAssert.Contains(validAngleAreas, (90, 225));
         CollectionAssert.Contains(validAngleAreas, (270, 45));
 
-        validAngleAreas = VisibilityGraphGenerator.GetValidAngleAreasForVertex(obstacle.Vertices[2]);
+        validAngleAreas = obstacle.Vertices[2].ValidAngleAreas;
         Assert.AreEqual(1, validAngleAreas.Count);
         CollectionAssert.Contains(validAngleAreas, (0, 360));
     }
