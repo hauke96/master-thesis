@@ -451,8 +451,7 @@ public class VisibilityGraphGeneratorTest
         });
         var obstacles = ObstacleTestHelper.CreateObstacles(obstacle);
 
-        VisibilityGraphGenerator.AddObstacleNeighborsForObstacles(obstacles,
-            new Dictionary<Coordinate, List<Obstacle>>());
+        VisibilityGraphGenerator.AddObstacleNeighborsForObstacles(obstacles);
 
         var positionToNeighbors = GetPositionToNeighborMap(obstacles);
 
@@ -484,9 +483,8 @@ public class VisibilityGraphGeneratorTest
             new Coordinate(0, 0)
         });
         var obstacles = ObstacleTestHelper.CreateObstacles(obstacle);
-        var coordinateToObstacles = VisibilityGraphGenerator.GetCoordinateToObstaclesMapping(obstacles);
 
-        VisibilityGraphGenerator.AddObstacleNeighborsForObstacles(obstacles, coordinateToObstacles);
+        VisibilityGraphGenerator.AddObstacleNeighborsForObstacles(obstacles);
 
         var positionToNeighbors = GetPositionToNeighborMap(obstacles);
 
@@ -532,9 +530,8 @@ public class VisibilityGraphGeneratorTest
         });
 
         var obstacles = ObstacleTestHelper.CreateObstacles(obstacle1, obstacle2);
-        var coordinateToObstacles = VisibilityGraphGenerator.GetCoordinateToObstaclesMapping(obstacles);
 
-        VisibilityGraphGenerator.AddObstacleNeighborsForObstacles(obstacles, coordinateToObstacles);
+        VisibilityGraphGenerator.AddObstacleNeighborsForObstacles(obstacles);
 
         var positionToNeighbors = GetPositionToNeighborMap(obstacles);
 
@@ -589,16 +586,7 @@ public class VisibilityGraphGeneratorTest
         });
         var obstacles = ObstacleTestHelper.CreateObstacles(obstacle1, obstacle2);
 
-        var coordinateToObstacles = new Dictionary<Coordinate, List<Obstacle>>
-        {
-            { obstacle1.Coordinates[0], new List<Obstacle> { obstacles[0], obstacles[1] } },
-            { obstacle1.Coordinates[1], new List<Obstacle> { obstacles[0], obstacles[1] } },
-            { obstacle1.Coordinates[2], new List<Obstacle> { obstacles[0] } },
-            { obstacle1.Coordinates[3], new List<Obstacle> { obstacles[0] } },
-            { obstacle2.Coordinates[2], new List<Obstacle> { obstacles[1] } }
-        };
-
-        VisibilityGraphGenerator.AddObstacleNeighborsForObstacles(obstacles, coordinateToObstacles);
+        VisibilityGraphGenerator.AddObstacleNeighborsForObstacles(obstacles);
 
         var positionToNeighbors = GetPositionToNeighborMap(obstacles);
 
@@ -655,22 +643,14 @@ public class VisibilityGraphGeneratorTest
         });
         var obstacles = ObstacleTestHelper.CreateObstacles(obstacle1, obstacle2);
 
-        var coordinateToObstacles = new Dictionary<Coordinate, List<Obstacle>>
-        {
-            { obstacle1.Coordinates[0], new List<Obstacle> { obstacles[0] } },
-            { obstacle1.Coordinates[1], new List<Obstacle> { obstacles[0] } },
-            { obstacle2.Coordinates[0], new List<Obstacle> { obstacles[1] } },
-            { obstacle2.Coordinates[1], new List<Obstacle> { obstacles[1] } }
-        };
-
-        VisibilityGraphGenerator.AddObstacleNeighborsForObstacles(obstacles, coordinateToObstacles);
+        VisibilityGraphGenerator.AddObstacleNeighborsForObstacles(obstacles);
 
         var positionToNeighbors = GetPositionToNeighborMap(obstacles);
 
-        Assert.IsEmpty(positionToNeighbors[obstacle1.Coordinates[0]]);
-        Assert.IsEmpty(positionToNeighbors[obstacle1.Coordinates[1]]);
-        Assert.IsEmpty(positionToNeighbors[obstacle2.Coordinates[0]]);
-        Assert.IsEmpty(positionToNeighbors[obstacle2.Coordinates[1]]);
+        Assert.AreEqual(1, positionToNeighbors[obstacle1.Coordinates[0]].Count);
+        Assert.AreEqual(1, positionToNeighbors[obstacle1.Coordinates[1]].Count);
+        Assert.AreEqual(1, positionToNeighbors[obstacle2.Coordinates[0]].Count);
+        Assert.AreEqual(1, positionToNeighbors[obstacle2.Coordinates[1]].Count);
 
         var vertices = obstacles.SelectMany(o => o.Vertices).Distinct().ToList();
         Assert.AreEqual(4, vertices.Count);
@@ -692,14 +672,7 @@ public class VisibilityGraphGeneratorTest
         });
         var obstacles = ObstacleTestHelper.CreateObstacles(obstacle1, obstacle2);
 
-        var coordinateToObstacles = new Dictionary<Coordinate, List<Obstacle>>
-        {
-            { obstacle1.Coordinates[0], new List<Obstacle> { obstacles[0] } },
-            { obstacle1.Coordinates[1], new List<Obstacle> { obstacles[0], obstacles[1] } },
-            { obstacle2.Coordinates[1], new List<Obstacle> { obstacles[1] } }
-        };
-
-        VisibilityGraphGenerator.AddObstacleNeighborsForObstacles(obstacles, coordinateToObstacles);
+        VisibilityGraphGenerator.AddObstacleNeighborsForObstacles(obstacles);
 
         var positionToNeighbors = GetPositionToNeighborMap(obstacles);
 

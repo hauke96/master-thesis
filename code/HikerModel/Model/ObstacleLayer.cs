@@ -3,8 +3,6 @@ using Mars.Components.Layers;
 using Mars.Interfaces.Data;
 using Mars.Interfaces.Layers;
 using ServiceStack;
-using HybridVisibilityGraphRouting;
-using HybridVisibilityGraphRouting.Geometry;
 using HybridVisibilityGraphRouting.Graph;
 using HybridVisibilityGraphRouting.IO;
 
@@ -49,6 +47,8 @@ namespace HikerModel.Model
                 );
             }
             
+            Exporter.WriteGraphToFile(HybridVisibilityGraph.Graph);
+
             Exporter.WriteGraphToFile(HybridVisibilityGraph.Graph);
 
             return true;
