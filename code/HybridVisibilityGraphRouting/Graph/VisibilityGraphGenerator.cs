@@ -23,14 +23,19 @@ public static class VisibilityGraphGenerator
     /// </summary>
     public static HashSet<Vertex> AddObstacleNeighborsForObstacles(
         IList<Obstacle> obstacles,
-        Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles,
         bool debugModeActive = false)
     {
         // A function that determines if any obstacles is between the two given coordinates.
         bool IsCoordinateHidden(Coordinate coordinate, Coordinate otherCoordinate, Obstacle obstacleOfCoordinate)
         {
-            var hasLineSegment = obstacleOfCoordinate.HasLineSegment(coordinate,
-                otherCoordinate);
+            if (!obstacleOfCoordinate.IsClosed || !obstacleOfCoordinate.HasLineSegment(coordinate, otherCoordinate))
+            {
+                // Coordinates of unclosed obstacles are never hidden. Also if the obstacle of the given coordinate does
+                // not have the line segment in question, then this whole test would yield false results (because the
+                // other coordinate is not a real obstacle neighbor).
+                return false;
+            }
+
             return obstacles.Any(o =>
             {
                 if (obstacleOfCoordinate.Equals(o) || !o.Envelope.Intersects(coordinate, otherCoordinate))
@@ -38,22 +43,13 @@ public static class VisibilityGraphGenerator
                     return false;
                 }
 
-                // There are two cases to consider of which one has to be true when checking if there's anything between
-                // "coordinate" and "otherCoordinate":
                 return
-                    // 1. case:
-                    // We have a different obstacle than "obstacleOfCoordinate" which also has the line segment
-                    // between the two coordinates, which means "o" and "obstacleOfCoordinate" touch each other on
+                    // We have a different obstacle than "obstacleOfCoordinate" which might also have the line segment
+                    // between the two coordinates, which means "o" and "obstacleOfCoordinate" might touch each other on
                     // this segment. It's important that both are closed, because if one is open, the two coordinates
                     // are reachable and therefore might actually see each other.
                     o.IsClosed &&
-                    obstacleOfCoordinate.IsClosed &&
-                    hasLineSegment &&
-                    o.HasLineSegment(coordinate, otherCoordinate)
-                    ||
-                    // 2. case:
-                    // We have something else, so we check for true line intersection.
-                    o.IntersectsWithLine(coordinate, otherCoordinate, coordinateToObstacles);
+                    o.HasLineSegment(coordinate, otherCoordinate);
             });
         }
 
@@ -155,7 +151,7 @@ public static class VisibilityGraphGenerator
         Log.D("Get direct neighbors on each obstacle geometry");
         var allObstacles = obstacles.QueryAll();
         var coordinateToObstacles = GetCoordinateToObstaclesMapping(allObstacles);
-        var allVertices = AddObstacleNeighborsForObstacles(allObstacles, coordinateToObstacles, debugModeActive);
+        var allVertices = AddObstacleNeighborsForObstacles(allObstacles, debugModeActive);
 
         Log.D("Calculate KNN to get visible vertices");
         var vertexNeighbors = CalculateVisibleKnnInternal(obstacles, coordinateToObstacles, allVertices,
