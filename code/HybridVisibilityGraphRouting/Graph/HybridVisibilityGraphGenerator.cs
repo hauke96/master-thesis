@@ -145,7 +145,7 @@ public static class HybridVisibilityGraphGenerator
                 // Determine covered angle area of the current bin
                 double binFromAngle = 0;
                 double binToAngle = 360;
-                if (vertex.ObstacleNeighbors.Any())
+                if (vertex.ObstacleNeighbors.Count > 1)
                 {
                     binFromAngle = Angle.GetBearing(vertex.Coordinate, vertex.ObstacleNeighbors[i].ToCoordinate());
                     binToAngle = Angle.GetBearing(vertex.Coordinate,
