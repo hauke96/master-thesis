@@ -3,9 +3,8 @@ using Mars.Components.Layers;
 using Mars.Interfaces.Data;
 using Mars.Interfaces.Layers;
 using ServiceStack;
-using HybridVisibilityGraphRouting;
-using HybridVisibilityGraphRouting.Geometry;
 using HybridVisibilityGraphRouting.Graph;
+using HybridVisibilityGraphRouting.IO;
 
 namespace HikerModel.Model
 {
@@ -21,9 +20,12 @@ namespace HikerModel.Model
             {
                 return false;
             }
+
             var features = Features.Map(f => f.VectorStructured).ToList();
 
             HybridVisibilityGraph = HybridVisibilityGraphGenerator.Generate(features);
+
+            Exporter.WriteGraphToFile(HybridVisibilityGraph.Graph);
 
             return true;
         }
