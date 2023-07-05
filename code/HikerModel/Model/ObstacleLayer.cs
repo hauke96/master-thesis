@@ -1,4 +1,5 @@
 using System.Linq;
+using HybridVisibilityGraphRouting;
 using Mars.Components.Layers;
 using Mars.Interfaces.Data;
 using Mars.Interfaces.Layers;
@@ -47,8 +48,6 @@ namespace HikerModel.Model
                 );
             }
             
-            Exporter.WriteGraphToFile(HybridVisibilityGraph.Graph);
-
             Exporter.WriteGraphToFile(HybridVisibilityGraph.Graph);
 
             return true;
