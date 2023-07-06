@@ -39,7 +39,7 @@ dataset_labels=[
 	'Add POI\nattributes',
 ]
 
-common.init_seaborn(width=440, height=200)
+common.init_seaborn(format="large")
 
 #
 # Plot absolute numbers

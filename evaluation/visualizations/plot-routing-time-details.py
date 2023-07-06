@@ -27,10 +27,10 @@ dataset_cols=[
 	'restore_avg_time',
 ]
 dataset_labels=[
-	"Total routing\ntime",
+	"Total time",
 	'A* routing',
-	'Connecting\nsource \\& destination\nvertices',
-	'Restoring original\ngraph',
+	'Connect source \\&\ndestination vertices',
+	'Restoring graph',
 ]
 
 dataset_raw=common.load_dataset(dataset_filter)
@@ -44,12 +44,12 @@ max_beeline_distance=max(dataset_raw["distance_beeline"]);
 # Plot absolute numbers
 #
 
+common.init_seaborn(format="large_slim")
+
 for id in dataset_ids:
 	dataset_filtered=dataset_raw[dataset_raw["obstacle_vertices_input"] == id];
 	dataset_relevant=dataset_filtered[["distance_beeline"] + dataset_cols]
 	dataset=dataset_relevant.melt('distance_beeline', var_name='aspect', value_name='time')
-
-	common.init_seaborn(width=440)
 
 	title="Routing - Durations broken down"
 	fig, ax = plt.subplots()
@@ -62,14 +62,14 @@ for id in dataset_ids:
 		ycol='time',
 		ylabel='Time in ms',
 		hue="aspect",
-		yscale='log',
+		#yscale='log',
 		#errorbar=("pi", 50),
 		ax=ax
 	)
 
-	plot.set_xlim(0, max_beeline_distance)
+	plot.set_xlim(0, max_beeline_distance * 1.05) # including some buffer
 
-	handles, labels = ax_abs.get_legend_handles_labels()
+	handles, labels = ax.get_legend_handles_labels()
 	handles=[h for h in handles if not isinstance(h, container.ErrorbarContainer)]
 
 	sns.move_legend(
@@ -83,7 +83,7 @@ for id in dataset_ids:
 		title='Legend',
 	)
 
-	common.save_to_file(fig, os.path.basename(__file__) + "_absolute_" + str(id))
+	common.save_to_file(fig, os.path.basename(__file__) + "_absolute_" + format(id, '05d'))
 
 #
 # Plot details through all dataset sizes for one route request
@@ -98,7 +98,7 @@ dataset_filtered=dataset_raw[dataset_raw["distance_beeline"] == beeline_distance
 dataset_relevant=dataset_filtered[["obstacle_vertices_input"] + dataset_cols]
 dataset=dataset_relevant.melt('obstacle_vertices_input', var_name='aspect', value_name='time')
 
-common.init_seaborn(width=440)
+common.init_seaborn(format="large_slim")
 
 fig, ax = plt.subplots()
 
@@ -142,7 +142,7 @@ for id in dataset_ids:
 	dataset_relevant[dataset_cols]=dataset_filtered[dataset_cols].div(dataset_filtered["avg_time"], axis=0)
 	dataset=dataset_relevant.melt('distance_beeline', var_name='aspect', value_name='time')
 
-	common.create_lineplot(
+	plot=common.create_lineplot(
 		dataset,
 		xcol="distance_beeline",
 		xlabel="Beeline distance in km",
@@ -152,6 +152,8 @@ for id in dataset_ids:
 		#yscale='log',
 		ax=ax
 	)
+
+	plot.set_xlim(0, max_beeline_distance * 1.05) # including some buffer
 
 	handles, labels = ax.get_legend_handles_labels()
 	handles=[h for h in handles if not isinstance(h, container.ErrorbarContainer)]
@@ -183,7 +185,7 @@ dataset_relevant=dataset_filtered[["obstacle_vertices_input"] + dataset_cols]
 dataset_relevant[dataset_cols]=dataset_filtered[dataset_cols].div(dataset_filtered["avg_time"], axis=0)
 dataset=dataset_relevant.melt('obstacle_vertices_input', var_name='aspect', value_name='time')
 
-common.init_seaborn(width=440)
+common.init_seaborn(format="large")
 
 fig, ax = plt.subplots()
 

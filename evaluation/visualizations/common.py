@@ -65,11 +65,23 @@ def get_fig_sizes(width_in_pt, height_in_pt=None, fraction=1):
 
 
 def init_seaborn(
-		width=220,
+		format="small",
+		width=None,
 		height=None,
 		dpi=120,
 		palette='colorblind',
 	):
+
+	if width == None:
+		if format == "large":
+			width=440
+			height=200
+		elif format == "large_slim":
+			width=440
+			height=150
+		elif format == "small":
+			width=220
+			height=None
 
 	global color_palette_selected_name
 

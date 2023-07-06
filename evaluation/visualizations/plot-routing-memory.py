@@ -28,7 +28,7 @@ mem_col_label="Avgerage RAM usage in MiB"
 dataset[mem_col]=dataset[mem_col] / 1024 / 1024
 
 common.init_seaborn(
-	width=440,
+	format="large",
 	#palette="custom_blue-red"
 )
 

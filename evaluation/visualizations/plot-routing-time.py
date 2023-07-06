@@ -26,7 +26,7 @@ common.init_seaborn()
 # x = beeline distance
 #
 
-common.init_seaborn(width=440)
+common.init_seaborn(format="large")
 
 title="Routing - Durations"
 fig, ax=plt.subplots()
