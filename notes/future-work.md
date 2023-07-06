@@ -21,3 +21,6 @@ Here are some thoughts on future work:
 	* Map based approach: Define accuracy/tolerance -> round every coordinate to that accuracy -> store in map and do queries accordingly
 * Maybe directly splitting vertices by their valid angle area (and then determining KNN within the vertex's angle area) makes the implementation simpler
 * Convex hull-filtering: Not working for polygons with vertices that are hidden to the outside (snail-like polygons for example; s. wekan)
+* Are multiple nodes per vertex even relevant? Theretically for routing only for the middle vertex of three cillinear vertices. In all oher cases, at most one vertex is a convex vertex
+* Generate sidewalks for roads (there was a paper about this) and connecting these new ways to the visibility edges as well, might enhance quality
+* Connectin visibility egdes to each other might be a good idea when adding attributes to them
