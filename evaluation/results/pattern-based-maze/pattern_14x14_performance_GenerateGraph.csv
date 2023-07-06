@@ -1,0 +1,6 @@
+get_obstacle_time,knn_search_time,build_graph_time,merge_road_graph_time,add_poi_attributes_time,iteration_number,iteration_time,obstacles_input,obstacles_after_unwrapping,obstacle_vertices_input,obstacle_vertices_after_unwrapping,road_vertices_input,road_vertices_after_merging,road_edges_input,road_edges_after_merging,other_vertices_input,visibility_edges_before_merging,visibility_edges_after_merging
+14.111,19966.574,260.218,1.865,2.63,0,20276.404,3724,3724,10584,10584,0,0,0,0,9520,62552,62552
+12.406,20015.748,318.22,5.962,2.448,1,20382.998,3724,3724,10584,10584,0,0,0,0,9520,62552,62552
+14.614,20256.002,261.631,1.834,2.638,2,20570.437,3724,3724,10584,10584,0,0,0,0,9520,62552,62552
+26.454,20030.984,300.874,1.834,2.437,3,20388.722,3724,3724,10584,10584,0,0,0,0,9520,62552,62552
+12.515,19918.229,260.066,2.272,2.629,4,20220.907,3724,3724,10584,10584,0,0,0,0,9520,62552,62552
