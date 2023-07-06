@@ -1,0 +1,36 @@
+% !TEX root = ../thesis.tex
+% !TeX spellcheck = en_US
+
+% visibility graphs contain shortest paths
+% adding source/destination nodes to graph and connecting them allows determination of shortest path between arbitrary locations in the presence of obstacles in the plain
+% Connecting visibility edges to roads enables more flexible and realistic routes
+% A* routing still fast (speedup methods can be applied) but connecting locations is slowing routing down
+
+\section{Future work}
+
+	% Problems:
+		% Overall: Speed up visibility edge generation for initial import + routing
+		% Connection to roads based on the hope that there are many visibility edges (in the end the vast number of edges creates a irregular grid like structure even though v-edges are not connected to each other)
+		% TODO check this: Holes in polygons might be reachable via a bridge-way. Currently there are no edges within these holes and therefore they are useless.
+		% Convex hull filtering might lead to problems for obstacle part not directly visible to outside (like a cave). Concave hull filtering might be the correct solution.
+	
+	% Features:
+		% 3D data: Handling OSM level-tags (vertical relation between roads)
+		% Storing graph in a format that keeps the same-location-nodes + additional angle information
+		% Parallel usage of routing
+		% Adding attributes to edges (e.g. when visibility edge goes over grass area → surface=grass to edge)
+		% Connecting visibility egdes to each other might be a good idea when adding attributes to the edges
+		% Reduce edge-count e.g. with approaches described in "A Modular Routing Graph Generation Method for Pedestrian Simulation" (Kielar, 2016). This might not speed up anything, though since the visibility calculation is based on vertices. However, this might result in fewer road-segments and faster connection of new edges (which is not that slow anyway)
+		
+	% technical enhncements
+		% kD-tree implementations: MARS implementation expensive, NTS implementation only works on classes (MARS stuff often struct) + not supports multiple nodes at same location. Own implementation specifically for points might help
+		% Splitting vertices by their valid angle area might simplify implementation + speeds up graph generation since angle area checks are very very fast.
+		% 
+
+
+
+
+
+
+
+
