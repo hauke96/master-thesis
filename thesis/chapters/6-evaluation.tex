@@ -222,6 +222,8 @@ For both evaluation aspects, method and design details are given followed by the
 			Here, the merge operation is the heavier task with a share of at least 59.8\% on the overall graph generation time.
 			The times of the kNN search and the merge operation sum up to 97.1\% of the graph generation time.
 			
+			\todo[inline]{Why this difference between rural and city?}
+			
 			Even though the order which task is the heaviest is different, both runtimes of the kNN search and the merge operation are the most significant ones.
 			The graph creation task in the \enquote{OSM rural} datasets is the only additional task with a share of over 1\%.
 			All other tasks have a negligible share on the total graph generation time of below 1\%, which decreases with the size of the dataset.
@@ -230,11 +232,13 @@ For both evaluation aspects, method and design details are given followed by the
 	
 		\subsubsection{Routing}
 		
-			The time required for routing is influences by several different factors.
+			The time required for routing is influenced by several different factors.
 			First of all, routing consists of several tasks, each contributing to the overall routing time by different proportions.
 			Second, the dataset size is a strong influencing factor but has differently strong influence on the several routing tasks.
 			Third, the structure of the data, meaning the number, size and distribution of obstacles, also influences the required time for routing.
 			In fact, the size of the dataset is the strongest influence on the overall routing time as it affects all tasks during routing.
+			
+			\Cref{fig:eval-city-routing-details} and \ref{fig:eval-rural-routing-details} show the routing times from the \enquote{OSM city} and \enquote{OSM rural} datasets as well as details on the separate tasks during routing.
 		
 			\clearpage
 			\begin{figure}[h!]
@@ -244,6 +248,7 @@ For both evaluation aspects, method and design details are given followed by the
 							\input{images/evaluation/osm-based-city/plot-routing-time.py_distance.pgf}
 						\end{figcenter}
 						\caption{Total routing times of all datasets.}
+						\label{fig:eval-city-routing-details-a}
 					\end{subfigure}
 					\\[3ex]
 					\begin{subfigure}[t]{\textwidth}
@@ -269,6 +274,7 @@ For both evaluation aspects, method and design details are given followed by the
 					\end{subfigure}
 				\end{figcenter}
 				\caption{Routing time statistics of the \enquote{OSM city} datasets.}
+				\label{fig:eval-city-routing-details}
 			\end{figure}
 			
 			\clearpage
@@ -304,14 +310,54 @@ For both evaluation aspects, method and design details are given followed by the
 					\end{subfigure}
 				\end{figcenter}
 				\caption{Routing time statistics of the \enquote{OSM rural} datasets.}
+				\label{fig:eval-rural-routing-details}
 			\end{figure}
 			
-			\todo{Why is the rural-routing slower for shorter distances? And what happened at the jump between 1.0 and 1.5km? -- Slower queries have waypoints on open field = few shadow areas = lots of checks. Faster queries have waypoints near obstacles = better usage of shadow areas}
+			Starting with the total routing times, both categories show different runtime behavior in terms of the route length.
+			While in the \enquote{OSM city} datasets the route calculation is positively correlated with the beeline distance (longer distance means longer calculation time), this correlation is negative in the \enquote{OSM rural} dataset.
+			
+			The difference is most prominent in the largest \enquote{OSM rural} dataset between the first and the fifth routing request.
+			Since the majority of the time is needed to connect the source and destination locations to the graph, the presence of nearby obstacles has a significant impact on the routing time.
+			As illustrated in \Cref{fig:eval-osm-rural-map}, the destination vertex of the first routing request has no nearby obstalces.
+			This means no efficient use of shadow areas can be made resulting in more visibility checks and therefore slower runtime.
+			The destination vertex of the fifth request has multiple obstacles nearby casting large shadow areas towards many buildings, which then do not need to be further checked.
+			As a result, 101 visibility edges are connected to the destination vertex of the first and only 18 to the destination vertex of the fifth request.
+			
+			This phenomenon of longer routing times for routing between short distant vertices does not appear in the \enquote{OSM city} dataset due to the high density of obstacles enabling an efficient use of shadow areas.
+			But the effect is still visible in \Cref{fig:eval-city-routing-details-a} at requests with a beeline distance of for example 700m, 800m and 950m.
+			These requests contain vertices at larger junctions or wide roads with only a few nearby obstacles resulting in many visibility checks with many generated visibility edges.
+			
+			\vspace{3ex}
+			\noindent
+			\begin{minipage}{\textwidth}
+				\begin{minipage}{0.4\textwidth}
+					\centering
+					\begin{tabularx}{\textwidth}{|p{2cm}|X|X|}
+						\hline
+						\textbf{Request no.}				& 1			& 5			\\\hline
+						\textbf{Beeline\newline distance}	& 100.40 m	& 300.78 m	\\\hline
+						\textbf{Routing\newline time}		& 452.9 ms	& 130.1 ms	\\\hline
+						\textbf{Time per m}					& 4.51 ms	& 0.43 ms	\\\hline
+					\end{tabularx}
+				\end{minipage}
+				\hfill
+				\begin{minipage}{0.56\textwidth}
+					\centering
+					\includegraphics[width=\textwidth]{images/qgis-osm-rural}
+				\end{minipage}
+				\\
+				\begin{minipage}[t]{0.4\textwidth}
+					\captionof{table}{Measured values for the first and fifth routing requests illustrated in \Cref{fig:eval-osm-rural-map}.}
+				\end{minipage}
+				\hfill
+				\begin{minipage}[t]{0.56\textwidth}
+					\captionof{figure}{The first and fifth routing requests (red arrow between source and destination) with the nearby obstacles (gray). Visibility edges of the two destination vertices are shown in blue and green.}
+					\label{fig:eval-osm-rural-map}
+				\end{minipage}
+			\end{minipage}
 		
-		\todo{Detailed view (as above)}
+			\todo{Times per meter?}
 		
-		\todo{Times per meter?}
-	
 \section{Route correctness and quality}
 
 	\subsection{Correctness}
