@@ -14,3 +14,9 @@ This folder contains some python scripts to generate visualizations of the measu
 Usage example can be found in each script file.
 
 The `plot-all-for-pattern.sh` script generates all images. Takes on argument, which is the name of the result folder (e.g. "pattern-based-rectangles").
+
+Rendering all dataset results can be done with the following command:
+
+```bash
+D="osm-based-city osm-based-rural pattern-based-rectangles pattern-based-circles pattern-based-maze" && cp ./$d/*.pgf ../../master-thesis/thesis/images/evaluation/$d
+```
