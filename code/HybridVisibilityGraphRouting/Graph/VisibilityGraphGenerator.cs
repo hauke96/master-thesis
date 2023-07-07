@@ -226,7 +226,8 @@ public static class VisibilityGraphGenerator
         Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles,
         Vertex vertex,
         int visibilityNeighborBinCount,
-        int visibilityNeighborsPerBin)
+        int visibilityNeighborsPerBin,
+        bool respectValidAngleAreas = true)
     {
         /*
          * The idea of the shadow areas:
@@ -245,7 +246,7 @@ public static class VisibilityGraphGenerator
 
         var degreePerBin = 360.0 / visibilityNeighborBinCount;
 
-        if (vertex.ValidAngleAreas.IsEmpty())
+        if (respectValidAngleAreas && vertex.ValidAngleAreas.IsEmpty())
         {
             // This happens for e.g. vertices with three obstacle neighbors and no angle between them of >180°.
             return new List<List<Vertex>>
@@ -268,7 +269,7 @@ public static class VisibilityGraphGenerator
                 continue;
             }
 
-            if (!vertex.ValidAngleAreas.Any(area => Angle.IsBetweenEqual(area.Item1,
+            if (respectValidAngleAreas && !vertex.ValidAngleAreas.Any(area => Angle.IsBetweenEqual(area.Item1,
                     Angle.GetBearing(vertex.Coordinate, otherVertex.Coordinate), area.Item2)))
             {
                 continue;

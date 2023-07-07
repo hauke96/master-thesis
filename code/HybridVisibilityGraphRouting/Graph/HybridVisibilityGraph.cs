@@ -153,12 +153,19 @@ public class HybridVisibilityGraph
     }
 
     /// <summary>
+    /// </summary>
+    /// <returns>A tuple with a list of all newly added nodes (including the given nodeToConnect) and edges.</returns>
+    /// <summary>
     /// Determines all visibility edges for the given node and adds them to the graph. The node itself will be part of
     /// the returned result set and therefore might be removed in other steps.
     /// </summary>
-    /// <returns>A tuple with a list of all newly added nodes (including the given nodeToConnect) and edges.</returns>
+    /// <param name="nodeToConnect">The node from with edges to other visible nodes should be created.</param>
+    /// <param name="onlyConnectToObstacles">When true (default), then only edges to vertices which belong to an obstacle are created.</param>
+    /// <param name="respectValidAngleAreas">When true (default), then valid angle areas are respected.</param>
+    /// <returns></returns>
     public (IList<NodeData>, IList<EdgeData>) ConnectNodeToGraph(NodeData nodeToConnect,
         bool onlyConnectToObstacles = true,
+        bool respectValidAngleAreas = true,
         int visibilityNeighborBinCount = 36,
         int visibilityNeighborsPerBin = 10)
     {
@@ -174,7 +181,7 @@ public class HybridVisibilityGraph
 
         var visibilityNeighborVertices = VisibilityGraphGenerator.GetVisibilityNeighborsForVertex(_obstacles,
             allVertices.ToList(), _vertexToObstacleMapping, vertexToConnect, visibilityNeighborBinCount,
-            visibilityNeighborsPerBin)[0];
+            visibilityNeighborsPerBin, respectValidAngleAreas)[0];
 
         visibilityNeighborVertices
             .Each(vertex =>
@@ -182,18 +189,6 @@ public class HybridVisibilityGraph
                 if (_vertexToNodes[vertex].IsEmpty())
                 {
                     // might happen due to convex-hull filtering so that not every vertex is represented by a node 
-                    return;
-                }
-
-                var angleFromSourceToTarget =
-                    Angle.GetBearing(vertex.Coordinate, nodeToConnect.Position.ToCoordinate());
-                // Check for both vertices if the generated edge would be in valid angle areas for both
-                // vertices. As soon as there is one vertex where the line would *not* be in any valid angle
-                // area, this means that this edge will never be part of any shortest path. Therefore we can
-                // therefore abort here.
-                if (!vertex.ValidAngleAreas.Any(area =>
-                        Angle.IsBetweenEqual(area.Item1, angleFromSourceToTarget, area.Item2)))
-                {
                     return;
                 }
 
