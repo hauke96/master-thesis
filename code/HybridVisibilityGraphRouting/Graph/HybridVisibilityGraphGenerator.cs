@@ -339,6 +339,11 @@ public static class HybridVisibilityGraphGenerator
 
         var roadFeatures = FeatureHelper.FilterFeaturesByExpressions(features, roadExpressions)
             .Where(f => f.Geometry.OgcGeometryType != OgcGeometryType.Point)
+            .SelectMany(f =>
+            {
+                return GeometryHelper.UnwrapMultiGeometries(f.Geometry)
+                    .Map(g => new NetTopologySuite.Features.Feature(g, f.Attributes));
+            })
             .ToList();
         var roadSegments = FeatureHelper.SplitFeaturesToSegments(roadFeatures);
 
@@ -368,11 +373,14 @@ public static class HybridVisibilityGraphGenerator
             .Where(pair => pair.Value.Count == 1)
             .Each(pair =>
             {
-                var (node, nodeHasBeenCreated) = hybridGraph.AddPositionToGraph(pair.Key.ToPosition());
-                if (nodeHasBeenCreated)
-                {
-                    hybridGraph.ConnectNodeToGraph(node);
-                }
+                var (node, _) = hybridGraph.AddPositionToGraph(pair.Key.ToPosition());
+                
+                // We ignore valid angle areas for dead ends, since e.g. building passages might end at a building and
+                // therefore this dead-end would never be connected to anything, which is not the wanted behavior.
+                // Also the fact whether or not the vertex was created or not is ignored because of the same reason:
+                // The end-vertex of a building passage ending at a building already exists but we still want to
+                // connect the dead-end.
+                hybridGraph.ConnectNodeToGraph(node, true, false);
             });
 
         // Merge the segments into the graph

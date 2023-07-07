@@ -18,3 +18,4 @@
 *.ind
 *.bib.sav
 *.pdf
+!images/*.pdf

@@ -120,8 +120,7 @@ For both evaluation aspects, method and design details are given followed by the
 		
 		\subsubsection{Import and graph generation}
 		
-			As mentioned at the beginning of \Cref{subsec:related-work:visibility-graph}, the process of generating a visibility graph has an inherent quadratic runtime.
-			This result is clearly visible in measurements of the dataset imports as seen in \Cref{fig:eval-import-city-abs} and \Cref{fig:eval-import-rural-abs}.
+			A few aspects regarding the runtime behavior can be inferred from the general graph generation times shown in \Cref{fig:eval-import-city} and \Cref{fig:eval-import-rural}.
 			
 			\begin{figure}[h!]
 				\begin{minipage}{.48\textwidth}
@@ -129,7 +128,7 @@ For both evaluation aspects, method and design details are given followed by the
 						\begin{figcenter}
 							\input{images/evaluation/osm-based-city/plot-import-time-per-vertices.py_absolute.pgf}
 						\end{figcenter}
-						\caption{Absolute total graph generation time for the \enquote{OSM city} dataset.}
+						\caption{Total graph generation times.}
 						\label{fig:eval-import-city-abs}
 					\end{subfigure}
 					\\[3ex]
@@ -137,14 +136,14 @@ For both evaluation aspects, method and design details are given followed by the
 						\begin{figcenter}
 							\input{images/evaluation/osm-based-city/plot-import-time-per-vertices.py_per-vertex.pgf}
 						\end{figcenter}
-						\caption{Time per input vertex for the \enquote{OSM city} dataset.}
+						\caption{Graph generation times per input vertex.}
 					\end{subfigure}
 					\\[3ex]
 					\begin{subfigure}[t]{\linewidth}
 						\begin{figcenter}
 							\input{images/evaluation/osm-based-city/plot-import-time-per-vertices.py_per-vertex-added.pgf}
 						\end{figcenter}
-						\caption{Increase in processing time per vertex when an additional vertex is added.}
+						\caption{Increase in graph generation time per additionally added vertex.}
 						\label{fig:eval-import-city-rel-increase}
 					\end{subfigure}
 					\caption{Graph generation times using the \enquote{OSM city} dataset.}
@@ -156,7 +155,7 @@ For both evaluation aspects, method and design details are given followed by the
 						\begin{figcenter}
 							\input{images/evaluation/osm-based-rural/plot-import-time-per-vertices.py_absolute.pgf}
 						\end{figcenter}
-						\caption{Absolute total graph generation time for the \enquote{OSM rural} dataset.}
+						\caption{Total graph generation times.}
 						\label{fig:eval-import-rural-abs}
 					\end{subfigure}
 					\\[3ex]
@@ -164,15 +163,14 @@ For both evaluation aspects, method and design details are given followed by the
 						\begin{figcenter}
 							\input{images/evaluation/osm-based-rural/plot-import-time-per-vertices.py_per-vertex.pgf}
 						\end{figcenter}
-						\caption{Time per input vertex for the \enquote{OSM rural} dataset.}
+						\caption{Graph generation times per input vertex.}
 					\end{subfigure}
 					\\[3ex]
 					\begin{subfigure}[t]{\linewidth}
 						\begin{figcenter}
 							\input{images/evaluation/osm-based-rural/plot-import-time-per-vertices.py_per-vertex-added.pgf}
-							% TODO same y-scale in both figures
 						\end{figcenter}
-						\caption{Increase in processing time per vertex when an additional vertex is added.}
+						\caption{Increase in graph generation time per additionally added vertex.}
 						\label{fig:eval-import-rural-rel-increase}
 					\end{subfigure}
 					\caption{Graph generation times using the \enquote{OSM rural} dataset.}
@@ -180,16 +178,17 @@ For both evaluation aspects, method and design details are given followed by the
 				\end{minipage}
 			\end{figure}
 			
-			A few aspects regarding the runtime behavior can already be inferred from \Cref{fig:eval-import-city} and \Cref{fig:eval-import-rural}.
+			First of all and as mentioned at the beginning of \Cref{subsec:related-work:visibility-graph}, the process of generating a visibility graph has an inherent quadratic runtime.
+			This fact is clearly visible in measurements of the dataset imports as seen in \Cref{fig:eval-import-city-abs} and \Cref{fig:eval-import-rural-abs}.
+			Details on the contribution of each task to the overall graph generation time can be seen in \Cref{fig:eval-import-details}.
 			
-			First, as mentioned above, the inherent quadratic runtime of the visibility graph creation, which is shown in detail in the following \Cref{fig:eval-import-details}.
-			
-			Second, the linear increase in the processing time per vertex, which shows, that the total runtime is in fact quadratic and not, for example, exponential.
-			
-			And third, the additional effort added to each vertex when a new additional vertex is added to the dataset is very small (below one microsecond) and decreases with the size of the dataset.
-			Taking the largest dataset of about 88.000 vertices in \Cref{fig:eval-import-city-rel-increase} as an example, adding one new vertex increases the processing time of every vertex by around 0.12 µs.
-			At least for smaller datasets, as \Cref{fig:eval-import-rural-rel-increase} shows, this extra time for each additional vertex decreases with the size of the dataset.
-			This indicates a slower growing processing time for larger datasets, however, this effect is negligible as it is not directly visible by the measured data in figures \ref{fig:eval-import-city-abs} and \ref{fig:eval-import-rural-abs}.
+			Second, \Cref{fig:eval-import-city-rel-increase} and \ref{fig:eval-import-rural-rel-increase} show the increase in the per-vertex processing time when a new additional vertex is added to the dataset.
+			A value of 1µs means, that the processing time of every vertex increases by 1µs when the dataset size increases by one vertex.
+			This value is very low for the \enquote{OSM city} datasets (below half of a microsecond) and even decreases within the \enquote{OSM rural} datasets from 4.1µs to 0.6µs.
+			However, the \enquote{OSM city} datasets indicate that this value might increase again with larger dataset sizes but might remain at a low level.
+			This significantly different behavior is very likely influenced by the type of dataset, i.e. the distribution and size of obstacles.
+			\todo[inline]{compare this to the pattern datasets?}
+			A decrease in this per-vertex time increase has no directly noticable effect on the overall graph generation time, which still shows a quadratic increase.
 			
 			\begin{figure}[h!]
 				\begin{figcenter}
@@ -212,25 +211,33 @@ For both evaluation aspects, method and design details are given followed by the
 			\end{figure}
 			
 			In \Cref{fig:eval-import-details} both OSM dataset import times are split into the performed tasks.
-			The task with the largest effort in terms of the required time is the $k$ nearest neighbor (kNN) search.
-			This step takes, even for the smallest dataset, at least 50\% of the overall hybrid visibility graph generation time.
-			For the largest dataset in the \enquote{OSM city} set, the share of the kNN search on the total processing time was over 97\%.
-			The second most time consuming step is the merge of the road network with the visibility graph which has a share of not more than 3.5\% in any of the \enquote{OSM city} datasets.
-			All other steps have a negligible effect on the processing performance with a combined share of less than 0.8\% on the total processing time of the \enquote{OSM city} dataset.
+			The task with the largest effort in terms of the required time differs from the dataset category.
 			
-			Very small datasets, meaning only a few thousand vertices, show a different distribution.
-			Even though the kNN search is still the most expensive task, the relative shares of other tasks, especially the marge operation, are significantly higher.
-			\todo[inline]{reasons for this}
+			In the \enquote{OSM city} datasets, the $k$ nearest neighbor (kNN) search is the most time consuming task with a share on the total time of constantly over 50\%.
+			The second most time consuming task is the merge operation, where visibility and road edges are merged and connected
+			Together, these two steps are responsible for over 98.7\% of the required graph generation time.
+			
+			A different situation can be found in the \enquote{OSM rural} dataset.
+			Here, the merge operation is the heavier task with a share of at least 59.8\% on the overall graph generation time.
+			The times of the kNN search and the merge operation sum up to 97.1\% of the graph generation time.
+			
+			\todo[inline]{Why this difference between rural and city?}
+			
+			Even though the order which task is the heaviest is different, both runtimes of the kNN search and the merge operation are the most significant ones.
+			The graph creation task in the \enquote{OSM rural} datasets is the only additional task with a share of over 1\%.
+			All other tasks have a negligible share on the total graph generation time of below 1\%, which decreases with the size of the dataset.
 			
 			\todo{Table with values? Absolute or relative?}
 	
 		\subsubsection{Routing}
 		
-			The time required for routing is influences by several different factors.
+			The time required for routing is influenced by several different factors.
 			First of all, routing consists of several tasks, each contributing to the overall routing time by different proportions.
 			Second, the dataset size is a strong influencing factor but has differently strong influence on the several routing tasks.
 			Third, the structure of the data, meaning the number, size and distribution of obstacles, also influences the required time for routing.
 			In fact, the size of the dataset is the strongest influence on the overall routing time as it affects all tasks during routing.
+			
+			\Cref{fig:eval-city-routing-details} and \ref{fig:eval-rural-routing-details} show the routing times from the \enquote{OSM city} and \enquote{OSM rural} datasets as well as details on the separate tasks during routing.
 		
 			\clearpage
 			\begin{figure}[h!]
@@ -240,6 +247,7 @@ For both evaluation aspects, method and design details are given followed by the
 							\input{images/evaluation/osm-based-city/plot-routing-time.py_distance.pgf}
 						\end{figcenter}
 						\caption{Total routing times of all datasets.}
+						\label{fig:eval-city-routing-details-a}
 					\end{subfigure}
 					\\[3ex]
 					\begin{subfigure}[t]{\textwidth}
@@ -265,6 +273,7 @@ For both evaluation aspects, method and design details are given followed by the
 					\end{subfigure}
 				\end{figcenter}
 				\caption{Routing time statistics of the \enquote{OSM city} datasets.}
+				\label{fig:eval-city-routing-details}
 			\end{figure}
 			
 			\clearpage
@@ -300,14 +309,60 @@ For both evaluation aspects, method and design details are given followed by the
 					\end{subfigure}
 				\end{figcenter}
 				\caption{Routing time statistics of the \enquote{OSM rural} datasets.}
+				\label{fig:eval-rural-routing-details}
 			\end{figure}
 			
-			\todo{Why is the rural-routing slower for shorter distances? And what happened at the jump between 1.0 and 1.5km? -- Slower queries have waypoints on open field = few shadow areas = lots of checks. Faster queries have waypoints near obstacles = better usage of shadow areas}
+			Starting with the total routing times, both categories show different runtime behavior in terms of the route length.
+			While in the \enquote{OSM city} datasets the route calculation is positively correlated with the beeline distance (longer distance means longer calculation time), this correlation is negative in the \enquote{OSM rural} dataset.
+			
+			The difference is most prominent in the largest \enquote{OSM rural} dataset between the first and the fifth routing request.
+			Since the majority of the time is needed to connect the source and destination locations to the graph, the presence of nearby obstacles has a significant impact on the routing time.
+			As illustrated in \Cref{fig:eval-osm-rural-map}, the destination vertex of the first routing request has no nearby obstalces.
+			This means no efficient use of shadow areas can be made resulting in more visibility checks and therefore slower runtime.
+			The destination vertex of the fifth request has multiple obstacles nearby casting large shadow areas towards many buildings, which then do not need to be further checked.
+			As a result, 101 visibility edges are connected to the destination vertex of the first and only 18 to the destination vertex of the fifth request.
+			
+			This phenomenon of longer routing times for routing between short distant vertices does not appear in the \enquote{OSM city} dataset due to the high density of obstacles enabling an efficient use of shadow areas.
+			But the effect is still visible in \Cref{fig:eval-city-routing-details-a} at requests with a beeline distance of for example 700m, 800m and 950m.
+			These requests contain vertices at larger junctions or wide roads with only a few nearby obstacles resulting in many visibility checks with many generated visibility edges.
+			
+			\vspace{3ex}
+			\noindent
+			\begin{minipage}{\textwidth}
+				\begin{minipage}{0.4\textwidth}
+					\centering
+					\begin{tabularx}{\textwidth}{|p{2cm}|X|X|}
+						\hline
+						\textbf{Request no.}				& 1			& 5			\\\hline
+						\textbf{Beeline\newline distance}	& 100.40 m	& 300.78 m	\\\hline
+						\textbf{Routing\newline time}		& 452.9 ms	& 130.1 ms	\\\hline
+						\textbf{Time per m}					& 4.51 ms	& 0.43 ms	\\\hline
+					\end{tabularx}
+				\end{minipage}
+				\hfill
+				\begin{minipage}{0.56\textwidth}
+					\centering
+					\includegraphics[width=\textwidth]{images/qgis-osm-rural}
+				\end{minipage}
+				\\
+				\begin{minipage}[t]{0.4\textwidth}
+					\captionof{table}{Measured values for the first and fifth routing requests illustrated in \Cref{fig:eval-osm-rural-map}.}
+				\end{minipage}
+				\hfill
+				\begin{minipage}[t]{0.56\textwidth}
+					\captionof{figure}{The first and fifth routing requests (red arrow between source and destination) with the nearby obstacles (gray). The bidirectional visibility edges of the two destinations are shown in blue and green.}
+					\label{fig:eval-osm-rural-map}
+				\end{minipage}
+			\end{minipage}
 		
-		\todo{Detailed view (as above)}
-		
-		\todo{Times per meter?}
+			\todo{Times per meter?}
 	
+	\subsection{Pattern-based datasets}
+	
+		\subsubsection{Import and graph generation}
+		
+		\subsubsection{Routing}
+		
 \section{Route correctness and quality}
 
 	\subsection{Correctness}
@@ -336,5 +391,50 @@ For both evaluation aspects, method and design details are given followed by the
 		
 	\subsection{Usefulness of routes}
 	
+		The usefulness of the resulting routes are evaluated in two criterion.
+		First, a manual analysis is performed comparing the route calculated using the hybrid routing algorithm with the expected path a real human would likely choose and also with the path a classical routing algorithms would determine.
+		Second, factors are determined on how much shorter a route is compared to classical routing algorithms and also how much longer the route is compared to the optimal euclidean beeline distance.
+		
 		% How realistic are the routes (= can I go there in real life)? If not: Why not?
+		\subsubsection{Manual route analysis}
+		
+			In the following examples, routes determined by graph-based routing and the hybrid routing algorithm are compared against an expected result.
+			This expected route was created based on OpenStreetMap data, aerial imagery and also local knowledge.
+			It was \emph{not} created to intentionally match the results from the hybrid routing algorithm.
+		
+			% From motivation
+			The first situation shows a small square at the subway station \enquote{Osterstraße} in Hamburg, Germany, which only exist as an mostly unconnected area not usable for graph-based algorithms.
+			\Cref{fig:eval-osterstrasse-route-expected} shows the route between two POIs determined using Graphhopper.
+			The result is unfortunate as it does not cross the square due to the lack of necessary edges needed by the routing algorithm.
+			The hybrid routing algorithm, shown in \Cref{fig:eval-osterstrasse-actual-expected}, does not directly match the expected route but yielded a much closer and comparably good result.
+			
+			\begin{figure}[h!]
+				\begin{minipage}[t]{.48\textwidth}
+					\begin{subfigure}[t]{\linewidth}
+						\begin{figcenter}
+							\includegraphics[width=\textwidth]{images/qgis-routing-osterstrasse-expected-vs-routing}
+						\end{figcenter}
+						\caption{The graph-based routing result (red) and the expected route (blue) a human would probably take. The red dotted parts are direct connections to the closest point on an edge.}
+						\label{fig:eval-osterstrasse-route-expected}
+					\end{subfigure}
+				\end{minipage}
+				\hfill
+				\begin{minipage}[t]{.48\textwidth}
+					\begin{subfigure}[t]{\linewidth}
+						\begin{figcenter}
+							\includegraphics[width=\textwidth]{images/qgis-routing-osterstrasse-expected-vs-actual}
+						\end{figcenter}
+						\caption{The result of the hybrid routing algorithm (green) and the expected route (blue).}
+						\label{fig:eval-osterstrasse-actual-expected}
+					\end{subfigure}
+				\end{minipage}
+				\caption{Comparison of a graph-based route (determined on \href{https://www.openstreetmap.org/directions?engine=fossgis\_osrm\_foot\&route=53.57657\%2C9.95210\%3B53.57601\%2C9.95268\#map=19/53.57632/9.95218}{osm.org}) with the hybrid routing algorithm and the expected result (blue). The dashed part of the expected result is an equally good alternative route. The difficulty of this scenario is the traveral of the square \enquote{Fanny-Mendelssohn Platz}.}
+				\label{fig:eval-osterstrasse}
+			\end{figure}
+			
+			% Interesting passages from the 4km2 city dataset
+			% Interesting passages from the 4km2 rural dataset
+			% Mark segments in agent trips that are not walkable in real world
+		
 		% How much shorter are the routes?
+		\subsubsection{Route length analysis}
