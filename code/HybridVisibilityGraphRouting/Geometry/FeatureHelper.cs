@@ -20,17 +20,40 @@ public class FeatureHelper
             .Map(f =>
             {
                 var features = new List<Feature>();
-                var coordinates = f.Geometry.Coordinates;
-                for (var i = 0; i < coordinates.Length - 1; i++)
+                switch (f.Geometry.OgcGeometryType)
                 {
-                    features.Add(new Feature(new LineString(new[] { coordinates[i], coordinates[i + 1] }),
-                        f.Attributes));
+                    case OgcGeometryType.LineString:
+                        features.AddRange(ToSegmentFeatures(f.Geometry.Coordinates, f.Attributes));
+                        break;
+                    case OgcGeometryType.Polygon:
+                    {
+                        var p = (Polygon)f.Geometry;
+                        features.AddRange(ToSegmentFeatures(p.ExteriorRing.Coordinates, f.Attributes));
+                        p.InteriorRings.Each(ring =>
+                            features.AddRange(ToSegmentFeatures(ring.Coordinates, f.Attributes))
+                        );
+                        break;
+                    }
+                    default:
+                        throw new Exception($"Unsupported geometry type {f.Geometry.OgcGeometryType}");
                 }
 
                 return features;
             })
             .SelectMany(x => x)
             .ToList();
+    }
+
+    private static List<Feature> ToSegmentFeatures(Coordinate[] coordinates, IAttributesTable attributesTable)
+    {
+        var newFeatures = new List<Feature>();
+        for (var i = 0; i < coordinates.Length - 1; i++)
+        {
+            newFeatures.Add(new Feature(new LineString(new[] { coordinates[i], coordinates[i + 1] }),
+                attributesTable));
+        }
+
+        return newFeatures;
     }
 
     /// <summary>

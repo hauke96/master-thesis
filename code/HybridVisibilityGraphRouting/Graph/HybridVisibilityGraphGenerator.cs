@@ -264,6 +264,11 @@ public static class HybridVisibilityGraphGenerator
 
         var roadFeatures = FeatureHelper.FilterFeaturesByExpressions(features, roadExpressions)
             .Where(f => f.Geometry.OgcGeometryType != OgcGeometryType.Point)
+            .SelectMany(f =>
+            {
+                return GeometryHelper.UnwrapMultiGeometries(f.Geometry)
+                    .Map(g => new NetTopologySuite.Features.Feature(g, f.Attributes));
+            })
             .ToList();
         var roadSegments = FeatureHelper.SplitFeaturesToSegments(roadFeatures);
 
