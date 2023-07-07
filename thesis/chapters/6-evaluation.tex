@@ -169,7 +169,6 @@ For both evaluation aspects, method and design details are given followed by the
 					\begin{subfigure}[t]{\linewidth}
 						\begin{figcenter}
 							\input{images/evaluation/osm-based-rural/plot-import-time-per-vertices.py_per-vertex-added.pgf}
-							% TODO same y-scale in both figures
 						\end{figcenter}
 						\caption{Increase in graph generation time per additionally added vertex.}
 						\label{fig:eval-import-rural-rel-increase}
@@ -357,6 +356,12 @@ For both evaluation aspects, method and design details are given followed by the
 			\end{minipage}
 		
 			\todo{Times per meter?}
+	
+	\subsection{Pattern-based datasets}
+	
+		\subsubsection{Import and graph generation}
+		
+		\subsubsection{Routing}
 		
 \section{Route correctness and quality}
 
@@ -386,5 +391,50 @@ For both evaluation aspects, method and design details are given followed by the
 		
 	\subsection{Usefulness of routes}
 	
+		The usefulness of the resulting routes are evaluated in two criterion.
+		First, a manual analysis is performed comparing the route calculated using the hybrid routing algorithm with the expected path a real human would likely choose and also with the path a classical routing algorithms would determine.
+		Second, factors are determined on how much shorter a route is compared to classical routing algorithms and also how much longer the route is compared to the optimal euclidean beeline distance.
+		
 		% How realistic are the routes (= can I go there in real life)? If not: Why not?
+		\subsubsection{Manual route analysis}
+		
+			In the following examples, routes determined by graph-based routing and the hybrid routing algorithm are compared against an expected result.
+			This expected route was created based on OpenStreetMap data, aerial imagery and also local knowledge.
+			It was \emph{not} created to intentionally match the results from the hybrid routing algorithm.
+		
+			% From motivation
+			The first situation shows a small square at the subway station \enquote{Osterstraße} in Hamburg, Germany, which only exist as an mostly unconnected area not usable for graph-based algorithms.
+			\Cref{fig:eval-osterstrasse-route-expected} shows the route between two POIs determined using Graphhopper.
+			The result is unfortunate as it does not cross the square due to the lack of necessary edges needed by the routing algorithm.
+			The hybrid routing algorithm, shown in \Cref{fig:eval-osterstrasse-actual-expected}, does not directly match the expected route but yielded a much closer and comparably good result.
+			
+			\begin{figure}[h!]
+				\begin{minipage}[t]{.48\textwidth}
+					\begin{subfigure}[t]{\linewidth}
+						\begin{figcenter}
+							\includegraphics[width=\textwidth]{images/qgis-routing-osterstrasse-expected-vs-routing}
+						\end{figcenter}
+						\caption{The graph-based routing result (red) and the expected route (blue) a human would probably take. The red dotted parts are direct connections to the closest point on an edge.}
+						\label{fig:eval-osterstrasse-route-expected}
+					\end{subfigure}
+				\end{minipage}
+				\hfill
+				\begin{minipage}[t]{.48\textwidth}
+					\begin{subfigure}[t]{\linewidth}
+						\begin{figcenter}
+							\includegraphics[width=\textwidth]{images/qgis-routing-osterstrasse-expected-vs-actual}
+						\end{figcenter}
+						\caption{The result of the hybrid routing algorithm (green) and the expected route (blue).}
+						\label{fig:eval-osterstrasse-actual-expected}
+					\end{subfigure}
+				\end{minipage}
+				\caption{Comparison of a graph-based route (determined on \href{https://www.openstreetmap.org/directions?engine=fossgis\_osrm\_foot\&route=53.57657\%2C9.95210\%3B53.57601\%2C9.95268\#map=19/53.57632/9.95218}{osm.org}) with the hybrid routing algorithm and the expected result (blue). The dashed part of the expected result is an equally good alternative route. The difficulty of this scenario is the traveral of the square \enquote{Fanny-Mendelssohn Platz}.}
+				\label{fig:eval-osterstrasse}
+			\end{figure}
+			
+			% Interesting passages from the 4km2 city dataset
+			% Interesting passages from the 4km2 rural dataset
+			% Mark segments in agent trips that are not walkable in real world
+		
 		% How much shorter are the routes?
+		\subsubsection{Route length analysis}
