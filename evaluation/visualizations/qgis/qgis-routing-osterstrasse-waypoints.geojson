@@ -1,0 +1,32 @@
+{
+    "type": "FeatureCollection",
+    "generator": "JOSM",
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "type": "Destination"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    9.95267660000,
+                    53.57601270000
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "type": "Source"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    9.95209700000,
+                    53.57656760000
+                ]
+            }
+        }
+    ]
+}
