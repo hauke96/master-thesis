@@ -93,6 +93,11 @@ dataset_relevant[dataset_cols]=dataset_raw[dataset_cols].div(dataset_raw["iterat
 dataset=dataset_relevant.melt('obstacle_vertices_input', var_name='aspect', value_name='time')
 #dataset["time"] = dataset["time"] / 1000
 
+filtered=pd.concat([dataset[dataset["aspect"]=="merge_road_graph_time"], dataset[dataset["aspect"]=="knn_search_time"]])
+grouped=dataset.groupby(by=["obstacle_vertices_input", "aspect"]).sum().reset_index()
+grouped["avg"] = grouped["time"].div(5)
+print(grouped.to_string())
+
 common.create_lineplot(
 	dataset,
 	#title,
