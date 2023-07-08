@@ -436,14 +436,22 @@ For both evaluation aspects, method and design details are given followed by the
 			
 			% Interesting passages from the city dataset
 			Next to the above example and comparison to graph-based routing, an analysis of the routes determined within the 1km\textsuperscript{2} \enquote{OSM city} dataset yields some noteworthy findings.
-			First, the quality of a route significantly decreases with missing or wrong data.
-			Second, within regions of dense buildings and road networks, the expected route, routes determined by graph-based routing and routes determined by the hybrid routing algorithm follow these roads very often.
-			Third, large roads create wide areas without any obstacles, which might result in unrealistic road crossings.
-			This can be seen in \Cref{fig:eval-city-road-crossing} with crossings in a six-lane road, which would be dangerous and unrealistic for real-world pedestrians.
+			
+			First, the quality of a route significantly decreases with missing or wrong data as visible in \Cref{fig:eval-city-usefulness-b} and \ref{fig:eval-city-usefulness-c}.
+			The passages marked in red in these images are often shortcuts via private property.
+			Those areas, however, are usually filled with obstacles such as fences, walls or different kinds of vegetation.
+			As described in \Cref{subsubsec:data-not-in-osm}, private areas in OSM often contain very few to no details.
+			
+			Second, within densely built-up areas, larger open spaces are rare and the combination of roads and buildings form corrdidors in which routes tend to lie.
+			When and how often the route determined by the hybrid routing algorithm follows a road depends on the weighting function.
+			
+			Third, large roads create instances of the aforementioned rare but wide obstacle-free areas, which, however, might result in unrealistic road crossings.
+			Such situation can be seen in \Cref{fig:eval-city-road-crossing} with crossings over a six-lane road, which would be dangerous and unrealistic for real-world pedestrians.
+			
 			Forth, the weight function has a huge impact on the route quality.
 			It specifies for example how strongly roads should be preferred, which is illustrated in \Cref{fig:eval-city-weights} with the same route using different weights for road edges.
+			Adjusting and definiting fine-grained weight functions may help to imporove the routing behavior in some of the above mentioned situations.
 			
-			\clearpage
 			\begin{figure}[h!]
 				\begin{minipage}[t]{.48\textwidth}
 					\begin{subfigure}[t]{\linewidth}
@@ -451,6 +459,7 @@ For both evaluation aspects, method and design details are given followed by the
 							\includegraphics[width=\textwidth]{images/qgis-routing-city-routing-1}
 						\end{figcenter}
 						\caption{Simple route with only one small passage of missing data.}
+						\label{fig:eval-city-usefulness-1}
 					\end{subfigure}
 				\end{minipage}
 				\hfill
@@ -460,6 +469,7 @@ For both evaluation aspects, method and design details are given followed by the
 							\includegraphics[width=\textwidth]{images/qgis-routing-city-routing-3}
 						\end{figcenter}
 						\caption{Missing obstacles (in this case walls and fences between buildings) might lead to non-realistic routes.}
+						\label{fig:eval-city-usefulness-b}
 					\end{subfigure}
 				\end{minipage}
 				\\
@@ -469,6 +479,7 @@ For both evaluation aspects, method and design details are given followed by the
 							\includegraphics[width=\textwidth]{images/qgis-routing-city-routing-6}
 						\end{figcenter}
 						\caption{Missing walls, fences and hedges on private property are a common type of missing obstacles.}
+						\label{fig:eval-city-usefulness-c}
 					\end{subfigure}
 				\end{minipage}
 				\hfill
@@ -478,10 +489,14 @@ For both evaluation aspects, method and design details are given followed by the
 							\includegraphics[width=\textwidth]{images/qgis-routing-city-routing-18}
 						\end{figcenter}
 						\caption{Cities with closed rows of buildings do not provide many degrees of freedom, which results in similar or even equal routes, regardles of the algorithm.}
+						\label{fig:eval-city-usefulness-d}
 					\end{subfigure}
 				\end{minipage}
 				\caption{Comparison of realistic routes (green), graph-based routing results (black) and hybrid routing algorithm results (blue) using the 1km\textsuperscript{2} \enquote{OSM city} dataset. Passages with missing or faulty data are marked in red, which are the main cause of the deviations to the expected route.}
 				\label{fig:eval-city-usefulness}
+			\end{figure}
+			
+			\begin{figure}[h!]
 				\begin{minipage}[t]{.48\textwidth}
 					\begin{figcenter}
 						\includegraphics[width=\textwidth]{images/qgis-routing-city-roads}
@@ -498,9 +513,23 @@ For both evaluation aspects, method and design details are given followed by the
 					\label{fig:eval-city-weights}
 				\end{minipage}
 			\end{figure}
-			\clearpage
 			
 			% Interesting passages from the rural dataset
+			In the \enquote{OSM city} datasets with only smaller open areas, graph-based routes and routes determined by the hybrid routing algorithm were often similar and some parts even identical.
+			Datasets with larger open areas and irregular distributed obstacles, as in the \enquote{OSM rural} datasets, can greatly benefit from the hybrid routing algorithm.
+			
+			Figures \Cref{fig:eval-rural-routing-6} and \ref{fig:eval-rural-graph-based-comparison} give some examples on routes in a rural area with large open spaces.
+			Two findings can be inferred from the analysis of the rural routing results.
+			
+			First, the difference between graph-based routes and routes from the hybrid routing algorithm is significantly larger.
+			In fact, routes might not share any location and graph-based routes tend to be significantly longer.
+			This can be seen in \Cref{fig:eval-rural-graph-based-comparison-6} with a graph-based route of 1.73km while the expected result is only 0.67km long.
+			\Cref{fig:eval-rural-graph-based-comparison-17} shows a similar behavior even though the difference in distance is smaller because the graph-based, expected and actual route share common parts.
+			
+			Second, the accuracy and therefore the usefulness for real-world applications (such as navigation apps) heavily relies on the amount of details in the dataset.
+			\Cref{fig:eval-rural-routing-6-osm} illustrates the problem of missing data, which are in this case missing ditches within the farmland.
+			The determined route has a length of 365m while the shortest possible route (determined using aerial imagery as seen in \Cref{fig:eval-rural-routing-6-aerial}) is 677m long.
+			
 			\begin{figure}[h!]
 				\begin{minipage}[t]{.48\textwidth}
 					\begin{subfigure}[t]{\linewidth}
