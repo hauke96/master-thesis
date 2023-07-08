@@ -345,7 +345,8 @@
         {
             "type": "Feature",
             "properties": {
-                "type": "nearest"
+                "type": "nearest",
+                "id": "17"
             },
             "geometry": {
                 "type": "LineString",
@@ -364,7 +365,8 @@
         {
             "type": "Feature",
             "properties": {
-                "type": "nearest"
+                "type": "nearest",
+                "id": "17"
             },
             "geometry": {
                 "type": "LineString",

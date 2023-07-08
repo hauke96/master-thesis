@@ -1,4 +1,4 @@
-<qgis projectname="" saveDateTime="2023-07-08T17:26:23" saveUser="hauke" saveUserFull="" version="3.32.0-Lima">
+<qgis projectname="" saveDateTime="2023-07-08T19:23:18" saveUser="hauke" saveUserFull="" version="3.32.0-Lima">
   <homePath path=""></homePath>
   <title></title>
   <transaction mode="Disabled"></transaction>
@@ -21,7 +21,7 @@
     <customproperties>
       <Option></Option>
     </customproperties>
-    <layer-tree-group checked="Qt::Unchecked" expanded="1" groupLayer="" name="routing-17 (osm)">
+    <layer-tree-group checked="Qt::Checked" expanded="1" groupLayer="" name="routing-17 (osm)">
       <customproperties>
         <Option></Option>
       </customproperties>
@@ -53,7 +53,7 @@
         </customproperties>
       </layer-tree-layer>
     </layer-tree-group>
-    <layer-tree-group checked="Qt::Checked" expanded="1" groupLayer="" name="routing-6 (aerial imagery)">
+    <layer-tree-group checked="Qt::Unchecked" expanded="1" groupLayer="" name="routing-6 (aerial imagery)">
       <customproperties>
         <Option></Option>
       </customproperties>
@@ -74,7 +74,7 @@
           </Option>
         </customproperties>
       </layer-tree-layer>
-      <layer-tree-layer checked="Qt::Checked" expanded="1" id="_23b3f0cd_bc85_4afd_b203_bb2008342ff2" legend_exp="" legend_split_behavior="0" name="ESRI World Imagery" patch_size="-1,-1" providerKey="wms" source="http-header:referer=&amp;type=xyz&amp;url=https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/%7Bz%7D/%7By%7D/%7Bx%7D&amp;zmax=20&amp;zmin=0">
+      <layer-tree-layer checked="Qt::Checked" expanded="1" id="_23b3f0cd_bc85_4afd_b203_bb2008342ff2" legend_exp="" legend_split_behavior="0" name="ESRI World Imagery" patch_size="-1,-1" providerKey="wms" source="crs=EPSG:3857&amp;format&amp;type=xyz&amp;url=https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/%7Bz%7D/%7By%7D/%7Bx%7D&amp;zmax=20&amp;zmin=0&amp;http-header:referer=">
         <customproperties>
           <Option></Option>
         </customproperties>
@@ -106,7 +106,7 @@
           <Option></Option>
         </customproperties>
       </layer-tree-layer>
-      <layer-tree-layer checked="Qt::Checked" expanded="1" id="_fe91e1bd_bc61_491a_9324_18e953f0dfc3" legend_exp="" legend_split_behavior="0" name="OsmAnd Map" patch_size="-1,-1" providerKey="wms" source="http-header:referer=&amp;type=xyz&amp;url=https://tile.osmand.net/hd/%7Bz%7D/%7Bx%7D/%7By%7D.png&amp;zmax=19&amp;zmin=0">
+      <layer-tree-layer checked="Qt::Checked" expanded="1" id="_fe91e1bd_bc61_491a_9324_18e953f0dfc3" legend_exp="" legend_split_behavior="0" name="OsmAnd Map" patch_size="-1,-1" providerKey="wms" source="crs=EPSG:3857&amp;format&amp;type=xyz&amp;url=https://tile.osmand.net/hd/%7Bz%7D/%7Bx%7D/%7By%7D.png&amp;zmax=19&amp;zmin=0&amp;http-header:referer=">
         <customproperties>
           <Option></Option>
         </customproperties>
@@ -131,17 +131,17 @@
   </layer-tree-group>
   <snapping-settings enabled="0" intersection-snapping="0" maxScale="0" minScale="0" mode="2" scaleDependencyMode="0" self-snapping="0" tolerance="12" type="1" unit="1">
     <individual-layer-settings>
-      <layer-setting enabled="0" id="qgis_routing_rural_expected_eb8b5850_752f_49ca_88f3_2fa2de23643a" maxScale="0" minScale="0" tolerance="12" type="1" units="1"></layer-setting>
-      <layer-setting enabled="0" id="qgis_routing_rural_waypoints_6011da14_e691_41fd_8c4b_69770db9c1b1" maxScale="0" minScale="0" tolerance="12" type="1" units="1"></layer-setting>
-      <layer-setting enabled="0" id="qgis_routing_rural_hiker_b4c7ad90_9e05_4e83_b903_12db9224b61d" maxScale="0" minScale="0" tolerance="12" type="1" units="1"></layer-setting>
-      <layer-setting enabled="0" id="qgis_routing_rural_expected_67dc2f68_ec50_49c4_a925_246648ca1367" maxScale="0" minScale="0" tolerance="12" type="1" units="1"></layer-setting>
-      <layer-setting enabled="0" id="qgis_routing_rural_waypoints_5f69ce1e_b28e_4a5c_b63e_227464588dc7" maxScale="0" minScale="0" tolerance="12" type="1" units="1"></layer-setting>
-      <layer-setting enabled="0" id="qgis_routing_rural_hiker__6__9f866617_275e_43d6_b281_1b5f75f22b91" maxScale="0" minScale="0" tolerance="12" type="1" units="1"></layer-setting>
+      <layer-setting enabled="0" id="qgis_routing_rural_routing_8b73c212_6fd2_418a_95f2_d4776aecfda0" maxScale="0" minScale="0" tolerance="12" type="1" units="1"></layer-setting>
       <layer-setting enabled="0" id="qgis_routing_rural_routing_e60631e1_5b54_44ea_b8ea_ec2e2eb1f77b" maxScale="0" minScale="0" tolerance="12" type="1" units="1"></layer-setting>
-      <layer-setting enabled="0" id="qgis_routing_rural_hiker_a3f6de6c_7763_43a7_9f4f_b52574696d62" maxScale="0" minScale="0" tolerance="12" type="1" units="1"></layer-setting>
+      <layer-setting enabled="0" id="qgis_routing_rural_hiker__6__9f866617_275e_43d6_b281_1b5f75f22b91" maxScale="0" minScale="0" tolerance="12" type="1" units="1"></layer-setting>
+      <layer-setting enabled="0" id="qgis_routing_rural_hiker_b4c7ad90_9e05_4e83_b903_12db9224b61d" maxScale="0" minScale="0" tolerance="12" type="1" units="1"></layer-setting>
       <layer-setting enabled="0" id="qgis_routing_rural_expected_7a6318a1_0f65_4f96_abed_cc5963fb9d1b" maxScale="0" minScale="0" tolerance="12" type="1" units="1"></layer-setting>
       <layer-setting enabled="0" id="qgis_routing_rural_waypoints_925c1f16_c6d2_4723_8bfd_67a5f6bf2abe" maxScale="0" minScale="0" tolerance="12" type="1" units="1"></layer-setting>
-      <layer-setting enabled="0" id="qgis_routing_rural_routing_8b73c212_6fd2_418a_95f2_d4776aecfda0" maxScale="0" minScale="0" tolerance="12" type="1" units="1"></layer-setting>
+      <layer-setting enabled="0" id="qgis_routing_rural_waypoints_5f69ce1e_b28e_4a5c_b63e_227464588dc7" maxScale="0" minScale="0" tolerance="12" type="1" units="1"></layer-setting>
+      <layer-setting enabled="0" id="qgis_routing_rural_hiker_a3f6de6c_7763_43a7_9f4f_b52574696d62" maxScale="0" minScale="0" tolerance="12" type="1" units="1"></layer-setting>
+      <layer-setting enabled="0" id="qgis_routing_rural_expected_eb8b5850_752f_49ca_88f3_2fa2de23643a" maxScale="0" minScale="0" tolerance="12" type="1" units="1"></layer-setting>
+      <layer-setting enabled="0" id="qgis_routing_rural_expected_67dc2f68_ec50_49c4_a925_246648ca1367" maxScale="0" minScale="0" tolerance="12" type="1" units="1"></layer-setting>
+      <layer-setting enabled="0" id="qgis_routing_rural_waypoints_6011da14_e691_41fd_8c4b_69770db9c1b1" maxScale="0" minScale="0" tolerance="12" type="1" units="1"></layer-setting>
     </individual-layer-settings>
   </snapping-settings>
   <relations></relations>
@@ -149,10 +149,10 @@
   <mapcanvas annotationsVisible="1" name="theMapCanvas">
     <units>meters</units>
     <extent>
-      <xmin>1128143.60769589198753238</xmin>
-      <ymin>7064202.03237728681415319</ymin>
-      <xmax>1129362.52350694639608264</xmax>
-      <ymax>7066944.17931498493999243</ymax>
+      <xmin>1128169.6213666177354753</xmin>
+      <ymin>7064166.8374110097065568</ymin>
+      <xmax>1129388.53717767214402556</xmax>
+      <ymax>7066908.98434870783239603</ymax>
     </extent>
     <rotation>0</rotation>
     <destinationsrs>
@@ -173,52 +173,52 @@
   </mapcanvas>
   <projectModels></projectModels>
   <legend updateDrawingOrder="true">
-    <legendgroup checked="Qt::Unchecked" name="routing-17 (osm)" open="true">
+    <legendgroup checked="Qt::Checked" name="routing-17 (osm)" open="true">
       <legendlayer checked="Qt::Checked" drawingOrder="-1" name="qgis-routing-rural-waypoints" open="true" showFeatureCount="0">
         <filegroup hidden="false" open="true">
-          <legendlayerfile isInOverview="0" layerid="qgis_routing_rural_waypoints_925c1f16_c6d2_4723_8bfd_67a5f6bf2abe" visible="0"></legendlayerfile>
+          <legendlayerfile isInOverview="0" layerid="qgis_routing_rural_waypoints_925c1f16_c6d2_4723_8bfd_67a5f6bf2abe" visible="1"></legendlayerfile>
         </filegroup>
       </legendlayer>
       <legendlayer checked="Qt::Checked" drawingOrder="-1" name="qgis-routing-rural-expected" open="false" showFeatureCount="0">
         <filegroup hidden="false" open="false">
-          <legendlayerfile isInOverview="0" layerid="qgis_routing_rural_expected_eb8b5850_752f_49ca_88f3_2fa2de23643a" visible="0"></legendlayerfile>
+          <legendlayerfile isInOverview="0" layerid="qgis_routing_rural_expected_eb8b5850_752f_49ca_88f3_2fa2de23643a" visible="1"></legendlayerfile>
         </filegroup>
       </legendlayer>
       <legendlayer checked="Qt::Checked" drawingOrder="-1" name="qgis-routing-rural-hiker" open="false" showFeatureCount="0">
         <filegroup hidden="false" open="false">
-          <legendlayerfile isInOverview="0" layerid="qgis_routing_rural_hiker_b4c7ad90_9e05_4e83_b903_12db9224b61d" visible="0"></legendlayerfile>
+          <legendlayerfile isInOverview="0" layerid="qgis_routing_rural_hiker_b4c7ad90_9e05_4e83_b903_12db9224b61d" visible="1"></legendlayerfile>
         </filegroup>
       </legendlayer>
       <legendlayer checked="Qt::Checked" drawingOrder="-1" name="qgis-routing-rural-routing" open="false" showFeatureCount="0">
         <filegroup hidden="false" open="false">
-          <legendlayerfile isInOverview="0" layerid="qgis_routing_rural_routing_8b73c212_6fd2_418a_95f2_d4776aecfda0" visible="0"></legendlayerfile>
+          <legendlayerfile isInOverview="0" layerid="qgis_routing_rural_routing_8b73c212_6fd2_418a_95f2_d4776aecfda0" visible="1"></legendlayerfile>
         </filegroup>
       </legendlayer>
       <legendlayer checked="Qt::Checked" drawingOrder="-1" name="OsmAnd Map" open="true" showFeatureCount="0">
         <filegroup hidden="false" open="true">
-          <legendlayerfile isInOverview="0" layerid="OsmAnd_Map_9bae9001_829d_4f82_a8c2_f9ce7ae5cf89" visible="0"></legendlayerfile>
+          <legendlayerfile isInOverview="0" layerid="OsmAnd_Map_9bae9001_829d_4f82_a8c2_f9ce7ae5cf89" visible="1"></legendlayerfile>
         </filegroup>
       </legendlayer>
     </legendgroup>
-    <legendgroup checked="Qt::Checked" name="routing-6 (aerial imagery)" open="true">
+    <legendgroup checked="Qt::Unchecked" name="routing-6 (aerial imagery)" open="true">
       <legendlayer checked="Qt::Checked" drawingOrder="-1" name="qgis-routing-rural-waypoints" open="true" showFeatureCount="0">
         <filegroup hidden="false" open="true">
-          <legendlayerfile isInOverview="0" layerid="qgis_routing_rural_waypoints_5f69ce1e_b28e_4a5c_b63e_227464588dc7" visible="1"></legendlayerfile>
+          <legendlayerfile isInOverview="0" layerid="qgis_routing_rural_waypoints_5f69ce1e_b28e_4a5c_b63e_227464588dc7" visible="0"></legendlayerfile>
         </filegroup>
       </legendlayer>
       <legendlayer checked="Qt::Checked" drawingOrder="-1" name="qgis-routing-rural-expected" open="false" showFeatureCount="0">
         <filegroup hidden="false" open="false">
-          <legendlayerfile isInOverview="0" layerid="qgis_routing_rural_expected_7a6318a1_0f65_4f96_abed_cc5963fb9d1b" visible="1"></legendlayerfile>
+          <legendlayerfile isInOverview="0" layerid="qgis_routing_rural_expected_7a6318a1_0f65_4f96_abed_cc5963fb9d1b" visible="0"></legendlayerfile>
         </filegroup>
       </legendlayer>
       <legendlayer checked="Qt::Checked" drawingOrder="-1" name="qgis-routing-rural-hiker" open="false" showFeatureCount="0">
         <filegroup hidden="false" open="false">
-          <legendlayerfile isInOverview="0" layerid="qgis_routing_rural_hiker_a3f6de6c_7763_43a7_9f4f_b52574696d62" visible="1"></legendlayerfile>
+          <legendlayerfile isInOverview="0" layerid="qgis_routing_rural_hiker_a3f6de6c_7763_43a7_9f4f_b52574696d62" visible="0"></legendlayerfile>
         </filegroup>
       </legendlayer>
       <legendlayer checked="Qt::Checked" drawingOrder="-1" name="ESRI World Imagery" open="true" showFeatureCount="0">
         <filegroup hidden="false" open="true">
-          <legendlayerfile isInOverview="0" layerid="_23b3f0cd_bc85_4afd_b203_bb2008342ff2" visible="1"></legendlayerfile>
+          <legendlayerfile isInOverview="0" layerid="_23b3f0cd_bc85_4afd_b203_bb2008342ff2" visible="0"></legendlayerfile>
         </filegroup>
       </legendlayer>
     </legendgroup>
@@ -251,31 +251,6 @@
     </legendgroup>
   </legend>
   <mapViewDocks></mapViewDocks>
-  <mapcanvas annotationsVisible="1" name="mAreaCanvas">
-    <units>degrees</units>
-    <extent>
-      <xmin>0</xmin>
-      <ymin>0</ymin>
-      <xmax>0</xmax>
-      <ymax>0</ymax>
-    </extent>
-    <rotation>0</rotation>
-    <destinationsrs>
-      <spatialrefsys nativeFormat="Wkt">
-        <wkt>GEOGCRS["WGS 84",ENSEMBLE["World Geodetic System 1984 ensemble",MEMBER["World Geodetic System 1984 (Transit)"],MEMBER["World Geodetic System 1984 (G730)"],MEMBER["World Geodetic System 1984 (G873)"],MEMBER["World Geodetic System 1984 (G1150)"],MEMBER["World Geodetic System 1984 (G1674)"],MEMBER["World Geodetic System 1984 (G1762)"],MEMBER["World Geodetic System 1984 (G2139)"],ELLIPSOID["WGS 84",6378137,298.257223563,LENGTHUNIT["metre",1]],ENSEMBLEACCURACY[2.0]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],CS[ellipsoidal,2],AXIS["geodetic latitude (Lat)",north,ORDER[1],ANGLEUNIT["degree",0.0174532925199433]],AXIS["geodetic longitude (Lon)",east,ORDER[2],ANGLEUNIT["degree",0.0174532925199433]],USAGE[SCOPE["Horizontal component of 3D system."],AREA["World."],BBOX[-90,-180,90,180]],ID["EPSG",4326]]</wkt>
-        <proj4>+proj=longlat +datum=WGS84 +no_defs</proj4>
-        <srsid>3452</srsid>
-        <srid>4326</srid>
-        <authid>EPSG:4326</authid>
-        <description>WGS 84</description>
-        <projectionacronym>longlat</projectionacronym>
-        <ellipsoidacronym>EPSG:7030</ellipsoidacronym>
-        <geographicflag>true</geographicflag>
-      </spatialrefsys>
-    </destinationsrs>
-    <rendermaptile>0</rendermaptile>
-    <expressionContextScope></expressionContextScope>
-  </mapcanvas>
   <main-annotation-layer autoRefreshEnabled="0" autoRefreshTime="0" hasScaleBasedVisibilityFlag="0" legendPlaceholderImage="" maxScale="0" minScale="1e+08" refreshOnNotifyEnabled="0" refreshOnNotifyMessage="" styleCategories="AllStyleCategories" type="annotation">
     <id>Annotations_ea5acffa_6db0_4f18_9306_124c7b2b3b7b</id>
     <datasource></datasource>
@@ -555,7 +530,7 @@
         <ymax>85.05112877980660357</ymax>
       </wgs84extent>
       <id>_23b3f0cd_bc85_4afd_b203_bb2008342ff2</id>
-      <datasource>http-header:referer=&amp;type=xyz&amp;url=https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/%7Bz%7D/%7By%7D/%7Bx%7D&amp;zmax=20&amp;zmin=0</datasource>
+      <datasource>crs=EPSG:3857&amp;format&amp;type=xyz&amp;url=https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/%7Bz%7D/%7By%7D/%7Bx%7D&amp;zmax=20&amp;zmin=0&amp;http-header:referer=</datasource>
       <keywordList>
         <value></value>
       </keywordList>
@@ -759,7 +734,7 @@
         <ymax>85.05112877980660357</ymax>
       </wgs84extent>
       <id>_fe91e1bd_bc61_491a_9324_18e953f0dfc3</id>
-      <datasource>http-header:referer=&amp;type=xyz&amp;url=https://tile.osmand.net/hd/%7Bz%7D/%7Bx%7D/%7By%7D.png&amp;zmax=19&amp;zmin=0</datasource>
+      <datasource>crs=EPSG:3857&amp;format&amp;type=xyz&amp;url=https://tile.osmand.net/hd/%7Bz%7D/%7Bx%7D/%7By%7D.png&amp;zmax=19&amp;zmin=0&amp;http-header:referer=</datasource>
       <keywordList>
         <value></value>
       </keywordList>
@@ -1334,8 +1309,8 @@
       <customproperties>
         <Option type="Map">
           <Option name="embeddedWidgets/count" type="int" value="0"></Option>
-          <Option name="variableNames"></Option>
-          <Option name="variableValues"></Option>
+          <Option name="variableNames" type="invalid"></Option>
+          <Option name="variableValues" type="invalid"></Option>
         </Option>
       </customproperties>
       <blendMode>0</blendMode>
@@ -1343,7 +1318,8 @@
       <layerOpacity>1</layerOpacity>
       <SingleCategoryDiagramRenderer attributeLegend="1" diagramType="Histogram">
         <DiagramCategory backgroundAlpha="255" backgroundColor="#ffffff" barWidth="5" diagramOrientation="Up" direction="0" enabled="0" height="15" labelPlacementMethod="XHeight" lineSizeScale="3x:0,0,0,0,0,0" lineSizeType="MM" maxScaleDenominator="1e+08" minScaleDenominator="0" minimumSize="0" opacity="1" penAlpha="255" penColor="#000000" penWidth="0" rotationOffset="270" scaleBasedVisibility="0" scaleDependency="Area" showAxis="1" sizeScale="3x:0,0,0,0,0,0" sizeType="MM" spacing="5" spacingUnit="MM" spacingUnitScale="3x:0,0,0,0,0,0" width="15">
-          <fontProperties bold="0" description="DejaVu Sans,,9,-1,5,50,0,0,0,0,0" italic="0" strikethrough="0" style="" underline="0"></fontProperties>
+          <fontProperties bold="0" description="DejaVu Sans,-1,9,255,5,0,0,0,0,0,0" italic="0" strikethrough="0" style="0" underline="0"></fontProperties>
+          <attribute color="#000000" colorOpacity="1" field="" label=""></attribute>
           <axisSymbol>
             <symbol alpha="1" clip_to_extent="1" force_rhr="0" frame_rate="10" is_animated="0" name="" type="line">
               <data_defined_properties>
@@ -1963,8 +1939,8 @@ def my_form_open(dialog, layer, feature):
       <customproperties>
         <Option type="Map">
           <Option name="embeddedWidgets/count" type="int" value="0"></Option>
-          <Option name="variableNames"></Option>
-          <Option name="variableValues"></Option>
+          <Option name="variableNames" type="invalid"></Option>
+          <Option name="variableValues" type="invalid"></Option>
         </Option>
       </customproperties>
       <blendMode>0</blendMode>
@@ -1972,7 +1948,8 @@ def my_form_open(dialog, layer, feature):
       <layerOpacity>1</layerOpacity>
       <SingleCategoryDiagramRenderer attributeLegend="1" diagramType="Histogram">
         <DiagramCategory backgroundAlpha="255" backgroundColor="#ffffff" barWidth="5" diagramOrientation="Up" direction="0" enabled="0" height="15" labelPlacementMethod="XHeight" lineSizeScale="3x:0,0,0,0,0,0" lineSizeType="MM" maxScaleDenominator="1e+08" minScaleDenominator="0" minimumSize="0" opacity="1" penAlpha="255" penColor="#000000" penWidth="0" rotationOffset="270" scaleBasedVisibility="0" scaleDependency="Area" showAxis="1" sizeScale="3x:0,0,0,0,0,0" sizeType="MM" spacing="5" spacingUnit="MM" spacingUnitScale="3x:0,0,0,0,0,0" width="15">
-          <fontProperties bold="0" description="DejaVu Sans,,9,-1,5,50,0,0,0,0,0" italic="0" strikethrough="0" style="" underline="0"></fontProperties>
+          <fontProperties bold="0" description="DejaVu Sans,-1,9,255,5,0,0,0,0,0,0" italic="0" strikethrough="0" style="0" underline="0"></fontProperties>
+          <attribute color="#000000" colorOpacity="1" field="" label=""></attribute>
           <axisSymbol>
             <symbol alpha="1" clip_to_extent="1" force_rhr="0" frame_rate="10" is_animated="0" name="" type="line">
               <data_defined_properties>
@@ -2516,8 +2493,8 @@ def my_form_open(dialog, layer, feature):
       <customproperties>
         <Option type="Map">
           <Option name="embeddedWidgets/count" type="int" value="0"></Option>
-          <Option name="variableNames"></Option>
-          <Option name="variableValues"></Option>
+          <Option name="variableNames" type="invalid"></Option>
+          <Option name="variableValues" type="invalid"></Option>
         </Option>
       </customproperties>
       <blendMode>0</blendMode>
@@ -2525,7 +2502,8 @@ def my_form_open(dialog, layer, feature):
       <layerOpacity>1</layerOpacity>
       <SingleCategoryDiagramRenderer attributeLegend="1" diagramType="Histogram">
         <DiagramCategory backgroundAlpha="255" backgroundColor="#ffffff" barWidth="5" diagramOrientation="Up" direction="0" enabled="0" height="15" labelPlacementMethod="XHeight" lineSizeScale="3x:0,0,0,0,0,0" lineSizeType="MM" maxScaleDenominator="1e+08" minScaleDenominator="0" minimumSize="0" opacity="1" penAlpha="255" penColor="#000000" penWidth="0" rotationOffset="270" scaleBasedVisibility="0" scaleDependency="Area" showAxis="1" sizeScale="3x:0,0,0,0,0,0" sizeType="MM" spacing="5" spacingUnit="MM" spacingUnitScale="3x:0,0,0,0,0,0" width="15">
-          <fontProperties bold="0" description="DejaVu Sans,,9,-1,5,50,0,0,0,0,0" italic="0" strikethrough="0" style="" underline="0"></fontProperties>
+          <fontProperties bold="0" description="DejaVu Sans,-1,9,255,5,0,0,0,0,0,0" italic="0" strikethrough="0" style="0" underline="0"></fontProperties>
+          <attribute color="#000000" colorOpacity="1" field="" label=""></attribute>
           <axisSymbol>
             <symbol alpha="1" clip_to_extent="1" force_rhr="0" frame_rate="10" is_animated="0" name="" type="line">
               <data_defined_properties>
@@ -3833,6 +3811,18 @@ def my_form_open(dialog, layer, feature):
       <mapTip enabled="1"></mapTip>
     </maplayer>
     <maplayer autoRefreshEnabled="0" autoRefreshTime="0" geometry="Line" hasScaleBasedVisibilityFlag="0" labelsEnabled="0" legendPlaceholderImage="" maxScale="0" minScale="100000000" readOnly="0" refreshOnNotifyEnabled="0" refreshOnNotifyMessage="" simplifyAlgorithm="0" simplifyDrawingHints="1" simplifyDrawingTol="1" simplifyLocal="1" simplifyMaxScale="1" styleCategories="AllStyleCategories" symbologyReferenceScale="-1" type="vector" wkbType="LineString">
+      <extent>
+        <xmin>10.13493170459000048</xmin>
+        <ymin>53.44426026768999805</ymin>
+        <xmax>10.14853843582000081</xmax>
+        <ymax>53.44659405438999755</ymax>
+      </extent>
+      <wgs84extent>
+        <xmin>10.13493170459000048</xmin>
+        <ymin>53.44426026768999805</ymin>
+        <xmax>10.14853843582000081</xmax>
+        <ymax>53.44659405438999755</ymax>
+      </wgs84extent>
       <id>qgis_routing_rural_hiker_b4c7ad90_9e05_4e83_b903_12db9224b61d</id>
       <datasource>./qgis-routing-rural-hiker.geojson|subset=id='17'</datasource>
       <keywordList>
@@ -4277,8 +4267,8 @@ def my_form_open(dialog, layer, feature):
       <customproperties>
         <Option type="Map">
           <Option name="embeddedWidgets/count" type="int" value="0"></Option>
-          <Option name="variableNames"></Option>
-          <Option name="variableValues"></Option>
+          <Option name="variableNames" type="invalid"></Option>
+          <Option name="variableValues" type="invalid"></Option>
         </Option>
       </customproperties>
       <blendMode>0</blendMode>
@@ -4286,7 +4276,8 @@ def my_form_open(dialog, layer, feature):
       <layerOpacity>1</layerOpacity>
       <SingleCategoryDiagramRenderer attributeLegend="1" diagramType="Histogram">
         <DiagramCategory backgroundAlpha="255" backgroundColor="#ffffff" barWidth="5" diagramOrientation="Up" direction="0" enabled="0" height="15" labelPlacementMethod="XHeight" lineSizeScale="3x:0,0,0,0,0,0" lineSizeType="MM" maxScaleDenominator="1e+08" minScaleDenominator="0" minimumSize="0" opacity="1" penAlpha="255" penColor="#000000" penWidth="0" rotationOffset="270" scaleBasedVisibility="0" scaleDependency="Area" showAxis="1" sizeScale="3x:0,0,0,0,0,0" sizeType="MM" spacing="5" spacingUnit="MM" spacingUnitScale="3x:0,0,0,0,0,0" width="15">
-          <fontProperties bold="0" description="DejaVu Sans,,9,-1,5,50,0,0,0,0,0" italic="0" strikethrough="0" style="" underline="0"></fontProperties>
+          <fontProperties bold="0" description="DejaVu Sans,-1,9,255,5,0,0,0,0,0,0" italic="0" strikethrough="0" style="0" underline="0"></fontProperties>
+          <attribute color="#000000" colorOpacity="1" field="" label=""></attribute>
           <axisSymbol>
             <symbol alpha="1" clip_to_extent="1" force_rhr="0" frame_rate="10" is_animated="0" name="" type="line">
               <data_defined_properties>
@@ -4481,13 +4472,13 @@ def my_form_open(dialog, layer, feature):
       <extent>
         <xmin>10.13324599999999975</xmin>
         <ymin>53.44406699999999688</ymin>
-        <xmax>10.1479619999999997</xmax>
+        <xmax>10.14854332176000007</xmax>
         <ymax>53.44914599999999893</ymax>
       </extent>
       <wgs84extent>
         <xmin>10.13324599999999975</xmin>
         <ymin>53.44406699999999688</ymin>
-        <xmax>10.1479619999999997</xmax>
+        <xmax>10.14854332176000007</xmax>
         <ymax>53.44914599999999893</ymax>
       </wgs84extent>
       <id>qgis_routing_rural_routing_8b73c212_6fd2_418a_95f2_d4776aecfda0</id>
@@ -4934,8 +4925,8 @@ def my_form_open(dialog, layer, feature):
       <customproperties>
         <Option type="Map">
           <Option name="embeddedWidgets/count" type="int" value="0"></Option>
-          <Option name="variableNames"></Option>
-          <Option name="variableValues"></Option>
+          <Option name="variableNames" type="invalid"></Option>
+          <Option name="variableValues" type="invalid"></Option>
         </Option>
       </customproperties>
       <blendMode>0</blendMode>
@@ -5560,8 +5551,8 @@ def my_form_open(dialog, layer, feature):
       <customproperties>
         <Option type="Map">
           <Option name="embeddedWidgets/count" type="int" value="0"></Option>
-          <Option name="variableNames"></Option>
-          <Option name="variableValues"></Option>
+          <Option name="variableNames" type="invalid"></Option>
+          <Option name="variableValues" type="invalid"></Option>
         </Option>
       </customproperties>
       <blendMode>0</blendMode>
@@ -5569,7 +5560,8 @@ def my_form_open(dialog, layer, feature):
       <layerOpacity>1</layerOpacity>
       <SingleCategoryDiagramRenderer attributeLegend="1" diagramType="Histogram">
         <DiagramCategory backgroundAlpha="255" backgroundColor="#ffffff" barWidth="5" diagramOrientation="Up" direction="0" enabled="0" height="15" labelPlacementMethod="XHeight" lineSizeScale="3x:0,0,0,0,0,0" lineSizeType="MM" maxScaleDenominator="1e+08" minScaleDenominator="0" minimumSize="0" opacity="1" penAlpha="255" penColor="#000000" penWidth="0" rotationOffset="270" scaleBasedVisibility="0" scaleDependency="Area" showAxis="1" sizeScale="3x:0,0,0,0,0,0" sizeType="MM" spacing="5" spacingUnit="MM" spacingUnitScale="3x:0,0,0,0,0,0" width="15">
-          <fontProperties bold="0" description="DejaVu Sans,,9,-1,5,50,0,0,0,0,0" italic="0" strikethrough="0" style="" underline="0"></fontProperties>
+          <fontProperties bold="0" description="DejaVu Sans,-1,9,255,5,0,0,0,0,0,0" italic="0" strikethrough="0" style="0" underline="0"></fontProperties>
+          <attribute color="#000000" colorOpacity="1" field="" label=""></attribute>
           <axisSymbol>
             <symbol alpha="1" clip_to_extent="1" force_rhr="0" frame_rate="10" is_animated="0" name="" type="line">
               <data_defined_properties>
@@ -6112,7 +6104,7 @@ def my_form_open(dialog, layer, feature):
               <Option name="drawToAllParts" type="bool" value="false"></Option>
               <Option name="enabled" type="QString" value="0"></Option>
               <Option name="labelAnchorPoint" type="QString" value="point_on_exterior"></Option>
-              <Option name="lineSymbol" type="QString" value="&lt;symbol clip_to_extent=&quot;1&quot; is_animated=&quot;0&quot; frame_rate=&quot;10&quot; type=&quot;line&quot; name=&quot;symbol&quot; force_rhr=&quot;0&quot; alpha=&quot;1&quot;>&lt;data_defined_properties>&lt;Option type=&quot;Map&quot;>&lt;Option type=&quot;QString&quot; name=&quot;name&quot; value=&quot;&quot;/>&lt;Option name=&quot;properties&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;type&quot; value=&quot;collection&quot;/>&lt;/Option>&lt;/data_defined_properties>&lt;layer enabled=&quot;1&quot; locked=&quot;0&quot; id=&quot;{10daf6b3-432e-4697-8186-adbc93b857d4}&quot; pass=&quot;0&quot; class=&quot;SimpleLine&quot;>&lt;Option type=&quot;Map&quot;>&lt;Option type=&quot;QString&quot; name=&quot;align_dash_pattern&quot; value=&quot;0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;capstyle&quot; value=&quot;square&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;customdash&quot; value=&quot;5;2&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;customdash_map_unit_scale&quot; value=&quot;3x:0,0,0,0,0,0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;customdash_unit&quot; value=&quot;MM&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;dash_pattern_offset&quot; value=&quot;0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;dash_pattern_offset_map_unit_scale&quot; value=&quot;3x:0,0,0,0,0,0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;dash_pattern_offset_unit&quot; value=&quot;MM&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;draw_inside_polygon&quot; value=&quot;0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;joinstyle&quot; value=&quot;bevel&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;line_color&quot; value=&quot;60,60,60,255&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;line_style&quot; value=&quot;solid&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;line_width&quot; value=&quot;0.3&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;line_width_unit&quot; value=&quot;MM&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;offset&quot; value=&quot;0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;offset_map_unit_scale&quot; value=&quot;3x:0,0,0,0,0,0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;offset_unit&quot; value=&quot;MM&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;ring_filter&quot; value=&quot;0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;trim_distance_end&quot; value=&quot;0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;trim_distance_end_map_unit_scale&quot; value=&quot;3x:0,0,0,0,0,0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;trim_distance_end_unit&quot; value=&quot;MM&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;trim_distance_start&quot; value=&quot;0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;trim_distance_start_map_unit_scale&quot; value=&quot;3x:0,0,0,0,0,0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;trim_distance_start_unit&quot; value=&quot;MM&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;tweak_dash_pattern_on_corners&quot; value=&quot;0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;use_custom_dash&quot; value=&quot;0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;width_map_unit_scale&quot; value=&quot;3x:0,0,0,0,0,0&quot;/>&lt;/Option>&lt;data_defined_properties>&lt;Option type=&quot;Map&quot;>&lt;Option type=&quot;QString&quot; name=&quot;name&quot; value=&quot;&quot;/>&lt;Option name=&quot;properties&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;type&quot; value=&quot;collection&quot;/>&lt;/Option>&lt;/data_defined_properties>&lt;/layer>&lt;/symbol>"></Option>
+              <Option name="lineSymbol" type="QString" value="&lt;symbol type=&quot;line&quot; is_animated=&quot;0&quot; frame_rate=&quot;10&quot; clip_to_extent=&quot;1&quot; name=&quot;symbol&quot; force_rhr=&quot;0&quot; alpha=&quot;1&quot;>&lt;data_defined_properties>&lt;Option type=&quot;Map&quot;>&lt;Option type=&quot;QString&quot; value=&quot;&quot; name=&quot;name&quot;/>&lt;Option name=&quot;properties&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;collection&quot; name=&quot;type&quot;/>&lt;/Option>&lt;/data_defined_properties>&lt;layer locked=&quot;0&quot; enabled=&quot;1&quot; pass=&quot;0&quot; id=&quot;{10daf6b3-432e-4697-8186-adbc93b857d4}&quot; class=&quot;SimpleLine&quot;>&lt;Option type=&quot;Map&quot;>&lt;Option type=&quot;QString&quot; value=&quot;0&quot; name=&quot;align_dash_pattern&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;square&quot; name=&quot;capstyle&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;5;2&quot; name=&quot;customdash&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;3x:0,0,0,0,0,0&quot; name=&quot;customdash_map_unit_scale&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;MM&quot; name=&quot;customdash_unit&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;0&quot; name=&quot;dash_pattern_offset&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;3x:0,0,0,0,0,0&quot; name=&quot;dash_pattern_offset_map_unit_scale&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;MM&quot; name=&quot;dash_pattern_offset_unit&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;0&quot; name=&quot;draw_inside_polygon&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;bevel&quot; name=&quot;joinstyle&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;60,60,60,255&quot; name=&quot;line_color&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;solid&quot; name=&quot;line_style&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;0.3&quot; name=&quot;line_width&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;MM&quot; name=&quot;line_width_unit&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;0&quot; name=&quot;offset&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;3x:0,0,0,0,0,0&quot; name=&quot;offset_map_unit_scale&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;MM&quot; name=&quot;offset_unit&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;0&quot; name=&quot;ring_filter&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;0&quot; name=&quot;trim_distance_end&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;3x:0,0,0,0,0,0&quot; name=&quot;trim_distance_end_map_unit_scale&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;MM&quot; name=&quot;trim_distance_end_unit&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;0&quot; name=&quot;trim_distance_start&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;3x:0,0,0,0,0,0&quot; name=&quot;trim_distance_start_map_unit_scale&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;MM&quot; name=&quot;trim_distance_start_unit&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;0&quot; name=&quot;tweak_dash_pattern_on_corners&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;0&quot; name=&quot;use_custom_dash&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;3x:0,0,0,0,0,0&quot; name=&quot;width_map_unit_scale&quot;/>&lt;/Option>&lt;data_defined_properties>&lt;Option type=&quot;Map&quot;>&lt;Option type=&quot;QString&quot; value=&quot;&quot; name=&quot;name&quot;/>&lt;Option name=&quot;properties&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;collection&quot; name=&quot;type&quot;/>&lt;/Option>&lt;/data_defined_properties>&lt;/layer>&lt;/symbol>"></Option>
               <Option name="minLength" type="double" value="0"></Option>
               <Option name="minLengthMapUnitScale" type="QString" value="3x:0,0,0,0,0,0"></Option>
               <Option name="minLengthUnit" type="QString" value="MM"></Option>
@@ -6669,7 +6661,7 @@ def my_form_open(dialog, layer, feature):
               <Option name="drawToAllParts" type="bool" value="false"></Option>
               <Option name="enabled" type="QString" value="0"></Option>
               <Option name="labelAnchorPoint" type="QString" value="point_on_exterior"></Option>
-              <Option name="lineSymbol" type="QString" value="&lt;symbol clip_to_extent=&quot;1&quot; is_animated=&quot;0&quot; frame_rate=&quot;10&quot; type=&quot;line&quot; name=&quot;symbol&quot; force_rhr=&quot;0&quot; alpha=&quot;1&quot;>&lt;data_defined_properties>&lt;Option type=&quot;Map&quot;>&lt;Option type=&quot;QString&quot; name=&quot;name&quot; value=&quot;&quot;/>&lt;Option name=&quot;properties&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;type&quot; value=&quot;collection&quot;/>&lt;/Option>&lt;/data_defined_properties>&lt;layer enabled=&quot;1&quot; locked=&quot;0&quot; id=&quot;{10daf6b3-432e-4697-8186-adbc93b857d4}&quot; pass=&quot;0&quot; class=&quot;SimpleLine&quot;>&lt;Option type=&quot;Map&quot;>&lt;Option type=&quot;QString&quot; name=&quot;align_dash_pattern&quot; value=&quot;0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;capstyle&quot; value=&quot;square&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;customdash&quot; value=&quot;5;2&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;customdash_map_unit_scale&quot; value=&quot;3x:0,0,0,0,0,0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;customdash_unit&quot; value=&quot;MM&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;dash_pattern_offset&quot; value=&quot;0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;dash_pattern_offset_map_unit_scale&quot; value=&quot;3x:0,0,0,0,0,0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;dash_pattern_offset_unit&quot; value=&quot;MM&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;draw_inside_polygon&quot; value=&quot;0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;joinstyle&quot; value=&quot;bevel&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;line_color&quot; value=&quot;60,60,60,255&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;line_style&quot; value=&quot;solid&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;line_width&quot; value=&quot;0.3&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;line_width_unit&quot; value=&quot;MM&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;offset&quot; value=&quot;0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;offset_map_unit_scale&quot; value=&quot;3x:0,0,0,0,0,0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;offset_unit&quot; value=&quot;MM&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;ring_filter&quot; value=&quot;0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;trim_distance_end&quot; value=&quot;0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;trim_distance_end_map_unit_scale&quot; value=&quot;3x:0,0,0,0,0,0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;trim_distance_end_unit&quot; value=&quot;MM&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;trim_distance_start&quot; value=&quot;0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;trim_distance_start_map_unit_scale&quot; value=&quot;3x:0,0,0,0,0,0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;trim_distance_start_unit&quot; value=&quot;MM&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;tweak_dash_pattern_on_corners&quot; value=&quot;0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;use_custom_dash&quot; value=&quot;0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;width_map_unit_scale&quot; value=&quot;3x:0,0,0,0,0,0&quot;/>&lt;/Option>&lt;data_defined_properties>&lt;Option type=&quot;Map&quot;>&lt;Option type=&quot;QString&quot; name=&quot;name&quot; value=&quot;&quot;/>&lt;Option name=&quot;properties&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;type&quot; value=&quot;collection&quot;/>&lt;/Option>&lt;/data_defined_properties>&lt;/layer>&lt;/symbol>"></Option>
+              <Option name="lineSymbol" type="QString" value="&lt;symbol type=&quot;line&quot; is_animated=&quot;0&quot; frame_rate=&quot;10&quot; clip_to_extent=&quot;1&quot; name=&quot;symbol&quot; force_rhr=&quot;0&quot; alpha=&quot;1&quot;>&lt;data_defined_properties>&lt;Option type=&quot;Map&quot;>&lt;Option type=&quot;QString&quot; value=&quot;&quot; name=&quot;name&quot;/>&lt;Option name=&quot;properties&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;collection&quot; name=&quot;type&quot;/>&lt;/Option>&lt;/data_defined_properties>&lt;layer locked=&quot;0&quot; enabled=&quot;1&quot; pass=&quot;0&quot; id=&quot;{10daf6b3-432e-4697-8186-adbc93b857d4}&quot; class=&quot;SimpleLine&quot;>&lt;Option type=&quot;Map&quot;>&lt;Option type=&quot;QString&quot; value=&quot;0&quot; name=&quot;align_dash_pattern&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;square&quot; name=&quot;capstyle&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;5;2&quot; name=&quot;customdash&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;3x:0,0,0,0,0,0&quot; name=&quot;customdash_map_unit_scale&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;MM&quot; name=&quot;customdash_unit&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;0&quot; name=&quot;dash_pattern_offset&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;3x:0,0,0,0,0,0&quot; name=&quot;dash_pattern_offset_map_unit_scale&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;MM&quot; name=&quot;dash_pattern_offset_unit&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;0&quot; name=&quot;draw_inside_polygon&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;bevel&quot; name=&quot;joinstyle&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;60,60,60,255&quot; name=&quot;line_color&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;solid&quot; name=&quot;line_style&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;0.3&quot; name=&quot;line_width&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;MM&quot; name=&quot;line_width_unit&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;0&quot; name=&quot;offset&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;3x:0,0,0,0,0,0&quot; name=&quot;offset_map_unit_scale&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;MM&quot; name=&quot;offset_unit&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;0&quot; name=&quot;ring_filter&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;0&quot; name=&quot;trim_distance_end&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;3x:0,0,0,0,0,0&quot; name=&quot;trim_distance_end_map_unit_scale&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;MM&quot; name=&quot;trim_distance_end_unit&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;0&quot; name=&quot;trim_distance_start&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;3x:0,0,0,0,0,0&quot; name=&quot;trim_distance_start_map_unit_scale&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;MM&quot; name=&quot;trim_distance_start_unit&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;0&quot; name=&quot;tweak_dash_pattern_on_corners&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;0&quot; name=&quot;use_custom_dash&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;3x:0,0,0,0,0,0&quot; name=&quot;width_map_unit_scale&quot;/>&lt;/Option>&lt;data_defined_properties>&lt;Option type=&quot;Map&quot;>&lt;Option type=&quot;QString&quot; value=&quot;&quot; name=&quot;name&quot;/>&lt;Option name=&quot;properties&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;collection&quot; name=&quot;type&quot;/>&lt;/Option>&lt;/data_defined_properties>&lt;/layer>&lt;/symbol>"></Option>
               <Option name="minLength" type="double" value="0"></Option>
               <Option name="minLengthMapUnitScale" type="QString" value="3x:0,0,0,0,0,0"></Option>
               <Option name="minLengthUnit" type="QString" value="MM"></Option>
@@ -6689,8 +6681,8 @@ def my_form_open(dialog, layer, feature):
             <Option type="QString" value="&quot;waypoint&quot;"></Option>
           </Option>
           <Option name="embeddedWidgets/count" type="int" value="0"></Option>
-          <Option name="variableNames"></Option>
-          <Option name="variableValues"></Option>
+          <Option name="variableNames" type="invalid"></Option>
+          <Option name="variableValues" type="invalid"></Option>
         </Option>
       </customproperties>
       <blendMode>0</blendMode>
@@ -6698,7 +6690,8 @@ def my_form_open(dialog, layer, feature):
       <layerOpacity>1</layerOpacity>
       <SingleCategoryDiagramRenderer attributeLegend="1" diagramType="Histogram">
         <DiagramCategory backgroundAlpha="255" backgroundColor="#ffffff" barWidth="5" diagramOrientation="Up" direction="0" enabled="0" height="15" labelPlacementMethod="XHeight" lineSizeScale="3x:0,0,0,0,0,0" lineSizeType="MM" maxScaleDenominator="1e+08" minScaleDenominator="0" minimumSize="0" opacity="1" penAlpha="255" penColor="#000000" penWidth="0" rotationOffset="270" scaleBasedVisibility="0" scaleDependency="Area" showAxis="1" sizeScale="3x:0,0,0,0,0,0" sizeType="MM" spacing="5" spacingUnit="MM" spacingUnitScale="3x:0,0,0,0,0,0" width="15">
-          <fontProperties bold="0" description="DejaVu Sans,,9,-1,5,50,0,0,0,0,0" italic="0" strikethrough="0" style="" underline="0"></fontProperties>
+          <fontProperties bold="0" description="DejaVu Sans,-1,9,255,5,0,0,0,0,0,0" italic="0" strikethrough="0" style="0" underline="0"></fontProperties>
+          <attribute color="#000000" colorOpacity="1" field="" label=""></attribute>
           <axisSymbol>
             <symbol alpha="1" clip_to_extent="1" force_rhr="0" frame_rate="10" is_animated="0" name="" type="line">
               <data_defined_properties>
@@ -6842,6 +6835,18 @@ def my_form_open(dialog, layer, feature):
       <mapTip enabled="1"></mapTip>
     </maplayer>
     <maplayer autoRefreshEnabled="0" autoRefreshTime="0" geometry="Point" hasScaleBasedVisibilityFlag="0" labelsEnabled="1" legendPlaceholderImage="" maxScale="0" minScale="100000000" readOnly="0" refreshOnNotifyEnabled="0" refreshOnNotifyMessage="" simplifyAlgorithm="0" simplifyDrawingHints="0" simplifyDrawingTol="1" simplifyLocal="1" simplifyMaxScale="1" styleCategories="AllStyleCategories" symbologyReferenceScale="-1" type="vector" wkbType="Point">
+      <extent>
+        <xmin>10.13493194906999939</xmin>
+        <ymin>53.44444980250000299</ymin>
+        <xmax>10.14854415713999991</xmax>
+        <ymax>53.44485557125999975</ymax>
+      </extent>
+      <wgs84extent>
+        <xmin>10.13493194906999939</xmin>
+        <ymin>53.44444980250000299</ymin>
+        <xmax>10.14854415713999991</xmax>
+        <ymax>53.44485557125999975</ymax>
+      </wgs84extent>
       <id>qgis_routing_rural_waypoints_925c1f16_c6d2_4723_8bfd_67a5f6bf2abe</id>
       <datasource>./qgis-routing-rural-waypoints.geojson|subset=id='17'</datasource>
       <keywordList>
@@ -7213,7 +7218,7 @@ def my_form_open(dialog, layer, feature):
               <Option name="drawToAllParts" type="bool" value="false"></Option>
               <Option name="enabled" type="QString" value="0"></Option>
               <Option name="labelAnchorPoint" type="QString" value="point_on_exterior"></Option>
-              <Option name="lineSymbol" type="QString" value="&lt;symbol clip_to_extent=&quot;1&quot; is_animated=&quot;0&quot; frame_rate=&quot;10&quot; type=&quot;line&quot; name=&quot;symbol&quot; force_rhr=&quot;0&quot; alpha=&quot;1&quot;>&lt;data_defined_properties>&lt;Option type=&quot;Map&quot;>&lt;Option type=&quot;QString&quot; name=&quot;name&quot; value=&quot;&quot;/>&lt;Option name=&quot;properties&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;type&quot; value=&quot;collection&quot;/>&lt;/Option>&lt;/data_defined_properties>&lt;layer enabled=&quot;1&quot; locked=&quot;0&quot; id=&quot;{10daf6b3-432e-4697-8186-adbc93b857d4}&quot; pass=&quot;0&quot; class=&quot;SimpleLine&quot;>&lt;Option type=&quot;Map&quot;>&lt;Option type=&quot;QString&quot; name=&quot;align_dash_pattern&quot; value=&quot;0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;capstyle&quot; value=&quot;square&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;customdash&quot; value=&quot;5;2&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;customdash_map_unit_scale&quot; value=&quot;3x:0,0,0,0,0,0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;customdash_unit&quot; value=&quot;MM&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;dash_pattern_offset&quot; value=&quot;0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;dash_pattern_offset_map_unit_scale&quot; value=&quot;3x:0,0,0,0,0,0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;dash_pattern_offset_unit&quot; value=&quot;MM&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;draw_inside_polygon&quot; value=&quot;0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;joinstyle&quot; value=&quot;bevel&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;line_color&quot; value=&quot;60,60,60,255&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;line_style&quot; value=&quot;solid&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;line_width&quot; value=&quot;0.3&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;line_width_unit&quot; value=&quot;MM&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;offset&quot; value=&quot;0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;offset_map_unit_scale&quot; value=&quot;3x:0,0,0,0,0,0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;offset_unit&quot; value=&quot;MM&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;ring_filter&quot; value=&quot;0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;trim_distance_end&quot; value=&quot;0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;trim_distance_end_map_unit_scale&quot; value=&quot;3x:0,0,0,0,0,0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;trim_distance_end_unit&quot; value=&quot;MM&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;trim_distance_start&quot; value=&quot;0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;trim_distance_start_map_unit_scale&quot; value=&quot;3x:0,0,0,0,0,0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;trim_distance_start_unit&quot; value=&quot;MM&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;tweak_dash_pattern_on_corners&quot; value=&quot;0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;use_custom_dash&quot; value=&quot;0&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;width_map_unit_scale&quot; value=&quot;3x:0,0,0,0,0,0&quot;/>&lt;/Option>&lt;data_defined_properties>&lt;Option type=&quot;Map&quot;>&lt;Option type=&quot;QString&quot; name=&quot;name&quot; value=&quot;&quot;/>&lt;Option name=&quot;properties&quot;/>&lt;Option type=&quot;QString&quot; name=&quot;type&quot; value=&quot;collection&quot;/>&lt;/Option>&lt;/data_defined_properties>&lt;/layer>&lt;/symbol>"></Option>
+              <Option name="lineSymbol" type="QString" value="&lt;symbol type=&quot;line&quot; is_animated=&quot;0&quot; frame_rate=&quot;10&quot; clip_to_extent=&quot;1&quot; name=&quot;symbol&quot; force_rhr=&quot;0&quot; alpha=&quot;1&quot;>&lt;data_defined_properties>&lt;Option type=&quot;Map&quot;>&lt;Option type=&quot;QString&quot; value=&quot;&quot; name=&quot;name&quot;/>&lt;Option name=&quot;properties&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;collection&quot; name=&quot;type&quot;/>&lt;/Option>&lt;/data_defined_properties>&lt;layer locked=&quot;0&quot; enabled=&quot;1&quot; pass=&quot;0&quot; id=&quot;{10daf6b3-432e-4697-8186-adbc93b857d4}&quot; class=&quot;SimpleLine&quot;>&lt;Option type=&quot;Map&quot;>&lt;Option type=&quot;QString&quot; value=&quot;0&quot; name=&quot;align_dash_pattern&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;square&quot; name=&quot;capstyle&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;5;2&quot; name=&quot;customdash&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;3x:0,0,0,0,0,0&quot; name=&quot;customdash_map_unit_scale&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;MM&quot; name=&quot;customdash_unit&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;0&quot; name=&quot;dash_pattern_offset&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;3x:0,0,0,0,0,0&quot; name=&quot;dash_pattern_offset_map_unit_scale&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;MM&quot; name=&quot;dash_pattern_offset_unit&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;0&quot; name=&quot;draw_inside_polygon&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;bevel&quot; name=&quot;joinstyle&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;60,60,60,255&quot; name=&quot;line_color&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;solid&quot; name=&quot;line_style&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;0.3&quot; name=&quot;line_width&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;MM&quot; name=&quot;line_width_unit&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;0&quot; name=&quot;offset&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;3x:0,0,0,0,0,0&quot; name=&quot;offset_map_unit_scale&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;MM&quot; name=&quot;offset_unit&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;0&quot; name=&quot;ring_filter&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;0&quot; name=&quot;trim_distance_end&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;3x:0,0,0,0,0,0&quot; name=&quot;trim_distance_end_map_unit_scale&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;MM&quot; name=&quot;trim_distance_end_unit&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;0&quot; name=&quot;trim_distance_start&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;3x:0,0,0,0,0,0&quot; name=&quot;trim_distance_start_map_unit_scale&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;MM&quot; name=&quot;trim_distance_start_unit&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;0&quot; name=&quot;tweak_dash_pattern_on_corners&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;0&quot; name=&quot;use_custom_dash&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;3x:0,0,0,0,0,0&quot; name=&quot;width_map_unit_scale&quot;/>&lt;/Option>&lt;data_defined_properties>&lt;Option type=&quot;Map&quot;>&lt;Option type=&quot;QString&quot; value=&quot;&quot; name=&quot;name&quot;/>&lt;Option name=&quot;properties&quot;/>&lt;Option type=&quot;QString&quot; value=&quot;collection&quot; name=&quot;type&quot;/>&lt;/Option>&lt;/data_defined_properties>&lt;/layer>&lt;/symbol>"></Option>
               <Option name="minLength" type="double" value="0"></Option>
               <Option name="minLengthMapUnitScale" type="QString" value="3x:0,0,0,0,0,0"></Option>
               <Option name="minLengthUnit" type="QString" value="MM"></Option>
@@ -7233,8 +7238,8 @@ def my_form_open(dialog, layer, feature):
             <Option type="QString" value="&quot;waypoint&quot;"></Option>
           </Option>
           <Option name="embeddedWidgets/count" type="int" value="0"></Option>
-          <Option name="variableNames"></Option>
-          <Option name="variableValues"></Option>
+          <Option name="variableNames" type="invalid"></Option>
+          <Option name="variableValues" type="invalid"></Option>
         </Option>
       </customproperties>
       <blendMode>0</blendMode>
@@ -7242,7 +7247,8 @@ def my_form_open(dialog, layer, feature):
       <layerOpacity>1</layerOpacity>
       <SingleCategoryDiagramRenderer attributeLegend="1" diagramType="Histogram">
         <DiagramCategory backgroundAlpha="255" backgroundColor="#ffffff" barWidth="5" diagramOrientation="Up" direction="0" enabled="0" height="15" labelPlacementMethod="XHeight" lineSizeScale="3x:0,0,0,0,0,0" lineSizeType="MM" maxScaleDenominator="1e+08" minScaleDenominator="0" minimumSize="0" opacity="1" penAlpha="255" penColor="#000000" penWidth="0" rotationOffset="270" scaleBasedVisibility="0" scaleDependency="Area" showAxis="1" sizeScale="3x:0,0,0,0,0,0" sizeType="MM" spacing="5" spacingUnit="MM" spacingUnitScale="3x:0,0,0,0,0,0" width="15">
-          <fontProperties bold="0" description="DejaVu Sans,,9,-1,5,50,0,0,0,0,0" italic="0" strikethrough="0" style="" underline="0"></fontProperties>
+          <fontProperties bold="0" description="DejaVu Sans,-1,9,255,5,0,0,0,0,0,0" italic="0" strikethrough="0" style="0" underline="0"></fontProperties>
+          <attribute color="#000000" colorOpacity="1" field="" label=""></attribute>
           <axisSymbol>
             <symbol alpha="1" clip_to_extent="1" force_rhr="0" frame_rate="10" is_animated="0" name="" type="line">
               <data_defined_properties>
@@ -7764,7 +7770,7 @@ def my_form_open(dialog, layer, feature):
           </dd_properties>
         </text-style>
       </LayoutItem>
-      <LayoutItem background="true" blendMode="0" drawCanvasItems="true" excludeFromExports="0" followPreset="false" followPresetName="" frame="false" frameJoinStyle="miter" groupUuid="" id="Map 1" isTemporal="0" itemRotation="0" keepLayerSet="false" labelMargin="0,mm" mapFlags="0" mapRotation="0" opacity="1" outlineWidthM="0.3,mm" position="8.88178e-16,-1.33227e-15,mm" positionLock="false" positionOnPage="8.88178e-16,-1.33227e-15,mm" referencePoint="0" size="130,105,mm" templateUuid="{bd8a3501-0f9e-4e12-bbcf-14cf1e5ea570}" type="65639" uuid="{bd8a3501-0f9e-4e12-bbcf-14cf1e5ea570}" visibility="1" zValue="1">
+      <LayoutItem background="true" blendMode="0" drawCanvasItems="true" excludeFromExports="0" followPreset="false" followPresetName="" frame="false" frameJoinStyle="miter" groupUuid="" id="Map 1" isTemporal="0" itemRotation="0" keepLayerSet="false" labelMargin="0,mm" mapFlags="0" mapRotation="0" opacity="1" outlineWidthM="0.3,mm" position="0,0,mm" positionLock="false" positionOnPage="0,0,mm" referencePoint="0" size="130,105,mm" templateUuid="{bd8a3501-0f9e-4e12-bbcf-14cf1e5ea570}" type="65639" uuid="{bd8a3501-0f9e-4e12-bbcf-14cf1e5ea570}" visibility="1" zValue="1">
         <FrameColor alpha="255" blue="0" green="0" red="0"></FrameColor>
         <BackgroundColor alpha="255" blue="255" green="255" red="255"></BackgroundColor>
         <LayoutObject>
@@ -8136,7 +8142,7 @@ def my_form_open(dialog, layer, feature):
       </customproperties>
       <Atlas coverageLayer="" enabled="0" filenamePattern="'output_'||@atlas_featurenumber" filterFeatures="0" hideCoverage="0" pageNameExpression="" sortFeatures="0"></Atlas>
     </Layout>
-    <Layout name="qgis-routing-rural-routing-17-graph-based copy" printResolution="212" units="mm" worldFileMap="{bd8a3501-0f9e-4e12-bbcf-14cf1e5ea570}">
+    <Layout name="qgis-routing-rural-routing-17-graph-based" printResolution="212" units="mm" worldFileMap="{bd8a3501-0f9e-4e12-bbcf-14cf1e5ea570}">
       <Snapper snapToGrid="0" snapToGuides="1" snapToItems="1" tolerance="5"></Snapper>
       <Grid offsetUnits="mm" offsetX="0" offsetY="0" resUnits="mm" resolution="10"></Grid>
       <PageCollection>
@@ -8471,7 +8477,7 @@ def my_form_open(dialog, layer, feature):
   <Sensors></Sensors>
   <ProjectViewSettings UseProjectScales="0" rotation="0">
     <Scales></Scales>
-    <DefaultViewExtent xmax="1130234.31461687223054469" xmin="1127271.81658596615307033" ymax="7066944.17931498493999243" ymin="7064202.03237728681415319">
+    <DefaultViewExtent xmax="1130260.32828759797848761" xmin="1127297.83025669190101326" ymax="7066908.98434870783239603" ymin="7064166.8374110097065568">
       <spatialrefsys nativeFormat="Wkt">
         <wkt>PROJCRS["WGS 84 / Pseudo-Mercator",BASEGEOGCRS["WGS 84",ENSEMBLE["World Geodetic System 1984 ensemble",MEMBER["World Geodetic System 1984 (Transit)"],MEMBER["World Geodetic System 1984 (G730)"],MEMBER["World Geodetic System 1984 (G873)"],MEMBER["World Geodetic System 1984 (G1150)"],MEMBER["World Geodetic System 1984 (G1674)"],MEMBER["World Geodetic System 1984 (G1762)"],MEMBER["World Geodetic System 1984 (G2139)"],ELLIPSOID["WGS 84",6378137,298.257223563,LENGTHUNIT["metre",1]],ENSEMBLEACCURACY[2.0]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],ID["EPSG",4326]],CONVERSION["Popular Visualisation Pseudo-Mercator",METHOD["Popular Visualisation Pseudo Mercator",ID["EPSG",1024]],PARAMETER["Latitude of natural origin",0,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",0,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["False easting",0,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",0,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["easting (X)",east,ORDER[1],LENGTHUNIT["metre",1]],AXIS["northing (Y)",north,ORDER[2],LENGTHUNIT["metre",1]],USAGE[SCOPE["Web mapping and visualisation."],AREA["World between 85.06°S and 85.06°N."],BBOX[-85.06,-180,85.06,180]],ID["EPSG",3857]]</wkt>
         <proj4>+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs</proj4>
@@ -8485,7 +8491,7 @@ def my_form_open(dialog, layer, feature):
       </spatialrefsys>
     </DefaultViewExtent>
   </ProjectViewSettings>
-  <ProjectStyleSettings DefaultSymbolOpacity="1" RandomizeDefaultSymbolColor="1" projectStyleId="attachment:///gSOkRo_styles.db">
+  <ProjectStyleSettings DefaultSymbolOpacity="1" RandomizeDefaultSymbolColor="1" projectStyleId="attachment:///GCUxYU_styles.db">
     <databases></databases>
   </ProjectStyleSettings>
   <ProjectTimeSettings cumulativeTemporalRange="0" frameRate="1" timeStep="1" timeStepUnit="h"></ProjectTimeSettings>
@@ -8536,7 +8542,7 @@ def my_form_open(dialog, layer, feature):
       </spatialrefsys>
     </CoordinateCustomCrs>
   </ProjectDisplaySettings>
-  <ProjectGpsSettings autoAddTrackVertices="0" autoCommitFeatures="0" destinationFollowsActiveLayer="1" destinationLayer="qgis_routing_rural_waypoints_5f69ce1e_b28e_4a5c_b63e_227464588dc7" destinationLayerName="qgis-routing-rural-waypoints" destinationLayerProvider="ogr" destinationLayerSource="/home/hauke/Projekte/master-arbeit/master-thesis/perf-eval/evaluation/visualizations/qgis/qgis-routing-rural-waypoints.geojson|subset=id='6'">
+  <ProjectGpsSettings autoAddTrackVertices="0" autoCommitFeatures="0" destinationFollowsActiveLayer="1" destinationLayer="qgis_routing_rural_routing_8b73c212_6fd2_418a_95f2_d4776aecfda0" destinationLayerName="qgis-routing-rural-routing" destinationLayerProvider="ogr" destinationLayerSource="/home/hauke/Projekte/master-arbeit/master-thesis/perf-eval/evaluation/visualizations/qgis/qgis-routing-rural-routing.geojson|subset=id='17'">
     <timeStampFields></timeStampFields>
   </ProjectGpsSettings>
 </qgis>
