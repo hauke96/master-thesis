@@ -501,6 +501,46 @@ For both evaluation aspects, method and design details are given followed by the
 			\clearpage
 			
 			% Interesting passages from the rural dataset
+			\begin{figure}[h!]
+				\begin{minipage}[t]{.48\textwidth}
+					\begin{subfigure}[t]{\linewidth}
+						\includegraphics[width=\textwidth]{images/qgis-routing-rural-routing-6-osm}
+						\caption{The expected route differs significantly from the actual route taken by the agent. The dashed line is an alternative route under the assumption, that the farmland is reachable from the upper road.}
+						\label{fig:eval-rural-routing-6-osm}
+					\end{subfigure}
+				\end{minipage}
+				\hfill
+				\begin{minipage}[t]{.48\textwidth}
+					\begin{subfigure}[t]{\linewidth}
+						\includegraphics[width=\textwidth]{images/qgis-routing-rural-routing-6-aerial}
+						\caption{Aerial imagery shows the amount of missing data, which in this case are numerous missing ditches in the arable land.}
+						\label{fig:eval-rural-routing-6-aerial}
+					\end{subfigure}
+				\end{minipage}
+				\caption{Routing on farmland illustrating the importance of correct data in the routing result showing the expected route (green) and actual path determined by the hybrid routing algorithm (green).}
+				\label{fig:eval-rural-routing-6}
+			\end{figure}
+			
+			\begin{figure}[h!]
+				\begin{minipage}[t]{.48\textwidth}
+					\begin{subfigure}[t]{\linewidth}
+						\includegraphics[width=\textwidth]{images/qgis-routing-rural-routing-6-graph-based}
+						\caption{Same waypoints from \Cref{fig:eval-rural-routing-6} with the additional result of a graph-based routing request creating a 2.6 times longer path.}
+						\label{fig:eval-rural-graph-based-comparison-6}
+					\end{subfigure}
+				\end{minipage}
+				\hfill
+				\begin{minipage}[t]{.48\textwidth}
+					\begin{subfigure}[t]{\linewidth}
+						\includegraphics[width=\textwidth]{images/qgis-routing-rural-routing-17-graph-based}
+						\caption{Example of detours created by a graph-based routing algorithm even though the first part of the result is equal to the one of the hybrid routing algorithm. The shortcut of the actual result (horizontal part of the blue route) is a result of missing obstacles similar to the situation visible in \Cref{fig:eval-rural-routing-6-aerial}.}
+						\label{fig:eval-rural-graph-based-comparison-17}
+					\end{subfigure}
+				\end{minipage}
+				\caption{Comparison of graph-based routing results (red) with the expected route (green) and actual results (blue) of the hybrid routing algorithm.}
+				\label{fig:eval-rural-graph-based-comparison}
+			\end{figure}
+			
 			% Mark segments in agent trips that are not walkable in real world
 		
 		% How much shorter are the routes?
