@@ -24,3 +24,5 @@ Here are some thoughts on future work:
 * Are multiple nodes per vertex even relevant? Theretically for routing only for the middle vertex of three cillinear vertices. In all oher cases, at most one vertex is a convex vertex
 * Generate sidewalks for roads (there was a paper about this) and connecting these new ways to the visibility edges as well, might enhance quality
 * Connectin visibility egdes to each other might be a good idea when adding attributes to them
+* Taking road restrictions into account (tags as well as size)
+* Point like barriers (e.g gate on a road) have nearly no effect → generate orthogonal line-barrier or remove all visibility edges within a radius or something
