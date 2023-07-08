@@ -365,9 +365,23 @@ For both evaluation aspects, method and design details are given followed by the
 		
 \section{Route correctness and quality}
 
-	\todo{Describe weighting function}
+	\subsection{Weight function}
+	
+		Before the correctness and quality of the routes are discussed, a brief introduction into the weight function is given.
+		When determining true shortest paths, the length of an edge is its weight, which should be minimized in order to obtain the shortest path.
+		Whenever certain edges should be preferred or avoided, a factor is determined based on the edges attributes.
+		Due to the minimization algorithm a factor lower one means an edge is preferred, a factor greater one rather avoids those edges.
+		A factor of positive infinity on an edge $e$ completely avoids this edge since any other path has a lower total weight than a path containing $e$.
+		
+		The implementation of the hybrid visibility graph provides three routing methods.
+		One determined the true shortest path (all weight factors are one), one determines a weighted path (factor of 0.8 for road edges) and one accepts a custom weight function.
+		
+		All following analyses use the predefined weight function with a factor of 0.8 on road edges.
+		Determining true shortest paths would not use any road edges, except a road edge is itself a visibility edge.
+		The influence of this weight factor on road edges is discussed in the following sections.
 
 	\subsection{Correctness}
+	\label{subsec:correctness}
 	
 		% is the shortest route really the shortest
 		The hybrid routing algorithm is considered \emph{correct} if the resulting path between any two given locations is the shortest possible path with respect to the obstacled of the dataset.
@@ -391,11 +405,21 @@ For both evaluation aspects, method and design details are given followed by the
 		This has a direct effect on the quality of the resulting paths since they may not be optimal anymore.
 		\todo[inline]{Determine: Number of edges missing vs. performance boost}
 		
-	\subsection{Usefulness of routes}
+	\subsection{Quality of routes}
 	
-		The usefulness of the resulting routes are evaluated in two criterion.
-		First, a manual analysis is performed comparing the route calculated using the hybrid routing algorithm with the expected path a real human would likely choose and also with the path a classical routing algorithms would determine.
-		Second, factors are determined on how much shorter a route is compared to classical routing algorithms and also how much longer the route is compared to the optimal euclidean beeline distance.
+		\subsubsection{Route quality definition and determination}
+	
+			The quality of a route does not only refer to a mathematical metric, but also to a more subjective quality of routes.
+			However, subjective as well as mathematical metrics are consideres in this quality analysis.
+			
+			An ideal route, meaning a route of maximum quality, would exactly match a manually chosen expected path.
+			This expected paths used in the following sections were determined using aerial imagery, local knowledge and the data contained in OSM.
+			Therefore, an expected path is realistically walkable in the real world and would likely be chosen by actual pedestrians.
+			This also means that an expected path contains a certain subjective component, for example the exact place where the route changes to the other side of a road.
+	
+			The evaluation of the route quality is performed using two criterions.
+			First, a manual analysis is performed using an expected path to compare a determined route against.
+			Second, mathematical metrics are used to quantify the similarity between an expected and actual route.
 		
 		% How realistic are the routes (= can I go there in real life)? If not: Why not?
 		\subsubsection{Manual route analysis}
@@ -494,9 +518,6 @@ For both evaluation aspects, method and design details are given followed by the
 				\end{minipage}
 				\caption{Comparison of realistic routes (green), graph-based routing results (black) and hybrid routing algorithm results (blue) using the 1km\textsuperscript{2} \enquote{OSM city} dataset. Passages with missing or faulty data are marked in red, which are the main cause of the deviations to the expected route.}
 				\label{fig:eval-city-usefulness}
-			\end{figure}
-			
-			\begin{figure}[h!]
 				\begin{minipage}[t]{.48\textwidth}
 					\begin{figcenter}
 						\includegraphics[width=\textwidth]{images/qgis-routing-city-roads}
@@ -569,8 +590,7 @@ For both evaluation aspects, method and design details are given followed by the
 				\caption{Comparison of graph-based routing results (red) with the expected route (green) and actual results (blue) of the hybrid routing algorithm.}
 				\label{fig:eval-rural-graph-based-comparison}
 			\end{figure}
-			
-			% Mark segments in agent trips that are not walkable in real world
 		
-		% How much shorter are the routes?
-		\subsubsection{Route length analysis}
+		\subsubsection{Mathematical route quality analysis}
+			% Determine ratio of route lengths
+			% Determine Frechet distance
