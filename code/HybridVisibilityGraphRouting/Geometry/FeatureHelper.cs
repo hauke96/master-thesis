@@ -25,6 +25,10 @@ public class FeatureHelper
                     case OgcGeometryType.LineString:
                         features.AddRange(ToSegmentFeatures(f.Geometry.Coordinates, f.Attributes));
                         break;
+                    case OgcGeometryType.MultiLineString:
+                        var unwrappedFeatures = ((MultiLineString)f.Geometry).Geometries.Map(g => new Feature(g, f.Attributes));
+                        features.AddRange(SplitFeaturesToSegments(unwrappedFeatures));
+                        break;
                     case OgcGeometryType.Polygon:
                     {
                         var p = (Polygon)f.Geometry;
