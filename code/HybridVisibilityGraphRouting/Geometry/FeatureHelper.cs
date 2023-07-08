@@ -12,16 +12,19 @@ public class FeatureHelper
     /// Determines a list of all segments from the given features. That means, each of the returned line strings has
     /// exactly two coordinates.
     /// </summary>
-    public static List<Feature> SplitFeaturesToSegments(IEnumerable<IFeature> roadFeatures)
+    public static List<IFeature> SplitFeaturesToSegments(IEnumerable<IFeature> roadFeatures)
     {
         return roadFeatures
             // Turn each highway edge into a list of line strings with only two coordinates. This makes it easier to
             // split them at intersection points with visibility edges.
             .Map(f =>
             {
-                var features = new List<Feature>();
+                var features = new List<IFeature>();
                 switch (f.Geometry.OgcGeometryType)
                 {
+                    case OgcGeometryType.Point:
+                        features.Add(f);
+                        break;
                     case OgcGeometryType.LineString:
                         features.AddRange(ToSegmentFeatures(f.Geometry.Coordinates, f.Attributes));
                         break;
