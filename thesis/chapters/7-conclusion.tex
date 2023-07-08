@@ -13,6 +13,8 @@
 		% Connection to roads based on the hope that there are many visibility edges (in the end the vast number of edges creates a irregular grid like structure even though v-edges are not connected to each other)
 		% TODO check this: Holes in polygons might be reachable via a bridge-way. Currently there are no edges within these holes and therefore they are useless.
 		% Convex hull filtering might lead to problems for obstacle part not directly visible to outside (like a cave). Concave hull filtering might be the correct solution.
+		% Taking road restrictions into account (tags as well as size)
+		% Point like barriers (e.g gate on a road) have nearly no effect → generate orthogonal line-barrier or remove all visibility edges within a radius or something
 	
 	% Features:
 		% 3D data: Handling OSM level-tags (vertical relation between roads)

@@ -365,6 +365,8 @@ For both evaluation aspects, method and design details are given followed by the
 		
 \section{Route correctness and quality}
 
+	\todo{Describe weighting function}
+
 	\subsection{Correctness}
 	
 		% is the shortest route really the shortest
@@ -432,8 +434,73 @@ For both evaluation aspects, method and design details are given followed by the
 				\label{fig:eval-osterstrasse}
 			\end{figure}
 			
-			% Interesting passages from the 4km2 city dataset
-			% Interesting passages from the 4km2 rural dataset
+			% Interesting passages from the city dataset
+			Next to the above example and comparison to graph-based routing, an analysis of the routes determined within the 1km\textsuperscript{2} \enquote{OSM city} dataset yields some noteworthy findings.
+			First, the quality of a route significantly decreases with missing or wrong data.
+			Second, within regions of dense buildings and road networks, the expected route, routes determined by graph-based routing and routes determined by the hybrid routing algorithm follow these roads very often.
+			Third, large roads create wide areas without any obstacles, which might result in unrealistic road crossings.
+			This can be seen in \Cref{fig:eval-city-road-crossing} with crossings in a six-lane road, which would be dangerous and unrealistic for real-world pedestrians.
+			Forth, the weight function has a huge impact on the route quality.
+			It specifies for example how strongly roads should be preferred, which is illustrated in \Cref{fig:eval-city-weights} with the same route using different weights for road edges.
+			
+			\clearpage
+			\begin{figure}[h!]
+				\begin{minipage}[t]{.48\textwidth}
+					\begin{subfigure}[t]{\linewidth}
+						\begin{figcenter}
+							\includegraphics[width=\textwidth]{images/qgis-routing-city-routing-1}
+						\end{figcenter}
+						\caption{Simple route with only one small passage of missing data.}
+					\end{subfigure}
+				\end{minipage}
+				\hfill
+				\begin{minipage}[t]{.48\textwidth}
+					\begin{subfigure}[t]{\linewidth}
+						\begin{figcenter}
+							\includegraphics[width=\textwidth]{images/qgis-routing-city-routing-3}
+						\end{figcenter}
+						\caption{Missing obstacles (in this case walls and fences between buildings) might lead to non-realistic routes.}
+					\end{subfigure}
+				\end{minipage}
+				\\
+				\begin{minipage}[t]{.48\textwidth}
+					\begin{subfigure}[t]{\linewidth}
+						\begin{figcenter}
+							\includegraphics[width=\textwidth]{images/qgis-routing-city-routing-6}
+						\end{figcenter}
+						\caption{Missing walls, fences and hedges on private property are a common type of missing obstacles.}
+					\end{subfigure}
+				\end{minipage}
+				\hfill
+				\begin{minipage}[t]{.48\textwidth}
+					\begin{subfigure}[t]{\linewidth}
+						\begin{figcenter}
+							\includegraphics[width=\textwidth]{images/qgis-routing-city-routing-18}
+						\end{figcenter}
+						\caption{Cities with closed rows of buildings do not provide many degrees of freedom, which results in similar or even equal routes, regardles of the algorithm.}
+					\end{subfigure}
+				\end{minipage}
+				\caption{Comparison of realistic routes (green), graph-based routing results (black) and hybrid routing algorithm results (blue) using the 1km\textsuperscript{2} \enquote{OSM city} dataset. Passages with missing or faulty data are marked in red, which are the main cause of the deviations to the expected route.}
+				\label{fig:eval-city-usefulness}
+				\begin{minipage}[t]{.48\textwidth}
+					\begin{figcenter}
+						\includegraphics[width=\textwidth]{images/qgis-routing-city-roads}
+					\end{figcenter}
+					\caption{Two unrealistic road crossings (yellow) across a six-lane road.}
+					\label{fig:eval-city-road-crossing}
+				\end{minipage}
+				\hfill
+				\begin{minipage}[t]{.48\textwidth}
+					\begin{figcenter}
+						\includegraphics[width=\textwidth]{images/qgis-routing-city-weights}
+					\end{figcenter}
+					\caption{Influence of weight factors. Lower value result in a stronger preference for roads.}
+					\label{fig:eval-city-weights}
+				\end{minipage}
+			\end{figure}
+			\clearpage
+			
+			% Interesting passages from the rural dataset
 			% Mark segments in agent trips that are not walkable in real world
 		
 		% How much shorter are the routes?
