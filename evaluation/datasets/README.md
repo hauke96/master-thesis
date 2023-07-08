@@ -21,5 +21,7 @@ To create multiple datasets at once, use this:
 
 ```sh
 V="1 2 4 6 8 10 12 14 16 18 20 22 24 26 28 30"
-for v in $V; do dotnet ../../../code/DatasetCreator/bin/Release/net7.0/DatasetCreator.dll 0 0 10 100 $v $v true pattern.geojson; done
+for v in $V; do dotnet ../../../code/DatasetCreator/bin/Release/net7.0/DatasetCreator.dll 0.1 0.1 10.1 10.1 $v $v true pattern.geojson; done
 ```
+
+The offset of 0.1 for the bounding box is beneficial for some datasets due to their symmetry and the usage of a QuadTree.
