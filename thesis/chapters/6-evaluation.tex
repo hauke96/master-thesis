@@ -365,7 +365,23 @@ For both evaluation aspects, method and design details are given followed by the
 		
 \section{Route correctness and quality}
 
+	\subsection{Weight function}
+	
+		Before the correctness and quality of the routes are discussed, a brief introduction into the weight function is given.
+		When determining true shortest paths, the length of an edge is its weight, which should be minimized in order to obtain the shortest path.
+		Whenever certain edges should be preferred or avoided, a factor is determined based on the edges attributes.
+		Due to the minimization algorithm a factor lower one means an edge is preferred, a factor greater one rather avoids those edges.
+		A factor of positive infinity on an edge $e$ completely avoids this edge since any other path has a lower total weight than a path containing $e$.
+		
+		The implementation of the hybrid visibility graph provides three routing methods.
+		One determined the true shortest path (all weight factors are one), one determines a weighted path (factor of 0.8 for road edges) and one accepts a custom weight function.
+		
+		All following analyses use the predefined weight function with a factor of 0.8 on road edges.
+		Determining true shortest paths would not use any road edges, except a road edge is itself a visibility edge.
+		The influence of this weight factor on road edges is discussed in the following sections.
+
 	\subsection{Correctness}
+	\label{subsec:correctness}
 	
 		% is the shortest route really the shortest
 		The hybrid routing algorithm is considered \emph{correct} if the resulting path between any two given locations is the shortest possible path with respect to the obstacled of the dataset.
@@ -389,11 +405,21 @@ For both evaluation aspects, method and design details are given followed by the
 		This has a direct effect on the quality of the resulting paths since they may not be optimal anymore.
 		\todo[inline]{Determine: Number of edges missing vs. performance boost}
 		
-	\subsection{Usefulness of routes}
+	\subsection{Quality of routes}
 	
-		The usefulness of the resulting routes are evaluated in two criterion.
-		First, a manual analysis is performed comparing the route calculated using the hybrid routing algorithm with the expected path a real human would likely choose and also with the path a classical routing algorithms would determine.
-		Second, factors are determined on how much shorter a route is compared to classical routing algorithms and also how much longer the route is compared to the optimal euclidean beeline distance.
+		\subsubsection{Route quality definition and determination}
+	
+			The quality of a route does not only refer to a mathematical metric, but also to a more subjective quality of routes.
+			However, subjective as well as mathematical metrics are consideres in this quality analysis.
+			
+			An ideal route, meaning a route of maximum quality, would exactly match a manually chosen expected path.
+			This expected paths used in the following sections were determined using aerial imagery, local knowledge and the data contained in OSM.
+			Therefore, an expected path is realistically walkable in the real world and would likely be chosen by actual pedestrians.
+			This also means that an expected path contains a certain subjective component, for example the exact place where the route changes to the other side of a road.
+	
+			The evaluation of the route quality is performed using two criterions.
+			First, a manual analysis is performed using an expected path to compare a determined route against.
+			Second, mathematical metrics are used to quantify the similarity between an expected and actual route.
 		
 		% How realistic are the routes (= can I go there in real life)? If not: Why not?
 		\subsubsection{Manual route analysis}
@@ -432,9 +458,139 @@ For both evaluation aspects, method and design details are given followed by the
 				\label{fig:eval-osterstrasse}
 			\end{figure}
 			
-			% Interesting passages from the 4km2 city dataset
-			% Interesting passages from the 4km2 rural dataset
-			% Mark segments in agent trips that are not walkable in real world
+			% Interesting passages from the city dataset
+			Next to the above example and comparison to graph-based routing, an analysis of the routes determined within the 1km\textsuperscript{2} \enquote{OSM city} dataset yields some noteworthy findings.
+			
+			First, the quality of a route significantly decreases with missing or wrong data as visible in \Cref{fig:eval-city-usefulness-b} and \ref{fig:eval-city-usefulness-c}.
+			The passages marked in red in these images are often shortcuts via private property.
+			Those areas, however, are usually filled with obstacles such as fences, walls or different kinds of vegetation.
+			As described in \Cref{subsubsec:data-not-in-osm}, private areas in OSM often contain very few to no details.
+			
+			Second, within densely built-up areas, larger open spaces are rare and the combination of roads and buildings form corrdidors in which routes tend to lie.
+			When and how often the route determined by the hybrid routing algorithm follows a road depends on the weighting function.
+			
+			Third, large roads create instances of the aforementioned rare but wide obstacle-free areas, which, however, might result in unrealistic road crossings.
+			Such situation can be seen in \Cref{fig:eval-city-road-crossing} with crossings over a six-lane road, which would be dangerous and unrealistic for real-world pedestrians.
+			
+			Forth, the weight function has a huge impact on the route quality.
+			It specifies for example how strongly roads should be preferred, which is illustrated in \Cref{fig:eval-city-weights} with the same route using different weights for road edges.
+			Adjusting and definiting fine-grained weight functions may help to imporove the routing behavior in some of the above mentioned situations.
+			
+			\begin{figure}[h!]
+				\begin{minipage}[t]{.48\textwidth}
+					\begin{subfigure}[t]{\linewidth}
+						\begin{figcenter}
+							\includegraphics[width=\textwidth]{images/qgis-routing-city-routing-1}
+						\end{figcenter}
+						\caption{Simple route with only one small passage of missing data.}
+						\label{fig:eval-city-usefulness-1}
+					\end{subfigure}
+				\end{minipage}
+				\hfill
+				\begin{minipage}[t]{.48\textwidth}
+					\begin{subfigure}[t]{\linewidth}
+						\begin{figcenter}
+							\includegraphics[width=\textwidth]{images/qgis-routing-city-routing-3}
+						\end{figcenter}
+						\caption{Missing obstacles (in this case walls and fences between buildings) might lead to non-realistic routes.}
+						\label{fig:eval-city-usefulness-b}
+					\end{subfigure}
+				\end{minipage}
+				\\
+				\begin{minipage}[t]{.48\textwidth}
+					\begin{subfigure}[t]{\linewidth}
+						\begin{figcenter}
+							\includegraphics[width=\textwidth]{images/qgis-routing-city-routing-6}
+						\end{figcenter}
+						\caption{Missing walls, fences and hedges on private property are a common type of missing obstacles.}
+						\label{fig:eval-city-usefulness-c}
+					\end{subfigure}
+				\end{minipage}
+				\hfill
+				\begin{minipage}[t]{.48\textwidth}
+					\begin{subfigure}[t]{\linewidth}
+						\begin{figcenter}
+							\includegraphics[width=\textwidth]{images/qgis-routing-city-routing-18}
+						\end{figcenter}
+						\caption{Cities with closed rows of buildings do not provide many degrees of freedom, which results in similar or even equal routes, regardles of the algorithm.}
+						\label{fig:eval-city-usefulness-d}
+					\end{subfigure}
+				\end{minipage}
+				\caption{Comparison of realistic routes (green), graph-based routing results (black) and hybrid routing algorithm results (blue) using the 1km\textsuperscript{2} \enquote{OSM city} dataset. Passages with missing or faulty data are marked in red, which are the main cause of the deviations to the expected route.}
+				\label{fig:eval-city-usefulness}
+				\begin{minipage}[t]{.48\textwidth}
+					\begin{figcenter}
+						\includegraphics[width=\textwidth]{images/qgis-routing-city-roads}
+					\end{figcenter}
+					\caption{Two unrealistic road crossings (yellow) across a six-lane road.}
+					\label{fig:eval-city-road-crossing}
+				\end{minipage}
+				\hfill
+				\begin{minipage}[t]{.48\textwidth}
+					\begin{figcenter}
+						\includegraphics[width=\textwidth]{images/qgis-routing-city-weights}
+					\end{figcenter}
+					\caption{Influence of weight factors. Lower value result in a stronger preference for roads.}
+					\label{fig:eval-city-weights}
+				\end{minipage}
+			\end{figure}
+			
+			% Interesting passages from the rural dataset
+			In the \enquote{OSM city} datasets with only smaller open areas, graph-based routes and routes determined by the hybrid routing algorithm were often similar and some parts even identical.
+			Datasets with larger open areas and irregular distributed obstacles, as in the \enquote{OSM rural} datasets, can greatly benefit from the hybrid routing algorithm.
+			
+			Figures \Cref{fig:eval-rural-routing-6} and \ref{fig:eval-rural-graph-based-comparison} give some examples on routes in a rural area with large open spaces.
+			Two findings can be inferred from the analysis of the rural routing results.
+			
+			First, the difference between graph-based routes and routes from the hybrid routing algorithm is significantly larger.
+			In fact, routes might not share any location and graph-based routes tend to be significantly longer.
+			This can be seen in \Cref{fig:eval-rural-graph-based-comparison-6} with a graph-based route of 1.73km while the expected result is only 0.67km long.
+			\Cref{fig:eval-rural-graph-based-comparison-17} shows a similar behavior even though the difference in distance is smaller because the graph-based, expected and actual route share common parts.
+			
+			Second, the accuracy and therefore the usefulness for real-world applications (such as navigation apps) heavily relies on the amount of details in the dataset.
+			\Cref{fig:eval-rural-routing-6-osm} illustrates the problem of missing data, which are in this case missing ditches within the farmland.
+			The determined route has a length of 365m while the shortest possible route (determined using aerial imagery as seen in \Cref{fig:eval-rural-routing-6-aerial}) is 677m long.
+			
+			\begin{figure}[h!]
+				\begin{minipage}[t]{.48\textwidth}
+					\begin{subfigure}[t]{\linewidth}
+						\includegraphics[width=\textwidth]{images/qgis-routing-rural-routing-6-osm}
+						\caption{The expected route differs significantly from the actual route taken by the agent. The dashed line is an alternative route under the assumption, that the farmland is reachable from the upper road.}
+						\label{fig:eval-rural-routing-6-osm}
+					\end{subfigure}
+				\end{minipage}
+				\hfill
+				\begin{minipage}[t]{.48\textwidth}
+					\begin{subfigure}[t]{\linewidth}
+						\includegraphics[width=\textwidth]{images/qgis-routing-rural-routing-6-aerial}
+						\caption{Aerial imagery shows the amount of missing data, which in this case are numerous missing ditches in the arable land.}
+						\label{fig:eval-rural-routing-6-aerial}
+					\end{subfigure}
+				\end{minipage}
+				\caption{Routing on farmland illustrating the importance of correct data in the routing result showing the expected route (green) and actual path determined by the hybrid routing algorithm (green).}
+				\label{fig:eval-rural-routing-6}
+			\end{figure}
+			
+			\begin{figure}[h!]
+				\begin{minipage}[t]{.48\textwidth}
+					\begin{subfigure}[t]{\linewidth}
+						\includegraphics[width=\textwidth]{images/qgis-routing-rural-routing-6-graph-based}
+						\caption{Same waypoints from \Cref{fig:eval-rural-routing-6} with the additional result of a graph-based routing request creating a 2.6 times longer path.}
+						\label{fig:eval-rural-graph-based-comparison-6}
+					\end{subfigure}
+				\end{minipage}
+				\hfill
+				\begin{minipage}[t]{.48\textwidth}
+					\begin{subfigure}[t]{\linewidth}
+						\includegraphics[width=\textwidth]{images/qgis-routing-rural-routing-17-graph-based}
+						\caption{Example of detours created by a graph-based routing algorithm even though the first part of the result is equal to the one of the hybrid routing algorithm. The shortcut of the actual result (horizontal part of the blue route) is a result of missing obstacles similar to the situation visible in \Cref{fig:eval-rural-routing-6-aerial}.}
+						\label{fig:eval-rural-graph-based-comparison-17}
+					\end{subfigure}
+				\end{minipage}
+				\caption{Comparison of graph-based routing results (red) with the expected route (green) and actual results (blue) of the hybrid routing algorithm.}
+				\label{fig:eval-rural-graph-based-comparison}
+			\end{figure}
 		
-		% How much shorter are the routes?
-		\subsubsection{Route length analysis}
+		\subsubsection{Mathematical route quality analysis}
+			% Determine ratio of route lengths
+			% Determine Frechet distance
