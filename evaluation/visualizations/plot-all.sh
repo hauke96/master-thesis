@@ -17,6 +17,8 @@ RESULT=$1
 DATASET_GRAPH_GEN="../results/$RESULT/*_performance_GenerateGraph.csv"
 DATASET_ROUTING="../results/$RESULT/*_performance_Routing.csv"
 
+rm -f *.pgf *.png
+
 # $1 - File name (without .py)
 # $2 - Dataset folder
 # $3 - Title of the plot
@@ -49,5 +51,7 @@ run "plot-routing-time-details" "$DATASET_ROUTING"
 run "plot-routing-time-per-length" "$DATASET_ROUTING"
 run "plot-routing-time" "$DATASET_ROUTING"
 run "plot-routing-memory" "$DATASET_ROUTING"
+
+./plot-import-times-pattern-datasets.py
 
 echo "Done"

@@ -67,8 +67,6 @@ plot=common.create_lineplot(
 	ycol="iteration_time_rel_added",
 	ylabel="Time in µs",
 	scientific_labels=False,
-	yscale="foo"
-	#title,
 )
 
 common.save_to_file(fig_added, os.path.basename(__file__) + "_per-vertex-added")

@@ -16,13 +16,18 @@ import pandas as pd
 
 common.check_args(0)
 
+titles=[
+	"Rectangles",
+	"Maze",
+	"Circles"
+]
 dataset_filters=[
 	"../results/pattern-based-rectangles/*_GenerateGraph.csv",
 	"../results/pattern-based-maze/*_GenerateGraph.csv",
 	"../results/pattern-based-circles/*_GenerateGraph.csv"
 ]
 
-common.init_seaborn(format='large_slim')
+common.init_seaborn(format='large')
 
 #
 # Plot absolute numbers
@@ -40,6 +45,7 @@ for i in range(len(dataset_filters)):
 		ylabel=None if i>0 else "Time in s",
 		ax=ax[i]
 	)
+	plot.set_title(titles[i], pad=8, fontsize=common.fontsize_small)
 
 	if i==0 or i==1:
 		plot.set_ylim(0, 235)

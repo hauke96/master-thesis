@@ -55,7 +55,7 @@ def get_fig_sizes(width_in_pt, height_in_pt=None, fraction=1):
 	fig_width_in = width_in_pt * inches_per_pt
 
 	if height_in_pt == None:
-		ratio = 0.7
+		ratio = 0.575
 		fig_height_in = fig_width_in * ratio
 	else:
 		fig_height_in = height_in_pt * inches_per_pt
@@ -75,13 +75,13 @@ def init_seaborn(
 	if width == None:
 		if format == "large":
 			width=440
-			height=200
+			height=174
 		elif format == "large_slim":
 			width=440
-			height=150
+			height=124
 		elif format == "small":
 			width=220
-			height=None
+			height=135
 
 	global color_palette_selected_name
 
