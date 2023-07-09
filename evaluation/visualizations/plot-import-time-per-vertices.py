@@ -27,43 +27,43 @@ common.init_seaborn()
 #
 dataset["iteration_time_s"]=dataset["iteration_time"]/1000
 
-fig_abs, ax_abs = plt.subplots()
+fig, ax = plt.subplots()
 plot=common.create_lineplot(
 	dataset,
 	ycol="iteration_time_s",
 	ylabel="Time in s",
-	ax=ax_abs,
+	ax=ax,
 	#title,
 )
 plot.ticklabel_format(style='plain', axis='y')
 
-common.save_to_file(fig_abs, os.path.basename(__file__) + "_absolute")
+common.save_to_file(fig, os.path.basename(__file__) + "_absolute")
 
 #
 # Plot relative numbers
 #
 dataset["iteration_time_rel"]=dataset["iteration_time"]/dataset["obstacle_vertices_input"]
 
-fig_rel, ax_rel= plt.subplots()
+fig, ax= plt.subplots()
 plot=common.create_lineplot(
 	dataset,
-	ax=ax_rel,
+	ax=ax,
 	ycol="iteration_time_rel",
 	ylabel="Time in ms",
 	#title,
 )
 
-common.save_to_file(fig_rel, os.path.basename(__file__) + "_per-vertex")
+common.save_to_file(fig, os.path.basename(__file__) + "_per-vertex")
 
 #
 # Plot time increase per vertex for each new vertex. I.e. the processing time of every vertex increases by this amount if a new vertex is added
 #
 dataset["iteration_time_rel_added"]=dataset["iteration_time_rel"]/dataset["obstacle_vertices_input"]*1000
 
-fig_rel_added, ax_rel_added= plt.subplots()
+fig_added, ax_added= plt.subplots()
 plot=common.create_lineplot(
 	dataset,
-	ax=ax_rel_added,
+	ax=ax_added,
 	ycol="iteration_time_rel_added",
 	ylabel="Time in µs",
 	scientific_labels=False,
@@ -71,4 +71,4 @@ plot=common.create_lineplot(
 	#title,
 )
 
-common.save_to_file(fig_rel_added, os.path.basename(__file__) + "_per-vertex-added")
+common.save_to_file(fig_added, os.path.basename(__file__) + "_per-vertex-added")
