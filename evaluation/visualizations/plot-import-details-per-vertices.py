@@ -46,7 +46,7 @@ common.init_seaborn(format="large")
 #
 
 title="HybridVisibilityGraph generation - Durations broken down"
-fig_abs, ax_abs = plt.subplots()
+fig, ax = plt.subplots()
 
 dataset_raw=common.load_dataset(dataset_filter)
 dataset_relevant=dataset_raw[dataset_cols + ["obstacle_vertices_input"]]
@@ -60,14 +60,14 @@ common.create_lineplot(
 	ylabel='Time in s',
 	hue="aspect",
 	yscale='log',
-	ax=ax_abs
+	ax=ax
 )
 
-handles, labels = ax_abs.get_legend_handles_labels()
+handles, labels = ax.get_legend_handles_labels()
 handles=[h for h in handles if not isinstance(h, container.ErrorbarContainer)]
 
 sns.move_legend(
-	ax_abs,
+	ax,
 	"center left",
 	bbox_to_anchor=(1.025, 0.5),
 	handles=handles,
@@ -77,14 +77,16 @@ sns.move_legend(
 	title='Legend'
 )
 
-common.save_to_file(fig_abs, os.path.basename(__file__) + "_absolute")
+common.save_to_file(fig, os.path.basename(__file__) + "_absolute")
 
 #
 # Plot relative numbers
 #
 
+common.init_seaborn(format="large")
+
 title="HybridVisibilityGraph generation - Durations relative share"
-fig_rel, ax_rel = plt.subplots()
+fig, ax = plt.subplots()
 
 #dataset_raw.reset_index(drop=True, inplace=True)
 #dataset_relevant.reset_index(drop=True, inplace=True)
@@ -104,14 +106,14 @@ common.create_lineplot(
 	ycol='time',
 	ylabel='Share of total time',
 	hue="aspect",
-	ax=ax_rel,
+	ax=ax,
 )
 
-handles, labels = ax_abs.get_legend_handles_labels()
+handles, labels = ax.get_legend_handles_labels()
 handles=[h for h in handles if not isinstance(h, container.ErrorbarContainer)]
 
 sns.move_legend(
-	ax_rel,
+	ax,
 	"center left",
 	bbox_to_anchor=(1.025, 0.5),
 	handles=handles,
@@ -121,4 +123,4 @@ sns.move_legend(
 	title='Legend'
 )
 
-common.save_to_file(fig_rel, os.path.basename(__file__) + "_relative")
+common.save_to_file(fig, os.path.basename(__file__) + "_relative")
