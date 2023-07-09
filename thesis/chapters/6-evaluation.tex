@@ -357,7 +357,35 @@ For both evaluation aspects, method and design details are given followed by the
 		
 			\todo{Times per meter?}
 			
-			\todo{Datasets without roads/obstacles}
+		\subsubsection{Dataset without roads or obstacles}
+		
+			The normal OSM-based datasets contain both, roads and obstacles.
+			However, datasets containing only roads or only obstacle are thinkable and can also be used with the hybrid routing algorithm.
+			For this evaluation, all roads were removed, which do not cross buildings.
+			Building passages are necessary to reach backyards and were therefore kept within the dataset.
+			
+			\begin{figure}[h!]
+				\begin{subfigure}[t]{\textwidth}
+					\begin{figcenter}
+						\input{images/evaluation/osm-based-city/plot-no-roads-obstacles.py_absolute.pgf}
+					\end{figcenter}
+					\caption{\enquote{OSM city} dataset.}
+					\label{fig:eval-import-osm-no-roads-obstacles-city}
+				\end{subfigure}
+				\\[3ex]
+				\begin{subfigure}[t]{\textwidth}
+					\begin{figcenter}
+						\input{images/evaluation/osm-based-rural/plot-no-roads-obstacles.py_absolute.pgf}
+					\end{figcenter}
+					\caption{\enquote{OSM rural} dataset.}
+					\label{fig:eval-import-osm-no-roads-obstacles-rural}
+				\end{subfigure}
+				\caption{Comparison of the normal 4km\textsuperscript{2} datasets (blue) with the same datasets but without roads (orange) and without obstacles (green).}
+				\label{fig:eval-import-osm-rural-no-roads-obstacles}
+			\end{figure}
+			
+			As described and shown in earlier analyses, the graph generation time greatly depends on the kNN search and road network merge operation.
+			\todo[inline]{analysis}
 	
 	\subsection{Pattern-based datasets}
 	
