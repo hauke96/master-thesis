@@ -8,6 +8,7 @@ import pandas as pd
 import matplotlib.lines as mlines
 from matplotlib.colors import ListedColormap
 import matplotlib.cm as cm
+import textwrap
 
 color_blue="#2779b4"
 color_red="#b42727"
@@ -240,6 +241,57 @@ def create_scatter_lineplot(
 		color=color_line,
 		marker=marker,
 	)
+
+def create_barplot(
+		dataset,
+		title="",
+		xcol="obstacle_vertices_input",
+		xlabel="Input obstacle vertices",
+		ycol="iteration_time",
+		ylabel="Time in ms",
+		hue=None,
+		capsize=0.075,
+		errorbar=None,#('pi', 90),
+		errwidth=0.75,
+		yscale='linear',
+		ax=None,
+		color=None,
+		scientific_labels=True
+	):
+
+	plot=sns.barplot(
+		data=dataset,
+		x=xcol,
+		y=ycol,
+		hue=hue,
+		color=color,
+		palette=color_palette_selected_name,
+		capsize=capsize,
+		errorbar=errorbar,
+		errwidth=errwidth,
+		linewidth=1,
+		ax=ax
+	)
+
+	if yscale != None:
+		plot.set(yscale=yscale)
+	else:
+		plot.set_xlim(0, None)
+		plot.set_ylim(0, None)
+
+	plot.set_title(title, pad=12, fontsize=fontsize_large)
+	plot.set_xlabel(xlabel, labelpad=5, fontsize=fontsize_small)
+	plot.set_ylabel(ylabel, labelpad=5, fontsize=fontsize_small)
+	plot.tick_params(axis="both", which="major", labelsize=fontsize_small)
+
+	if not scientific_labels:
+		plot.ticklabel_format(style='plain', axis='x')
+		plot.ticklabel_format(style='plain', axis='y')
+
+	return plot
+
+def wrap_labels(labels, wrap_width=10):
+	return [textwrap.fill(label, wrap_width) for label in labels]
 
 '''
 This function selects the legend labels for the given column names

@@ -54,39 +54,39 @@ Details on each dataset can be found below.
 The graph generation and routing is performed as is (without adjustments).
 This means the merging takes place (even though there are no roads) and routing is done on the resulting hybrid visisibility graph.
 
-* [ ] Maze like pattern
-	* [x] Create dataset
-	* [ ] Measurement
-	* [ ] Visualize
-* [ ] Rectangle pattern
+* [x] Maze like pattern
 	* [x] Create dataset
 	* [x] Measurement
-	* [ ] Visualize
-* [ ] Circle pattern
+	* [x] Visualize
+* [x] Rectangle pattern
 	* [x] Create dataset
 	* [x] Measurement
-	* [ ] Visualize
+	* [x] Visualize
+* [x] Circle pattern
+	* [x] Create dataset
+	* [x] Measurement
+	* [x] Visualize
 * [ ] OSM "city" dataset without roads (multiple area sizes)
 	* [x] Create dataset
 	* [x] Measurement
 	* [ ] Visualize
 * [ ] OSM "rural" dataset without roads (multiple area sizes)
 	* [x] Create dataset
-	* [ ] Measurement
+	* [x] Measurement
 	* [ ] Visualize
 
 ### 2. With roads
 
 The import takes place as is, without adjustments. Merging is performed and routing takes place on the resulting visisibility graph.
 
-* [ ] OSM "city" dataset with roads (multiple area sizes)
+* [x] OSM "city" dataset with roads (multiple area sizes)
 	* [x] Create dataset
 	* [x] Measurement
-	* [ ] Visualize
-* [ ] OSM "rural" dataset with roads (multiple area sizes)
+	* [x] Visualize
+* [x] OSM "rural" dataset with roads (multiple area sizes)
 	* [x] Create dataset
 	* [x] Measurement
-	* [ ] Visualize
+	* [x] Visualize
 
 ### 3. Without obstacles
 
@@ -95,11 +95,11 @@ Merging is performed and routing takes place on the resulting visisibility graph
 
 * [ ] OSM "city" dataset without obstacles (multiple area sizes)
 	* [x] Create dataset
-	* [ ] Measurement
+	* [x] Measurement
 	* [ ] Visualize
 * [ ] OSM "rural" dataset without obstacles (multiple area sizes)
 	* [x] Create dataset
-	* [ ] Measurement
+	* [x] Measurement
 	* [ ] Visualize
 
 ### 4. Optimizations
