@@ -144,9 +144,9 @@ def create_lineplot(
 		ax=ax
 	)
 
-	if yscale == "log":
-		plot.set(yscale="log")
-	elif yscale == None:
+	if yscale != None:
+		plot.set(yscale=yscale)
+	else:
 		plot.set_xlim(0, None)
 		plot.set_ylim(0, None)
 
@@ -290,7 +290,7 @@ def save_to_file(
 		save_to_file(figure, filename, "pgf", True)
 		#save_to_file(figure, filename, "pdf", True)
 	else:
-		figure.tight_layout()
+		figure.tight_layout(pad=0, h_pad=1.08, w_pad=1.08)
 		figure.savefig(
 			"./"+filename+"."+extension,
 			pad_inches=0 if no_margin else None,
