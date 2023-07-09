@@ -356,10 +356,34 @@ For both evaluation aspects, method and design details are given followed by the
 			\end{minipage}
 		
 			\todo{Times per meter?}
+			
+			\todo{Datasets without roads/obstacles}
 	
 	\subsection{Pattern-based datasets}
 	
 		\subsubsection{Import and graph generation}
+		
+			Due to the repeated pattern in the datasets, the distribution of obstacles and vertices is much more regular compared to the OSM-based datasets.
+			This is also reflected in the results of the graph generation as seen in \Cref{fig:eval-import-pattern-abs}.
+			Due to the lack of roads, the overall graph generation time is determined by the time required by the kNN search.
+			Except for smaller datasets of up to 15,000 input vertices, all other tasks only have a negligible impact on the graph generation time.
+			Both aspects are illustrated in \Cref{fig:eval-import-pattern-maze-abs-rel} for the maze dataset.
+			
+			\begin{figure}[h!]
+				\begin{figcenter}
+					\input{images/evaluation/plot-import-times-pattern-datasets.py_absolute.pgf}
+				\end{figcenter}
+				\caption{Total graph generation times for all three pattern-based dataset categories.}
+				\label{fig:eval-import-pattern-abs}
+			\end{figure}
+			
+			\begin{figure}[h!]
+				\begin{figcenter}
+					\input{images/evaluation/pattern-based-maze/plot-import-details-per-vertices.py_absolute-relative.pgf}
+				\end{figcenter}
+				\caption{Tasks during graph generation using the maze dataset in absolute time (left) and relative share on the total time (right).}
+				\label{fig:eval-import-pattern-maze-abs-rel}
+			\end{figure}
 		
 		\subsubsection{Routing}
 		
