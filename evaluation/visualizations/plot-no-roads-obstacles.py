@@ -62,6 +62,7 @@ fig, ax = plt.subplots()
 common.create_barplot(
     dataset,
     xcol="aspect",
+	xlabel=None,
     ycol='time',
     ylabel='Time in s',
     hue="dataset",
