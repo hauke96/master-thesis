@@ -381,11 +381,51 @@ For both evaluation aspects, method and design details are given followed by the
 					\label{fig:eval-import-osm-no-roads-obstacles-rural}
 				\end{subfigure}
 				\caption{Comparison of the normal 4km\textsuperscript{2} datasets (blue) with the same datasets but without roads (orange) and without obstacles (green).}
-				\label{fig:eval-import-osm-rural-no-roads-obstacles}
+				\label{fig:eval-import-osm-no-roads-obstacles}
 			\end{figure}
 			
 			As described and shown in earlier analyses, the graph generation time greatly depends on the kNN search and road network merge operation.
-			\todo[inline]{analysis}
+			Considering a dataset without roads, the kNN search is completely unaffected by this fact on both, rural and city categories.
+			Only the time of the road merge operation is directly affected since, except building passages, no roads exist to merge into the graph.
+			
+			\Cref{fig:eval-import-osm-no-roads-obstacles-city} (results of \enquote{OSM city} datasets) shows that without roads the merge operation took longer compared to the dataset without obstacles.
+			This is due to the 165 remaining building passages still existing in the dataset without roads.
+			Even though the processing still takes some time, the merge operation in the \enquote{no roads} variant of the \enquote{OSM city} dataset only required 5.14\% and using the \enquote{no obstacles} only 0.33\% of the time compared to the normal dataset.
+			
+			\Cref{fig:eval-import-osm-no-roads-obstacles-rural} (results of \enquote{OSM rural} datasets) shows the expected results for the merge operation, meaning the time decreased from 12.9s to 1.47ms, since no building passages exist in the rural datasets.
+			
+			Apart these different results, both dataset categories show similar results for the kNN search, graph generation and overal processing time.
+			
+			\begin{table}
+				\begin{center}
+					\begin{tabularx}{\textwidth}{p{3cm}|X|XX|XX}
+Operation			& Normal 	& No roads	& Decrease compared to normal	& No obstacles	& Decrease compared to normal	\\
+\hline
+kNN search			& 537.66	& 512.16	& 4.74\%						& 0.000012		& 99.9999\%						\\
+Create graph		& 1.17		& 1.04		& 10.65\%						& 0.000013		& 99.9989\%						\\
+Get obstacles		& 0.199		& 0.201		& -0.94\%						& 0.01			& 99.995\%						\\
+Merge road edges	& 432.32	& 21.77		& 94.86\%						& 1.39			& 99.67\%						\\
+Add POI attributes	& 0.059		& 0.033		& 44.06\%						& 0.012			& 79.66\%						\\
+\hline
+Total time			& 963.1		& 535.29	& 44.42\%						& 1.43			& 99.85\%
+					\end{tabularx}
+				\end{center}
+				\caption{Results of the \enquote{OSM city} datasets in absolute time (in seconds) and relative decrease in time compared to the normal dataset.}
+				\begin{center}
+					\begin{tabularx}{\textwidth}{p{3cm}|X|XX|XX}
+Operation			& Normal 	& No roads	& Decrease compared to normal	& No obstacles	& Decrease compared to normal	\\
+\hline
+kNN search			& 8,402		& 8,428		& -0.32\%						& 0.013			& 99.9998\%						\\
+Create graph		& 217		& 231		& -6.7\%						& 0.013			& 99.994\%						\\
+Get obstacles		& 24.51		& 24.45		& -4.03\%						& 0.73			& 96.88\%						\\
+Merge road edges	& 12,953	& 1.47		& 99.989\%						& 35.6			& 99.73\%						\\
+Add POI attributes	& 1.7		& 1.45		& 14.69\%						& 0.41			& 75.97\%						\\
+\hline
+Total time			& 21,658	& 8709		& 59.79\%						& 39.7			& 99.82\%
+					\end{tabularx}
+				\end{center}
+				\caption{Results of the \enquote{OSM rural} datasets in absolute time (in ms) and relative decrease in time compared to the normal dataset.}
+			\end{table}
 	
 	\subsection{Pattern-based datasets}
 	
