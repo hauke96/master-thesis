@@ -361,45 +361,16 @@ For both evaluation aspects, method and design details are given followed by the
 		
 			The normal OSM-based datasets contain both, roads and obstacles.
 			However, datasets containing only roads or only obstacle are thinkable and can also be used with the hybrid routing algorithm.
-			For this evaluation, all roads were removed, which do not cross buildings.
-			Building passages are necessary to reach backyards and were therefore kept within the dataset.
+			For this evaluation, the 4km\textsuperscript{2} datasets of the \enquote{OSM city} and \enquote{OSM rural} categories were filtered yielding three datasets for each category:
+			The normal dataset, one without roads and one without obstacles.
+			In the dataset without roads, all road edges were removed which do not cross buildings, meaning building passages were still contained in this derived dataset to ensure the reachability of backyards.
+			The second dataset did not contain any obstacle but only roads.
+			Influences of such filters are discussed in the following.
 			
 			\begin{figure}[h!]
-				\begin{subfigure}[t]{\textwidth}
-					\begin{figcenter}
-						\input{images/evaluation/osm-based-city/plot-no-roads-obstacles.py_absolute.pgf}
-					\end{figcenter}
-					\caption{\enquote{OSM city} dataset.}
-					\label{fig:eval-import-osm-no-roads-obstacles-city}
-				\end{subfigure}
-				\\[3ex]
-				\begin{subfigure}[t]{\textwidth}
-					\begin{figcenter}
-						\input{images/evaluation/osm-based-rural/plot-no-roads-obstacles.py_absolute.pgf}
-					\end{figcenter}
-					\caption{\enquote{OSM rural} dataset.}
-					\label{fig:eval-import-osm-no-roads-obstacles-rural}
-				\end{subfigure}
-				\caption{Comparison of the normal 4km\textsuperscript{2} datasets (blue) with the same datasets but without roads (orange) and without obstacles (green).}
-				\label{fig:eval-import-osm-no-roads-obstacles}
-			\end{figure}
-			
-			As described and shown in earlier analyses, the graph generation time greatly depends on the kNN search and road network merge operation.
-			Considering a dataset without roads, the kNN search is completely unaffected by this fact on both, rural and city categories.
-			Only the time of the road merge operation is directly affected since, except building passages, no roads exist to merge into the graph.
-			
-			\Cref{fig:eval-import-osm-no-roads-obstacles-city} (results of \enquote{OSM city} datasets) shows that without roads the merge operation took longer compared to the dataset without obstacles.
-			This is due to the 165 remaining building passages still existing in the dataset without roads.
-			Even though the processing still takes some time, the merge operation in the \enquote{no roads} variant of the \enquote{OSM city} dataset only required 5.14\% and using the \enquote{no obstacles} only 0.33\% of the time compared to the normal dataset.
-			
-			\Cref{fig:eval-import-osm-no-roads-obstacles-rural} (results of \enquote{OSM rural} datasets) shows the expected results for the merge operation, meaning the time decreased from 12.9s to 1.47ms, since no building passages exist in the rural datasets.
-			
-			Apart these different results, both dataset categories show similar results for the kNN search, graph generation and overal processing time.
-			
-			\begin{table}
-				\begin{center}
-					\begin{tabularx}{\textwidth}{p{3cm}|X|XX|XX}
-Operation			& Normal 	& No roads	& Decrease compared to normal	& No obstacles	& Decrease compared to normal	\\
+				\begin{figcenter}
+					\begin{tabularx}{0.95\textwidth}{p{3cm}|X|XX|p{2.25cm}X}
+\textbf{Operation} & \textbf{Normal} & \textbf{No roads} & \textbf{Decrease compared to normal} & \textbf{No obstacles} & \textbf{Decrease compared to normal} \\
 \hline
 kNN search			& 537.66	& 512.16	& 4.74\%						& 0.000012		& 99.9999\%						\\
 Create graph		& 1.17		& 1.04		& 10.65\%						& 0.000013		& 99.9989\%						\\
@@ -409,11 +380,26 @@ Add POI attributes	& 0.059		& 0.033		& 44.06\%						& 0.012			& 79.66\%						\\
 \hline
 Total time			& 963.1		& 535.29	& 44.42\%						& 1.43			& 99.85\%
 					\end{tabularx}
-				\end{center}
-				\caption{Results of the \enquote{OSM city} datasets in absolute time (in seconds) and relative decrease in time compared to the normal dataset.}
-				\begin{center}
-					\begin{tabularx}{\textwidth}{p{3cm}|X|XX|XX}
-Operation			& Normal 	& No roads	& Decrease compared to normal	& No obstacles	& Decrease compared to normal	\\
+				\end{figcenter}
+				\vspace{3ex}
+				\begin{figcenter}
+					\input{images/evaluation/osm-based-city/plot-no-roads-obstacles.py_absolute.pgf}
+				\end{figcenter}
+				\caption{Comparison of the normal 4km\textsuperscript{2} \enquote{OSM city} dataset (blue) with the same dataset but without roads (orange) and without obstacles (green). All numbers in the table are given in seconds.}
+				\label{fig:eval-import-osm-no-roads-obstacles-city}
+			\end{figure}
+			
+			\Cref{fig:eval-import-osm-no-roads-obstacles-city} lists and illustrates the comparison of the results for the \enquote{OSM city} datasets with two noteworthy insights:
+			\begin{itemize}
+				\item The kNN search and visibility graph creation times decreased significantly after removing all obstacles, which is expected, since both operations only take obstacles into account and are unrelated to road edges.
+				\item The merge operation for the dataset without roads took longer compared to the dataset without obstacles.
+				This is due to the 165 remaining building passages within the \enquote{no roads}-dataset, which means this operation still merges road edges and therefore requires some time.
+				However, compared to the normal dataset the merge operation only required 5.14\% of the time in the \enquote{no road} and 0.33\% of the time in the \enquote{no obstacles} dataset.
+			\end{itemize}
+			
+			\begin{figure}[h!]
+				\begin{tabularx}{0.95\textwidth}{p{3cm}|X|XX|p{2.25cm}X}
+\textbf{Operation} & \textbf{Normal} & \textbf{No roads} & \textbf{Decrease compared to normal} & \textbf{No obstacles} & \textbf{Decrease compared to normal} \\
 \hline
 kNN search			& 8,402		& 8,428		& -0.32\%						& 0.013			& 99.9998\%						\\
 Create graph		& 217		& 231		& -6.7\%						& 0.013			& 99.994\%						\\
@@ -422,10 +408,35 @@ Merge road edges	& 12,953	& 1.47		& 99.989\%						& 35.6			& 99.73\%						\\
 Add POI attributes	& 1.7		& 1.45		& 14.69\%						& 0.41			& 75.97\%						\\
 \hline
 Total time			& 21,658	& 8709		& 59.79\%						& 39.7			& 99.82\%
-					\end{tabularx}
-				\end{center}
-				\caption{Results of the \enquote{OSM rural} datasets in absolute time (in ms) and relative decrease in time compared to the normal dataset.}
-			\end{table}
+				\end{tabularx}
+				\vspace{3ex}
+				\begin{figcenter}
+					\input{images/evaluation/osm-based-rural/plot-no-roads-obstacles.py_absolute.pgf}
+				\end{figcenter}
+				\caption{Comparison of the normal 4km\textsuperscript{2} \enquote{OSM rural} dataset (blue) with the same dataset but without roads (orange) and without obstacles (green). All numbers in the table are given in milliseconds.}
+				\label{fig:eval-import-osm-no-roads-obstacles-rural}
+			\end{figure}
+			
+			\Cref{fig:eval-import-osm-no-roads-obstacles-rural} lists and illustrates the comparison of the results for the \enquote{OSM rural} datasets.
+			\begin{itemize}
+				\item The results show the expected significant decrease in time for the merge operation after removing all roads, because no building passages existed in the rural dataset.
+				\item A comparison of the kNN search and road merge operations of the normal dataset shows, that the merge operation actually took 54.17\% longer than the kNN search.
+				The normal \enquote{OSM city} dataset showed the opposite relation with 21.2\% less time required for the merge operation.
+				One possible explanation is the ratio of road to visibility edges, which is 1:42 for the city dataset (for one road edge, 42 visibility edges existed in the resulting graph) and 1:274 for the rural dataset.
+				The increase in road edges caused by the merge operation shows a similar difference:
+				Within the city dataset the number of road edges increased by a factor of 83 and within the rural dataset by a factor of 240.
+				Therefore, the time spent on one road edge was significantly higher within the rural dataset and likely lead to the significant increase in time required for the merge operation.
+				\item The first three measurements listed in the table are especially noteworthy since they show an increase in processing time after removing all roads.
+				However, for the kNN search, the increase of 0.32\% is considered insignificant.
+				The other two operations, the graph creation and getting all obstacles, were distorted by outliers in the data leading to an increase of their processing times.
+				Furthermore, each of these three operations is completely independent of the existence of roads, which means there is no algorithmic reason for an increase in processing time.
+			\end{itemize}
+			Apart these differences and unique characteristics, both dataset categories also show similar results for the kNN search, graph generation and overall processing time.
+			First of all, removing the obstacles removes the main complexity and therefore significantly decreases the processing time.
+			Not removing all obstacles, but decreasing their amount might increase the processing time significantly due to the overall quadratic runtime complexity of the kNN search.
+			Second, the kNN search and graph creation are not affected by removed roads.
+			The total processing time, however, decreases with removed roads due to the faster merge operation.
+			Third, even though it is not a significant part of the processing time in the first place, adding attributes to points of interest (POI) is also reduced when removing obstacles or roads.
 	
 	\subsection{Pattern-based datasets}
 	
