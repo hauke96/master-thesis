@@ -199,8 +199,8 @@ For both evaluation aspects, method and design details are given followed by the
 			This value is very low for the \enquote{OSM city} datasets (below half of a microsecond) and even decreases within the \enquote{OSM rural} datasets from 4.1µs to 0.6µs.
 			However, the \enquote{OSM city} datasets indicate that this value might increase again with larger dataset sizes but might remain at a low level.
 			This significantly different behavior is very likely influenced by the type of dataset, i.e. the distribution and size of obstacles.
-			\todo[inline]{compare this to the pattern datasets?}
-			A decrease in this per-vertex time increase has no directly noticable effect on the overall graph generation time, which still shows a quadratic increase.
+			Pattern-based datasets showed a runtime behavior similar to the \enquote{OSM city} dataset, which is another indicator that the effect from \Cref{fig:eval-import-rural-rel-increase} is caused by the structure of the dataset.
+			A decrease in this per-vertex time increase has no directly noticeable effect on the overall graph generation time, which still shows a quadratic increase.
 			
 			\begin{figure}[h!]
 				\begin{figcenter}
@@ -231,15 +231,12 @@ For both evaluation aspects, method and design details are given followed by the
 			
 			A different situation can be found in the \enquote{OSM rural} dataset.
 			Here, the merge operation is the heavier task with a share of at least 59.8\% on the overall graph generation time.
+			This effect of a more time-consuming merge operation is further discussed in \Cref{subsubsec:dataset-without-roads-obstacles}.
 			The times of the kNN search and the merge operation sum up to 97.1\% of the graph generation time.
-			
-			\todo[inline]{Why this difference between rural and city?}
 			
 			Even though the order which task is the heaviest is different, both runtimes of the kNN search and the merge operation are the most significant ones.
 			The graph creation task in the \enquote{OSM rural} datasets is the only additional task with a share of over 1\%.
 			All other tasks have a negligible share on the total graph generation time of below 1\%, which decreases with the size of the dataset.
-			
-			\todo{Table with values? Absolute or relative?}
 	
 		\subsubsection{Routing}
 		
@@ -366,10 +363,9 @@ For both evaluation aspects, method and design details are given followed by the
 					\label{fig:eval-osm-rural-map}
 				\end{minipage}
 			\end{minipage}
-		
-			\todo{Times per meter?}
 			
 		\subsubsection{Dataset without roads or obstacles}
+		\label{subsubsec:dataset-without-roads-obstacles}
 		
 			The normal OSM-based datasets contain both, roads and obstacles.
 			However, datasets containing only roads or only obstacles are thinkable and can also be used with the hybrid routing algorithm.
