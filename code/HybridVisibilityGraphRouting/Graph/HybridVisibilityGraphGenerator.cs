@@ -87,7 +87,7 @@ public static class HybridVisibilityGraphGenerator
                 {
                     // Only take the convex hull of polygons into account. Line based obstacles might bend around other
                     // obstacles so that the convex hull would prevent the generation of important edges.
-                    return g.Value.Coordinates;
+                    return g.Value.ConvexHull().Coordinates;
                 }
 
                 return g.Value.Coordinates;
