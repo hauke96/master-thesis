@@ -360,12 +360,11 @@ For both evaluation aspects, method and design details are given followed by the
 		\subsubsection{Dataset without roads or obstacles}
 		
 			The normal OSM-based datasets contain both, roads and obstacles.
-			However, datasets containing only roads or only obstacle are thinkable and can also be used with the hybrid routing algorithm.
+			However, datasets containing only roads or only obstacles are thinkable and can also be used with the hybrid routing algorithm.
 			For this evaluation, the 4km\textsuperscript{2} datasets of the \enquote{OSM city} and \enquote{OSM rural} categories were filtered yielding three datasets for each category:
 			The normal dataset, one without roads and one without obstacles.
-			In the dataset without roads, all road edges were removed which do not cross buildings, meaning building passages were still contained in this derived dataset to ensure the reachability of backyards.
-			The second dataset did not contain any obstacle but only roads.
-			Influences of such filters are discussed in the following.
+			In the dataset without roads, all road edges were removed which do not cross buildings, meaning building passages remained within this dataset to ensure the reachability of backyards.
+			Influences of the two filters are discussed in the following.
 			
 			\begin{figure}[h!]
 				\begin{figcenter}
@@ -389,12 +388,14 @@ Total time			& 963.1		& 535.29	& 44.42\%						& 1.43			& 99.85\%
 				\label{fig:eval-import-osm-no-roads-obstacles-city}
 			\end{figure}
 			
-			\Cref{fig:eval-import-osm-no-roads-obstacles-city} lists and illustrates the comparison of the results for the \enquote{OSM city} datasets with two noteworthy insights:
+			\Cref{fig:eval-import-osm-no-roads-obstacles-city} lists and illustrates the results for the \enquote{OSM city} datasets.
+			Two noteworthy insights can be inferred from these data:
 			\begin{itemize}
-				\item The kNN search and visibility graph creation times decreased significantly after removing all obstacles, which is expected, since both operations only take obstacles into account and are unrelated to road edges.
+				\item The kNN search and visibility graph creation times were significantly reduced for the dataset without obstacles, which is expected, since both operations are unrelated to road edges and only take obstacles into account.
 				\item The merge operation for the dataset without roads took longer compared to the dataset without obstacles.
-				This is due to the 165 remaining building passages within the \enquote{no roads}-dataset, which means this operation still merges road edges and therefore requires some time.
-				However, compared to the normal dataset the merge operation only required 5.14\% of the time in the \enquote{no road} and 0.33\% of the time in the \enquote{no obstacles} dataset.
+				This is due to the 175 remaining building passages within the \enquote{no roads} dataset, which means this operation still merges road edges and therefore requires some time.
+				However, compared to the normal dataset the merge operation only required 5.14\% of the time in the \enquote{no road} dataset, which correlates to the number of remaining road edges of 4.82\% (175 edges) compared to the normal dataset (3629 edges).
+				In the \enquote{no obstacles} dataset the merge operation took 0.33\% of the normal time, due to no existing visibility graph these road edges could be merged into.
 			\end{itemize}
 			
 			\begin{figure}[h!]
@@ -417,23 +418,25 @@ Total time			& 21,658	& 8709		& 59.79\%						& 39.7			& 99.82\%
 				\label{fig:eval-import-osm-no-roads-obstacles-rural}
 			\end{figure}
 			
-			\Cref{fig:eval-import-osm-no-roads-obstacles-rural} lists and illustrates the comparison of the results for the \enquote{OSM rural} datasets.
+			\noindent
+			\Cref{fig:eval-import-osm-no-roads-obstacles-rural} lists and illustrates the results for the \enquote{OSM rural} datasets.
+			There are some differences to the results of the \enquote{OSM city} dataset:
 			\begin{itemize}
-				\item The results show the expected significant decrease in time for the merge operation after removing all roads, because no building passages existed in the rural dataset.
+				\item In contrast to the \enquote{OSM city} dataset, the results show the expected significant reduction in time for the merge operation for the dataset without roads, because no building passages existed in the rural dataset.
 				\item A comparison of the kNN search and road merge operations of the normal dataset shows, that the merge operation actually took 54.17\% longer than the kNN search.
-				The normal \enquote{OSM city} dataset showed the opposite relation with 21.2\% less time required for the merge operation.
-				One possible explanation is the ratio of road to visibility edges, which is 1:42 for the city dataset (for one road edge, 42 visibility edges existed in the resulting graph) and 1:274 for the rural dataset.
-				The increase in road edges caused by the merge operation shows a similar difference:
+				Results of the normal \enquote{OSM city} dataset shows the opposite relation with 21.2\% less time required for the merge operation.
+				A possible explanation is the ratio of road to visibility edges, which is 1:42 for the city dataset (for one road edge, 42 visibility edges existed) and 1:274 for the rural dataset.
+				This means that more intersections per road edges exist in the rural dataset, which was actually the case:
 				Within the city dataset the number of road edges increased by a factor of 83 and within the rural dataset by a factor of 240.
 				Therefore, the time spent on one road edge was significantly higher within the rural dataset and likely lead to the significant increase in time required for the merge operation.
-				\item The first three measurements listed in the table are especially noteworthy since they show an increase in processing time after removing all roads.
-				However, for the kNN search, the increase of 0.32\% is considered insignificant.
-				The other two operations, the graph creation and getting all obstacles, were distorted by outliers in the data leading to an increase of their processing times.
-				Furthermore, each of these three operations is completely independent of the existence of roads, which means there is no algorithmic reason for an increase in processing time.
+				\item The first three measurements of the \enquote{no roads} dataset listed in the table are especially noteworthy since they show an increased processing time compared to the normal dataset.
+				However, for the kNN search, the increase of 0.32\% (26ms) is considered insignificant and likely caused by noise in the data.
+				The other two operations, creating the graph and getting all obstacles, were distorted by outliers in the data leading to an increase of their processing times.
+				Furthermore, each of these three operations is completely independent of the existence of roads and therefore no indication exists justifying an increase in processing time.
 			\end{itemize}
 			Apart these differences and unique characteristics, both dataset categories also show similar results for the kNN search, graph generation and overall processing time.
 			First of all, removing the obstacles removes the main complexity and therefore significantly decreases the processing time.
-			Not removing all obstacles, but decreasing their amount might increase the processing time significantly due to the overall quadratic runtime complexity of the kNN search.
+			Not removing all obstacles, but decreasing their amount might reduce the processing time significantly due to the overall quadratic runtime complexity of the kNN search.
 			Second, the kNN search and graph creation are not affected by removed roads.
 			The total processing time, however, decreases with removed roads due to the faster merge operation.
 			Third, even though it is not a significant part of the processing time in the first place, adding attributes to points of interest (POI) is also reduced when removing obstacles or roads.
@@ -465,6 +468,40 @@ Total time			& 21,658	& 8709		& 59.79\%						& 39.7			& 99.82\%
 			\end{figure}
 		
 		\subsubsection{Routing}
+		
+			Because the pattern-based datasets did not contain any roads, the time required for routing solely depends on the size of the visibility graph and therefore on the time required to connect the source and destination vertices, which is the main task during routing.
+			This task uses parts of the graph generation algorithm and therefore its runtime also increases quadratically with the number of vertices in the graph.
+			
+			The A* algorithm uses this quadratically growing graph and therefore shows a quadratic runtime itself.
+			However, a linear regression on the data of the maze- and rectangle-based datasets yield an equally good correlation.
+			Whether or not the A* algorithms runtime grows quadratic in time therefore depends on the data of the dataset.
+			
+			\begin{figure}[h!]
+				\begin{figcenter}
+					\begin{subfigure}[t]{\textwidth}
+						\begin{figcenter}
+							\input{images/evaluation/pattern-based-circles/plot-routing-time-details.py_absolute_all.pgf}
+						\end{figcenter}
+						\caption{\enquote{Circles} dataset.}
+					\end{subfigure}
+					\\[3ex]
+					\begin{subfigure}[t]{\textwidth}
+						\begin{figcenter}
+							\input{images/evaluation/pattern-based-maze/plot-routing-time-details.py_absolute_all.pgf}
+						\end{figcenter}
+						\caption{\enquote{Maze} dataset.}
+					\end{subfigure}
+					\\[3ex]
+					\begin{subfigure}[t]{\textwidth}
+						\begin{figcenter}
+							\input{images/evaluation/pattern-based-rectangles/plot-routing-time-details.py_absolute_all.pgf}
+						\end{figcenter}
+						\caption{\enquote{Rectangles} dataset.}
+					\end{subfigure}
+				\end{figcenter}
+				\caption{Routing time between the longest distant waypoints in each pattern-based dataset.}
+				\label{fig:eval-pattern-routing-details}
+			\end{figure}
 		
 \section{Route correctness and quality}
 
@@ -543,7 +580,7 @@ Total time			& 21,658	& 8709		& 59.79\%						& 39.7			& 99.82\%
 						\begin{figcenter}
 							\includegraphics[width=\textwidth]{images/qgis-routing-osterstrasse-expected-vs-routing}
 						\end{figcenter}
-						\caption{The graph-based routing result (red) and the expected route (blue) a human would probably take. The red dotted parts are direct connections to the closest point on an edge.}
+						\caption{The graph-based routing result (red) and the expected route (blue). The red dotted parts are direct connections to the closest point on an edge.}
 						\label{fig:eval-osterstrasse-route-expected}
 					\end{subfigure}
 				\end{minipage}
@@ -557,7 +594,7 @@ Total time			& 21,658	& 8709		& 59.79\%						& 39.7			& 99.82\%
 						\label{fig:eval-osterstrasse-actual-expected}
 					\end{subfigure}
 				\end{minipage}
-				\caption{Comparison of a graph-based route (determined on \href{https://www.openstreetmap.org/directions?engine=fossgis\_osrm\_foot\&route=53.57657\%2C9.95210\%3B53.57601\%2C9.95268\#map=19/53.57632/9.95218}{osm.org}) with the hybrid routing algorithm and the expected result (blue). The dashed part of the expected result is an equally good alternative route. The difficulty of this scenario is the traveral of the square \enquote{Fanny-Mendelssohn Platz}.}
+				\caption{Comparison of a graph-based route (red; determined on \href{https://www.openstreetmap.org/directions?engine=fossgis\_osrm\_foot\&route=53.57657\%2C9.95210\%3B53.57601\%2C9.95268\#map=19/53.57632/9.95218}{osm.org}) with the hybrid routing algorithm (green) and the expected result (blue). The dashed part of the expected result is an equally good alternative route. The difficulty of this scenario is the traversal of the square \enquote{Fanny-Mendelssohn Platz}.}
 				\label{fig:eval-osterstrasse}
 			\end{figure}
 			
