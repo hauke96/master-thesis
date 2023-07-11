@@ -138,13 +138,15 @@ After adding vertices for the source and destination, these two new vertices nee
 		
 \section{Conclusion}
 
-	The evaluation showed expected results for the three main considerations regarding performance and route quality.
-	First, the overall performance has a quadratic time complexity due to the visibility graph creation, which is inherently quadratic in the number of input vertices.
-	Second, the route quality does benefit from the presence of open spaces and the routes did become shorter and more realistic with respect to expected routes real pedestrians would likely choose.
-	This increased realism of the routes therefore can have beneficial effects on agent-based models used to simulate human behaviors.
+	The presented hybrid routing algorithm enables the determination of shortest paths between arbitrary locations by using an existing road network in combination with edges allowing the traversal of open spaces.
+	An evaluation of the implementation showed expected results for the following three main aspects regarding performance and route quality.
+	
+	First, the overall performance has an inherent quadratic time complexity due to the visibility graph creation.
+	Second, the route quality does benefit from edges covering open spaces and the routes did become shorter and more realistic with respect to expected routes real pedestrians would likely choose.
+	This increased realism of the routes can therefore have beneficial effects on agent-based models used to simulate human behaviors.
 	In contrast to the hybrid routing algorithm, purely graph-based routes showed a lower quality with longer routes and large detours, which is especially the case in rural areas with larger open spaces and a less dense road networks.
 	And third, the data quality has significant impact on the route quality.
-	Missing or wrong data might lead to routes, which are not possible in the real world.
+	Missing or wrong data leads to routes that are inaccurate or not possible to use in the real world.
 	
 	However, the presented algorithm has drawbacks which are covered in the following section about potential \hyperref[sec:future-work]{future work} as well as in my following final thoughts on the algorithm.
 	The most prominent drawback and disadvantage compared to common graph-based algorithm is the low performance.
