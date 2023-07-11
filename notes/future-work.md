@@ -26,3 +26,4 @@ Here are some thoughts on future work:
 * Connectin visibility egdes to each other might be a good idea when adding attributes to them
 * Taking road restrictions into account (tags as well as size)
 * Point like barriers (e.g gate on a road) have nearly no effect → generate orthogonal line-barrier or remove all visibility edges within a radius or something
+* Dynamic changes in obstacles, meaning add, remove or change existing obstacles. Visibility edges need to be re-calculated, but not all → which ones?
