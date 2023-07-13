@@ -272,39 +272,49 @@ public static class HybridVisibilityGraphGenerator
             .ToList();
         var roadSegments = FeatureHelper.SplitFeaturesToSegments(roadFeatures);
 
-        // Determine dead-ends and connect them manually. This enables the routing to better connect to roads.
-        var vertexToRoad = new Dictionary<Coordinate, ICollection<IFeature>>();
+        // To determine dead-ends and to connect them to the graph (enables the routing to better connect to roads),
+        // a mapping from coordinate to features with this coordinate is created and used below to detect dead-ends.
+        var coordinateToFeatures = new Dictionary<Coordinate, ICollection<IFeature>>();
         roadFeatures.Each(feature =>
         {
-            var coordinate = feature.Geometry.Coordinates[0];
-            if (!vertexToRoad.ContainsKey(coordinate))
-            {
-                vertexToRoad[coordinate] = new HashSet<IFeature>();
-            }
+            // Store the feature mapping for each coordinate. This allows the detection of e.g. T-shaped crossings
+            // where the end of one linestring has only one neighbor but is no dead-end. 
+            feature
+                .Geometry
+                .Coordinates
+                .Each(coordinate =>
+                {
+                    if (!coordinateToFeatures.ContainsKey(coordinate))
+                    {
+                        coordinateToFeatures[coordinate] = new HashSet<IFeature>();
+                    }
 
-            vertexToRoad[coordinate].Add(feature);
-
-            coordinate = feature.Geometry.Coordinates[^1];
-            if (!vertexToRoad.ContainsKey(coordinate))
-            {
-                vertexToRoad[coordinate] = new HashSet<IFeature>();
-            }
-
-            vertexToRoad[coordinate].Add(feature);
+                    coordinateToFeatures[coordinate].Add(feature);
+                });
         });
 
         // Add the dead-ends (coordinates belonging to only one road) to graph
-        vertexToRoad
+        coordinateToFeatures
             .Where(pair => pair.Value.Count == 1)
             .Each(pair =>
             {
-                var (node, _) = hybridGraph.AddPositionToGraph(pair.Key.ToPosition());
+                // Only one feature exists (-> above .Where clause)
+                var roadFeature = pair.Value.First();
+                
+                // Check if the coordinate is really the dead-end. 
+                var isDeadEndCoordinate = pair.Key.Equals(roadFeature.Geometry.Coordinates[0]) ||
+                                          pair.Key.Equals(roadFeature.Geometry.Coordinates[^1]);
+                if (!isDeadEndCoordinate)
+                {
+                    return;
+                }
                 
                 // We ignore valid angle areas for dead ends, since e.g. building passages might end at a building and
                 // therefore this dead-end would never be connected to anything, which is not the wanted behavior.
                 // Also the fact whether or not the vertex was created or not is ignored because of the same reason:
                 // The end-vertex of a building passage ending at a building already exists but we still want to
                 // connect the dead-end.
+                var (node, _) = hybridGraph.AddPositionToGraph(pair.Key.ToPosition());
                 hybridGraph.ConnectNodeToGraph(node, true, false);
             });
 
