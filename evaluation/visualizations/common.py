@@ -334,15 +334,17 @@ def save_to_file(
 		figure,
 		filename,
 		extension=None,
-		no_margin=False
+		no_margin=False,
+		h_pad=1.08,
+		w_pad=1.08
 	):
 
 	if extension == None:
-		save_to_file(figure, filename, "png", no_margin)
-		save_to_file(figure, filename, "pgf", True)
+		save_to_file(figure, filename, "png", no_margin, h_pad=h_pad, w_pad=w_pad)
+		save_to_file(figure, filename, "pgf", True, h_pad=h_pad, w_pad=w_pad)
 		#save_to_file(figure, filename, "pdf", True)
 	else:
-		figure.tight_layout(pad=0, h_pad=1.08, w_pad=1.08)
+		figure.tight_layout(pad=0, h_pad=h_pad, w_pad=w_pad)
 		figure.savefig(
 			"./"+filename+"."+extension,
 			pad_inches=0 if no_margin else None,
