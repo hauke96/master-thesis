@@ -485,28 +485,8 @@ Total time			& 21,658	& 8709		& 59.79\%						& 39.7			& 99.82\%
 			Whether or not the A* algorithms runtime grows quadratic in time therefore depends on the data of the dataset.
 			
 			\begin{figure}[h!]
-				\begin{figcenter}
-					\begin{subfigure}[t]{\textwidth}
-						\begin{figcenter}
-							\input{images/evaluation/pattern-based-circles/plot-routing-time-details.py_absolute_all.pgf}
-						\end{figcenter}
-						\caption{\enquote{Circles} dataset.}
-					\end{subfigure}
-					\\[3ex]
-					\begin{subfigure}[t]{\textwidth}
-						\begin{figcenter}
-							\input{images/evaluation/pattern-based-maze/plot-routing-time-details.py_absolute_all.pgf}
-						\end{figcenter}
-						\caption{\enquote{Maze} dataset.}
-					\end{subfigure}
-					\\[3ex]
-					\begin{subfigure}[t]{\textwidth}
-						\begin{figcenter}
-							\input{images/evaluation/pattern-based-rectangles/plot-routing-time-details.py_absolute_all.pgf}
-						\end{figcenter}
-						\caption{\enquote{Rectangles} dataset.}
-					\end{subfigure}
-				\end{figcenter}
+				\hspace{-20pt}
+				\input{images/evaluation/plot-times-pattern-datasets.py_routing.pgf}
 				\caption{Routing time between the longest distant waypoints in each pattern-based dataset.}
 				\label{fig:eval-pattern-routing-details}
 			\end{figure}
