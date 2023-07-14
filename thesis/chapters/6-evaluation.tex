@@ -531,7 +531,7 @@ Total time			& 12,854			& 6,202				&  51.75\%								& 37.19					& 99.71\%
 		First, the A* implementation of MARS accepts other weight functions than the default \enquote{shortest}-function.
 		This is also possible in the hybrid routing algorith when calling the \texttt{OptimalPath} method, which accepts a \texttt{Func} delegate as weight function.
 		
-		Second, filtering the potential visibility neighbors as described in \Cref{subsec:step-2-knn-search} might result in missing edges.
+		Second, filtering the potential visibility neighbors to get the $k$ nearest neighbors, as described in \Cref{subsec:step-2-knn-search}, might result in missing edges.
 		This has a direct effect on the quality of the resulting paths since they may not be optimal anymore.
 		\todo[inline]{Determine: Number of edges missing vs. performance boost}
 		
@@ -599,13 +599,7 @@ Total time			& 12,854			& 6,202				&  51.75\%								& 37.19					& 99.71\%
 			Second, within densely built-up areas, larger open spaces are rare and the combination of roads and buildings form corrdidors in which routes tend to lie.
 			When and how often the route determined by the hybrid routing algorithm follows a road depends on the weighting function.
 			
-			Third, large roads create instances of the aforementioned rare but wide obstacle-free areas, which, however, might result in unrealistic road crossings.
-			Such situation can be seen in \Cref{fig:eval-city-road-crossing} with crossings over a six-lane road, which would be dangerous and unrealistic for real-world pedestrians.
-			
-			Forth, the weight function has a huge impact on the route quality.
-			It specifies for example how strongly roads should be preferred, which is illustrated in \Cref{fig:eval-city-weights} with the same route using different weights for road edges.
-			Adjusting and definiting fine-grained weight functions may help to imporove the routing behavior in some of the above mentioned situations.
-			
+			\clearpage
 			\begin{figure}[h!]
 				\begin{minipage}[t]{.48\textwidth}
 					\begin{subfigure}[t]{\linewidth}
@@ -622,11 +616,11 @@ Total time			& 12,854			& 6,202				&  51.75\%								& 37.19					& 99.71\%
 						\begin{figcenter}
 							\includegraphics[width=\textwidth]{images/qgis-routing-city-routing-3}
 						\end{figcenter}
-						\caption{Missing obstacles (in this case walls and fences between buildings) might lead to non-realistic routes.}
+						\caption{Missing obstacles (mainly walls and fences between buildings) lead to non-realistic routes.}
 						\label{fig:eval-city-usefulness-b}
 					\end{subfigure}
 				\end{minipage}
-				\\
+				\\[3ex]
 				\begin{minipage}[t]{.48\textwidth}
 					\begin{subfigure}[t]{\linewidth}
 						\begin{figcenter}
@@ -646,7 +640,7 @@ Total time			& 12,854			& 6,202				&  51.75\%								& 37.19					& 99.71\%
 						\label{fig:eval-city-usefulness-d}
 					\end{subfigure}
 				\end{minipage}
-				\caption{Comparison of realistic routes (green), graph-based routing results (black) and hybrid routing algorithm results (blue) using the 1km\textsuperscript{2} \enquote{OSM city} dataset. Passages with missing or faulty data are marked in red, which are the main cause of the deviations to the expected route.}
+				\caption{Expected (green), graph-based (black) and hybrid routing algorithm results (blue) using the 1km\textsuperscript{2} city dataset. Unexpected parts due to missing or faulty data are marked in red.}
 				\label{fig:eval-city-usefulness}
 				\begin{minipage}[t]{.48\textwidth}
 					\begin{figcenter}
@@ -664,6 +658,13 @@ Total time			& 12,854			& 6,202				&  51.75\%								& 37.19					& 99.71\%
 					\label{fig:eval-city-weights}
 				\end{minipage}
 			\end{figure}
+			
+			Third, large roads create instances of the aforementioned rare but wide obstacle-free areas, which, however, might result in unrealistic road crossings.
+			Such situation can be seen in \Cref{fig:eval-city-road-crossing} with crossings over a six-lane road, which would be dangerous and unrealistic for real-world pedestrians.
+			
+			Forth, the weight function has a huge impact on the route quality.
+			It specifies for example how strongly roads should be preferred, which is illustrated in \Cref{fig:eval-city-weights} with the same route using different weights for road edges.
+			Adjusting and definiting fine-grained weight functions may help to imporove the routing behavior in some of the above mentioned situations.
 			
 			% Interesting passages from the rural dataset
 			In the \enquote{OSM city} datasets with only smaller open areas, graph-based routes and routes determined by the hybrid routing algorithm were often similar and some parts even identical.
