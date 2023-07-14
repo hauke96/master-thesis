@@ -367,6 +367,8 @@ For both evaluation aspects, method and design details are given followed by the
 		\subsubsection{Dataset without roads or obstacles}
 		\label{subsubsec:dataset-without-roads-obstacles}
 		
+			\todo{Text durchgehen und aktualisieren}
+		
 			The normal OSM-based datasets contain both, roads and obstacles.
 			However, datasets containing only roads or only obstacles are thinkable and can also be used with the hybrid routing algorithm.
 			For this evaluation, the 4km\textsuperscript{2} datasets of the \enquote{OSM city} and \enquote{OSM rural} categories were filtered yielding three datasets for each category:
@@ -377,15 +379,15 @@ For both evaluation aspects, method and design details are given followed by the
 			\begin{figure}[h!]
 				\begin{figcenter}
 					\begin{tabularx}{0.95\textwidth}{p{3cm}|X|XX|p{2.25cm}X}
-\textbf{Operation} & \textbf{Normal} & \textbf{No roads} & \textbf{Decrease compared to normal} & \textbf{No obstacles} & \textbf{Decrease compared to normal} \\
+\textbf{Operation}	& \textbf{Normal}	& \textbf{No roads}	& \textbf{Decrease compared to normal}	& \textbf{No obstacles}	& \textbf{Decrease compared to normal}	\\
 \hline
-kNN search			& 537.66	& 512.16	& 4.74\%						& 0.000012		& 99.9999\%						\\
-Create graph		& 1.17		& 1.04		& 10.65\%						& 0.000013		& 99.9989\%						\\
-Get obstacles		& 0.199		& 0.201		& -0.94\%						& 0.01			& 99.995\%						\\
-Merge road edges	& 432.32	& 21.77		& 94.86\%						& 1.39			& 99.67\%						\\
-Add POI attributes	& 0.059		& 0.033		& 44.06\%						& 0.012			& 79.66\%						\\
+kNN search			& 315.86			& 288.69			&  8.60\%								& 0.000011				& 99.9999\%								\\
+Create graph		&   0.69			&   0.68			&  0.84\%								& 0.000014				& 99.9999\%								\\
+Get obstacles		&   0.30			&   0.29			&  3.28\%								& 0.0095				& 96.82\%								\\
+Merge road edges	& 120.13			&  30.79			& 74.37\%								& 0.48					& 99.60\%								\\
+Add POI attributes	&   0.054			&   0.025			& 53.81\%								& 0.008					& 85.97\%								\\
 \hline
-Total time			& 963.1		& 535.29	& 44.42\%						& 1.43			& 99.85\%
+Total time			& 437.34			& 320.57			& 26.70\%								& 0.53					& 99.88\%
 					\end{tabularx}
 				\end{figcenter}
 				\vspace{3ex}
@@ -397,26 +399,28 @@ Total time			& 963.1		& 535.29	& 44.42\%						& 1.43			& 99.85\%
 			\end{figure}
 			
 			\Cref{fig:eval-import-osm-no-roads-obstacles-city} lists and illustrates the results for the \enquote{OSM city} datasets.
-			Two noteworthy insights can be inferred from these data:
+			Some noteworthy insights can be inferred from these data:
 			\begin{itemize}
-				\item The kNN search and visibility graph creation times were significantly reduced for the dataset without obstacles, which is expected, since both operations are unrelated to road edges and only take obstacles into account.
+				\item The kNN search and visibility graph creation times were significantly reduced for the dataset without obstacles, which is expected, since both operations take only obstacles into account.
 				\item The merge operation for the dataset without roads took longer compared to the dataset without obstacles.
 				This is due to the 175 remaining building passages within the \enquote{no roads} dataset, which means this operation still merges road edges and therefore requires some time.
-				However, compared to the normal dataset the merge operation only required 5.14\% of the time in the \enquote{no road} dataset, which correlates to the number of remaining road edges of 4.82\% (175 edges) compared to the normal dataset (3629 edges).
-				In the \enquote{no obstacles} dataset the merge operation took 0.33\% of the normal time, due to no existing visibility graph these road edges could be merged into.
+				However, compared to the normal dataset the merge operation only required 25.63\% of the time in the \enquote{no road} dataset, which does not match the number of remaining road edges of 4.82\% (175 edges) compared to the normal dataset (3629 edges).
+				Because building passages consist of short segments, their start and end vertices needs to be connected to the rest of the graph.
+				This is the case for 742 such dead-end vertices in the normal dataset and for 346 in the dataset without roads, which yields the relatively, with respect to the number of edges, long processing time.
+				\item In the \enquote{no obstacles} dataset the merge operation took 0.4\% of the normal time. This is expected, because no visibility graph edges exist and therefore to merge between visibility edges and road edges takes place.
 			\end{itemize}
 			
 			\begin{figure}[h!]
 				\begin{tabularx}{0.95\textwidth}{p{3cm}|X|XX|p{2.25cm}X}
-\textbf{Operation} & \textbf{Normal} & \textbf{No roads} & \textbf{Decrease compared to normal} & \textbf{No obstacles} & \textbf{Decrease compared to normal} \\
+\textbf{Operation}	& \textbf{Normal}	& \textbf{No roads}	& \textbf{Decrease compared to normal}	& \textbf{No obstacles}	& \textbf{Decrease compared to normal}	\\
 \hline
-kNN search			& 8,402		& 8,428		& -0.32\%						& 0.013			& 99.9998\%						\\
-Create graph		& 217		& 231		& -6.7\%						& 0.013			& 99.994\%						\\
-Get obstacles		& 24.51		& 24.45		& -4.03\%						& 0.73			& 96.88\%						\\
-Merge road edges	& 12,953	& 1.47		& 99.989\%						& 35.6			& 99.73\%						\\
-Add POI attributes	& 1.7		& 1.45		& 14.69\%						& 0.41			& 75.97\%						\\
+kNN search			&  5,958			& 5,924				&   0.57\%								&  0.0094				& 99.9998\%								\\
+Create graph		&    191.68			&   210.4			&  -9.76\%								&  0.012				& 99.9936\%								\\
+Get obstacles		&     42.53			&    40.76			&   4.15\%								&  0.78					& 98.16\%								\\
+Merge road edges	&  6,600			&     5.67			&  99.91\%								& 32.79					& 99.5\%								\\
+Add POI attributes	&      4.83			&     1.53			&  68.21\%								&  0.42					& 91.26\%								\\
 \hline
-Total time			& 21,658	& 8709		& 59.79\%						& 39.7			& 99.82\%
+Total time			& 12,854			& 6,202				&  51.75\%								& 37.19					& 99.71\%
 				\end{tabularx}
 				\vspace{3ex}
 				\begin{figcenter}
@@ -431,23 +435,21 @@ Total time			& 21,658	& 8709		& 59.79\%						& 39.7			& 99.82\%
 			There are some differences to the results of the \enquote{OSM city} dataset:
 			\begin{itemize}
 				\item In contrast to the \enquote{OSM city} dataset, the results show the expected significant reduction in time for the merge operation for the dataset without roads, because no building passages existed in the rural dataset.
-				\item A comparison of the kNN search and road merge operations of the normal dataset shows, that the merge operation actually took 54.17\% longer than the kNN search.
-				Results of the normal \enquote{OSM city} dataset shows the opposite relation with 21.2\% less time required for the merge operation.
-				A possible explanation is the ratio of road to visibility edges, which is 1:42 for the city dataset (for one road edge, 42 visibility edges existed) and 1:274 for the rural dataset.
+				\item A comparison of the kNN search and road merge operations of the normal dataset shows, that the merge operation actually took 10.77\% longer than the kNN search.
+				Results of the normal \enquote{OSM city} dataset shows the opposite relation with 61.97\% less time required for the merge operation.
+				A possible explanation is the ratio of road to visibility edges, which is 1:33 for the city dataset (for one road edge, 33 visibility edges existed) and 1:264 for the rural dataset.
 				This means that more intersections per road edges exist in the rural dataset, which was actually the case:
-				Within the city dataset the number of road edges increased by a factor of 83 and within the rural dataset by a factor of 240.
+				Within the city dataset the number of road edges increased by a factor of 66 and within the rural dataset by a factor of 221.
 				Therefore, the time spent on one road edge was significantly higher within the rural dataset and likely lead to the significant increase in time required for the merge operation.
-				\item The first three measurements of the \enquote{no roads} dataset listed in the table are especially noteworthy since they show an increased processing time compared to the normal dataset.
-				However, for the kNN search, the increase of 0.32\% (26ms) is considered insignificant and likely caused by noise in the data.
-				The other two operations, creating the graph and getting all obstacles, were distorted by outliers in the data leading to an increase of their processing times.
-				Furthermore, each of these three operations is completely independent of the existence of roads and therefore no indication exists justifying an increase in processing time.
+				\item The time required by the graph creation in the \enquote{no roads} dataset is especially noteworthy since it shows an increased processing time compared to the normal dataset.
+				But because the data was slightly distorted due to outliers and no relation between roads and the graph creation exists, it can be assumed that this increase in time has no algorithmic reason.
 			\end{itemize}
 			Apart these differences and unique characteristics, both dataset categories also show similar results for the kNN search, graph generation and overall processing time.
 			First of all, removing the obstacles removes the main complexity and therefore significantly decreases the processing time.
 			Not removing all obstacles, but decreasing their amount might reduce the processing time significantly due to the overall quadratic runtime complexity of the kNN search.
 			Second, the kNN search and graph creation are not affected by removed roads.
 			The total processing time, however, decreases with removed roads due to the faster merge operation.
-			Third, even though it is not a significant part of the processing time in the first place, adding attributes to points of interest (POI) is also reduced when removing obstacles or roads.
+			Third, even though it is not a significant part of the processing time in the first place, getting obstacles and adding attributes to points of interests (POIs) is also reduced when removing obstacles or roads.
 	
 	\subsection{Pattern-based datasets}
 	
