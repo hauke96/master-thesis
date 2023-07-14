@@ -116,7 +116,7 @@ For both evaluation aspects, method and design details are given followed by the
 		
 		\subsubsection{System and hardware}
 		
-			The measurements were performed on an up-to-date Arch Linux operating system (Kernel 6.3.9) with .NET Core 7.0.107 and MARS framework 4.5.2.
+			The measurements were performed on an up-to-date Arch Linux operating system (Kernel 6.4.3) with .NET Core 7.0.107 and MARS framework 4.5.2.
 			Apart from necessary operating system processes and the simple desktop environment i3, no other applications ran during the performance measurements.
 			
 			The hardware consisted of an octa core Intel\textregistered\ Xeon\textregistered\ E3-1231 v3 CPU at 3.40 GHz, a total of 16GB DDR3 1333 MHz RAM and a Samsung EVO 850 SSD.
@@ -191,15 +191,15 @@ For both evaluation aspects, method and design details are given followed by the
 			\end{figure}
 			
 			First of all and as mentioned at the beginning of \Cref{subsec:related-work:visibility-graph}, the process of generating a visibility graph has an inherent quadratic runtime.
-			This fact is clearly visible in measurements of the dataset imports as seen in \Cref{fig:eval-import-city-abs} and \Cref{fig:eval-import-rural-abs}.
+			This fact is clearly visible in measurements of the dataset imports illustrated in \Cref{fig:eval-import-city-abs} and \Cref{fig:eval-import-rural-abs}, even though it is less prominent in the \enquote{OSM rural} datasets.
 			Details on the contribution of each task to the overall graph generation time can be seen in \Cref{fig:eval-import-details}.
 			
 			Second, \Cref{fig:eval-import-city-rel-increase} and \ref{fig:eval-import-rural-rel-increase} show the increase in the per-vertex processing time when a new additional vertex is added to the dataset.
 			A value of 1µs means, that the processing time of every vertex increases by 1µs when the dataset size increases by one vertex.
-			This value is very low for the \enquote{OSM city} datasets (below half of a microsecond) and even decreases within the \enquote{OSM rural} datasets from 4.1µs to 0.6µs.
-			However, the \enquote{OSM city} datasets indicate that this value might increase again with larger dataset sizes but might remain at a low level.
-			This significantly different behavior is very likely influenced by the type of dataset, i.e. the distribution and size of obstacles.
-			Pattern-based datasets showed a runtime behavior similar to the \enquote{OSM city} dataset, which is another indicator that the effect from \Cref{fig:eval-import-rural-rel-increase} is caused by the structure of the dataset.
+			This value is very low for the \enquote{OSM city} datasets (around 0.2µs) and even decreases within the \enquote{OSM rural} datasets from 3.3µs to 0.35µs.
+			However, the \enquote{OSM city} datasets indicate that this value might increase again with larger dataset sizes.
+			This significantly different behavior is very likely influenced by the type of dataset, i.e. the distribution of obstacles and size of the dataset.
+			Pattern-based datasets showed a runtime behavior similar to the OSM-based datasets with decreasing times for smaller and increasing times for larger datasets, which is another indicator that the effect from \Cref{fig:eval-import-rural-rel-increase} is caused by the size of the dataset.
 			A decrease in this per-vertex time increase has no directly noticeable effect on the overall graph generation time, which still shows a quadratic increase.
 			
 			\begin{figure}[h!]
@@ -225,29 +225,30 @@ For both evaluation aspects, method and design details are given followed by the
 			In \Cref{fig:eval-import-details} both OSM dataset import times are split into the performed tasks.
 			The task with the largest effort in terms of the required time differs from the dataset category.
 			
-			In the \enquote{OSM city} datasets, the $k$ nearest neighbor (kNN) search is the most time consuming task with a share on the total time of constantly over 50\%.
+			In the \enquote{OSM city} datasets, the $k$ nearest neighbor (kNN) search is the most time consuming task with a share on the total time of constantly over 60\%.
 			The second most time consuming task is the merge operation, where visibility and road edges are merged and connected
-			Together, these two steps are responsible for over 98.7\% of the required graph generation time.
+			Together, these two steps are responsible for over 98.1\% of the required graph generation time.
 			
 			A different situation can be found in the \enquote{OSM rural} dataset.
-			Here, the merge operation is the heavier task with a share of at least 59.8\% on the overall graph generation time.
+			Here, the merge operation is the heavier task with a share of at least 51.4\% on the overall graph generation time.
 			This effect of a more time-consuming merge operation is further discussed in \Cref{subsubsec:dataset-without-roads-obstacles}.
-			The times of the kNN search and the merge operation sum up to 97.1\% of the graph generation time.
+			The times of the kNN search and the merge operation sum up to 96.5\% of the graph generation time.
 			
 			Even though the order which task is the heaviest is different, both runtimes of the kNN search and the merge operation are the most significant ones.
-			The graph creation task in the \enquote{OSM rural} datasets is the only additional task with a share of over 1\%.
-			All other tasks have a negligible share on the total graph generation time of below 1\%, which decreases with the size of the dataset.
+			The graph creation task in the \enquote{OSM rural} datasets is the only additional task throughout all tasks in all OSM-based datasets with a share of over 1\%.
+			All other tasks have a negligible share on the total graph generation time of below 1\%, which decrease with the size of the dataset.
 	
 		\subsubsection{Routing}
 		
-			The time required for routing is influenced by several different factors.
-			First of all, routing consists of several tasks, each contributing to the overall routing time by different proportions.
-			Second, the dataset size is a strong influencing factor but has differently strong influence on the several routing tasks.
-			Third, the structure of the data, meaning the number, size and distribution of obstacles, also influences the required time for routing.
+			Routing consists of several tasks with varying degrees of impact on the total routing time.
+			The time required for a routing task is influenced by two main factors.
+			First, the dataset size is a strong influencing factor but has differently large impacts on the time of the routing tasks.
+			Second, the structure of the data, meaning the number, size and distribution of obstacles, also influences the required time for routing.
 			In fact, the size of the dataset is the strongest influence on the overall routing time as it affects all tasks during routing.
 			
 			\Cref{fig:eval-city-routing-details} and \ref{fig:eval-rural-routing-details} show the routing times from the \enquote{OSM city} and \enquote{OSM rural} datasets as well as details on the separate tasks during routing.
 		
+			\clearpage
 			\begin{figure}[h!]
 				\begin{figcenter}
 					\begin{subfigure}[t]{\textwidth}
@@ -284,6 +285,7 @@ For both evaluation aspects, method and design details are given followed by the
 				\label{fig:eval-city-routing-details}
 			\end{figure}
 			
+			\clearpage
 			\begin{figure}[h!]
 				\begin{figcenter}
 					\begin{subfigure}[t]{\textwidth}
@@ -320,18 +322,18 @@ For both evaluation aspects, method and design details are given followed by the
 			\end{figure}
 			
 			Starting with the total routing times, both categories show different runtime behavior in terms of the route length.
-			While in the \enquote{OSM city} datasets the route calculation is positively correlated with the beeline distance (longer distance means longer calculation time), this correlation is negative in the \enquote{OSM rural} dataset.
+			While the \enquote{OSM city} datasets shows no correlation between the beeline distance and the routing time, the \enquote{OSM rural} dataset shows a negative correlation (longer distance means shorter routing time).
 			
-			The difference is most prominent in the largest \enquote{OSM rural} dataset between the first and the fifth routing request.
+			This negative correlation is most prominent in the largest \enquote{OSM rural} dataset between the first and the fifth routing request.
 			Since the majority of the time is needed to connect the source and destination locations to the graph, the presence of nearby obstacles has a significant impact on the routing time.
-			As illustrated in \Cref{fig:eval-osm-rural-map}, the destination vertex of the first routing request has no nearby obstalces.
+			As illustrated in \Cref{fig:eval-osm-rural-map}, the destination vertex of the first routing request has no nearby obstacles.
 			This means no efficient use of shadow areas can be made resulting in more visibility checks and therefore slower runtime.
 			The destination vertex of the fifth request has multiple obstacles nearby casting large shadow areas towards many buildings, which then do not need to be further checked.
-			As a result, 101 visibility edges are connected to the destination vertex of the first and only 18 to the destination vertex of the fifth request.
+			As a result, 86 visibility edges are connected to the source vertex of the first and 18 to the source vertex of the fifth request.
 			
 			This phenomenon of longer routing times for routing between short distant vertices does not appear in the \enquote{OSM city} dataset due to the high density of obstacles enabling an efficient use of shadow areas.
-			But the effect is still visible in \Cref{fig:eval-city-routing-details-a} at requests with a beeline distance of for example 700m, 800m and 950m.
-			These requests contain vertices at larger junctions or wide roads with only a few nearby obstacles resulting in many visibility checks with many generated visibility edges.
+			But the effect is still visible in \Cref{fig:eval-city-routing-details-a} at the requests with a beeline distance between 0.5km and 1km.
+			Requests in this range, which have a longer processing time, contain vertices at junctions or wide roads with only a few surrounding obstacles, which yields longer processing times.
 			
 			\vspace{3ex}
 			\noindent
@@ -341,9 +343,9 @@ For both evaluation aspects, method and design details are given followed by the
 					\begin{tabularx}{\textwidth}{|p{2cm}|X|X|}
 						\hline
 						\textbf{Request no.}				& 1			& 5			\\\hline
-						\textbf{Beeline\newline distance}	& 100.40 m	& 300.78 m	\\\hline
-						\textbf{Routing\newline time}		& 452.9 ms	& 130.1 ms	\\\hline
-						\textbf{Time per m}					& 4.51 ms	& 0.43 ms	\\\hline
+						\textbf{Beeline\newline distance}	& 100.42 m	& 300.78 m	\\\hline
+						\textbf{Routing\newline time}		& 519.5 ms	& 127.19 ms	\\\hline
+						\textbf{Time per m}					& 5.17 ms	& 0.42 ms	\\\hline
 					\end{tabularx}
 				\end{minipage}
 				\hfill
