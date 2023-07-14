@@ -97,6 +97,7 @@ def relative_plot(ax, with_legend=True, yscale=None):
 	filtered=pd.concat([dataset[dataset["aspect"]=="merge_road_graph_time"], dataset[dataset["aspect"]=="knn_search_time"]])
 	grouped=dataset.groupby(by=["obstacle_vertices_input", "aspect"]).sum().reset_index()
 	grouped["avg"] = grouped["time"].div(5)
+	grouped["percentage"] = grouped["avg"]*100
 	print(grouped.to_string())
 
 	common.create_lineplot(

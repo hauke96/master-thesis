@@ -37,7 +37,7 @@ plot=common.create_lineplot(
 )
 plot.ticklabel_format(style='plain', axis='y')
 
-common.save_to_file(fig, os.path.basename(__file__) + "_absolute")
+#common.save_to_file(fig, os.path.basename(__file__) + "_absolute")
 
 #
 # Plot relative numbers
@@ -53,12 +53,14 @@ plot=common.create_lineplot(
 	#title,
 )
 
-common.save_to_file(fig, os.path.basename(__file__) + "_per-vertex")
+#common.save_to_file(fig, os.path.basename(__file__) + "_per-vertex")
 
 #
 # Plot time increase per vertex for each new vertex. I.e. the processing time of every vertex increases by this amount if a new vertex is added
 #
 dataset["iteration_time_rel_added"]=dataset["iteration_time_rel"]/dataset["obstacle_vertices_input"]*1000
+
+print(dataset[["obstacle_vertices_input", "iteration_time_rel_added"]].to_string())
 
 fig_added, ax_added= plt.subplots()
 plot=common.create_lineplot(
@@ -69,4 +71,4 @@ plot=common.create_lineplot(
 	scientific_labels=False,
 )
 
-common.save_to_file(fig_added, os.path.basename(__file__) + "_per-vertex-added")
+#common.save_to_file(fig_added, os.path.basename(__file__) + "_per-vertex-added")

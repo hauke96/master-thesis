@@ -15,7 +15,7 @@ color_red="#b42727"
 color_green="#27b43e"
 
 color_palette_flare=sns.color_palette("flare", as_cmap=True)
-color_palette_blue=sns.color_palette("blend:"+color_blue, as_cmap=True)
+color_palette_blue=sns.color_palette("blend:"+color_blue+","+color_blue, as_cmap=True)
 color_palette_blue_green=sns.color_palette("blend:"+color_blue+","+color_green, as_cmap=True)
 color_palette_blue_red=sns.color_palette("blend:"+color_blue+","+color_blue, as_cmap=True)
 color_palette_selected_name="custom_blue"
