@@ -35,6 +35,7 @@
 
 \usepackage[left=2.5cm, top=2.5cm, right=2.5cm, bottom=2.5cm, bindingoffset=5mm]{geometry}
 \usepackage{fancyhdr}
+\usepackage[hang]{footmisc}
 
 \usepackage{amsmath}
 \usepackage{amsfonts}
@@ -46,16 +47,17 @@
 
 \usepackage[x11names]{xcolor}
 \usepackage{graphicx}
-\usepackage[labelfont=bf,format=plain,indention=0.5cm]{caption}
-\usepackage{subcaption}
 \usepackage{wrapfig}
 \usepackage{tabularx}
+\usepackage[labelfont=bf,format=plain,indention=0.5cm]{caption}
+\usepackage{subcaption}
+
 \usepackage{enumerate}
 \usepackage{enumitem}
+
 \usepackage{multicol}
 \usepackage{xifthen}
 \usepackage{suffix}
-\usepackage[hang]{footmisc}
 
 % TODO remove this when done
 \newcommand{\todo}[2][]
@@ -70,6 +72,12 @@
 		\vspace{0.25cm}\par%
 	}%
 }
+
+%
+% Abstract
+%
+\newenvironment{abstract}{}{} % Needed due to re-definition in package "abstract"
+\usepackage{abstract}
 
 %
 % BibTex, Index, etc.
@@ -164,7 +172,6 @@
 }
 \tikzexternalize[prefix=tikz-cache/]
 
-
 \tikzset{every path/.append style={line width=0.5pt}}
 \tikzset{every path/.append style={>=stealth}}
 \tikzset{
@@ -201,6 +208,9 @@
 	\include{titlepage.tex}
 	
 	\pagenumbering{Roman}
+	
+	\input{chapters/abstract.tex}
+	\vfill
 	
 	\tableofcontents
 	\clearpage
