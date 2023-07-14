@@ -856,7 +856,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 	\begin{enumerate}
 		\item \label{itm:answering-queries-add-nodes} Add nodes for the source and destination locations of the routing query to the graph.
 		\item \label{itm:answering-queries-vis-edges} Determine visibility edges of each of the two nodes and merge these new edges into the graph.
-		\item \label{itm:answering-queries-routing} Use a normal shortest path algorithm, such as A*, to find the path from the source to the destination.
+		\item \label{itm:answering-queries-routing} Use a normal shortest path algorithm, such as A*, together with a weight function to find the path from the source to the destination.
 		\item \label{itm:answering-queries-cleanup} Remove all previously added nodes and edges to get a clean graph for future routing requests.
 	\end{enumerate}
 	Step \ref{itm:answering-queries-add-nodes} creates two new nodes in the spatial graph as far as no node already exists at the respective location.
@@ -869,4 +869,4 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 	Fortunately, the \texttt{SpatialGraph.RemoveNode(int)} method removes the node given by its ID and also removes all edges, which are connected to the given node.
 	This makes step \ref{itm:answering-queries-cleanup} very easy since step \ref{itm:answering-queries-add-nodes} and \ref{itm:answering-queries-vis-edges} yield the IDs of created nodes, which are needed for the cleanup.
 	
-	\todo{Summary/wrap up/transition to evaluation chapter}
+	The performance of routing and quality of the determined routes depend on several factors, with are discussed in the next chapter.
