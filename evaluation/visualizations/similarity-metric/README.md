@@ -15,5 +15,8 @@ In order to make this work for the expected linestrings and the Hiker trip, some
 Then use the script:
 
 ```bash
-./linestring-distance.py osm-city-expected.geojson osm-city-hiker-simplified.geojson 2>/dev/null > osm-city-hausdorff_distances.csv
+DATASET="osm-rural"
+./linestring-distance.py $DATASET-expected.geojson $DATASET-hiker-simplified.geojson 2>/dev/null > $DATASET-hiker-hausdorff_distances.csv
+./linestring-distance.py $DATASET-expected.geojson $DATASET-routing.geojson 2>/dev/null > $DATASET-routing-hausdorff_distances.csv
+./plot.py $DATASET
 ```
