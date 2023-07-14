@@ -455,11 +455,11 @@ Total time			& 12,854			& 6,202				&  51.75\%								& 37.19					& 99.71\%
 	
 		\subsubsection{Import and graph generation}
 		
-			Due to the repeated pattern in the datasets, the distribution of obstacles and vertices is much more regular compared to the OSM-based datasets.
+			Due to the repeated patterns in the datasets, the distribution of obstacles and vertices is much more regular compared to the OSM-based datasets.
 			This is also reflected in the results of the graph generation as seen in \Cref{fig:eval-import-pattern-abs}.
 			Due to the lack of roads, the overall graph generation time is determined by the time required by the kNN search.
-			Except for smaller datasets of up to 15,000 input vertices, all other tasks only have a negligible impact on the graph generation time.
-			Both aspects are illustrated in \Cref{fig:eval-import-pattern-maze-abs-rel} for the maze dataset.
+			Only for smaller datasets of up to an input vertex count of about 3,500 (depending on the dataset category), all other tasks combined had an impact of up to 5\% on the total graph generation time.
+			Absolute and relative numbers for the maze dataset can be seen in \Cref{fig:eval-import-pattern-maze-abs-rel}.
 			
 			\begin{figure}[h!]
 				\begin{figcenter}
@@ -473,18 +473,18 @@ Total time			& 12,854			& 6,202				&  51.75\%								& 37.19					& 99.71\%
 				\begin{figcenter}
 					\input{images/evaluation/pattern-based-maze/plot-import-details-per-vertices.py_absolute-relative.pgf}
 				\end{figcenter}
-				\caption{Tasks during graph generation using the maze dataset in absolute time (left) and relative share on the total time (right).}
+				\caption{Tasks during graph generation using the maze dataset in absolute time (left) and relative share on the total time (right). The kNN search determines the total processing time covering the data points for the total time.}
 				\label{fig:eval-import-pattern-maze-abs-rel}
 			\end{figure}
 		
 		\subsubsection{Routing}
 		
-			Because the pattern-based datasets did not contain any roads, the time required for routing solely depends on the size of the visibility graph and therefore on the time required to connect the source and destination vertices, which is the main task during routing.
+			Because the pattern-based datasets did not contain any roads, the time required for routing solely depended on the size of the visibility graph and therefore on the time required to connect the source and destination vertices, which is the main task during routing.
 			This task uses parts of the graph generation algorithm and therefore its runtime also increases quadratically with the number of vertices in the graph.
 			
-			The A* algorithm uses this quadratically growing graph and therefore shows a quadratic runtime itself.
-			However, a linear regression on the data of the maze- and rectangle-based datasets yield an equally good correlation.
-			Whether or not the A* algorithms runtime grows quadratic in time therefore depends on the data of the dataset.
+			The A* algorithm uses this quadratically growing graph and therefore shows a quadratic runtime, too.
+			However, this quadratic runtime is not clearly visible in the data and a linear regression of the maze- and rectangle-based datasets yield an similarly good correlation.
+			The effect of a quadratic complexity might therefore be significant in even larger datasets.
 			
 			\begin{figure}[h!]
 				\hspace{-20pt}
