@@ -37,7 +37,7 @@ done
 echo "===================="
 echo "  Combined pattern-based plot"
 echo "===================="
-./plot-import-times-pattern-datasets.py
+./plot-times-pattern-datasets.py
 adjust_pgf .
 
 echo "Done"
