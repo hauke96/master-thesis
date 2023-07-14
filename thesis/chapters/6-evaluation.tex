@@ -248,7 +248,6 @@ For both evaluation aspects, method and design details are given followed by the
 			
 			\Cref{fig:eval-city-routing-details} and \ref{fig:eval-rural-routing-details} show the routing times from the \enquote{OSM city} and \enquote{OSM rural} datasets as well as details on the separate tasks during routing.
 		
-			\clearpage
 			\begin{figure}[h!]
 				\begin{figcenter}
 					\begin{subfigure}[t]{\textwidth}
@@ -284,8 +283,8 @@ For both evaluation aspects, method and design details are given followed by the
 				\caption{Routing time statistics of the \enquote{OSM city} datasets.}
 				\label{fig:eval-city-routing-details}
 			\end{figure}
-			
 			\clearpage
+			
 			\begin{figure}[h!]
 				\begin{figcenter}
 					\begin{subfigure}[t]{\textwidth}
@@ -320,6 +319,7 @@ For both evaluation aspects, method and design details are given followed by the
 				\caption{Routing time statistics of the \enquote{OSM rural} datasets.}
 				\label{fig:eval-rural-routing-details}
 			\end{figure}
+			\clearpage
 			
 			Starting with the total routing times, both categories show different runtime behavior in terms of the route length.
 			While in the \enquote{OSM city} datasets the route calculation is positively correlated with the beeline distance (longer distance means longer calculation time), this correlation is negative in the \enquote{OSM rural} dataset.
@@ -461,7 +461,7 @@ Total time			& 21,658	& 8709		& 59.79\%						& 39.7			& 99.82\%
 			
 			\begin{figure}[h!]
 				\begin{figcenter}
-					\input{images/evaluation/plot-import-times-pattern-datasets.py_absolute.pgf}
+					\input{images/evaluation/plot-times-pattern-datasets.py_import.pgf}
 				\end{figcenter}
 				\caption{Total graph generation times for all three pattern-based dataset categories.}
 				\label{fig:eval-import-pattern-abs}
