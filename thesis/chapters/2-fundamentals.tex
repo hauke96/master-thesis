@@ -318,7 +318,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		\subsubsection{\term*[single-pair shortest paths]{Single-pair shortest paths}}
 		
 			The shortest path from one specific source to one specific destination vertex should be determined.
-			Even though there are specialized algorithms for this problem like TRANSIT (described in \Cref{subsubsec:transit}), more general approaches solving the single-source problem, such as Dijkstra or algorithms based on it, are used more often.
+			Even though there are specialized algorithms for this problem like TRANSIT (described in \Cref{subsubsec:other-speedup-methods}), more general approaches solving the single-source problem, such as Dijkstra or algorithms based on it, are used more often.
 			% TODO source on that
 		
 		\subsubsection{\term*[all-pair shortest paths]{All-pair shortest paths}}
@@ -431,67 +431,60 @@ Hence, the topic of agents and simulations will be covered as well.
 			A crucial part of this technique is the selection of vertices to contract\cite[14]{geisberger-contraction-hierarchies}.
 			The vertices are selected by a total order defining the level of importance for each vertex.
 			Creating a good order is difficult and heuristics are used to approximate an optimal ordering.
-			Such heuristics can for example be the difference in edge counts from before and after contraction, the uniformity of the distribution of contractions in the graph or the resulting size of the query search space.
-			Multiple heuristics can be combined, leading to even better results\cite[49]{geisberger-contraction-hierarchies}.
-			The vertices are stored in a priority queue based on a linear combination of all used heuristics and the highest prioritized vertex is processed first.
+%			Such heuristics can for example be the difference in edge counts from before and after contraction, the uniformity of the distribution of contractions in the graph or the resulting size of the query search space.
+%			Multiple heuristics can be combined, leading to even better results\cite[49]{geisberger-contraction-hierarchies}.
+%			The vertices are stored in a priority queue based on a linear combination of all used heuristics and the highest prioritized vertex is processed first.
 			
 			The contraction hierarchy can be used with an adjusted bidirectional Dijkstra algorithm\cite[29-30]{geisberger-contraction-hierarchies}.
 			A query for the shortest path is performed using two graphs, an upward and downward graph.
 			The upward graph contains only edges from lower to higher order vertices and the downward graph only from higher to lower order vertices.
-			Each of these graphs performs one sub-query, which eventually meet in the same vertex.
-			If this happens \emph{and} no lower weighted edge towards a vertex remaining in the priority queue exists, then the overall queries terminate.
-			All shortcut edges must now be recursively relaxed to create the actual shortest path, which means the shortcut edges are turned back into the original edges that were used to create them.
+%			In each of these graphs one sub-query is performed, which eventually meet in the same vertex.
+			Two sub-queries are performed, one in the upward- and one in the downward-graph, which terminate if they meet in the same vertex and no lower weighted edge towards a vertex remaining in the priority queue exists.
+			All shortcut edges must now be recursively relaxed, i.e. replaced by the original edges used to create the shortcut, to create the actual shortest path.
 			% TODO Illustration of routing? Or removal of details.
 		
 		\subsubsection{Landmarks}
 		\label{subsubsec:landmarks}
 		
 			A popular usage of so-called \term[landmark]{landmarks} is the ALT algorithm, which stands for A*, landmarks and triangle inequality\cite{goldberg-landmarks}.
-			As described in \Cref{subsubsec:astar}, the A* algorithm needs a heuristic leading the search for the shortest path towards the target vertex.
-			This heuristic is often the euclidean distance divided by a certain speed, which is simple but rather inaccurate.
 			
-			A better, but also more complex approach is to use a set of landmarks $L$.
-			Landmarks are vertices to which all distances are calculated in a precomputation step.
+			\begin{wrapfigure}{r}{0.35\textwidth}
+				\vspace{-1\baselineskip}
+				\begin{figcenter}
+					\begin{tikzpicture}
+						\tikzDot[label={left:$u$}]{(0,0)}{u}
+						\tikzDot[label={right:$v$}]{(3,1)}{v}
+						\coordinate (w) at (1.25,2);
+						\tikzDot[label={below:$l$}]{(1.35,1.7)}{l}
+						
+						\draw[->,decorate,decoration=snake,segment length=6.85mm] (u) to [out=70,in=180] (w) to [out=0,in=120] (v);
+						
+						\draw[->,densely dotted,Red2] (u) -- (v);
+						\draw[->,densely dotted,DodgerBlue3] (u) -- (l);
+						\draw[->,densely dotted,DodgerBlue3] (l) -- (v);
+					\end{tikzpicture}
+				\end{figcenter}
+				\caption{The heuristic using $l$ (blue) is a better estimate than the euclidean heuristic (red).}
+			\end{wrapfigure}
 			
-			% TODO Remove this math-part? Not really necessary ... Add a illustration otherwise
-			Consider a distance function $d : V \times V \rightarrow \mathbb{R}$, two vertices $v, w \in V$ as well as a landmark $l \in L$.
-			The triangle inequality can be expressed as $d(v,w) \geq d(v,l) - d(w,l)$ for the distances \emph{to} $l$ but also $d(v,w) \geq d(l,w) - d(l,v)$ for distances \emph{from} $l$.
-			This can be used to build the heuristic $h(v, w) = \max \{ d(v,l)-d(w,l), d(l,w)-d(l,v) \}$ for all landmarks $l$.
-			Since the actual distance from $v$ to $w$ is larger than the heuristic, using the $\max$ function yields the most accurate estimation for this distance.
-			
-			The critical part regarding the landmarks is their selection.
-			A naive approach selects them at random, which already works, but selecting them in a way that maximizes the minimum distance between the landmarks, i.e. choosing them further apart from each other, works better.
-			
-			Thanks to the triangle inequality, the A* algorithm can use this to determine good choices for next vertices.
-			Since the heuristic consists of the tightest bound by using the $\max$ function, the estimated distance to $t$ using the heuristic is likely to increase when the actual distance does the same (or decrease respectively).
+			As described in \Cref{subsubsec:astar}, the A* algorithm needs a heuristic guiding the shortest path query towards the target vertex.
+			This heuristic is often based on the euclidean distance, which is simple but inaccurate.
+			A better, but also computationally more complex approach is the use of a set of landmarks $L \subseteq V$ and to precompute all distance to and from all other vertices.
+			The heuristic takes all landmarks into account and uses the triangle inequality between the source, destination and landmarks to determine the tightest bound on the estimated distance.
+			The normal A* algorithm can then use this heuristic to determine good choices for next vertices.
 		
-		\subsubsection{Transit nodes}
-		\label{subsubsec:transit}
+		\subsubsection{Other speedup methods}
+		\label{subsubsec:other-speedup-methods}
 		
-			The routing algorithm called \term{TRANSIT} uses specially selected vertices, so-called \term[transit node]{transit nodes}, and the distances to all other vertices in the graph to find shortest paths very quickly\cite{bast-transit}.
+			There are numerous other speedup methods, such as \term{TRANSIT} and the \term{hub label} strategy.
+			
+			TRANSIT\cite{bast-transit} uses a subset of vertices, called \emph{transit nodes}, and calculates all distances between these nodes.
+			These vertices are selected in a way such that there are transit nodes on every shortest path.
+			Determining a shortest path from the vertex $src$ to $trg$ with some transit nodes $T$ is fast because all distances between these four vertices are already known, which is used to determine the next vertex in the shortest path.
+			Starting at the source $src$, the next vertex $v$ is the one for which $d(src, v) + d(v, trg) = d(src, trg)$ is true.
+			These distances can quickly be calculated using the transit nodes of $T$ allowing this algorithm to find shortest paths in the order of microseconds.
 		
-			First, the graph is divided into smaller rectangular cells and Dijkstra queries are then used to determine the transit nodes.
-			For each cell, the neighboring cells of a $5 \times 5$ (inner neighbors) and $9 \times 9$ (outer neighbors) neighborhood are determined.
-			Determining transit nodes in a naive way works as follows:
-			For every vertex within the center cell, shortest paths to all vertices in the outer cells are determined.
-			A vertex being on an shortest path edge leading from an inner into an outer cell is considered a transit node.
-			Since Dijkstra solves the \hyperref[subsubsec:single-source-shortest-path]{single-source shortest paths problem}, all distances from a normal vertex to its nearest transit nodes are stored.
-			The final step of the preprocessing is the calculation of the distances between all transit nodes, which means solving the \hyperref[subsubsec:all-pair-shortest-path]{all-pair shortest path problem}.
-			
-			For a source vertex $src \in V$ and destination vertex $dst \in V$, the distances from $src$ to its transit nodes $T_{src} \subset V$, the distances from $dst$ to its transit nodes $T_{dst} \subset V$ and also the distances between the vertices from $T_{src}$ and $T_{dst}$ are known.
-			To determine the shortest path, these distances are used including the total shortest path distance $d(src, dst)$.
-			
-			The first routine calculates this distance $d(src, dst)$.
-			For each closest transit node $t_{src} \in T_{src}$ of $src$, all distances $d(src, t_{src})$ were already precomputed and are known.
-			The same applies to all distances $d(t_{dst}, dst)$ from each closest transit node $t_{dst} \in T_{dst}$ to $dst$.
-			The minimal distance between $src$ and $dst$ can be found by going through all pairs of the closest transit nodes $t_{src} \in T_{src}$ and $t_{dst} \in T_{dst}$ and calculating $d(src, dst) = d(src, t_{src}) + d(t_{src}, t_{dst}) + d(t_{dst}, dst)$.
-			
-			With the total distance $d(src, dst)$ of the shortest path, it is possible to iteratively pick the next vertex in the shortest path.
-			For each vertex $v$ on the shortest path, the next vertex $v'$ on that path can be found as follows:
-			the one neighbor vertex $v'$ for which $d(src, v) + d(v, v') + d(v', dst) = d(src, dst)$ holds is the next vertex on the shortest path.
-			Therefore, it is essential to know the distance $d(src, dst)$.
-			After reaching $dst$, the list of stored vertices yield the shortest path.
-		
+		% TODO merge into "other" section above
 		\subsubsection{Hub labels}
 		
 			The \term{hub label} strategy\cite{bast-transportation-networks} is a labeling algorithm for calculating labels $L(v)$ for each vertex $v$.
