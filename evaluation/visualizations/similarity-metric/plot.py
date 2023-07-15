@@ -56,7 +56,7 @@ common.create_barplot(
     xcol="id",
 	xlabel="Routing request",
     ycol='h_dist',
-    ylabel='Hausdorff distance',
+    ylabel='Hausdorff distance in m',
     hue="source",
     ax=ax
 )
