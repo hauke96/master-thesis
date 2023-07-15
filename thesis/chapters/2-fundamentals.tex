@@ -89,7 +89,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			Standards exist to keep a data source consistent but to also allow interoperability between systems.
 			Common standards were defined by organizations like the OGC as well as companies or government agencies.
 			
-			A widely used proprietary standard established by the company Esri Inc. is the Shapefile file format, which will be covered in more detail in \Cref{subsubsec:shapefile}.
+			A widely used proprietary standard established by the company Esri Inc. is the Shapefile file format, which will be covered in \Cref{subsubsec:other-formats}.
 			
 			One example for a governmental standard is the INSPIRE standard.
 			It was established based on an initiative of the European Commission and defines fixed attributes with keys and values as well as specifications for metadata.
@@ -100,7 +100,6 @@ Hence, the topic of agents and simulations will be covered as well.
 			However, arbitrary tags (key-value pairs) are still explicitly allowed to ensure a high degree of flexibility\cite{osm-wiki-proposal-process}.
 			Details on OSM are given in \Cref{subsec:osm}.
 			
-	% TODO kürzen
 	\subsection{File formats}
 	\label{subsec:file-formats}
 	
@@ -108,31 +107,6 @@ Hence, the topic of agents and simulations will be covered as well.
 		Both proprietary and open standards exist and are used frequently in scientific and real-world applications.
 		The \term[OGC]{Open Geospatial Consortium} (OGC) publishes open standard definitions and schemas for some of these open file formats.
 		This section gives an overview of some popular formats.
-		
-		\subsubsection{Esri shapefile}
-		\label{subsubsec:shapefile}
-		
-			The \term[shapefile]{Esri Shapefile} format (often just called shapefile) was developed in the 1990s by the company Esri and is a popular file format not only used in Esri products like the ArcGIS platform.
-			Each shapefile actually consists of multiple files on disk\cite{esri-shapefile-file-ext-spec}.
-			Three of them are mandatory containing the geometries (\texttt{.shp}), an index (\texttt{.idx}) and a dBASE table with attributes (\texttt{.dbf}).
-			Additional files are optional and can contain additional indices or details about the CRS (\texttt{.prj}).
-			Shapefiles are very popular\cite{spatial-file-formats-trends} but have several significant technical limitations regarding the containing geometries and attributes.
-			
-			Even though the first byte of every geometry in the shapefile encodes its type, the standard allows only one type of geometry per shapefile\cite{esri-shapefile-spec}.
-			Storing for example points and polygons would require two separate shapefiles even though the data might belong together.
-			Attributes have limitations in their size and structure.
-			Two major limitations are the maximum length of 10 characters per attribute name and a maximum of 254 characters per value\cite{esri-shapefile-limitations}.
-			The maximum number of attributes per geometry is limited by 255.
-			The default CRS is based on latitudes and longitudes using the North American Darum from 1927 (NAD 27)\cite{esri-shapefile-coordinate-system}.
-			
-		\subsubsection{KML}
-		
-			Another popular spatial format is the \term[kml]{Keyhole Markup Language} (KML), which was standardized by the OGC in 2008\cite{ogc-kml-2.2}.
-			A KML file consists of a single XML structured file.
-			Since it follows the XML standard, which is plain text, the number of geometries and attributes is not restricted.
-			KML files may contain more information than just features.
-			They can be grouped and hierarchically organized, temporal data can be added to define the lifetime of a feature and camera views for visualization applications can be defined\cite{ogc-kml-2.3}.
-			The CRS can be specified but WGS 84 with latitudes and longitudes is used by default.
 		
 		\subsubsection{GeoJSON}
 		\label{subsubsec:geojson}
@@ -149,54 +123,38 @@ Hence, the topic of agents and simulations will be covered as well.
 		\subsubsection{GeoTIFF}
 		
 			All formats mentioned so far store vector data, but raster data can be georeferenced as well.
-			One format to store such raster data in form of an image is the OGC-standardized \term{GeoTIFF} format\cite{ogc-geotiff}.
-			As the name suggests, it is an TIFF formatted image with spatial metadata such as the CRS and a mapping of pixel to coordinates.
+			One image-based format to store such raster data is the OGC-standardized \term{GeoTIFF} format\cite{ogc-geotiff}, which is an TIFF formatted image with spatial metadata such as the CRS and a mapping of pixel to coordinates.
 			Typical use cases for such images are aerial or satellite imagery and \term*[digital elevation model]{digital elevation models} (\term*{DEM}).
+			However, other use-cases are thinkable, such as field-based routing algorithms as mentioned in \Cref{subsec:field-based-routing} using raster data to store the vector fields.
 		
 		\subsubsection{Other formats}
+		\label{subsubsec:other-formats}
 		
 			There are many more formats for numerous use cases ranging from simple unstandardized to complex, feature rich and fully standardized formats.
 			
 			A \emph{comma-separated value} (\term*{CSV}) file can also serve as a spatial file format where certain columns contain geographical information.
 			The simplicity of this format is its biggest advantage and it is used as transportation format for many public datasets.
 			One example is the publicly available timetable data of the HVV (public transport network in Hamburg, Germany)\cite{hvv-fahrplandaten}.
-			This uses the \term{GTFS} format, which is based on CSV files (even though each file has the ending \texttt{.txt}) and also contains a \texttt{shapes.txt} CSV file to describe which routes the vehicles take\cite{google-gtfs}.
-			However, there is no popular standard using CSV files to store spatial data only.
 			
 			The \term{Well-known Text} (\term*{WKT}) format is a simple, text-based format specified by the OGC\cite[51]{ogc-sfa}.
 			One popular use case is communication with databases.
-			One example is PostGIS, an extension to the PostgreSQL database management system, which uses WKT as one exchange format to read and write spatial data\cite{postgis-doc-wkt}.
-			The WKT format also exists as a binary version called \term{Well-known Binary} (\term*{WKB}), which requires less space.
 			
 			More complex formats are \term{SpatiaLite} and \term{GeoPackage}.
 			SpatiaLite specifies an extension to file-based SQLite database engine and offers additional geodata specific functionality\cite{spatialite-website}.
 			The GeoPackage format is very similar to SpataLite as it is based on an SQLite database as well, but it diverged from the SpatiaLite format, for example by using a different WKB encoding\cite{geopackage-faq}.
+			
+			The \term[kml]{Keyhole Markup Language} (KML) is a XML-based format with the ability to contain much more data than just spatial features, such as the lifetime of data or camera positions used for visualization purposes \cite{ogc-kml-2.2}.
+			
+			Another widely used format is the proprietary \term[shapefile]{Esri Shapefile} format, which was developed in the 1990s by the company Esri \cite{esri-shapefile-file-ext-spec} and is often used in Esri products like the ArcGIS platform.
+			One shapefile actually consists of multiple separate files containing projection information, indices or attributes.
+			Dispite its popularity, the shapefile format contains numerous technical limitations, such as the restriction of one geometry type per shapefile, a limit of ten characters per attribute name, a limit of 254 characters on attribute values or the overall maximum number of 255 attribute per feature.
 			
 	\subsection{OGC web services}
 	
 		Besides file-based formats, web-based standards exist as well.
 		The OGC standardized some APIs for web-based services.
 		Popular standards are the \term{Web Map Service} (\term*{WMS}), \term{Web Map Tile Service} (\term*{WMTS}) and \term{Web Feature Service} (\term*{WFS}).
-		
-		Each API has a \texttt{REQUEST} parameter used to specify an operation to perform, for example retrieve metadata with \texttt{GetCapabilities} or features with \texttt{GetFeature}.
-		Each operation accepts additional parameters, for example the extent from which data is requested or the output format.
-		
-		\subsubsection{WMS -- Web Map Service}
-		
-			A \term*{Web Map Service} provides access to rendered images but not to the underlying raw data\cite{ogc-wms}.
-			However, one optional operation a WMS API might support, is the \texttt{GetFeatureInfo} operation, which returns more information about features in the image, but does not necessarily return the raw data.
-		
-		\subsubsection{WMTS -- Web Map Tile Service}
-		
-			Similar to a WMS service, the \term*{Web Map Tile Service} specification was created to provide a more scalable service providing rendered map tiles\cite{ogc-wmts}.
-			Each request returns a tile with a fixed bounding box, making caching on the server and client side possible.
-			While a WMS can be used for data changing over time, WMTS puts the focus on more static data, which can be prerendered to increase request performance.
-		
-		\subsubsection{WFS -- Web Feature Service}
-		
-			To access raw data, a \term*{Web Feature Service} can be used\cite{ogc-wfs}.
-			As the name suggests, it returns features instead of a rendered map.
-			In addition to query operations like \texttt{GetFeature}, the API specification also describes an optional \texttt{Transaction} operation to change the data.
+		These services are only used to interact with the raw data but do not offer higher-level functionalities such as routing.
 	
 	\subsection{GIS}
 	
@@ -375,31 +333,28 @@ Hence, the topic of agents and simulations will be covered as well.
 		
 		A \term{routing engine} is a software built to find an optimal route between a source and destination location.
 		The optimality of this route is determined by a routing profile, which is a weighting function assigning a weight to each edge in the input graph.
-		Routing engines might perform other operations as well, such as map matching or calculation of isochrones.
-		Map matching is a technique to determine equal features in different datasets, for example one dataset is a recorded bicycle tour, the other dataset is an OSM dump and all OSM-ways used in the bicycle tour should be determined\cite{saki-map-matching}.
-		Isochrones are a way to visualize the reachability of a region\cite{allen-isochrones}.
-		Each isochrone is an area reachable from a given source location within the same amount of time, thus isochrones often form ring like structures.
-		Depending on the underlying algorithm, finding optimal paths is a central algorithmic task to perform map matching or to create isochrones.
+		Routing engines might perform other operations as well, such as map matching or calculation of isochrones, which are a way to visualize the reachability of a region\cite{allen-isochrones}.
+		Each isochrone is an area reachable from a given source location within the same amount of time, which is determined using routing.
 		
 		To find desirable paths, the weight function $w$ mentioned in \Cref{subsec:routing-theoretic-considerations} needs to be carefully chosen based on the domain of the application, vehicle type, personal preferences and other influencing factors.
 		Applications in our everyday life bundle these aspects into a \term{routing profile}, which maps attributes from the input data to a certain weight.
-		The input data might consist of multiple data sources like a road network graph and a digital elevation model.
-		Common types of weight functions predict the expected speed on an edge\cite{graphhopper-profile-bike-speeds}, use the length of an edge\cite{graphhopper-profile-shortest} or numerically represent a combination of attributes\cite{graphhopper-profile-short-fastest}.
+		The input data might consist of multiple sources like a road network, a digital elevation model or additional traffic information.
+		Weight functions predict the expected speed on an edge\cite{graphhopper-profile-bike-speeds}, use the length of an edge\cite{graphhopper-profile-shortest} as weight or determine the weight based on existing attributes\cite{graphhopper-profile-short-fastest}.
 		
 		The open source software Graphhopper is one example of a routing engine and comes with predefined profiles for different modalities and situations.
-		For example the \texttt{car\_delivery} profile is made for delivery services using cars and therefore allows driving on private roads\cite{graphhopper-routing-profiles}.
+		For example the \texttt{car\_delivery} profile is made for delivery services and therefore allows routing via private roads\cite{graphhopper-routing-profiles}.
 		
 		To enhance performance, speedup methods were developed allowing routing queries of continental or even global sizes to be answered quickly.
-		Popular methods are \term{contraction hierarchies} or the use of \term[landmark]{landmarks}, \term[transit node]{transit nodes} and \term[hub label]{hub labels}.
-		Even though there are several more approaches to increase performance, the mentioned techniques will be described in \Cref{subsec:speedup-methods}.
+		Some popular methods are \term{contraction hierarchies} or the use of \term[landmark]{landmarks}, \term[transit node]{transit nodes} and \term[hub label]{hub labels}.
+		Even though there are several more approaches to increase performance, the mentioned techniques will be described with more details in \Cref{subsec:speedup-methods}.
 		
 		\subsubsection{Dijkstra}
 		\label{subsubsec:dijkstra}
 		
 			Dijkstra's algorithm, often just called \term{Dijkstra}, is originated in the 1950s and can be used to solve the \term*{single-source shortest paths} problem.
 			When no destination vertex is given, this algorithm creates a spanning tree rooted in the source vertex $s$ containing solely shortest paths to all other vertices.
-			Despite its age, Dijkstra's algorithm and optimized versions of it are frequently used in science and real-world applications and are mentioned quite often in this thesis.
-			\Cref{alg:dijkstra} is an already enhanced version using a priority queue for the vertices\cite[658]{cormen-introduction-to-alg}.
+			Despite its age, Dijkstra's algorithm and optimized versions of it are frequently used in science and real-world applications.
+			\Cref{alg:dijkstra} presents an enhanced version using a priority queue for the vertices\cite[658]{cormen-introduction-to-alg}.
 			
 			\begin{algorithm}[h]
 				\begin{algorithmic}[1]
@@ -425,7 +380,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			Once a vertex is taken from the queue, it is considered as \emph{visited} by adding it to $S$.
 			It can be proven that for each visited vertex $v$ the distance $v.d$ after the last iteration of the inner for-loop is optimal\cite[659-661]{cormen-introduction-to-alg}.
 			This also means following back the predecessor relation $v.\pi$ yields the shortest path.
-			Therefore, stopping the algorithm after line \ref{alg:dijkstra:end-inner-loop} when $u$ is equal to a destination vertex $t$ is possible since the optimal path from $s$ to $t$ has been found.
+			When $u$ is equal to a destination vertex $t$, the algorithm can therefore safely be stopped at line \ref{alg:dijkstra:end-inner-loop} since the optimal path from $s$ to $t$ has been found.
 		
 		\subsubsection{A*}
 		\label{subsubsec:astar}
@@ -434,6 +389,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			The heuristic $h$ is used to estimate the distance from a given vertex $v$ to the destination (or target) vertex $t$.
 			The distance function $g$ yields the already determined distance from the source vertex $s$ to $v$.
 			Summing up the two functions to $f(v) = g(v) + h(v)$, gives the estimated length of a shortest path from $s$ via $v$ to $t$ and is used to decide which successor of $v$ to process next.
+			A crucial criterion to $h$ is, that it never overestimates the distance to $t$, which is especially important for the triangle inequality used by the ALT speedup method presented in \Cref{subsubsec:landmarks}.
 			The structure of A* is rather simple and \Cref{alg:astar} expresses it in pseudocode.
 			
 			\begin{algorithm}[h]
@@ -454,11 +410,12 @@ Hence, the topic of agents and simulations will be covered as well.
 			\end{algorithm}
 			
 			The performance of A* relies heavily on the quality of the heuristic and therefore no general complexity formula can be given\cite{russell-norvig-ai-modern-approach}.
-			However, given a specific problem, a so-called \term{effective branching factor} $b^*$ can be determined which approximates the number of new open vertices per processed vertex (see line \ref{alg:astar-open-1} and \ref{alg:astar-open-2} in \Cref{alg:astar}).
+			However, for a specific problem a so-called \term{effective branching factor} $b^*$ can be determined which approximates the number of new open vertices per processed vertex (see line \ref{alg:astar-open-1} and \ref{alg:astar-open-2} in \Cref{alg:astar}).
 			The optimal branching factor is 1 and a good heuristic has a factor of close to 1.
 			Having $b^*$ and the number of vertices $n$ in the shortest path, a general runtime complexity of $\bigo{(b^*)^n}$ can be assumed.
 			Since all closed vertices have to be stored in the output graph $G$, the space complexity is equal to the time complexity.
 			This is the major drawback of A*, since a bad heuristic can turn A* into an algorithm with potentially unmanageable exponential runtime complexity.
+			Nonetheless, A* is frequently used in real-world applications as well as in the implementation of the algorithm presented in this thesis.
 		
 	\subsection{Speedup methods}
 	\label{subsec:speedup-methods}
@@ -487,6 +444,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			% TODO Illustration of routing? Or removal of details.
 		
 		\subsubsection{Landmarks}
+		\label{subsubsec:landmarks}
 		
 			A popular usage of so-called \term[landmark]{landmarks} is the ALT algorithm, which stands for A*, landmarks and triangle inequality\cite{goldberg-landmarks}.
 			As described in \Cref{subsubsec:astar}, the A* algorithm needs a heuristic leading the search for the shortest path towards the target vertex.
