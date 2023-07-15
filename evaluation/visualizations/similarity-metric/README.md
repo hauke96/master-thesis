@@ -1,3 +1,7 @@
+This folder contains scripts to calculate and plot the hausdorff distances between lines.
+
+# Scripts
+
 The script `linestring-distance.py` does the following
 
 1. Ensure every linestring has `n` coordinates (e.g. 100)
@@ -20,3 +24,7 @@ DATASET="osm-rural"
 ./linestring-distance.py $DATASET-expected.geojson $DATASET-routing.geojson 2>/dev/null > $DATASET-routing-hausdorff_distances.csv
 ./plot.py $DATASET
 ```
+
+# Data
+
+The `.geojson` files in this folder are from the 0.5km² datasest of the OSM-city and -rural categories. Only the first 10 routing requests are considered here.
