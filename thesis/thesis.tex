@@ -162,6 +162,7 @@
 %
 \usepackage{tikz}
 \usetikzlibrary{
+	arrows,
 	arrows.meta,
 	calc,
 	external,
@@ -173,7 +174,7 @@
 \tikzexternalize[prefix=tikz-cache/]
 
 \tikzset{every path/.append style={line width=0.5pt}}
-\tikzset{every path/.append style={>=stealth}}
+\tikzset{every path/.append style={>=stealth'}}
 \tikzset{
 	between/.style args={#1 and #2}{
 		at = ($(#1)!0.5!(#2)$)
