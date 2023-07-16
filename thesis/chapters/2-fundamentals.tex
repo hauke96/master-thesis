@@ -325,8 +325,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		\label{subsubsec:all-pair-shortest-path}
 		
 			This problem is similar to the single-source problem but every vertex is a source vertex.
-			A naive approach would therefore be to use an algorithm solving the single-source problem on each vertex, but there are faster ways to solve this.
-			Two popular algorithms solving this problem are the Floyd-Warshall algorithm, allowing negative edge weights by assuming that no negative cycles exist\cite[693]{cormen-introduction-to-alg}, and Johnson's algorithm, which detects negative cycles and terminates in such a case\cite[700]{cormen-introduction-to-alg}.
+			A naive approach would therefore be to use an algorithm solving the single-source problem on each vertex, but there are faster ways to solve this, such as the Floyd-Warshall and Johnson's algorithm\cite[693,700]{cormen-introduction-to-alg} as well as PHAST\cite{bast-transportation-networks} with a complexity of $\Theta(|V|^2)$.
 		
 	\subsection{Routing engines and shortest path algorithms}
 	\label{subsec:routing-engines}
@@ -476,71 +475,46 @@ Hence, the topic of agents and simulations will be covered as well.
 		\subsubsection{Other speedup methods}
 		\label{subsubsec:other-speedup-methods}
 		
-			There are numerous other speedup methods, such as \term{TRANSIT} and the \term{hub label} strategy.
+			There are numerous other speedup methods, such as \term{arc flags} and the \term{hub label} strategy.
 			
-			TRANSIT\cite{bast-transit} uses a subset of vertices, called \emph{transit nodes}, and calculates all distances between these nodes.
-			These vertices are selected in a way such that there are transit nodes on every shortest path.
-			Determining a shortest path from the vertex $src$ to $trg$ with some transit nodes $T$ is fast because all distances between these four vertices are already known, which is used to determine the next vertex in the shortest path.
-			Starting at the source $src$, the next vertex $v$ is the one for which $d(src, v) + d(v, trg) = d(src, trg)$ is true.
-			These distances can quickly be calculated using the transit nodes of $T$ allowing this algorithm to find shortest paths in the order of microseconds.
-		
-		% TODO merge into "other" section above
-		\subsubsection{Hub labels}
-		
-			The \term{hub label} strategy\cite{bast-transportation-networks} is a labeling algorithm for calculating labels $L(v)$ for each vertex $v$.
-			Each label contains a set of vertices (called \emph{hubs}) and the length of the shortest path to each of the hubs.
-			A label must fulfill the following two properties.
+			Filtering out unnecessary edges during routing can be done with the use of so-called \term{arc flags}\cite{bast-transportation-networks}.
+			In a preprocessing step, the graph is subdivided into $K$ cells of roughly equal size.
+			An edge $e$, also called \emph{arc}, has a flag consisting of $K$ bits.
+			The $i$-th bit is set to 1 if $e$ is on any shortest path to any vertex in the cell $i$.
+			When answering shortest path queries with the destination being in cell $j$, all edges without the $j$-th bit being set can be ignored.
+			This filtering significantly speeds up a normal shortest path algorithm and can be used in combination with other speedup methods to decrease query times even further.
 			
-			First, the distance $d(u, v)$ from vertex $u$ to $v$ must be determinable using only their labels $L(u)$ and $L(v)$.
-			Since $u$ and $v$ can be arbitrary vertices, the vertex $v$ is not necessarily within $L(u)$.
-			To avoid traverse all labels to find $v$ from $u$, the second property (called \emph{cover property}) is very important:
-			For two arbitrary vertices $u$ to $v$, the set $L(u) \cap L(v)$ must contain at least one common hub $h$ on the shortest path from $u$ to $v$.
-			This can be used to fulfill the first property.
-			
-			The labels can be determined with the mechanism from contraction hierarchies forming the upward graph based on a vertex ordering.
-			In fact, any such order can be used to create a correct labeling.
-
-			Routing requests for a shortest path from $u$ to $v$ are simple and answered in the following way.
-			First, the labels $L(u)$, $L(v)$ and their common hubs are determined.
-			When storing the hubs in a sorted list during preprocessing, building the intersection can be done in linear time.
-			Finally, the hub $h \in L(u) \cap L(v)$ with the minimum distance sum $d(u, h) + d(h, v)$ is returned as it is on the shortest path from $u$ to $v$.
-			
-			Even though the requests can be answered very fast, actually faster than most other routing methods, a lot of space and preprocessing time to store and determine all the labels is required.
-			
-			% TODO Illustration?
+			A so-called bounded-hop approach, which precomputes distanced to enable large \enquote{hops} over the graph, is the \emph{hub label} strategy\cite{bast-transportation-networks}.
+			It selects a subset $H$ of vertices in a preprocessing step, called \emph{hubs}, with the property that every pair of two vertices has at least one hub in common.
+			Shortest paths to and from all hubs are precalculated and a vertex is labeled with its corresponding paths.
+			Answering routing queries works by determining the common hubs between the source and destination vertices and concatenating the precomputated paths.
+			This strategy is one of the fastest ways to determine paths but precomputation requires a lot of time and space.
 		
 		\subsubsection{Compressed path databases}
 		\label{subsubsec:cpd}
 		
-			A \term{compressed path database} (\term*{CPD}) itself is not directly a routing algorithm but rather a technique to efficiently store shortest paths between any two locations of a domain\cite{botea-cpd-2013}.
+			\begin{wrapfigure}[9]{r}{0.225\textwidth}
+				\vspace{-0.8\baselineskip}
+				\includegraphics[width=\linewidth]{images/botea-cpd.pdf}
+				\caption{Movement-grid for cell $c$\cite{botea-cpd-2013}.}
+			\end{wrapfigure}
+		
+			A \term{compressed path database} (\term*{CPD}) itself is not directly a routing algorithm but rather a technique to efficiently store shortest paths between any two locations\cite{botea-cpd-2013}.
 			In other words, the solution of the all-pair shortest paths problem from \Cref{subsubsec:all-pair-shortest-path} can be stored in a CPD without having extensive memory requirements.
 			
 			The simplest form of a CPD works on a grid rather than a graph, where the number of neighbors is limited and visualization, calculations and compression is simpler.
-			Such grid-based CPDs actually consist not of one but of $n$ grids, each one storing movement information from a fixed cell $v$ to all other cells.
-			When having $n$ cells per grid, $n$ grids are needed so that for each cell, one grid with movement information exists.
-			However, movement information here means, that only a single step is stored in a grid.
-			% TODO Illustration?
-			
-			Consider the following example:
-			The path from cell $u$ to $v$ is requested, so the grid $u$ is used first.
-			On that grid, the cell for $u$ is empty (since it is the source cell) and the cell for $v$ stores the first step to take from $u$ in order to get to $v$.
-			This first step (on a grid for example the direction \enquote{north east}) leads to a new cell $u'$.
-			The grid for $u'$ is then looked at and, just as before, the cell $v$ contains the direction to take.
-			This is repeated until the cell $v$ is reached.
+			For a grid of $n$ cells, $n$ many such grid exist in the CPD, each belongs to a cell $c$ and stores the information on how to get from $c$ to all other cells in the grid.
+			Therefore, a potential target cell $t$ contains a movement operation, e.g. \enquote{move to the left cell}, which is the next operation that needs to be performed in order to get from $c$ to $t$ on the shortest path.
+			After performing this movement an getting from $c$ to $c'$, the next movement operation to $t$ is stored in the movement-grid of $c'$.
+			These steps are performed until $t$ has been reached.
+			Answering shortest path queries is therefore linear in the amount of vertices or cells.
 			
 			The construction of a CPD\cite{botea-cpd-2013} is similarly simple.
-			For each vertex $v$, the shortest paths to all other vertices are calculated, which can be done using Dijkstra or any other single-source or all-pairs shortest path algorithm.
-			After converting the shortest paths into a compatible format (in the above case a grid), the data needs to be compressed.
+			After solving the all-pairs shortest path problem, the result needs to be compressed.
 			Uncompressed data is usually too large as the space requirement is in $\bigo{n^2}$ or even $\bigo{n^2 \log n}$ for graphs.
-			
-			There are multiple possible ways to compress a raw CPD.
-			The original paper Botea et al.\cite{botea-cpd-2011} uses a decomposition of rectangles with common movement directions to reduce the amount of redundant data.
-			A new approach presented two years later uses general purpose compression techniques like run-length encoding (RLE) and sliding-window compression (SWC) as well as a special list-trimming using default movements to reduce the amount of information being explicitly stored\cite{botea-cpd-2013}.
-			
-			The original approach already showed good results.
-			Using the originally proposed compression (rectangle decomposition only) on a road network yields a CPD with a compression factor of about 180.
-			Compressing the same network with all mentioned techniques together can decrease the size even further to a CPD, which is another 5.3 times smaller.
-			This is a compression factor of over 950 compared to an uncompressed database.
+			A combination of compression techniques can be used to get sufficient results.
+			This includes the encoding of whole areas with same movement operations, run-length encoding (RLE) and use of default values to reduce the number of explicitly stored values\cite{botea-cpd-2013}.
+			Using these techniques, a compression factor of over 950 compared to an uncompressed database can be achieved.
 	
 \section{Geometric routing}
 \label{sec:geometric-routing}
