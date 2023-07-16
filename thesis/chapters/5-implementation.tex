@@ -146,14 +146,11 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 
 	\subsection{BinIndex data structure}
 	\label{subsec:binindex}
-		
+	
 		The \texttt{BinIndex} class implements a linear bin-based index structure to store and access intervals.
 		It consists of an array of $n$ many bins, each bin covering a certain interval.
 		Items are added to all bins intersecting with the range of the item, therefore each bin is a linked list to potentially store multiple items.
-		Point queries can be answered in $\bigo{1}$ and range queries in $\bigo{n}$ for $n$ items in the index.
-		However, the range query functionality was not implemented as it is not needed for this work.
-		\Cref{fig:bin-index} illustrates this data structure with a simple example.
-		
+	
 		\begin{figure}[h]
 			\begin{figcenter}
 				\begin{tikzpicture}
@@ -226,11 +223,15 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			\label{fig:bin-index}
 		\end{figure}
 		
+		Point queries can be answered in $\bigo{1}$ and range queries in $\bigo{n}$ for $n$ items in the index.
+		However, the range query functionality was not implemented as it is not needed for this work.
+		\Cref{fig:bin-index} illustrates this data structure with a simple example.
+		
 		The NetTopologySuite offers several indices specifically made for intervals, namely the \texttt{Bintree}, \texttt{SIRtree} and \texttt{SortedPackedIntervalRTree}, of which only the first one is dynamic and thus allows insertions and deletions after the first query was made.
 		This dynamic behavior is crucial for the use of shadow areas because the creation and handling happens in an online fashion while processing each vertex and its adjacent obstacles.
 		
-		\begin{wraptable}[7]{r}{8.25cm}
-			\vspace{-1.5\baselineskip}
+		\begin{wraptable}[8]{r}{8.25cm}
+			\vspace{-1\baselineskip}
 			\begin{tabularx}{\linewidth}{>{\raggedleft}X|rr|rr}
 \centering\textbf{Intervals /}	& \multicolumn{2}{c|}{\textbf{\texttt{BinIndex}}}				& \multicolumn{2}{c}{\textbf{\texttt{Bintree}}}			\\
 \centering\textbf{queries}		& \multicolumn{1}{c}{Insert}	& \multicolumn{1}{c|}{Query}	& \multicolumn{1}{c}{Insert}	& \multicolumn{1}{c}{Query}	\\
@@ -239,7 +240,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 100,000							& 0.89s							&  0.7ms						&  21.6ms						& 135s						\\
 200,000							& 2.14s							&  1.69ms						&  60.6ms						& 597s						\\
 			\end{tabularx}
-			\caption{Comparison of the custom \texttt{BinIndex} and the NTS \texttt{Bintree}.}
+			\caption{Comparison of \texttt{BinIndex} and \texttt{Bintree} on random intervals.}
 			\label{table:interval-data-structures}
 		\end{wraptable}
 		
