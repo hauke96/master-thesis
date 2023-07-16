@@ -22,38 +22,6 @@ Hence, the topic of agents and simulations will be covered as well.
 	Besides the mentioned explicit references to locations, such as coordinates, implicit location references can be encoded within metadata of datasets as well.
 	This is for example the case with the image-based GeoTIFF format, which stores the geographic extent of the image in the metadata of a normal TIFF image file\cite{ogc-geotiff}.
 	The exact coordinate of a data point (in this case a pixel in the TIFF image), must then be calculated using this metadata.
-
-	\subsection{Coordinate reference systems and projections}
-	
-		Coordinates are used to specify exact locations on Earth.
-		However, the Earth is not a perfect sphere but rather an ellipsoid.
-		But even this ellipsoid is not smooth and has slightly different radii in different regions.
-		Furthermore, most regions on Earth move due to continental drift and therefore constantly change their positions and distances relative to each other.
-		Even though the continental plates move slowly, this effect adds up to a significant distance rendering very accurate measurements potentially unusable over time\cite[7]{ordenance-survey-booklet}.
-		These properties of Earth's surface make it necessary to have a variety of different reference systems and projections for spatial data covering different parts of the planet.
-		
-		A \term{coordinate reference system} (CRS) defines the combination of a coordinate system and an approximation of the surface of the Earth.
-		The \term{coordinate system} defines the extent, meaning the spatial boundaries, and unit of coordinates.
-		Types of coordinate systems are for example Cartesian (coordinates in meters or foot) and ellipsoidal (coordinates in degrees)\cite[11-13]{ordenance-survey-booklet}.
-		The \term{horizontal datum} (also \term{Terrestrial Reference System} or \term{geodetic datum}) defines the origin and orientation of the coordinate system and is therefore a mapping from a numeric coordinate to a real location on Earth based on a specific ellipsoid.
-		
-		\term[ellipsoid]{Ellipsoids} are deformed spheres, which describe either the whole Earth or a part of it, e.g. a single continent or country, as accurately as possible.
-		Depending on this ellipsoid, the horizontal datum either defines a global or local reference system.
-		The latter is more accurate in certain places while a global system is designed to find good approximations for every location on Earth.
-		Cartesian coordinate systems with two dimensions only work on flat surfaces, therefore a \term*[map projection]{projection} is required to turn each spherical location on the ellipsoid into a two-dimensional planar location in the coordinate system\cite[17]{ordenance-survey-booklet}.
-		
-		Analogous to the horizontal datum, a \term{vertical datum} can be used to define the height of data\cite{ordenance-survey-booklet}.
-		This is done by defining a so-called \term{geoid}, which defined the level of zero height.
-		Such a geoid can be modeled using another ellipsoidal sphere but that would result in very inaccurate data.
-		Instead, local reference levels for height data are used, such as the Ordnance Datum Newlyn (\term*{ODN}) for Britain or Normalhöhennull (\term*{NHN}) for Germany.
-		Since it is often based on the water level of oceans, the level of zero height on landmasses is extrapolated based on the gravitational field of the Earth.
-		
-		For visualization purposes, a \term{map projection} might be needed to translate coordinates from the CRS of the data into the coordinate system used of the map.
-		The map can be two-dimensional but digital maps can also be rendered on a three-dimensional sphere.
-		Since the projections of the data and map can differ, transformations between the projections are needed.
-		
-		For better communication, the European Petroleum Survey Group (\term*{EPSG}) created a database with definitions for coordinate reference systems and transformations\cite{epsg}.
-		Each entry in this database has an ID with the prefix \enquote{EPSG:} followed by a numeric code, for example EPSG:4326 refers to the global and widely used World Geodetic System 1984 (WGS 84), a global ellipsoidal horizontal datum used for example in GPS.
 		
 	\subsection{Data structures}
 	\label{subsec:data-structures}
@@ -118,12 +86,11 @@ Hence, the topic of agents and simulations will be covered as well.
 			A \texttt{GeometryCollection} is itself one possible geometry type.
 			Each feature in a \texttt{FeatureCollection} consists of a geometry and, in contract to elements in a \texttt{GeometryCollection}, attributes adding additional information to the feature.
 			The number of geometries per feature as well as the length, number and character choice of attributes is not restricted.
-			The CRS is fixed and has been set to WGS 84.
 			
 		\subsubsection{GeoTIFF}
 		
 			All formats mentioned so far store vector data, but raster data can be georeferenced as well.
-			One image-based format to store such raster data is the OGC-standardized \term{GeoTIFF} format\cite{ogc-geotiff}, which is an TIFF formatted image with spatial metadata such as the CRS and a mapping of pixel to coordinates.
+			One image-based format to store such raster data is the OGC-standardized \term{GeoTIFF} format\cite{ogc-geotiff}, which is an TIFF formatted image with spatial metadata such as the coordinate system and a mapping of pixel to coordinates.
 			Typical use cases for such images are aerial or satellite imagery and \term*[digital elevation model]{digital elevation models} (\term*{DEM}).
 			However, other use-cases are thinkable, such as field-based routing algorithms as mentioned in \Cref{subsec:field-based-routing} using raster data to store the vector fields.
 		
@@ -146,7 +113,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			The \term[kml]{Keyhole Markup Language} (KML) is a XML-based format with the ability to contain much more data than just spatial features, such as the lifetime of data or camera positions used for visualization purposes \cite{ogc-kml-2.2}.
 			
 			Another widely used format is the proprietary \term[shapefile]{Esri Shapefile} format, which was developed in the 1990s by the company Esri \cite{esri-shapefile-file-ext-spec} and is often used in Esri products like the ArcGIS platform.
-			One shapefile actually consists of multiple separate files containing projection information, indices or attributes.
+			One shapefile actually consists of multiple separate files containing coordinate system information, indices or attributes.
 			Dispite its popularity, the shapefile format contains numerous technical limitations, such as the restriction of one geometry type per shapefile, a limit of ten characters per attribute name, a limit of 254 characters on attribute values or the overall maximum number of 255 attribute per feature.
 			
 	\subsection{OGC web services}
@@ -430,17 +397,12 @@ Hence, the topic of agents and simulations will be covered as well.
 			A crucial part of this technique is the selection of vertices to contract\cite[14]{geisberger-contraction-hierarchies}.
 			The vertices are selected by a total order defining the level of importance for each vertex.
 			Creating a good order is difficult and heuristics are used to approximate an optimal ordering.
-%			Such heuristics can for example be the difference in edge counts from before and after contraction, the uniformity of the distribution of contractions in the graph or the resulting size of the query search space.
-%			Multiple heuristics can be combined, leading to even better results\cite[49]{geisberger-contraction-hierarchies}.
-%			The vertices are stored in a priority queue based on a linear combination of all used heuristics and the highest prioritized vertex is processed first.
 			
 			The contraction hierarchy can be used with an adjusted bidirectional Dijkstra algorithm\cite[29-30]{geisberger-contraction-hierarchies}.
 			A query for the shortest path is performed using two graphs, an upward and downward graph.
 			The upward graph contains only edges from lower to higher order vertices and the downward graph only from higher to lower order vertices.
-%			In each of these graphs one sub-query is performed, which eventually meet in the same vertex.
 			Two sub-queries are performed, one in the upward- and one in the downward-graph, which terminate if they meet in the same vertex and no lower weighted edge towards a vertex remaining in the priority queue exists.
 			All shortcut edges must now be recursively relaxed, i.e. replaced by the original edges used to create the shortcut, to create the actual shortest path.
-			% TODO Illustration of routing? Or removal of details.
 		
 		\subsubsection{Landmarks}
 		\label{subsubsec:landmarks}
@@ -493,21 +455,22 @@ Hence, the topic of agents and simulations will be covered as well.
 		\subsubsection{Compressed path databases}
 		\label{subsubsec:cpd}
 		
-			\begin{wrapfigure}[9]{r}{0.225\textwidth}
-				\vspace{-0.8\baselineskip}
-				\includegraphics[width=\linewidth]{images/botea-cpd.pdf}
-				\caption{Movement-grid for cell $c$\cite{botea-cpd-2013}.}
-			\end{wrapfigure}
-		
 			A \term{compressed path database} (\term*{CPD}) itself is not directly a routing algorithm but rather a technique to efficiently store shortest paths between any two locations\cite{botea-cpd-2013}.
 			In other words, the solution of the all-pair shortest paths problem from \Cref{subsubsec:all-pair-shortest-path} can be stored in a CPD without having extensive memory requirements.
 			
 			The simplest form of a CPD works on a grid rather than a graph, where the number of neighbors is limited and visualization, calculations and compression is simpler.
-			For a grid of $n$ cells, $n$ many such grid exist in the CPD, each belongs to a cell $c$ and stores the information on how to get from $c$ to all other cells in the grid.
+			For a grid of $n$ cells, $n$ many such grid exist in the CPD, each belongs to a cell $c$ and stores the information on how to get from $c$ to all other cells in the grid as illustrated in \Cref{fig:cpd}.
 			Therefore, a potential target cell $t$ contains a movement operation, e.g. \enquote{move to the left cell}, which is the next operation that needs to be performed in order to get from $c$ to $t$ on the shortest path.
 			After performing this movement an getting from $c$ to $c'$, the next movement operation to $t$ is stored in the movement-grid of $c'$.
 			These steps are performed until $t$ has been reached.
 			Answering shortest path queries is therefore linear in the amount of vertices or cells.
+			
+			\begin{wrapfigure}{r}{0.225\textwidth}
+				\vspace{-1.5\baselineskip}
+				\includegraphics[width=\linewidth]{images/botea-cpd.pdf}
+				\caption{Movement-grid for cell $c$\cite{botea-cpd-2013}.}
+				\label{fig:cpd}
+			\end{wrapfigure}
 			
 			The construction of a CPD\cite{botea-cpd-2013} is similarly simple.
 			After solving the all-pairs shortest path problem, the result needs to be compressed.
@@ -520,7 +483,6 @@ Hence, the topic of agents and simulations will be covered as well.
 \label{sec:geometric-routing}
 
 	Finding paths in a geometric domain, also called the \term{euclidean shortest path} problem, is the process of determining shortest paths through open spaces by avoiding obstacles.
-%	This routing technique takes place under the absence of roads and ways, therefore attributes on these edges, for example surface conditions, are of no use.
 	There are two main strategies to find euclidean shortest paths:
 	Generate edges for graph-based routing or create a shortest paths map, a structure similar to CPDs.
 	
