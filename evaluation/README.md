@@ -108,25 +108,25 @@ Use the full OSM dataset and run it with different optimizations turned on/off:
 
 * [x] Shadow areas
 	* [x] Measurement
-	* [ ] Visualize
-* [ ] Convex hull (only consider vertices on convex hull)
-	* [ ] Measurement
-	* [ ] Visualize
-* [ ] Convex hull (only consider valid angle areas)
-	* [ ] Measurement
-	* [ ] Visualize
-* [ ] Convex hull (both)
-	* [ ] Measurement
-	* [ ] Visualize
+	* [x] Visualize
+* [x] Convex hull (only consider vertices on convex hull)
+	* [x] Measurement
+	* [x] Visualize
+* [x] Convex hull (only consider valid angle areas)
+	* [x] Measurement
+	* [x] Visualize
+* [x] Convex hull (both)
+	* [x] Measurement
+	* [x] Visualize
 * [x] BinTree instead of BinIndex
 	* [x] Measurement (just raw index runtimes, not within the application)
 	* [x] Visualize (just as table)
-* [ ] Normal NTS collision detection instead of my implementation
-	* [ ] Measurement
-	* [ ] Visualize
-* [ ] Without knn restriction (= search for all visibility neighbors)
-	* [ ] Measurement
-	* [ ] Visualize
+* [x] Normal NTS collision detection instead of my implementation
+	* [x] Measurement
+	* [x] Visualize
+* [x] Without knn restriction (= search for all visibility neighbors)
+	* [x] Measurement
+	* [x] Visualize
 
 ## Theoretic considerations
 
