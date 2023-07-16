@@ -520,9 +520,9 @@ Hence, the topic of agents and simulations will be covered as well.
 \label{sec:geometric-routing}
 
 	Finding paths in a geometric domain, also called the \term{euclidean shortest path} problem, is the process of determining shortest paths through open spaces by avoiding obstacles.
-	This routing technique takes place under the absence of roads and ways, therefore attributes on these edges, for example surface conditions, are of no use.
-	There are two main strategies for finding shortest paths:
-	Generating edges through open spaces for graph-based routing or generating a shortest paths map, a structure similar to CPDs.
+%	This routing technique takes place under the absence of roads and ways, therefore attributes on these edges, for example surface conditions, are of no use.
+	There are two main strategies to find euclidean shortest paths:
+	Generate edges for graph-based routing or create a shortest paths map, a structure similar to CPDs.
 	
 	\subsection{Visibility graphs}
 	\label{subsec:visibility-graph}
@@ -534,47 +534,42 @@ Hence, the topic of agents and simulations will be covered as well.
 		A visibility graph might become very large, in fact, the worst-case regarding the size is a complete graph with $\bigo{|V|^2}$ many edges.
 		
 		Alternatives to the visibility graph generation are based on Voronoi diagrams or skeletonization methods.
-		However, routing results on such graphs are not necessarily optimal, since a straight edge between visible vertices is the shortest possible connection.
-		These alternative generation approaches do not always create such direct edges\cite{graser-osm-open-spaces}, which leads to detours and longer paths.
-		Even though start and destination locations must still be part of the graph to be reachable by routing algorithms, additional edges from and to these locations can be generated with the same algorithm used to create the graph.
+		However, routing results on such graphs are not necessarily optimal\cite{graser-osm-open-spaces}, since a straight edge between visible vertices is the shortest possible connection.
+		
+		Source and destination locations must be part of the graph and can be connected with the same algorithm used to create the graph itself.
 	
 	\subsection{Continuous Dijkstra}
 	\label{subsec:continuous-dijkstra}
 	
-		The second strategy creates a map of regions starting from a source vertex $s$.
+		The second strategy creates a map of regions starting from a source vertex $s$, which has strong similarities to a CPD.
 		Each region of this map stores the predecessor vertex, which can be used to determine shortest paths by following the predecessor relations from any given location back to $s$.
 
 		This map can also be seen as a tree with $s$ as its root and each region as a leaf.
-		Such a tree might remind one of Dijkstra's algorithm, which creates such a shortest path tree as well to solve the \hyperref[subsubsec:single-source-shortest-path]{single-source shortest path problem}.
-		Due to this similarity, this strategy is also called the \term{continuous Dijkstra} paradigm\cite{mitchell-discrete-geodesic}.
+		The creation of a shortest-path tree might remind one of Dijkstra's algorithm, which gives the \term{continuous Dijkstra} paradigm its name\cite{mitchell-discrete-geodesic}.
 		
 		To precisely determine these regions, one popular approach is to create \term[wavefront]{wavefronts} propagating through open spaces.
-		A well-fitting analogy for this approach is the propagation of sound or water waves traveling through space, folding around obstacles and finally reaching the destination location.
+		A well-fitting analogy for this approach is the propagation of water waves traveling through a 2D space, folding around obstacles, colliding with each other and finally reaching the destination location.
 		Recursively following each wave back to its origin yields the shortest path from the source to the destination.
 		These wavefronts are also called \term[wavelet]{wavelets}), because they only cover a certain angular range due to collisions and the presence of obstacles.
 		
-		Each wavefront can collide with edges and vertices but also with other wavefronts.
+		Each wavefront can collide with obstacle and other wavefronts.
 		After detecting such a collision, the angular region of the wavefront is adjusted depending on the type of collision.
 		For each region the origin of the wavefront is known, which enables the query routine to follow these predecessors back to the source.
-		The key difficulty of this approach is the efficient propagation of these wavefronts, which means the fast detection of collisions with obstacles and other wavefronts\cite{hershberger-suri}.
+		The key difficulty of this approach is the efficient detection and handling of collisions with obstacles and other wavefronts\cite{hershberger-suri}.
 
 \section{Agent-based systems and simulations}
 
 	Simulating complex systems with numerous autonomous individuals, called \term[agent]{agents}, is a complex task.
 	Agent-based models help to break down this complexity by simulating each agent separately with its own behavior and decision-making\cite{macal-introductory-tutorial}.
-	Interactions between agents and the environment as well as agents with other agents are an essential part of agent-based simulations.
-	Each interaction can affect other agents and the environment.
+	Agents interacting with the environment and other agents are an essential part of this and can in turn affect other agents and the environment.
 	
-	The modeling of agents can be arbitrarily complex.
-	Basic agents can interact with other agents and the environment.
-	They are able to make decisions on their own, meaning they are autonomous since there is no controlling unit commanding them how to act.
-	More complex agents may have a specific goal, are able to adapt themselves to their environment and thus must be able to memorize and plan things.
+	The modeling of agents can be arbitrarily complex, because agents are able to make decisions on their own making them autonomous without any controlling unit commanding them how to act.
+	Even more complex agents may have a specific goal, are able to adapt themselves to their environment and thus must be able to memorize and plan things.
 	
-	An agent might be a simulated person but could also be a company, car or other non-living part of the simulated world.
-	Many simulations use pedestrians (or generally humans) as agents to better understand human behavior but many more scenarios with other types of agents can be simulated as well\cite{macal-introductory-tutorial}.
+	An agent might be a simulated person but could also be a company, car or other non-living part of the simulated domain.
+	Many simulations use pedestrians (or generally humans) as agents to better understand or utilize human behavior but many more scenarios with other types of agents are possible as well\cite{macal-introductory-tutorial}.
 
-	Studying the behavior of pedestrians requires a spatial environment where agents can move and interact with each other.
-	Since uncontrolled movement is rather uninteresting, most of the time, algorithms finding optimal paths are involved\cite{kneidl-borrmann-hartmann-navigation,gloor-hybrid-pedestrian-routing,teknomo-millonig-routing}.
+	Studying the behavior of pedestrians requires a spatial environment where agents can move and interact with each other, which requires algorithms finding optimal paths\cite{kneidl-borrmann-hartmann-navigation,gloor-hybrid-pedestrian-routing,teknomo-millonig-routing}.
 	This not only includes \hyperref[sec:graph-routing]{graph-based routing} but often utilizes \hyperref[sec:geometric-routing]{geometric routing} as well\cite{kneidl-borrmann-hartmann-navigation}.
 	
 	\subsection{The MARS framework}
