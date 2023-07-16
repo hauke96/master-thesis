@@ -48,7 +48,6 @@
 \usepackage[x11names]{xcolor}
 \usepackage{graphicx}
 \usepackage{wrapfig}
-\usepackage{tabularx}
 \usepackage[labelfont=bf,format=plain,indention=0.5cm]{caption}
 \usepackage{subcaption}
 
@@ -72,6 +71,16 @@
 		\vspace{0.25cm}\par%
 	}%
 }
+
+%
+% Tables
+%
+\usepackage{tabularx}
+\usepackage{booktabs}
+
+% Make spacing in tables slightly larger
+\renewcommand{\arraystretch}{1.15}
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}
 
 %
 % Abstract

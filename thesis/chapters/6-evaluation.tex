@@ -67,8 +67,8 @@ For both evaluation aspects, method and design details are given followed by the
 
 			\begin{description}
 				\item[Shadow areas] Instead, every visibility check was performed using the custom intersection check described in \Cref{subsubsec:intersection-checks}.
-				\item[Custom intersection check] The custom intersection check was replaced by the \todo[inline]{probably \texttt{RobustLineIntersector}?} class from the NTS to determine intersections between line segments.
-				\item[BinIndex] Instead, the \texttt{BinTree} from the NTS was used.
+				\item[Custom intersection check] The custom intersection check was replaced by the \texttt{RobustLineIntersector} class from the NTS to determine intersections between line segments.
+				\item[BinIndex] Instead, the \texttt{Bintree} from the NTS was used.
 				\item[Convex hull] The restriction to only consider vertices on the convex hull of obstacles was removed.
 				\item[Valid angle areas] Considering only potential visibility neighbors within certain angular ranges was deactivated.
 				\item[$k$-NN search] The $k$ of the k-NN search was deactivated to determine all visibility neighbors in all directions.
@@ -341,12 +341,11 @@ For both evaluation aspects, method and design details are given followed by the
 			\begin{minipage}{\textwidth}
 				\begin{minipage}{0.4\textwidth}
 					\centering
-					\begin{tabularx}{\textwidth}{|p{2cm}|X|X|}
-						\hline
+					\begin{tabularx}{\textwidth}{p{2cm}|X|X}
 						\textbf{Request no.}				& 1			& 5			\\\hline
 						\textbf{Beeline\newline distance}	& 100.42 m	& 300.78 m	\\\hline
 						\textbf{Routing\newline time}		& 519.5 ms	& 127.19 ms	\\\hline
-						\textbf{Time per m}					& 5.17 ms	& 0.42 ms	\\\hline
+						\textbf{Time per m}					& 5.17 ms	& 0.42 ms
 					\end{tabularx}
 				\end{minipage}
 				\hfill
@@ -368,8 +367,6 @@ For both evaluation aspects, method and design details are given followed by the
 		\subsubsection{Dataset without roads or obstacles}
 		\label{subsubsec:dataset-without-roads-obstacles}
 		
-			\todo{Text durchgehen und aktualisieren}
-		
 			The normal OSM-based datasets contain both, roads and obstacles.
 			However, datasets containing only roads or only obstacles are thinkable and can also be used with the hybrid routing algorithm.
 			For this evaluation, the 4km\textsuperscript{2} datasets of the \enquote{OSM city} and \enquote{OSM rural} categories were filtered yielding three datasets for each category:
@@ -379,16 +376,18 @@ For both evaluation aspects, method and design details are given followed by the
 			
 			\begin{figure}[h!]
 				\begin{figcenter}
-					\begin{tabularx}{0.95\textwidth}{p{3cm}|X|XX|p{2.25cm}X}
+					\begin{tabularx}{0.95\textwidth}{p{3cm}XXXp{2.25cm}X}
+\toprule
 \textbf{Operation}	& \textbf{Normal}	& \textbf{No roads}	& \textbf{Decrease compared to normal}	& \textbf{No obstacles}	& \textbf{Decrease compared to normal}	\\
-\hline
+\midrule
 kNN search			& 315.86			& 288.69			&  8.60\%								& 0.000011				& 99.9999\%								\\
 Create graph		&   0.69			&   0.68			&  0.84\%								& 0.000014				& 99.9999\%								\\
 Get obstacles		&   0.30			&   0.29			&  3.28\%								& 0.0095				& 96.82\%								\\
 Merge road edges	& 120.13			&  30.79			& 74.37\%								& 0.48					& 99.60\%								\\
 Add POI attributes	&   0.054			&   0.025			& 53.81\%								& 0.008					& 85.97\%								\\
-\hline
-Total time			& 437.34			& 320.57			& 26.70\%								& 0.53					& 99.88\%
+\midrule
+Total time			& 437.34			& 320.57			& 26.70\%								& 0.53					& 99.88\%								\\
+\bottomrule
 					\end{tabularx}
 				\end{figcenter}
 				\vspace{3ex}
@@ -412,16 +411,18 @@ Total time			& 437.34			& 320.57			& 26.70\%								& 0.53					& 99.88\%
 			\end{itemize}
 			
 			\begin{figure}[h!]
-				\begin{tabularx}{0.95\textwidth}{p{3cm}|X|XX|p{2.25cm}X}
+				\begin{tabularx}{0.95\textwidth}{p{3cm}XXXp{2.25cm}X}
+\toprule
 \textbf{Operation}	& \textbf{Normal}	& \textbf{No roads}	& \textbf{Decrease compared to normal}	& \textbf{No obstacles}	& \textbf{Decrease compared to normal}	\\
-\hline
+\midrule
 kNN search			&  5,958			& 5,924				&   0.57\%								&  0.0094				& 99.9998\%								\\
 Create graph		&    191.68			&   210.4			&  -9.76\%								&  0.012				& 99.9936\%								\\
 Get obstacles		&     42.53			&    40.76			&   4.15\%								&  0.78					& 98.16\%								\\
 Merge road edges	&  6,600			&     5.67			&  99.91\%								& 32.79					& 99.5\%								\\
 Add POI attributes	&      4.83			&     1.53			&  68.21\%								&  0.42					& 91.26\%								\\
-\hline
-Total time			& 12,854			& 6,202				&  51.75\%								& 37.19					& 99.71\%
+\midrule
+Total time			& 12,854			& 6,202				&  51.75\%								& 37.19					& 99.71\%								\\
+\bottomrule
 				\end{tabularx}
 				\vspace{3ex}
 				\begin{figcenter}
@@ -494,6 +495,37 @@ Total time			& 12,854			& 6,202				&  51.75\%								& 37.19					& 99.71\%
 				\label{fig:eval-pattern-routing-details}
 			\end{figure}
 		
+	\subsection{Optimizations}
+	
+		The impact of the optimizations presented in \Cref{chap:implementation} was measured using the 0.5km\textsuperscript{2} \enquote{OSM city} dataset and disabling each optimization as shown in \Cref{table:optimization-impact}.
+		
+		\begin{table}[h]
+			\begin{figcenter}
+				\begin{tabularx}{11cm}{p{4.5cm}RR}
+\toprule
+\textbf{Disabled optimizations}				& \textbf{Import time}	& \textbf{Increase factor}	\\
+\midrule
+Shadow areas								& 104.2s 				& 10.63						\\
+kNN filtering								&  10.7s				&  1.09						\\
+Vertices on convex hull						&  17.6s				&  1.80						\\
+Valid angle areas							&  11.9s				&  1.22						\\
+Custom collision detection					&  10.7s				&  1.09						\\
+\midrule
+All											& 739.9s 				& 75.44						\\
+None										&   9.8s				&  1.00						\\
+\bottomrule
+				\end{tabularx}
+			\end{figcenter}
+			\caption{Impact of each optimization on the 0.5km\textsuperscript{2} \enquote{OSM city} dataset import.}
+			\label{table:optimization-impact}
+		\end{table}
+		
+		Especially noteworthy is the 75 times longer import time when deactivating all optimizations, which is more than the product of all other increase factors together.
+		This is due to the mutual influence of the deactivated optimizations leading to more visibility checks, which result in a proportionally higher processing time.
+		
+		Considering the optimizations separately, the shadow areas do have the strongest impact on reducing the processing time by about one order of magnitude.
+		All other optimizations have a smaller impact with factors of under 2, which still adds up to a significant increase in performance.
+		
 \section{Route correctness and quality}
 
 	\subsection{Weight function}
@@ -534,7 +566,8 @@ Total time			& 12,854			& 6,202				&  51.75\%								& 37.19					& 99.71\%
 		
 		Second, filtering the potential visibility neighbors to get the $k$ nearest neighbors, as described in \Cref{subsec:step-2-knn-search}, might result in missing edges.
 		This has a direct effect on the quality of the resulting paths since they may not be optimal anymore.
-		\todo[inline]{Determine: Number of edges missing vs. performance boost}
+		However, the default parameter (36 bins covering 10° each and containing up to 10 neighbors) result in 5.42\% less visibility edges in the 0.5km\textsuperscript{2} \enquote{OSM city} dataset.
+		No detours occurred during any routing analysis, which indicates the low significance of these removed edges.
 		
 	\subsection{Quality of routes}
 	

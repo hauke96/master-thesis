@@ -230,17 +230,20 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 		The NetTopologySuite offers several indices specifically made for intervals, namely the \texttt{Bintree}, \texttt{SIRtree} and \texttt{SortedPackedIntervalRTree}, of which only the first one is dynamic and thus allows insertions and deletions after the first query was made.
 		This dynamic behavior is crucial for the use of shadow areas because the creation and handling happens in an online fashion while processing each vertex and its adjacent obstacles.
 		
-		\begin{wraptable}[8]{r}{8.25cm}
-			\vspace{-1\baselineskip}
-			\begin{tabularx}{\linewidth}{>{\raggedleft}X|rr|rr}
-\centering\textbf{Intervals /}	& \multicolumn{2}{c|}{\textbf{\texttt{BinIndex}}}				& \multicolumn{2}{c}{\textbf{\texttt{Bintree}}}			\\
-\centering\textbf{queries}		& \multicolumn{1}{c}{Insert}	& \multicolumn{1}{c|}{Query}	& \multicolumn{1}{c}{Insert}	& \multicolumn{1}{c}{Query}	\\
-\hline
-1,000							& 0.003s						&  0.018ms						&   0.22ms						& 0,04s						\\
-100,000							& 0.89s							&  0.7ms						&  21.6ms						& 135s						\\
-200,000							& 2.14s							&  1.69ms						&  60.6ms						& 597s						\\
+		\begin{wraptable}[9]{r}{8.5cm}
+			\vspace{-1.35\baselineskip}
+			\begin{tabularx}{\linewidth}{rRRRR}
+\toprule
+				& \multicolumn{2}{c}{\textbf{\texttt{BinIndex}}}	& \multicolumn{2}{c}{\textbf{\texttt{Bintree}}}	\\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+\textbf{Items}	& \textbf{Insert}	& \textbf{Query}				& \textbf{Insert}	& \textbf{Query}			\\
+\midrule
+1,000			& 0.003s			&  0.018ms						&   0.22ms			& 0,04s						\\
+100,000			& 0.89s				&  0.7ms						&  21.6ms			& 135s						\\
+200,000			& 2.14s				&  1.69ms						&  60.6ms			& 597s						\\
+\bottomrule
 			\end{tabularx}
-			\caption{Comparison of \texttt{BinIndex} and \texttt{Bintree} on random intervals.}
+			\caption{Comparison of \texttt{BinIndex} and \texttt{Bintree} on random intervals with one query per interval.}
 			\label{table:interval-data-structures}
 		\end{wraptable}
 		
@@ -318,7 +321,9 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			The significance of the negative impact due to this restriction, however, is debatable.
 			In the case of using the above mentioned default values of ten edges per 10° range, an omitted edge led to a similar direction as at least nine other edges did.
 			The negative influence of a detour to the total route length by using the next best edge towards the destination is most likely not significant.
-			\todo{Check this in evaluation! Test: ca. 17\% of edges are removed with $(36,10)$ compared to $(3600,1000)$ with only 13\% longer calculation time}
+			
+			However, the performance increase is not as large as with some of the other optimizations.
+			Importing the 0.5km\textsuperscript{2} \enquote{OSM city} dataset (see \Cref{subsubsec:eval-datasets} for details) without the nearest neighbor filtering only took 9.3\% longer.
 			
 		\subsubsection{Convex hull}
 		\label{subsubsec:convex-hull}
@@ -442,8 +447,8 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			Both intersection checks are performed using an own implementation instead of methods from the the NetTopologySuite.
 			This has solely performance reasons since this specially tailored implementations are faster than the NTS methods.
 			
-			Performing ten million collision checks on random line segments with the custom implementation takes 195 ms on average, the fastes NTS method was \texttt{IntersectionComputer.Intersection()} and took 371 ms.
-			Other method like the \texttt{RobustLineIntersector} (746 ms) or \texttt{LineSegment.Intersection} (1552 ms) were slower.
+			Performing ten million collision checks on random line segments with the custom implementation takes 195 ms on average, the fastes NTS method was the \texttt{RobustLineIntersector} and took 746 ms.
+			Another method is the \texttt{LineSegment.Intersection} method, which took 1552 ms.
 			
 			Analoguously, performing one million random triangle intersection checks required 138 ms on average using the custom implementation and 174 ms using the fastest NTS method \texttt{Triangle.Intersects()}.
 			Other method like \texttt{IPreparedGeometry.Intersects()} (406 ms), the \texttt{IndexedPointInAreaLocator} (707 ms) or the simple \texttt{Polygon.Intersects()} (2424 ms) were slower.
