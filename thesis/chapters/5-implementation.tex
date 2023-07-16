@@ -13,31 +13,20 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 	\subsection{Frameworks and technology}
 	\label{subsec:frameworks-technology}
 	
-		As mentioned in \Cref{subsec:constraints} about the constraints, the used programming language is C\# due to the dependency to the MARS framework.
-		The MARS framework is based on the widely used C\# library \term{NetTopologySuite} (\term*{NTS}), which contains numerous data structures, algorithms and helper function to handle and process geospatial data.
+		As mentioned in \Cref{subsec:constraints} regarding the constraints, the used programming language is C\# due to the dependency to the MARS framework.
+		The MARS framework is based on the widely used C\# library \term{NetTopologySuite} (\term*{NTS}), which contains numerous data structures and algorithms to work with geospatial data.
 		
-		Primarily, the NTS was used for basic data structures like coordinates, geometries and features but also for simple operations, e.g. the calculation of distances.
-		Writing data to files is also done with the help of the NTS, namely to serialize the geospatial data into the GeoJSON format.
+		Primarily, the NTS was used for basic data structures like coordinates, geometries and features but also for calculations, e.g. the calculation of distances.
+		Serialization of data is also done with the help of the NTS.
+		The \term*{MARS} framework is also used, primarily for the \texttt{Position} class and high level structures such as the \texttt{SpatialGraph} or \texttt{QuadTree} classes.
 		
-		The \term*{MARS} framework was also used for basic data structures, for example the \texttt{Position} class.
-		However, higher level structures were used as well, such as \texttt{SpatialGraph} or \texttt{QuadTree} classes.
-		
-		Not all data structures and algorithms already existed to create the hybrid routing graph.
-		Most notably, a \hyperref[subsubsec:intersection-checks]{fast line intersection check}, a \hyperref[subsec:binindex]{bin-based index} and a fast \hyperref[subsec:shadow-areas]{vertex filtering method} were implemented.
-		The latter one refers to the so-called \emph{shadow areas} in the sections below.
-		Several other helper functions and simpler structures, for instance separate classes for vertices and obstacles, were added as well.
-	
-%	\subsection{Chosen approach and potentially faster known algorithms}
-%
-%		Due to the step by step development by turning the former continuous dijkstra preprocessing into a visibility graph generator, the implemented approach does not follow algorithms described in the literature.
-%		The performance of this implementation, as shown in \todo[inline]{link to evaluation chapter}, is still enough for practical use, but a well designed and fast algorithm, like the one presented by Overmars and Welzl\cite{overmars-weizl-visibility-graph} or the one by Ghosh and Mount\cite{ghosh-output-sensitive-vgraph}, would clearly increase performance.
-%		However, this performance enhancement would only affect the generation of a visibility graph and not the performance of the routing queries.
+		Not all data structures and algorithms already existed that were required to create the hybrid routing algorithm.
+		Most notably, a \hyperref[subsubsec:intersection-checks]{fast line intersection check}, a \hyperref[subsec:binindex]{bin-based index} and a fast \hyperref[subsec:shadow-areas]{vertex filtering method} were implemented, which are all presented with more details in this chapter.
 			
 	\subsection{Algorithm steps}
 	\label{subsec:algorithm-steps}
 	
-		In the following, the main steps of the two parts of this algorithm are outlined:
-		The graph generation and the answering of routing requests.
+		This section presents the two main parts, the graph generation and the answering of routing requests, with their separate steps.
 		
 		\subsubsection{Graph generation}
 		\label{subsubsec:graph-generation}
@@ -50,13 +39,11 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 				\item \hyperref[subsec:step-3-graph-creation]{Use this visibility relation to create a visibility graph}
 				\item \hyperref[subsec:step-4-graph merging]{Merge the existing road network into this graph}
 			\end{enumerate}
-			The resulting hybrid visibility graph then allows to route between existing nodes.
-			So far, routing queries between arbitrary locations cannot be answered, only between existing nodes.
-			Handling arbitrary location is part of the next step.
+			Answering routing queries between arbitrary locations, which are not part of the graph, is part of the next step.
 		
 		\subsubsection{Answering routing queries}
 		
-			To enable answering routing requests between arbitrary locations the resulting graph needs to be extended with edges from and to the given start and end locations.
+			To determine optimal paths between arbitrary locations, the resulting graph needs to be extended with edges from and to the given source and destination locations.
 			These edges themselves are visibility edges and can therefore be created and merged just like the visibility edges before.
 			Further details are given in \Cref{sec:answering-queries} describing the following steps:
 			\begin{enumerate}
@@ -76,8 +63,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 	\label{subsec:shadow-areas}
 		
 		Shadow areas are a method I designed and implemented to quickly determine and filter out vertices that are not visible to each other.
-		The motivation and the idea behind shadow areas is the following:
-		Having a light bulb as a single light source, everything within a shadow is not visible from that light bulb.
+		A well-suited analogy for shadow areas is a light bulb casting shadows, where anything within a shadow is not visible from the light bulb.
 		Interpreting a vertex $v$ as a light bulb illuminating its surroundings, an obstacle $o$ casts a shadow outwards and every vertex within this shadow is definitely not visible from $v$.
 		
 		Each shadow is determined by three values: two values for the angular range (also referred to as \emph{angle area}) and a third value for the minimum distance from which other vertices within the angular range are definitely not visible.
@@ -139,23 +125,20 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			\label{fig:shadow-area}
 		\end{figure}
 		
-		The angular range is determined by two vertices, the \emph{bounding vertices} as marked in red in \Cref{fig:shadow-area}, one with the smallest and one with the largest angle from the processed vertex $v$.
+		The angular range is determined by two vertices, the so-called \emph{bounding vertices}, which are marked in red in \Cref{fig:shadow-area}, one with the smallest and one with the largest angle from the processed vertex $v$.
 		Thus, the shadow area covers the largest possible angular range for the obstacle it belongs to.
 		
-		Having the distances from $v$ the two bounding vertices, the larger distance is the overall distance of the shadow area.
-		Choosing any other distance, e.g. the smaller distance of these two, would result in a shadow area leading to false positive visibility checks, meaning the checked vertex is within the shadow but it is actually visible from $v$.
-		Taking the larger distance into account results in false negative results (as for $v'$ in \Cref{fig:shadow-area}), meaning the vertex is not within a shadow but not visible, which can be handled by a full visibility check.
-		Additionally when using the larger distance, positive results, meaning the checked vertex is within a shadow and seems to be not visible from $v$, are always true positive results and need no further checking.
+		The larger distance of the two bounding vertices is the overall distance of the shadow area.
+		Choosing the distance to the nearest bounding vertex would result in a shadow area leading to false positive results, meaning the checked vertex is within the shadow even though it is visible from $v$.
+		Taking the larger distance into account results in false negative results (as $v'$ in \Cref{fig:shadow-area}), meaning the vertex is not in the shadow area of an obstacle even though it is hidden by it.
+		These false negative results can be handled by a full visibility check.
+		More importantly, when using the distance to the furthest bounding vertex, positive results, meaning the checked vertex is within a shadow area, are always true positive results and need no further checking.
 		
-		Calculating the shadow area of an obstacle is a linear time operation (linear in the amount of vertices of the obstacle) and requires just a few arithmetic operations.
+		Creating the shadow area of an obstacle has a complexity that is linear in the amount of vertices of the obstacle and requires just a few arithmetic operations.
 		
-		For example for the currently processed vertex $v$, a shadow area can range from 45° to 90° and starts at a distance of 5 meters.
-		This means a vertex at 60° and 3 meters distance might be visible from $v$ but a visibility check is needed.
-		A vertex at 60° and 6 meters distance is definitely not visible.
-		This scenario is illustrated in \Cref{fig:shadow-area} with vertices $v'$ and $v''$.
 		
-		In terms of data structures, each shadow is an interval (between 0 and 360) of certain distance, which turns the visibility problem into an interval intersection problem.
-		Thus, checking whether a certain coordinate is within any shadow area is a simple operation using just a few arithmetic operations.
+		Each shadow is an interval (between 0 and 360) of certain distance, which turns the visibility problem into an interval intersection problem.
+		Thus, checking whether a certain coordinate is within any shadow area is a simple operation using just a few numeric comparisons.
 		
 		Keeping track of these shadow areas for each vertex significantly improves performance, especially with the use of the \texttt{BinIndex} data structure described \hyperref[subsec:binindex]{below}.
 		\todo[inline]{Evaluation why this is fast.}
