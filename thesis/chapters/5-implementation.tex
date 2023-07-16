@@ -150,10 +150,10 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 	\label{subsec:binindex}
 		
 		The \texttt{BinIndex} class implements a linear bin-based index structure to store and access intervals.
-		It contains $n$ many bins covering a certain range and each bin consists of a linked list.
-		Items are added to each bin that intersect with the range of the item.
-		Due to the linked list as the underlying data structure for the bins, point queries can be answered in constant and range queries in linear time.
-		However, range queries are not needed within the scope of this work, so they are not implemented.
+		It consists of an array of $n$ many bins, each bin covering a certain interval.
+		Items are added to all bins intersecting with the range of the item, therefore each bin is a linked list.
+		Point queries can be answered in $\bigo{1}$ and range queries in $\bigo{n}$ for $n$ items in the index.
+		However, the range query functionality was not implemented as it is not needed for this work.
 		\Cref{fig:bin-index} illustrates this data structure with a simple example.
 		
 		\begin{figure}[h]
@@ -228,13 +228,27 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			\label{fig:bin-index}
 		\end{figure}
 		
-		The NetTopologySuite offers several indices specifically made for intervals, namely the \texttt{BinTree}, \texttt{SIRtree} and \texttt{SortedPackedIntervalRTree}, of which only the first one is dynamic and thus allows insertions and deletions after the first query was made.
-		This dynamic behavior is crucial for an efficient use of the shadow areas.
-		Otherwise, the shadow areas must be created in beforehand, added to and index and then be used, which results in a large number of unnecessary areas being added to the index.
+		The NetTopologySuite offers several indices specifically made for intervals, namely the \texttt{Bintree}, \texttt{SIRtree} and \texttt{SortedPackedIntervalRTree}, of which only the first one is dynamic and thus allows insertions and deletions after the first query was made.
+		This dynamic behavior is crucial for the use of shadow areas because the creation and handling happens in an online fashion while processing each vertex and its adjacent obstacles.
 		
-		Even though these three data structures are tree-based and offer a logarithmic query time complexity for queries, compared to the linear time complexity of the \texttt{BinIndex}, the simple and list-based \texttt{BinIndex} is significantly faster even for larger datasets with tens of thousands of vertices.
-		%It is thinkable that the logarithmic complexity is useful for even larger datasets with millions of vertices.
-		\todo[inline]{Measure performance + Point when the tree is better}
+		\begin{wraptable}[7]{r}{8.25cm}
+			\vspace{-1.5\baselineskip}
+			\begin{tabularx}{\linewidth}{>{\raggedleft}X|rr|rr}
+\centering\textbf{Intervals /}	& \multicolumn{2}{c|}{\textbf{\texttt{BinIndex}}}				& \multicolumn{2}{c}{\textbf{\texttt{Bintree}}}			\\
+\centering\textbf{queries}		& \multicolumn{1}{c}{Insert}	& \multicolumn{1}{c|}{Query}	& \multicolumn{1}{c}{Insert}	& \multicolumn{1}{c}{Query}	\\
+\hline
+1,000							& 0.003s						&  0.018ms						&   0.22ms						& 0,04s						\\
+100,000							& 0.89s							&  0.7ms						&  21.6ms						& 135s						\\
+200,000							& 2.14s							&  1.69ms						&  60.6ms						& 597s						\\
+			\end{tabularx}
+			\caption{Comparison of the custom \texttt{BinIndex} and the NTS \texttt{Bintree}.}
+			\label{table:interval-data-structures}
+		\end{wraptable}
+		
+		Even though tree-based structures offer logarithmic query time complexities, the simple and list-based \texttt{BinIndex} with constant-time point queries is significantly faster, especially for larger datasets with hundreds of thousands of vertices.
+		\Cref{table:interval-data-structures} compares the \texttt{BinIndex} with the \texttt{Bintree} showing the significant performance difference between these two data structures.
+		Despite the advantages of a tree, the list-based \texttt{BinIndex} is multiple orders of magnitude faster than the \texttt{Bintree}.
+		
 		
 \section{Routing graph creation}
 \label{sec:visibility-graph-creation}
