@@ -66,14 +66,14 @@ This means the merging takes place (even though there are no roads) and routing 
 	* [x] Create dataset
 	* [x] Measurement
 	* [x] Visualize
-* [ ] OSM "city" dataset without roads (multiple area sizes)
+* [x] OSM "city" dataset without roads (multiple area sizes)
 	* [x] Create dataset
 	* [x] Measurement
-	* [ ] Visualize
-* [ ] OSM "rural" dataset without roads (multiple area sizes)
+	* [x] Visualize
+* [x] OSM "rural" dataset without roads (multiple area sizes)
 	* [x] Create dataset
 	* [x] Measurement
-	* [ ] Visualize
+	* [x] Visualize
 
 ### 2. With roads
 
@@ -93,21 +93,21 @@ The import takes place as is, without adjustments. Merging is performed and rout
 The import takes place but without obstacle considerstion. The dataset contains them, but `GetObstacles` is modified to return an empty set.
 Merging is performed and routing takes place on the resulting visisibility graph.
 
-* [ ] OSM "city" dataset without obstacles (multiple area sizes)
+* [x] OSM "city" dataset without obstacles (multiple area sizes)
 	* [x] Create dataset
 	* [x] Measurement
-	* [ ] Visualize
-* [ ] OSM "rural" dataset without obstacles (multiple area sizes)
+	* [x] Visualize
+* [x] OSM "rural" dataset without obstacles (multiple area sizes)
 	* [x] Create dataset
 	* [x] Measurement
-	* [ ] Visualize
+	* [x] Visualize
 
 ### 4. Optimizations
 
 Use the full OSM dataset and run it with different optimizations turned on/off:
 
-* [ ] Shadow areas
-	* [ ] Measurement
+* [x] Shadow areas
+	* [x] Measurement
 	* [ ] Visualize
 * [ ] Convex hull (only consider vertices on convex hull)
 	* [ ] Measurement
@@ -118,9 +118,9 @@ Use the full OSM dataset and run it with different optimizations turned on/off:
 * [ ] Convex hull (both)
 	* [ ] Measurement
 	* [ ] Visualize
-* [ ] BinTree instead of BinIndex
-	* [ ] Measurement
-	* [ ] Visualize
+* [x] BinTree instead of BinIndex
+	* [x] Measurement (just raw index runtimes, not within the application)
+	* [x] Visualize (just as table)
 * [ ] Normal NTS collision detection instead of my implementation
 	* [ ] Measurement
 	* [ ] Visualize
