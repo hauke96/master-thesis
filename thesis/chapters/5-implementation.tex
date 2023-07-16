@@ -13,31 +13,20 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 	\subsection{Frameworks and technology}
 	\label{subsec:frameworks-technology}
 	
-		As mentioned in \Cref{subsec:constraints} about the constraints, the used programming language is C\# due to the dependency to the MARS framework.
-		The MARS framework is based on the widely used C\# library \term{NetTopologySuite} (\term*{NTS}), which contains numerous data structures, algorithms and helper function to handle and process geospatial data.
+		As mentioned in \Cref{subsec:constraints} regarding the constraints, the used programming language is C\# due to the dependency to the MARS framework.
+		The MARS framework is based on the widely used C\# library \term{NetTopologySuite} (\term*{NTS}), which contains numerous data structures and algorithms to work with geospatial data.
 		
-		Primarily, the NTS was used for basic data structures like coordinates, geometries and features but also for simple operations, e.g. the calculation of distances.
-		Writing data to files is also done with the help of the NTS, namely to serialize the geospatial data into the GeoJSON format.
+		Primarily, the NTS was used for basic data structures like coordinates, geometries and features but also for calculations, e.g. the calculation of distances.
+		Serialization of data is also done with the help of the NTS.
+		The \term*{MARS} framework is also used, primarily for the \texttt{Position} class and high level structures such as the \texttt{SpatialGraph} or \texttt{QuadTree} classes.
 		
-		The \term*{MARS} framework was also used for basic data structures, for example the \texttt{Position} class.
-		However, higher level structures were used as well, such as \texttt{SpatialGraph} or \texttt{QuadTree} classes.
-		
-		Not all data structures and algorithms already existed to create the hybrid routing graph.
-		Most notably, a \hyperref[subsubsec:intersection-checks]{fast line intersection check}, a \hyperref[subsec:binindex]{bin-based index} and a fast \hyperref[subsec:shadow-areas]{vertex filtering method} were implemented.
-		The latter one refers to the so-called \emph{shadow areas} in the sections below.
-		Several other helper functions and simpler structures, for instance separate classes for vertices and obstacles, were added as well.
-	
-%	\subsection{Chosen approach and potentially faster known algorithms}
-%
-%		Due to the step by step development by turning the former continuous dijkstra preprocessing into a visibility graph generator, the implemented approach does not follow algorithms described in the literature.
-%		The performance of this implementation, as shown in \todo[inline]{link to evaluation chapter}, is still enough for practical use, but a well designed and fast algorithm, like the one presented by Overmars and Welzl\cite{overmars-weizl-visibility-graph} or the one by Ghosh and Mount\cite{ghosh-output-sensitive-vgraph}, would clearly increase performance.
-%		However, this performance enhancement would only affect the generation of a visibility graph and not the performance of the routing queries.
+		Not all data structures and algorithms already existed that were required to create the hybrid routing algorithm.
+		Most notably, a \hyperref[subsubsec:intersection-checks]{fast line intersection check}, a \hyperref[subsec:binindex]{bin-based index} and a fast \hyperref[subsec:shadow-areas]{vertex filtering method} were implemented, which are all presented with more details in this chapter.
 			
 	\subsection{Algorithm steps}
 	\label{subsec:algorithm-steps}
 	
-		In the following, the main steps of the two parts of this algorithm are outlined:
-		The graph generation and the answering of routing requests.
+		This section presents the two main parts, the graph generation and the answering of routing requests, with their separate steps.
 		
 		\subsubsection{Graph generation}
 		\label{subsubsec:graph-generation}
@@ -50,13 +39,11 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 				\item \hyperref[subsec:step-3-graph-creation]{Use this visibility relation to create a visibility graph}
 				\item \hyperref[subsec:step-4-graph merging]{Merge the existing road network into this graph}
 			\end{enumerate}
-			The resulting hybrid visibility graph then allows to route between existing nodes.
-			So far, routing queries between arbitrary locations cannot be answered, only between existing nodes.
-			Handling arbitrary location is part of the next step.
+			Answering routing queries between arbitrary locations, which are not part of the graph, is part of the next step.
 		
 		\subsubsection{Answering routing queries}
 		
-			To enable answering routing requests between arbitrary locations the resulting graph needs to be extended with edges from and to the given start and end locations.
+			To determine optimal paths between arbitrary locations, the resulting graph needs to be extended with edges from and to the given source and destination locations.
 			These edges themselves are visibility edges and can therefore be created and merged just like the visibility edges before.
 			Further details are given in \Cref{sec:answering-queries} describing the following steps:
 			\begin{enumerate}
@@ -76,8 +63,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 	\label{subsec:shadow-areas}
 		
 		Shadow areas are a method I designed and implemented to quickly determine and filter out vertices that are not visible to each other.
-		The motivation and the idea behind shadow areas is the following:
-		Having a light bulb as a single light source, everything within a shadow is not visible from that light bulb.
+		A well-suited analogy for shadow areas is a light bulb casting shadows, where anything within a shadow is not visible from the light bulb.
 		Interpreting a vertex $v$ as a light bulb illuminating its surroundings, an obstacle $o$ casts a shadow outwards and every vertex within this shadow is definitely not visible from $v$.
 		
 		Each shadow is determined by three values: two values for the angular range (also referred to as \emph{angle area}) and a third value for the minimum distance from which other vertices within the angular range are definitely not visible.
@@ -139,40 +125,32 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			\label{fig:shadow-area}
 		\end{figure}
 		
-		The angular range is determined by two vertices, the \emph{bounding vertices} as marked in red in \Cref{fig:shadow-area}, one with the smallest and one with the largest angle from the processed vertex $v$.
+		The angular range is determined by two vertices, the so-called \emph{bounding vertices}, which are marked in red in \Cref{fig:shadow-area}, one with the smallest and one with the largest angle from the processed vertex $v$.
 		Thus, the shadow area covers the largest possible angular range for the obstacle it belongs to.
 		
-		Having the distances from $v$ the two bounding vertices, the larger distance is the overall distance of the shadow area.
-		Choosing any other distance, e.g. the smaller distance of these two, would result in a shadow area leading to false positive visibility checks, meaning the checked vertex is within the shadow but it is actually visible from $v$.
-		Taking the larger distance into account results in false negative results (as for $v'$ in \Cref{fig:shadow-area}), meaning the vertex is not within a shadow but not visible, which can be handled by a full visibility check.
-		Additionally when using the larger distance, positive results, meaning the checked vertex is within a shadow and seems to be not visible from $v$, are always true positive results and need no further checking.
+		The larger distance of the two bounding vertices is the overall distance of the shadow area.
+		Choosing the distance to the nearest bounding vertex would result in a shadow area leading to false positive results, meaning the checked vertex is within the shadow even though it is visible from $v$.
+		Taking the larger distance into account results in false negative results (as $v'$ in \Cref{fig:shadow-area}), meaning the vertex is not in the shadow area of an obstacle even though it is hidden by it.
+		These false negative results can be handled by a full visibility check.
+		More importantly, when using the distance to the furthest bounding vertex, positive results, meaning the checked vertex is within a shadow area, are always true positive results and need no further checking.
 		
-		Calculating the shadow area of an obstacle is a linear time operation (linear in the amount of vertices of the obstacle) and requires just a few arithmetic operations.
+		Creating the shadow area of an obstacle has a complexity that is linear in the amount of vertices of the obstacle and requires just a few arithmetic operations.
 		
-		For example for the currently processed vertex $v$, a shadow area can range from 45° to 90° and starts at a distance of 5 meters.
-		This means a vertex at 60° and 3 meters distance might be visible from $v$ but a visibility check is needed.
-		A vertex at 60° and 6 meters distance is definitely not visible.
-		This scenario is illustrated in \Cref{fig:shadow-area} with vertices $v'$ and $v''$.
 		
-		In terms of data structures, each shadow is an interval (between 0 and 360) of certain distance, which turns the visibility problem into an interval intersection problem.
-		Thus, checking whether a certain coordinate is within any shadow area is a simple operation using just a few arithmetic operations.
+		Each shadow is an interval (between 0 and 360) of certain distance, which turns the visibility problem into an interval intersection problem.
+		Thus, checking whether a certain coordinate is within any shadow area is a simple operation using just a few numeric comparisons.
 		
 		Keeping track of these shadow areas for each vertex significantly improves performance, especially with the use of the \texttt{BinIndex} data structure described \hyperref[subsec:binindex]{below}.
-		\todo[inline]{Evaluation why this is fast.}
-		
-		% NetworkRoutingPlayground->Jungfernstieg dataset with 7916 vertices: ~7.3s with and 67s without shadow areas -> speedup of factor ~9
-		% Hamburg inner city dataset with 67819 vertices: 382s with and ~31000s without shadow areas -> speedup of factor ~81
-		
+		Enabling the shadow area optimization and importing the 0.5km\textsuperscript{2} \enquote{OSM city} dataset (details are given in \Cref{subsubsec:eval-datasets}) with 7096 input vertices required 9.8s on average.
+		Without the shadow area optimization this time increased by a factor of 10.62 to 104.2s.
+
 	\subsection{BinIndex data structure}
 	\label{subsec:binindex}
-		
+	
 		The \texttt{BinIndex} class implements a linear bin-based index structure to store and access intervals.
-		It contains $n$ many bins covering a certain range and each bin consists of a linked list.
-		Items are added to each bin that intersect with the range of the item.
-		Due to the linked list as the underlying data structure for the bins, point queries can be answered in constant and range queries in linear time.
-		However, range queries are not needed within the scope of this work, so they are not implemented.
-		\Cref{fig:bin-index} illustrates this data structure with a simple example.
-		
+		It consists of an array of $n$ many bins, each bin covering a certain interval.
+		Items are added to all bins intersecting with the range of the item, therefore each bin is a linked list to potentially store multiple items.
+	
 		\begin{figure}[h]
 			\begin{figcenter}
 				\begin{tikzpicture}
@@ -245,13 +223,33 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			\label{fig:bin-index}
 		\end{figure}
 		
-		The NetTopologySuite offers several indices specifically made for intervals, namely the \texttt{BinTree}, \texttt{SIRtree} and \texttt{SortedPackedIntervalRTree}, of which only the first one is dynamic and thus allows insertions and deletions after the first query was made.
-		This dynamic behavior is crucial for an efficient use of the shadow areas.
-		Otherwise, the shadow areas must be created in beforehand, added to and index and then be used, which results in a large number of unnecessary areas being added to the index.
+		Point queries can be answered in $\bigo{1}$ and range queries in $\bigo{n}$ for $n$ items in the index.
+		However, the range query functionality was not implemented as it is not needed for this work.
+		\Cref{fig:bin-index} illustrates this data structure with a simple example.
 		
-		Even though these three data structures are tree-based and offer a logarithmic query time complexity for queries, compared to the linear time complexity of the \texttt{BinIndex}, the simple and list-based \texttt{BinIndex} is significantly faster even for larger datasets with tens of thousands of vertices.
-		%It is thinkable that the logarithmic complexity is useful for even larger datasets with millions of vertices.
-		\todo[inline]{Measure performance + Point when the tree is better}
+		The NetTopologySuite offers several indices specifically made for intervals, namely the \texttt{Bintree}, \texttt{SIRtree} and \texttt{SortedPackedIntervalRTree}, of which only the first one is dynamic and thus allows insertions and deletions after the first query was made.
+		This dynamic behavior is crucial for the use of shadow areas because the creation and handling happens in an online fashion while processing each vertex and its adjacent obstacles.
+		
+		\begin{wraptable}[9]{r}{8.5cm}
+			\vspace{-1.35\baselineskip}
+			\begin{tabularx}{\linewidth}{rRRRR}
+\toprule
+				& \multicolumn{2}{c}{\textbf{\texttt{BinIndex}}}	& \multicolumn{2}{c}{\textbf{\texttt{Bintree}}}	\\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+\textbf{Items}	& \textbf{Insert}	& \textbf{Query}				& \textbf{Insert}	& \textbf{Query}			\\
+\midrule
+1,000			& 0.003s			&  0.018ms						&   0.22ms			& 0,04s						\\
+100,000			& 0.89s				&  0.7ms						&  21.6ms			& 135s						\\
+200,000			& 2.14s				&  1.69ms						&  60.6ms			& 597s						\\
+\bottomrule
+			\end{tabularx}
+			\caption{Comparison of \texttt{BinIndex} and \texttt{Bintree} on random intervals with one query per interval.}
+			\label{table:interval-data-structures}
+		\end{wraptable}
+		
+		Even though tree-based structures offer logarithmic query time complexities, the simple and list-based \texttt{BinIndex} with constant-time point queries is significantly faster, especially for larger datasets with hundreds of thousands of vertices.
+		\Cref{table:interval-data-structures} compares the \texttt{BinIndex} with the \texttt{Bintree} showing the significant performance difference between these two data structures.
+		Despite the advantages of a tree, the list-based \texttt{BinIndex} is multiple orders of magnitude faster than the \texttt{Bintree}.
 		
 \section{Routing graph creation}
 \label{sec:visibility-graph-creation}
@@ -323,7 +321,9 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			The significance of the negative impact due to this restriction, however, is debatable.
 			In the case of using the above mentioned default values of ten edges per 10° range, an omitted edge led to a similar direction as at least nine other edges did.
 			The negative influence of a detour to the total route length by using the next best edge towards the destination is most likely not significant.
-			\todo{Check this in evaluation! Test: ca. 17\% of edges are removed with $(36,10)$ compared to $(3600,1000)$ with only 13\% longer calculation time}
+			
+			However, the performance increase is not as large as with some of the other optimizations.
+			Importing the 0.5km\textsuperscript{2} \enquote{OSM city} dataset (see \Cref{subsubsec:eval-datasets} for details) without the nearest neighbor filtering only took 9.3\% longer.
 			
 		\subsubsection{Convex hull}
 		\label{subsubsec:convex-hull}
@@ -447,8 +447,8 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 			Both intersection checks are performed using an own implementation instead of methods from the the NetTopologySuite.
 			This has solely performance reasons since this specially tailored implementations are faster than the NTS methods.
 			
-			Performing ten million collision checks on random line segments with the custom implementation takes 195 ms on average, the fastes NTS method was \texttt{IntersectionComputer.Intersection()} and took 371 ms.
-			Other method like the \texttt{RobustLineIntersector} (746 ms) or \texttt{LineSegment.Intersection} (1552 ms) were slower.
+			Performing ten million collision checks on random line segments with the custom implementation takes 195 ms on average, the fastes NTS method was the \texttt{RobustLineIntersector} and took 746 ms.
+			Another method is the \texttt{LineSegment.Intersection} method, which took 1552 ms.
 			
 			Analoguously, performing one million random triangle intersection checks required 138 ms on average using the custom implementation and 174 ms using the fastest NTS method \texttt{Triangle.Intersects()}.
 			Other method like \texttt{IPreparedGeometry.Intersects()} (406 ms), the \texttt{IndexedPointInAreaLocator} (707 ms) or the simple \texttt{Polygon.Intersects()} (2424 ms) were slower.
@@ -856,7 +856,7 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 	\begin{enumerate}
 		\item \label{itm:answering-queries-add-nodes} Add nodes for the source and destination locations of the routing query to the graph.
 		\item \label{itm:answering-queries-vis-edges} Determine visibility edges of each of the two nodes and merge these new edges into the graph.
-		\item \label{itm:answering-queries-routing} Use a normal shortest path algorithm, such as A*, to find the path from the source to the destination.
+		\item \label{itm:answering-queries-routing} Use a normal shortest path algorithm, such as A*, together with a weight function to find the path from the source to the destination.
 		\item \label{itm:answering-queries-cleanup} Remove all previously added nodes and edges to get a clean graph for future routing requests.
 	\end{enumerate}
 	Step \ref{itm:answering-queries-add-nodes} creates two new nodes in the spatial graph as far as no node already exists at the respective location.
@@ -869,4 +869,4 @@ Finally, each algorithmic step of the graph generation but also of the query ans
 	Fortunately, the \texttt{SpatialGraph.RemoveNode(int)} method removes the node given by its ID and also removes all edges, which are connected to the given node.
 	This makes step \ref{itm:answering-queries-cleanup} very easy since step \ref{itm:answering-queries-add-nodes} and \ref{itm:answering-queries-vis-edges} yield the IDs of created nodes, which are needed for the cleanup.
 	
-	\todo{Summary/wrap up/transition to evaluation chapter}
+	The performance of routing and quality of the determined routes depend on several factors, with are discussed in the next chapter.

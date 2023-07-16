@@ -149,7 +149,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 		This approach is very similar to the one above, but it tries to fix the uncertainty of intersections between the two resulting paths.
 		Multiple ways are conceivable to ensure that there are enough intersections or to otherwise guarantee that segments are small enough to be merged.
 		
-		One way is to stop the routing after a certain distance stopping at the next available vertex.
+		One way is to stop the two routing requests, one road-based and one on a generated graph, after a certain distance stopping at the next available vertex.
 		After stopping for the first time, there are two such vertices, one where the road network-based routing stopped and one where the routing on the generated graph stopped.
 		From each vertex, two new routing queries start and stop again after a certain distance.
 		This continues until one query reaches the destination.
@@ -166,8 +166,8 @@ Finally, an overview of the separate components is given as well as a descriptio
 		
 		There are probably more possible ways to ensure a sufficient amount of segments or intersections, however, this idea was not further pursued.
 		
-		Unfortunately, both approaches have a worse time complexity than any popular routing algorithms including pure geometric routing.
-		\todo[inline]{Be more precise}
+		Unfortunately, both approaches have worse time complexities than any popular routing algorithms including pure geometric routing.
+		The first one would cause $\bigo{2^n}$ and the second one $\bigo{n^2}$ many routing requests, of which each request has a certaiy complexity itself.
 		Even though the second idea might work well for appropriate segments lengths, the complexity and definite time overhead make it an unfavorable choice.
 	
 	% Merge of networks
@@ -191,12 +191,11 @@ Finally, an overview of the separate components is given as well as a descriptio
 		The state of NRW, which is densely populated and the largest German state in terms of the amount of data, has an average degree of 2.1 but when ignoring dead-ends and touching segments, i.e. when only considering actual junctions, the degree increases to 3.1.
 		The state of HH, which is used for the evaluation of this work, has an average degree of 2.11 and 3.11 respectively.
 		A vertex with a degree of 10 or higher does not exist in either of these two states.
-		\todo[inline]{Link to possible optimizations discussed in later chapters}
 		
 		Despite the disadvantages of this approach, I considered the advantages to be more important.
-		As already mentioned, this strategy is not only simple and fast, it also allows the use of speedup methods for routing queries, e.g. the A*-based ALT algorithm or other techniques described in \Cref{subsec:speedup-methods}.
-		Moreover, the resulting path is definitely optimal, based on the given weight function, and no complex postprocessing is needed.
-		Such postprocessing is, for example, needed in the \enquote{concurrent routing} candidate approach.
+		As already mentioned, this strategy is not only simple, it also allows the use of speedup methods for routing queries, e.g. the A*-based ALT algorithm or other techniques described in \Cref{subsec:speedup-methods}, and has potential for a wide range of performane optimizations as outlined in \Cref{sec:future-work}.
+		Moreover, the resulting path is definitely optimal based on the given weight function, due to the usage of visibility edges. 
+		Also, no complex postprocessing is needed, as for example in the \enquote{concurrent routing} candidate approach.
 		
 		Taken all aspects into account, this strategy seemed to be the simplest and most promising with the least disadvantages.
 		It was therefore chosen to be implemented.
@@ -231,7 +230,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 		Implementing this is necessary regardless of the chosen algorithm for the visibility graph creation.
 		
 		As the generation of the routing graph happens in a preprocessing step, the time and space needed for this task was not a critical aspect of the whole algorithm.
-		Further optimizations are possible and discussed in \todo[inline]{link to future work}.
+		Further optimizations are possible and discussed in \Cref{sec:future-work}.
 		Significant to agent-based simulations is the routing behavior itself as it directly affects the simulation time.
 		Creating the graph in a preprocessing step has, especially when persisting the graph for multiple uses, no direct effect on the simulation.
 		
@@ -243,8 +242,8 @@ Finally, an overview of the separate components is given as well as a descriptio
 		The largest and most influential design decision was the decision against an approach from the literature as presented in \Cref{subsec:related-work:visibility-graph}.
 		Several approaches from the literature have either restrictions on the geometric structures or assume that a certain preprocessing of the data was already performed.
 		
-		The approach by Welzl\cite{welzl-visibility-graph}, for example, explicitly assumes that there are not collinear vertices, i.e. at least three vertices forming a straight line.
-		It may seem unlikely at first that collinear vertices occur in real-world datasets, but in fact, at least in OpenStreetMap, it is very common to align touching buildings and other straight obstacles like walls.
+		The approach by Welzl\cite{welzl-visibility-graph}, for example, explicitly assumes that there are not collinear vertices, i.e. three or more vertices in a straight line.
+		It may seem unlikely at first that collinear vertices occur in real-world datasets, but at least in OpenStreetMap it is very common to align touching buildings and other straight obstacles like walls.
 		\todo[inline]{diagrams/graphics for problems like this alignment thing}
 		
 		An optimization of Welzls approach, by Overmars and Welzl\cite{overmars-weizl-visibility-graph}, only works on non-intersecting line segments.
@@ -292,7 +291,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 	The hybrid routing algorithm consists of two main components, which present public interfaces.
 	Generating the underlying routing graph, the so-called \term{hybrid visibility graph}, is the first step and resides in its own component, the \texttt{HybridVisibilityGraphGenerator} class.
 	The hybrid visibility graph itself is contained in the \texttt{HybridVisibilityGraph} class, which primarily contains the graph structure and is used to answer routing queries.
-	A third component, which is not intended to be used from outside the algorithm, is the \texttt{VisibilityGraphGenerator}.
+	A third but internal component, which is not intended to be used from outside the algorithm, is the \texttt{VisibilityGraphGenerator}.
 	Its purpose is the determination of visibility edges for the routable hybrid visibility graph.
 	
 	Since this works resides in a rather technical and algorithmically oriented context, there are no other components involved, like for example a user interface.
@@ -300,31 +299,49 @@ Finally, an overview of the separate components is given as well as a descriptio
 	
 	\begin{figure}[h]
 		\begin{figcenter}
-			\includegraphics[width=\textwidth]{images/components.pdf}
+			\includegraphics[scale=0.8]{images/components.pdf}
 		\end{figcenter}
 		\caption{The components and usages of interfaces of the resulting implementation.}
 		\label{fig:components}
 	\end{figure}
 	
-	In an agent-based simulation, each agent has the ability to make its own decisions, which includes the calculation of routes as part of its path planning routing.
+	In an agent-based simulation, each agent has the ability to make its own decisions, which includes the calculation of routes as part of its path planning routine.
 	The hybrid visibility graph has the necessary interfaces to answer routing queries, which means, an agent needs access to an instance of this graph for its navigation.
 	In \Cref{fig:components}, the agent itself creates this graph but the visibility graph can also be shared among multiple agent and therefore does not need to be created multiple times for the same input dataset.
 	
-	The \texttt{HybridVisibilityGraphGenerator} (abbreviated as \enquote{H.V.GraphGenerator} in \Cref{fig:components}) presents a public \texttt{Generate()} method for the task of the graph generation and, in this exemplary setup, is used by the agent.
+	\begin{figure}[h!]
+		\begin{figcenter}
+			\includegraphics[scale=0.8]{images/components-sequence-generation.pdf}
+		\end{figcenter}
+		\caption{The generation process to obtain the hybrid visibility graph.}
+		\label{fig:components-sequence-generate}
+		\hfill
+		\\
+		\begin{figcenter}
+			\includegraphics[scale=0.8]{images/components-sequence-routing.pdf}
+		\end{figcenter}
+		\caption{The most important steps performed during a routing request using the hybrid visibility graph. The variables \texttt{s}, \texttt{t} and \texttt{w} are the source vertex, the target vertex and the weight function.}
+		\label{fig:components-sequence-routing}
+	\end{figure}
+	\clearpage
+	
+	The \texttt{HybridVisibilityGraphGenerator} (abbreviated as \enquote{H.V.GraphGenerator} in \Cref{fig:components-sequence-generate}) presents a public \texttt{Generate()} method for the task of the graph generation and, in this exemplary setup, is used by the agent.
 	It returns an instance of the \texttt{HybridVisibilityGraph} class offering public methods to answer shortest path queries.
-	These methods, such as \texttt{OptimalPath(source, destination, weightFunction)}, then return a list of coordinates representing the shortest path between two input coordinates.
-%	More details on the graph generation can be found in \Cref{sec:graph-generation}.
+	\Cref{fig:components-sequence-routing} illustrates the internal tasks of a routing request using the \texttt{OptimalPath(source, destination, weightFunction)} function.
+	The result is a list of coordinates representing the shortest path between two input coordinates.
 	
 %	For convenience and due to required preparations, routing queries are put to the hybrid visibility graph.
-	To fulfill the overall concept of this work, it must be possible to start and end at arbitrary locations, thus, there is no guarantee that the source and destination locations of the query are on any vertex in the graph.
-	Therefore, the hybrid visibility graph has to temporarily connect these locations to the graph.
+	To fulfill the overall concept of this work, finding optimal paths between arbitrary locations, is must be ensures that these location are reachable via the hybrid visibility graph.
+	Without further considerations of the source and destination locations, there is no guarantee that these locations are represented by any vertex in the graph.
+	Therefore, the hybrid visibility graph has to temporarily connect these locations to the graph if they are not present already.
 	This is done by determining all visible neighbors of the source and destination locations and merging the resulting edges to the underlying graph.
-	To perform this task, the hybrid visibility graph uses the interface of the \texttt{VisibilityGraphGenerator} to determine visibility neighbors of a single vertex.
-	In other words, it utilizes the central step of the graph generation process to connect the two input coordinates.
+	To perform this task, the hybrid visibility graph uses the \texttt{VisibilityGraphGenerator} to determine visibility neighbors of a single vertex by calling the same method as the graph generation does.
 	\Cref{sec:answering-queries} covers the process of answering routing queries in more details, including a clean up step that is performed after the shortest path has been found.
 
-\section{Deployment view}
+\section{Deployment}
 
 	% published in MARS
-	\todo{Publishing in MARS}
-
+	The goal of this thesis is to enhance route quality for agent-based simuations.
+	Therefore, the algorithm was implemented using the MARS framework.
+	In order to use this work to improve MARS, the code is published on GitHub\footnote{\url{https://github.com/hauke96/master-thesis/}}.
+	The C\#-Project \enquote{HybridVisibilityGraphRouting} can simply be imported and all necessary classes can be used.

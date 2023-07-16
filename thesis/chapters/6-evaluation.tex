@@ -23,6 +23,7 @@ For both evaluation aspects, method and design details are given followed by the
 			% TODO table with all columns of the measured data including a description and example value?
 		
 		\subsubsection{Datasets}
+		\label{subsubsec:eval-datasets}
 		
 			There are multiple categories of datasets that were used.
 			Pattern-based datasets are created using a pattern, e.g. a set of rectangles, repeated numerous times to create datasets of various sizes.
@@ -66,8 +67,8 @@ For both evaluation aspects, method and design details are given followed by the
 
 			\begin{description}
 				\item[Shadow areas] Instead, every visibility check was performed using the custom intersection check described in \Cref{subsubsec:intersection-checks}.
-				\item[Custom intersection check] The custom intersection check was replaced by the \todo[inline]{probably \texttt{RobustLineIntersector}?} class from the NTS to determine intersections between line segments.
-				\item[BinIndex] Instead, the \texttt{BinTree} from the NTS was used.
+				\item[Custom intersection check] The custom intersection check was replaced by the \texttt{RobustLineIntersector} class from the NTS to determine intersections between line segments.
+				\item[BinIndex] Instead, the \texttt{Bintree} from the NTS was used.
 				\item[Convex hull] The restriction to only consider vertices on the convex hull of obstacles was removed.
 				\item[Valid angle areas] Considering only potential visibility neighbors within certain angular ranges was deactivated.
 				\item[$k$-NN search] The $k$ of the k-NN search was deactivated to determine all visibility neighbors in all directions.
@@ -116,7 +117,7 @@ For both evaluation aspects, method and design details are given followed by the
 		
 		\subsubsection{System and hardware}
 		
-			The measurements were performed on an up-to-date Arch Linux operating system (Kernel 6.3.9) with .NET Core 7.0.107 and MARS framework 4.5.2.
+			The measurements were performed on an up-to-date Arch Linux operating system (Kernel 6.4.3) with .NET Core 7.0.107 and MARS framework 4.5.2.
 			Apart from necessary operating system processes and the simple desktop environment i3, no other applications ran during the performance measurements.
 			
 			The hardware consisted of an octa core Intel\textregistered\ Xeon\textregistered\ E3-1231 v3 CPU at 3.40 GHz, a total of 16GB DDR3 1333 MHz RAM and a Samsung EVO 850 SSD.
@@ -191,15 +192,15 @@ For both evaluation aspects, method and design details are given followed by the
 			\end{figure}
 			
 			First of all and as mentioned at the beginning of \Cref{subsec:related-work:visibility-graph}, the process of generating a visibility graph has an inherent quadratic runtime.
-			This fact is clearly visible in measurements of the dataset imports as seen in \Cref{fig:eval-import-city-abs} and \Cref{fig:eval-import-rural-abs}.
+			This fact is clearly visible in measurements of the dataset imports illustrated in \Cref{fig:eval-import-city-abs} and \Cref{fig:eval-import-rural-abs}, even though it is less prominent in the \enquote{OSM rural} datasets.
 			Details on the contribution of each task to the overall graph generation time can be seen in \Cref{fig:eval-import-details}.
 			
 			Second, \Cref{fig:eval-import-city-rel-increase} and \ref{fig:eval-import-rural-rel-increase} show the increase in the per-vertex processing time when a new additional vertex is added to the dataset.
 			A value of 1µs means, that the processing time of every vertex increases by 1µs when the dataset size increases by one vertex.
-			This value is very low for the \enquote{OSM city} datasets (below half of a microsecond) and even decreases within the \enquote{OSM rural} datasets from 4.1µs to 0.6µs.
-			However, the \enquote{OSM city} datasets indicate that this value might increase again with larger dataset sizes but might remain at a low level.
-			This significantly different behavior is very likely influenced by the type of dataset, i.e. the distribution and size of obstacles.
-			Pattern-based datasets showed a runtime behavior similar to the \enquote{OSM city} dataset, which is another indicator that the effect from \Cref{fig:eval-import-rural-rel-increase} is caused by the structure of the dataset.
+			This value is very low for the \enquote{OSM city} datasets (around 0.2µs) and even decreases within the \enquote{OSM rural} datasets from 3.3µs to 0.35µs.
+			However, the \enquote{OSM city} datasets indicate that this value might increase again with larger dataset sizes.
+			This significantly different behavior is very likely influenced by the type of dataset, i.e. the distribution of obstacles and size of the dataset.
+			Pattern-based datasets showed a runtime behavior similar to the OSM-based datasets with decreasing times for smaller and increasing times for larger datasets, which is another indicator that the effect from \Cref{fig:eval-import-rural-rel-increase} is caused by the size of the dataset.
 			A decrease in this per-vertex time increase has no directly noticeable effect on the overall graph generation time, which still shows a quadratic increase.
 			
 			\begin{figure}[h!]
@@ -225,25 +226,25 @@ For both evaluation aspects, method and design details are given followed by the
 			In \Cref{fig:eval-import-details} both OSM dataset import times are split into the performed tasks.
 			The task with the largest effort in terms of the required time differs from the dataset category.
 			
-			In the \enquote{OSM city} datasets, the $k$ nearest neighbor (kNN) search is the most time consuming task with a share on the total time of constantly over 50\%.
+			In the \enquote{OSM city} datasets, the $k$ nearest neighbor (kNN) search is the most time consuming task with a share on the total time of constantly over 60\%.
 			The second most time consuming task is the merge operation, where visibility and road edges are merged and connected
-			Together, these two steps are responsible for over 98.7\% of the required graph generation time.
+			Together, these two steps are responsible for over 98.1\% of the required graph generation time.
 			
 			A different situation can be found in the \enquote{OSM rural} dataset.
-			Here, the merge operation is the heavier task with a share of at least 59.8\% on the overall graph generation time.
+			Here, the merge operation is the heavier task with a share of at least 51.4\% on the overall graph generation time.
 			This effect of a more time-consuming merge operation is further discussed in \Cref{subsubsec:dataset-without-roads-obstacles}.
-			The times of the kNN search and the merge operation sum up to 97.1\% of the graph generation time.
+			The times of the kNN search and the merge operation sum up to 96.5\% of the graph generation time.
 			
 			Even though the order which task is the heaviest is different, both runtimes of the kNN search and the merge operation are the most significant ones.
-			The graph creation task in the \enquote{OSM rural} datasets is the only additional task with a share of over 1\%.
-			All other tasks have a negligible share on the total graph generation time of below 1\%, which decreases with the size of the dataset.
+			The graph creation task in the \enquote{OSM rural} datasets is the only additional task throughout all tasks in all OSM-based datasets with a share of over 1\%.
+			All other tasks have a negligible share on the total graph generation time of below 1\%, which decrease with the size of the dataset.
 	
 		\subsubsection{Routing}
 		
-			The time required for routing is influenced by several different factors.
-			First of all, routing consists of several tasks, each contributing to the overall routing time by different proportions.
-			Second, the dataset size is a strong influencing factor but has differently strong influence on the several routing tasks.
-			Third, the structure of the data, meaning the number, size and distribution of obstacles, also influences the required time for routing.
+			Routing consists of several tasks with varying degrees of impact on the total routing time.
+			The time required for a routing task is influenced by two main factors.
+			First, the dataset size is a strong influencing factor but has differently large impacts on the time of the routing tasks.
+			Second, the structure of the data, meaning the number, size and distribution of obstacles, also influences the required time for routing.
 			In fact, the size of the dataset is the strongest influence on the overall routing time as it affects all tasks during routing.
 			
 			\Cref{fig:eval-city-routing-details} and \ref{fig:eval-rural-routing-details} show the routing times from the \enquote{OSM city} and \enquote{OSM rural} datasets as well as details on the separate tasks during routing.
@@ -322,30 +323,29 @@ For both evaluation aspects, method and design details are given followed by the
 			\end{figure}
 			
 			Starting with the total routing times, both categories show different runtime behavior in terms of the route length.
-			While in the \enquote{OSM city} datasets the route calculation is positively correlated with the beeline distance (longer distance means longer calculation time), this correlation is negative in the \enquote{OSM rural} dataset.
+			While the \enquote{OSM city} datasets shows no correlation between the beeline distance and the routing time, the \enquote{OSM rural} dataset shows a negative correlation (longer distance means shorter routing time).
 			
-			The difference is most prominent in the largest \enquote{OSM rural} dataset between the first and the fifth routing request.
+			This negative correlation is most prominent in the largest \enquote{OSM rural} dataset between the first and the fifth routing request.
 			Since the majority of the time is needed to connect the source and destination locations to the graph, the presence of nearby obstacles has a significant impact on the routing time.
-			As illustrated in \Cref{fig:eval-osm-rural-map}, the destination vertex of the first routing request has no nearby obstalces.
+			As illustrated in \Cref{fig:eval-osm-rural-map}, the destination vertex of the first routing request has no nearby obstacles.
 			This means no efficient use of shadow areas can be made resulting in more visibility checks and therefore slower runtime.
 			The destination vertex of the fifth request has multiple obstacles nearby casting large shadow areas towards many buildings, which then do not need to be further checked.
-			As a result, 101 visibility edges are connected to the destination vertex of the first and only 18 to the destination vertex of the fifth request.
+			As a result, 86 visibility edges are connected to the source vertex of the first and 18 to the source vertex of the fifth request.
 			
 			This phenomenon of longer routing times for routing between short distant vertices does not appear in the \enquote{OSM city} dataset due to the high density of obstacles enabling an efficient use of shadow areas.
-			But the effect is still visible in \Cref{fig:eval-city-routing-details-a} at requests with a beeline distance of for example 700m, 800m and 950m.
-			These requests contain vertices at larger junctions or wide roads with only a few nearby obstacles resulting in many visibility checks with many generated visibility edges.
+			But the effect is still visible in \Cref{fig:eval-city-routing-details-a} at the requests with a beeline distance between 0.5km and 1km.
+			Requests in this range, which have a longer processing time, contain vertices at junctions or wide roads with only a few surrounding obstacles, which yields longer processing times.
 			
 			\vspace{3ex}
 			\noindent
 			\begin{minipage}{\textwidth}
 				\begin{minipage}{0.4\textwidth}
 					\centering
-					\begin{tabularx}{\textwidth}{|p{2cm}|X|X|}
-						\hline
+					\begin{tabularx}{\textwidth}{p{2cm}|X|X}
 						\textbf{Request no.}				& 1			& 5			\\\hline
-						\textbf{Beeline\newline distance}	& 100.40 m	& 300.78 m	\\\hline
-						\textbf{Routing\newline time}		& 452.9 ms	& 130.1 ms	\\\hline
-						\textbf{Time per m}					& 4.51 ms	& 0.43 ms	\\\hline
+						\textbf{Beeline\newline distance}	& 100.42 m	& 300.78 m	\\\hline
+						\textbf{Routing\newline time}		& 519.5 ms	& 127.19 ms	\\\hline
+						\textbf{Time per m}					& 5.17 ms	& 0.42 ms
 					\end{tabularx}
 				\end{minipage}
 				\hfill
@@ -376,16 +376,18 @@ For both evaluation aspects, method and design details are given followed by the
 			
 			\begin{figure}[h!]
 				\begin{figcenter}
-					\begin{tabularx}{0.95\textwidth}{p{3cm}|X|XX|p{2.25cm}X}
-\textbf{Operation} & \textbf{Normal} & \textbf{No roads} & \textbf{Decrease compared to normal} & \textbf{No obstacles} & \textbf{Decrease compared to normal} \\
-\hline
-kNN search			& 537.66	& 512.16	& 4.74\%						& 0.000012		& 99.9999\%						\\
-Create graph		& 1.17		& 1.04		& 10.65\%						& 0.000013		& 99.9989\%						\\
-Get obstacles		& 0.199		& 0.201		& -0.94\%						& 0.01			& 99.995\%						\\
-Merge road edges	& 432.32	& 21.77		& 94.86\%						& 1.39			& 99.67\%						\\
-Add POI attributes	& 0.059		& 0.033		& 44.06\%						& 0.012			& 79.66\%						\\
-\hline
-Total time			& 963.1		& 535.29	& 44.42\%						& 1.43			& 99.85\%
+					\begin{tabularx}{0.95\textwidth}{p{3cm}XXXp{2.25cm}X}
+\toprule
+\textbf{Operation}	& \textbf{Normal}	& \textbf{No roads}	& \textbf{Decrease compared to normal}	& \textbf{No obstacles}	& \textbf{Decrease compared to normal}	\\
+\midrule
+kNN search			& 315.86			& 288.69			&  8.60\%								& 0.000011				& 99.9999\%								\\
+Create graph		&   0.69			&   0.68			&  0.84\%								& 0.000014				& 99.9999\%								\\
+Get obstacles		&   0.30			&   0.29			&  3.28\%								& 0.0095				& 96.82\%								\\
+Merge road edges	& 120.13			&  30.79			& 74.37\%								& 0.48					& 99.60\%								\\
+Add POI attributes	&   0.054			&   0.025			& 53.81\%								& 0.008					& 85.97\%								\\
+\midrule
+Total time			& 437.34			& 320.57			& 26.70\%								& 0.53					& 99.88\%								\\
+\bottomrule
 					\end{tabularx}
 				\end{figcenter}
 				\vspace{3ex}
@@ -397,26 +399,30 @@ Total time			& 963.1		& 535.29	& 44.42\%						& 1.43			& 99.85\%
 			\end{figure}
 			
 			\Cref{fig:eval-import-osm-no-roads-obstacles-city} lists and illustrates the results for the \enquote{OSM city} datasets.
-			Two noteworthy insights can be inferred from these data:
+			Some noteworthy insights can be inferred from these data:
 			\begin{itemize}
-				\item The kNN search and visibility graph creation times were significantly reduced for the dataset without obstacles, which is expected, since both operations are unrelated to road edges and only take obstacles into account.
+				\item The kNN search and visibility graph creation times were significantly reduced for the dataset without obstacles, which is expected, since both operations take only obstacles into account.
 				\item The merge operation for the dataset without roads took longer compared to the dataset without obstacles.
 				This is due to the 175 remaining building passages within the \enquote{no roads} dataset, which means this operation still merges road edges and therefore requires some time.
-				However, compared to the normal dataset the merge operation only required 5.14\% of the time in the \enquote{no road} dataset, which correlates to the number of remaining road edges of 4.82\% (175 edges) compared to the normal dataset (3629 edges).
-				In the \enquote{no obstacles} dataset the merge operation took 0.33\% of the normal time, due to no existing visibility graph these road edges could be merged into.
+				However, compared to the normal dataset the merge operation only required 25.63\% of the time in the \enquote{no road} dataset, which does not match the number of remaining road edges of 4.82\% (175 edges) compared to the normal dataset (3629 edges).
+				Because building passages consist of short segments, their start and end vertices needs to be connected to the rest of the graph.
+				This is the case for 742 such dead-end vertices in the normal dataset and for 346 in the dataset without roads, which yields the relatively, with respect to the number of edges, long processing time.
+				\item In the \enquote{no obstacles} dataset the merge operation took 0.4\% of the normal time. This is expected, because no visibility graph edges exist and therefore to merge between visibility edges and road edges takes place.
 			\end{itemize}
 			
 			\begin{figure}[h!]
-				\begin{tabularx}{0.95\textwidth}{p{3cm}|X|XX|p{2.25cm}X}
-\textbf{Operation} & \textbf{Normal} & \textbf{No roads} & \textbf{Decrease compared to normal} & \textbf{No obstacles} & \textbf{Decrease compared to normal} \\
-\hline
-kNN search			& 8,402		& 8,428		& -0.32\%						& 0.013			& 99.9998\%						\\
-Create graph		& 217		& 231		& -6.7\%						& 0.013			& 99.994\%						\\
-Get obstacles		& 24.51		& 24.45		& -4.03\%						& 0.73			& 96.88\%						\\
-Merge road edges	& 12,953	& 1.47		& 99.989\%						& 35.6			& 99.73\%						\\
-Add POI attributes	& 1.7		& 1.45		& 14.69\%						& 0.41			& 75.97\%						\\
-\hline
-Total time			& 21,658	& 8709		& 59.79\%						& 39.7			& 99.82\%
+				\begin{tabularx}{0.95\textwidth}{p{3cm}XXXp{2.25cm}X}
+\toprule
+\textbf{Operation}	& \textbf{Normal}	& \textbf{No roads}	& \textbf{Decrease compared to normal}	& \textbf{No obstacles}	& \textbf{Decrease compared to normal}	\\
+\midrule
+kNN search			&  5,958			& 5,924				&   0.57\%								&  0.0094				& 99.9998\%								\\
+Create graph		&    191.68			&   210.4			&  -9.76\%								&  0.012				& 99.9936\%								\\
+Get obstacles		&     42.53			&    40.76			&   4.15\%								&  0.78					& 98.16\%								\\
+Merge road edges	&  6,600			&     5.67			&  99.91\%								& 32.79					& 99.5\%								\\
+Add POI attributes	&      4.83			&     1.53			&  68.21\%								&  0.42					& 91.26\%								\\
+\midrule
+Total time			& 12,854			& 6,202				&  51.75\%								& 37.19					& 99.71\%								\\
+\bottomrule
 				\end{tabularx}
 				\vspace{3ex}
 				\begin{figcenter}
@@ -431,37 +437,35 @@ Total time			& 21,658	& 8709		& 59.79\%						& 39.7			& 99.82\%
 			There are some differences to the results of the \enquote{OSM city} dataset:
 			\begin{itemize}
 				\item In contrast to the \enquote{OSM city} dataset, the results show the expected significant reduction in time for the merge operation for the dataset without roads, because no building passages existed in the rural dataset.
-				\item A comparison of the kNN search and road merge operations of the normal dataset shows, that the merge operation actually took 54.17\% longer than the kNN search.
-				Results of the normal \enquote{OSM city} dataset shows the opposite relation with 21.2\% less time required for the merge operation.
-				A possible explanation is the ratio of road to visibility edges, which is 1:42 for the city dataset (for one road edge, 42 visibility edges existed) and 1:274 for the rural dataset.
+				\item A comparison of the kNN search and road merge operations of the normal dataset shows, that the merge operation actually took 10.77\% longer than the kNN search.
+				Results of the normal \enquote{OSM city} dataset shows the opposite relation with 61.97\% less time required for the merge operation.
+				A possible explanation is the ratio of road to visibility edges, which is 1:33 for the city dataset (for one road edge, 33 visibility edges existed) and 1:264 for the rural dataset.
 				This means that more intersections per road edges exist in the rural dataset, which was actually the case:
-				Within the city dataset the number of road edges increased by a factor of 83 and within the rural dataset by a factor of 240.
+				Within the city dataset the number of road edges increased by a factor of 66 and within the rural dataset by a factor of 221.
 				Therefore, the time spent on one road edge was significantly higher within the rural dataset and likely lead to the significant increase in time required for the merge operation.
-				\item The first three measurements of the \enquote{no roads} dataset listed in the table are especially noteworthy since they show an increased processing time compared to the normal dataset.
-				However, for the kNN search, the increase of 0.32\% (26ms) is considered insignificant and likely caused by noise in the data.
-				The other two operations, creating the graph and getting all obstacles, were distorted by outliers in the data leading to an increase of their processing times.
-				Furthermore, each of these three operations is completely independent of the existence of roads and therefore no indication exists justifying an increase in processing time.
+				\item The time required by the graph creation in the \enquote{no roads} dataset is especially noteworthy since it shows an increased processing time compared to the normal dataset.
+				But because the data was slightly distorted due to outliers and no relation between roads and the graph creation exists, it can be assumed that this increase in time has no algorithmic reason.
 			\end{itemize}
 			Apart these differences and unique characteristics, both dataset categories also show similar results for the kNN search, graph generation and overall processing time.
 			First of all, removing the obstacles removes the main complexity and therefore significantly decreases the processing time.
 			Not removing all obstacles, but decreasing their amount might reduce the processing time significantly due to the overall quadratic runtime complexity of the kNN search.
 			Second, the kNN search and graph creation are not affected by removed roads.
 			The total processing time, however, decreases with removed roads due to the faster merge operation.
-			Third, even though it is not a significant part of the processing time in the first place, adding attributes to points of interest (POI) is also reduced when removing obstacles or roads.
+			Third, even though it is not a significant part of the processing time in the first place, getting obstacles and adding attributes to points of interests (POIs) is also reduced when removing obstacles or roads.
 	
 	\subsection{Pattern-based datasets}
 	
 		\subsubsection{Import and graph generation}
 		
-			Due to the repeated pattern in the datasets, the distribution of obstacles and vertices is much more regular compared to the OSM-based datasets.
+			Due to the repeated patterns in the datasets, the distribution of obstacles and vertices is much more regular compared to the OSM-based datasets.
 			This is also reflected in the results of the graph generation as seen in \Cref{fig:eval-import-pattern-abs}.
 			Due to the lack of roads, the overall graph generation time is determined by the time required by the kNN search.
-			Except for smaller datasets of up to 15,000 input vertices, all other tasks only have a negligible impact on the graph generation time.
-			Both aspects are illustrated in \Cref{fig:eval-import-pattern-maze-abs-rel} for the maze dataset.
+			Only for smaller datasets of up to an input vertex count of about 3,500 (depending on the dataset category), all other tasks combined had an impact of up to 5\% on the total graph generation time.
+			Absolute and relative numbers for the maze dataset can be seen in \Cref{fig:eval-import-pattern-maze-abs-rel}.
 			
 			\begin{figure}[h!]
 				\begin{figcenter}
-					\input{images/evaluation/plot-import-times-pattern-datasets.py_absolute.pgf}
+					\input{images/evaluation/plot-times-pattern-datasets.py_import.pgf}
 				\end{figcenter}
 				\caption{Total graph generation times for all three pattern-based dataset categories.}
 				\label{fig:eval-import-pattern-abs}
@@ -471,18 +475,18 @@ Total time			& 21,658	& 8709		& 59.79\%						& 39.7			& 99.82\%
 				\begin{figcenter}
 					\input{images/evaluation/pattern-based-maze/plot-import-details-per-vertices.py_absolute-relative.pgf}
 				\end{figcenter}
-				\caption{Tasks during graph generation using the maze dataset in absolute time (left) and relative share on the total time (right).}
+				\caption{Tasks during graph generation using the maze dataset in absolute time (left) and relative share on the total time (right). The kNN search determines the total processing time covering the data points for the total time.}
 				\label{fig:eval-import-pattern-maze-abs-rel}
 			\end{figure}
 		
 		\subsubsection{Routing}
 		
-			Because the pattern-based datasets did not contain any roads, the time required for routing solely depends on the size of the visibility graph and therefore on the time required to connect the source and destination vertices, which is the main task during routing.
+			Because the pattern-based datasets did not contain any roads, the time required for routing solely depended on the size of the visibility graph and therefore on the time required to connect the source and destination vertices, which is the main task during routing.
 			This task uses parts of the graph generation algorithm and therefore its runtime also increases quadratically with the number of vertices in the graph.
 			
-			The A* algorithm uses this quadratically growing graph and therefore shows a quadratic runtime itself.
-			However, a linear regression on the data of the maze- and rectangle-based datasets yield an equally good correlation.
-			Whether or not the A* algorithms runtime grows quadratic in time therefore depends on the data of the dataset.
+			The A* algorithm uses this quadratically growing graph and therefore shows a quadratic runtime, too.
+			However, this quadratic runtime is not clearly visible in the data and a linear regression of the maze- and rectangle-based datasets yield an similarly good correlation.
+			The effect of a quadratic complexity might therefore be significant in even larger datasets.
 			
 			\begin{figure}[h!]
 				\hspace{-20pt}
@@ -490,6 +494,37 @@ Total time			& 21,658	& 8709		& 59.79\%						& 39.7			& 99.82\%
 				\caption{Routing time between the longest distant waypoints in each pattern-based dataset.}
 				\label{fig:eval-pattern-routing-details}
 			\end{figure}
+		
+	\subsection{Optimizations}
+	
+		The impact of the optimizations presented in \Cref{chap:implementation} was measured using the 0.5km\textsuperscript{2} \enquote{OSM city} dataset and disabling each optimization as shown in \Cref{table:optimization-impact}.
+		
+		\begin{table}[h]
+			\begin{figcenter}
+				\begin{tabularx}{11cm}{p{4.5cm}RR}
+\toprule
+\textbf{Disabled optimizations}				& \textbf{Import time}	& \textbf{Increase factor}	\\
+\midrule
+Shadow areas								& 104.2s 				& 10.63						\\
+kNN filtering								&  10.7s				&  1.09						\\
+Vertices on convex hull						&  17.6s				&  1.80						\\
+Valid angle areas							&  11.9s				&  1.22						\\
+Custom collision detection					&  10.7s				&  1.09						\\
+\midrule
+All											& 739.9s 				& 75.44						\\
+None										&   9.8s				&  1.00						\\
+\bottomrule
+				\end{tabularx}
+			\end{figcenter}
+			\caption{Impact of each optimization on the 0.5km\textsuperscript{2} \enquote{OSM city} dataset import.}
+			\label{table:optimization-impact}
+		\end{table}
+		
+		Especially noteworthy is the 75 times longer import time when deactivating all optimizations, which is more than the product of all other increase factors together.
+		This is due to the mutual influence of the deactivated optimizations leading to more visibility checks, which result in a proportionally higher processing time.
+		
+		Considering the optimizations separately, the shadow areas do have the strongest impact on reducing the processing time by about one order of magnitude.
+		All other optimizations have a smaller impact with factors of under 2, which still adds up to a significant increase in performance.
 		
 \section{Route correctness and quality}
 
@@ -529,9 +564,10 @@ Total time			& 21,658	& 8709		& 59.79\%						& 39.7			& 99.82\%
 		First, the A* implementation of MARS accepts other weight functions than the default \enquote{shortest}-function.
 		This is also possible in the hybrid routing algorith when calling the \texttt{OptimalPath} method, which accepts a \texttt{Func} delegate as weight function.
 		
-		Second, filtering the potential visibility neighbors as described in \Cref{subsec:step-2-knn-search} might result in missing edges.
+		Second, filtering the potential visibility neighbors to get the $k$ nearest neighbors, as described in \Cref{subsec:step-2-knn-search}, might result in missing edges.
 		This has a direct effect on the quality of the resulting paths since they may not be optimal anymore.
-		\todo[inline]{Determine: Number of edges missing vs. performance boost}
+		However, the default parameter (36 bins covering 10° each and containing up to 10 neighbors) result in 5.42\% less visibility edges in the 0.5km\textsuperscript{2} \enquote{OSM city} dataset.
+		No detours occurred during any routing analysis, which indicates the low significance of these removed edges.
 		
 	\subsection{Quality of routes}
 	
@@ -597,13 +633,7 @@ Total time			& 21,658	& 8709		& 59.79\%						& 39.7			& 99.82\%
 			Second, within densely built-up areas, larger open spaces are rare and the combination of roads and buildings form corrdidors in which routes tend to lie.
 			When and how often the route determined by the hybrid routing algorithm follows a road depends on the weighting function.
 			
-			Third, large roads create instances of the aforementioned rare but wide obstacle-free areas, which, however, might result in unrealistic road crossings.
-			Such situation can be seen in \Cref{fig:eval-city-road-crossing} with crossings over a six-lane road, which would be dangerous and unrealistic for real-world pedestrians.
-			
-			Forth, the weight function has a huge impact on the route quality.
-			It specifies for example how strongly roads should be preferred, which is illustrated in \Cref{fig:eval-city-weights} with the same route using different weights for road edges.
-			Adjusting and definiting fine-grained weight functions may help to imporove the routing behavior in some of the above mentioned situations.
-			
+			\clearpage
 			\begin{figure}[h!]
 				\begin{minipage}[t]{.48\textwidth}
 					\begin{subfigure}[t]{\linewidth}
@@ -620,11 +650,11 @@ Total time			& 21,658	& 8709		& 59.79\%						& 39.7			& 99.82\%
 						\begin{figcenter}
 							\includegraphics[width=\textwidth]{images/qgis-routing-city-routing-3}
 						\end{figcenter}
-						\caption{Missing obstacles (in this case walls and fences between buildings) might lead to non-realistic routes.}
+						\caption{Missing obstacles (mainly walls and fences between buildings) lead to non-realistic routes.}
 						\label{fig:eval-city-usefulness-b}
 					\end{subfigure}
 				\end{minipage}
-				\\
+				\\[3ex]
 				\begin{minipage}[t]{.48\textwidth}
 					\begin{subfigure}[t]{\linewidth}
 						\begin{figcenter}
@@ -644,7 +674,7 @@ Total time			& 21,658	& 8709		& 59.79\%						& 39.7			& 99.82\%
 						\label{fig:eval-city-usefulness-d}
 					\end{subfigure}
 				\end{minipage}
-				\caption{Comparison of realistic routes (green), graph-based routing results (black) and hybrid routing algorithm results (blue) using the 1km\textsuperscript{2} \enquote{OSM city} dataset. Passages with missing or faulty data are marked in red, which are the main cause of the deviations to the expected route.}
+				\caption{Expected (green), graph-based (black) and hybrid routing algorithm results (blue) using the 1km\textsuperscript{2} city dataset. Unexpected parts due to missing or faulty data are marked in red.}
 				\label{fig:eval-city-usefulness}
 				\begin{minipage}[t]{.48\textwidth}
 					\begin{figcenter}
@@ -662,6 +692,13 @@ Total time			& 21,658	& 8709		& 59.79\%						& 39.7			& 99.82\%
 					\label{fig:eval-city-weights}
 				\end{minipage}
 			\end{figure}
+			
+			Third, large roads create instances of the aforementioned rare but wide obstacle-free areas, which, however, might result in unrealistic road crossings.
+			Such situation can be seen in \Cref{fig:eval-city-road-crossing} with crossings over a six-lane road, which would be dangerous and unrealistic for real-world pedestrians.
+			
+			Forth, the weight function has a huge impact on the route quality.
+			It specifies for example how strongly roads should be preferred, which is illustrated in \Cref{fig:eval-city-weights} with the same route using different weights for road edges.
+			Adjusting and definiting fine-grained weight functions may help to imporove the routing behavior in some of the above mentioned situations.
 			
 			% Interesting passages from the rural dataset
 			In the \enquote{OSM city} datasets with only smaller open areas, graph-based routes and routes determined by the hybrid routing algorithm were often similar and some parts even identical.
@@ -720,5 +757,118 @@ Total time			& 21,658	& 8709		& 59.79\%						& 39.7			& 99.82\%
 			\end{figure}
 		
 		\subsubsection{Mathematical route quality analysis}
-			% Determine ratio of route lengths
-			% Determine Frechet distance
+		
+			After a manual analysis of the route quality, mathematical approaches were used to obtain quantifiable results, which was done using two metrics.
+			First, the beeline distance between two waypoints was compared to the distances of the corresponding expected route, the route based on the hybrid visibility graph and the route of graph-based routing.
+			Second, the similarity of routes was determined to determine how well the results fit to the expected route
+			Both comparisons were performed on the first ten routing requests of the OSM datasets.
+			
+			\begin{wrapfigure}{r}{0.35\textwidth}
+				\vspace{-1\baselineskip}
+				\begin{figcenter}
+					\begin{tikzpicture}
+					[
+						every node/.append style={outer sep=0.5mm, inner sep=0}
+					]
+						\def\d{0.75}
+						
+						\node (c00) at (0.5*\d ,0) {};
+						\node (c01) at (1*\d   ,1*\d) {};
+						\node (c02) at (0.15*\d ,2*\d) {};
+						\node (c03) at (0.55*\d,3*\d) {};
+						\node (c04) at (0      ,4*\d) {};
+						
+						\node (c10) at (2*\d  ,0.15) {};
+						\node (c11) at (2.1*\d,0.9*\d) {};
+						\node (c12) at (1.25*\d,1.8*\d) {};
+						\node (c13) at (3*\d  ,2.8*\d) {};
+						\node (c14) at (1.2*\d,4.15*\d) {};
+						
+						\draw (c00.center) -- (c01.center) -- (c02.center) -- (c03.center) -- (c04.center);
+						\draw (c10.center) -- (c11.center) -- (c12.center) -- (c13.center) -- (c14.center);
+						
+						\draw[>=stealth',<->,densely dotted] (c00) -- (c10);
+						\draw[>=stealth',<->,densely dotted] (c01) -- (c11);
+						\draw[>=stealth',<->,densely dotted] (c02) -- (c12);
+						\draw[>=stealth',<->,thick,red] (c03) -- (c13);
+						\draw[>=stealth',<->,densely dotted] (c04) -- (c14);
+						
+						% Enlarge BBOX to avoid cropping off some of the arrow heads:
+						\node (bbox_a) at (-0.1,-0.1) {};
+						\node (bbox_b) at (3*\d+0.1,4.15*\d+0.1) {};
+					\end{tikzpicture}
+				\end{figcenter}
+				\caption{Hausdorff distance (red) between two linestrings.}
+				\label{fig:hausdorff-distance}
+			\end{wrapfigure}
+			
+			In \Cref{fig:eval-route-distances}, the distance factors show an important relation between the route distances.
+			The mean value of both datasets indicate, that the average route from the hybrid routing algorithm is shorter and the average route of the graph-based routing is longer than the expected route.
+			This is in line with the results of the previous manual route analysis, according to which missing data lead to unrealistic but shorter routes.
+			The route length comparison also confirms the previous results, that graph-based routing leads to longer routes with sometimes significant detours, which can be seen in the routing requests 6 and 7 in \Cref{fig:eval-route-distances-rural}.
+			
+			\begin{figure}[h]
+				\begin{subfigure}[t]{\linewidth}
+					\begin{figcenter}
+						\input{images/evaluation/similarity-metric/plot.py_osm-city_relative-beeline.pgf}
+					\end{figcenter}
+					\caption{\enquote{OSM city} dataset.}
+					\label{fig:eval-route-distances-city}
+				\end{subfigure}
+				\\[3ex]
+				\begin{subfigure}[t]{\linewidth}
+					\begin{figcenter}
+						\input{images/evaluation/similarity-metric/plot.py_osm-rural_relative-beeline.pgf}
+					\end{figcenter}
+					\caption{\enquote{OSM rural} dataset.}
+					\label{fig:eval-route-distances-rural}
+				\end{subfigure}
+				\caption{Relative route distances compared to the beeline distance between the waypoints of each routing request using the 0.5km\textsuperscript{2} OSM datasets.}
+				\label{fig:eval-route-distances}
+			\end{figure}
+			
+			\begin{figure}[h]
+				\begin{subfigure}[t]{\linewidth}
+					\begin{figcenter}
+						\input{images/evaluation/similarity-metric/plot.py_osm-city_hausdorff.pgf}
+					\end{figcenter}
+					\caption{\enquote{OSM city} dataset.}
+					\label{fig:eval-hausdorff-city}
+				\end{subfigure}
+				\\[3ex]
+				\begin{subfigure}[t]{\linewidth}
+					\begin{figcenter}
+						\input{images/evaluation/similarity-metric/plot.py_osm-rural_hausdorff.pgf}
+					\end{figcenter}
+					\caption{\enquote{OSM rural} dataset.}
+					\label{fig:eval-hausdorff-rural}
+				\end{subfigure}
+				\caption{Hausdorff distances between the expected routes and the corresponding routes of the hybrid routing algorithm and graph-based routing using the 0.5km\textsuperscript{2} OSM datasets.}
+				\label{fig:eval-hausdorff}
+			\end{figure}
+			
+			The comparisons of route lengths only yield vague insights into the similarities of calculated to expected routes and therefore only give a first indication of the route's quality.
+			In the following, results using the \term{Hausdorff distance} as a second metric will be presented.
+			The Hausdorff distance can be used to quantify the similarity of two linestrings by determining the maximum distance between them, which is illustrated in \Cref{fig:hausdorff-distance}.
+			
+			\Cref{fig:eval-hausdorff} shows the results for both OSM datasets and yields some insights into the route similarities:
+			\begin{itemize}
+				\item In both datasets, the average Hausdorff distances of the routes determined using the hybrid routing algorithm are shorter than those of the graph-based algorithm.
+				\item The difference is smaller in the city dataset, which supports the aforementioned hypothesis, that the buildings in a city create corridors leading to similar routes for graph-based and geometric routing algorithms.
+				\item Except for the routing requests 6 and 7 in the \enquote{OSM rural} datasets, the Hausdorff distances of the routes by the hybrid routing algorithm tend to be larger than the distances of the graph-based routes.
+				This is likely due to missing data as discussed in the previous section and illustrated in \Cref{fig:eval-rural-routing-6} leading to shorter but less realistic routes.
+			\end{itemize}
+
+		\subsubsection{Route quality analysis summary}
+			
+			The manual route analysis as well as both metrics, the comparison to the beeline distance and the Hausdorff distance, yield similar results regarding the quality of routes:
+			
+			\begin{itemize}
+				\item The route quality heavily depends on the data quality.
+				Missing data, for example some missing ditches on farmland, lead to shorter but unrealistic routes determined with the hybrid routing algorithm.
+				\item Cities and densely built-up areas form corridors through with geometric- and graph-based routes tend to be very similar.
+				\item Graph-based routes between waypoints in rural or remote areas might create long detours.
+				Such detours often are unrealistic, especially in agent-based models simulating scenarios in which pedestrians do not respect access restrictions to private areas, such as in emergency or evacuation scenarios.
+			\end{itemize}
+			\noindent
+			In scenarios with a high quality in data, for example when using official indoor room plans of buildings or when the data quality is manually ensured by surveying an area, then the hybrid routing algorithm will likely create high quality routes reflecting the behavior of real pedestrians.
