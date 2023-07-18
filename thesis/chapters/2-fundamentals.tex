@@ -243,7 +243,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		\label{subsubsec:single-source-shortest-path}
 		
 			One source vertex is given and the shortest paths to all other vertices should be determined.
-			Algorithms that solve this problem are for example the Dijkstra algorithm, described in detail in \Cref{subsubsec:dijkstra}, or the Bellman-Ford algorithm, which can additionally handle negative edge weights\cite[651]{cormen-introduction-to-alg}.
+			Algorithms solving this problem are for example the Dijkstra algorithm, described in detail in \Cref{subsubsec:dijkstra}, or the Bellman-Ford algorithm, which can additionally handle negative edge weights\cite[651]{cormen-introduction-to-alg}.
 		
 		\subsubsection{\term*[single-destination shortest paths]{Single-destination shortest paths}}
 		
@@ -276,7 +276,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		Input data might consist of multiple sources like a road network, a digital elevation model or additional traffic information.
 %		Weight functions predict the expected speed on an edge\cite{graphhopper-profile-bike-speeds}, use the length of an edge\cite{graphhopper-profile-shortest} as weight or determine the weight based on existing attributes\cite{graphhopper-profile-short-fastest}.
 		The open source software Graphhopper is one example of a routing engine and comes with predefined profiles for different modalities and situations.
-		For example the \texttt{car\_delivery} profile is made for car-based delivery services and therefore enables routing via private roads\cite{graphhopper-routing-profiles}, which is not the case the normal \texttt{car} profile.
+		For example the \texttt{car\_delivery} profile is made for car-based delivery services enabling the use of private roads\cite{graphhopper-routing-profiles}, which are avoided in the normal \texttt{car} profile.
 		
 		To enhance performance, speedup methods were developed allowing routing queries of continental or even global sizes to be answered quickly.
 		Some popular methods are, among others, \term{contraction hierarchies} and \term[landmark]{landmarks}, which will both described with more details in \Cref{subsec:speedup-methods}.
@@ -353,32 +353,30 @@ Hence, the topic of agents and simulations will be covered as well.
 		
 	\subsection{Speedup methods}
 	\label{subsec:speedup-methods}
+	
+		\term[speedup method]{Speedup methods} reduce the number of processed vertices and edges during routing, which is primarily done by transferring computationally complex tasks into a preprocessing step.
 		
 		\subsubsection{Contraction Hierarchies}
 		\label{subsubsec:ch}
 		
 			Contraction hierarchies are based on the idea to reduce the number of vertices a routing algorithm has to visit by adding so-called \emph{shortcut edges}\cite{geisberger-contraction-hierarchies}.
-			Consider a vertex $u$ with incoming edge $(v, u)$ and outgoing edge $(u, w)$, meaning there is a path from $v$ via $u$ to $w$.
-			Vertex $u$ is \emph{contracted} by adding a new edge $e = (v, w)$ with weight $w(e) = w(v, u) + w(u, w)$.
+			Consider a vertex $v$ with incoming edge $(u, v)$ and outgoing edge $(v, w)$, meaning there is a path from $u$ via $v$ to $w$.
+			Vertex $v$ is \emph{contracted} by adding a shortcut edge $e = (u, w)$ with weight $w(e) = w(u, v) + w(v, w)$.
 			If $e$ already exists with a higher weight, its weight is decreased accordingly.
 			
-			A crucial part of this technique is the selection of vertices to contract\cite[14]{geisberger-contraction-hierarchies}.
-			The vertices are selected by a total order defining the level of importance for each vertex.
+			A crucial part of this technique is the selection of vertices to contract\cite[14]{geisberger-contraction-hierarchies}, which are selected by a total order defining the level of importance for each vertex.
 			Creating a good order is difficult and heuristics are used to approximate an optimal ordering.
 			
-			The contraction hierarchy can be used with an adjusted bidirectional Dijkstra algorithm\cite[29-30]{geisberger-contraction-hierarchies}.
-			A query for the shortest path is performed using two graphs, an upward and downward graph.
+			Routing then uses an adjusted bidirectional Dijkstra algorithm\cite[29-30]{geisberger-contraction-hierarchies} on two graphs, an upward and downward graph.
 			The upward graph contains only edges from lower to higher order vertices and the downward graph only from higher to lower order vertices.
-			Two sub-queries are performed, one in the upward- and one in the downward-graph, which terminate if they meet in the same vertex and no lower weighted edge towards a vertex remaining in the priority queue exists.
-			All shortcut edges must now be recursively relaxed, i.e. replaced by the original edges used to create the shortcut, to create the actual shortest path.
+			Two sub-queries are performed, one in the upward- and one in the downward-graph, which terminate if they meet in the same vertex and no lower weighted edge towards an unprocessed vertex exists.
+			All shortcut edges must now be recursively relaxed, i.e. replaced by the original edges used to create the shortcut, to obtain the actual shortest path.
 		
 		\subsubsection{Landmarks}
 		\label{subsubsec:landmarks}
-		
-			A popular usage of so-called \term[landmark]{landmarks} is the ALT algorithm, which stands for A*, landmarks and triangle inequality\cite{goldberg-landmarks}.
 			
 			\begin{wrapfigure}{r}{0.35\textwidth}
-				\vspace{-1\baselineskip}
+				\vspace{-3\baselineskip}
 				\begin{figcenter}
 					\begin{tikzpicture}
 						\tikzDot[label={left:$u$}]{(0,0)}{u}
@@ -393,45 +391,45 @@ Hence, the topic of agents and simulations will be covered as well.
 						\draw[->,densely dotted,DodgerBlue3] (l) -- (v);
 					\end{tikzpicture}
 				\end{figcenter}
-				\caption{The heuristic using $l$ (blue) is a better estimate than the euclidean heuristic (red).}
+				\caption{The heuristic using landmark $l$ (blue) is a longer but better estimate than the euclidean heuristic (red).}
+				\label{fig:landmarks}
 			\end{wrapfigure}
 			
-			As described in \Cref{subsubsec:astar}, the A* algorithm needs a heuristic guiding the shortest path query towards the target vertex.
-			This heuristic is often based on the euclidean distance, which is simple but inaccurate.
-			A better, but also computationally more complex approach is the use of a set of landmarks $L \subseteq V$ and to precompute all distance to and from all other vertices.
-			The heuristic takes all landmarks into account and uses the triangle inequality between the source, destination and landmarks to determine the tightest bound on the estimated distance.
+			A popular usage of so-called \term[landmark]{landmarks} is the ALT algorithm, which stands for A*, landmarks and triangle inequality\cite{goldberg-landmarks}.
+			The heuristic in A* is usually the euclidean distance to the destination, which is simple but inaccurate.
+			A better, but also computationally more complex approach is the use of landmarks $L \subseteq V$ and for each $l \in L$ to precompute the distances to and from all other vertices as illustrated in \Cref{fig:landmarks}.
+			The heuristic takes all landmarks into account and uses the triangle inequality between the source, destination and landmarks to determine the tightest bound on the estimated shortest path distance.
 			The normal A* algorithm can then use this heuristic to determine good choices for next vertices.
 		
 		\subsubsection{Other speedup methods}
 		\label{subsubsec:other-speedup-methods}
 		
-			There are numerous other speedup methods, such as \term{arc flags} and the \term{hub label} strategy.
+			There are numerous other speedup methods, such as the following methods.
 			
 			Filtering out unnecessary edges during routing can be done with the use of so-called \term{arc flags}\cite{bast-transportation-networks}.
 			In a preprocessing step, the graph is subdivided into $K$ cells of roughly equal size.
-			An edge $e$, also called \emph{arc}, has a flag consisting of $K$ bits.
-			The $i$-th bit is set to 1 if $e$ is on any shortest path to any vertex in the cell $i$.
-			When answering shortest path queries with the destination being in cell $j$, all edges without the $j$-th bit being set can be ignored.
-			This filtering significantly speeds up a normal shortest path algorithm and can be used in combination with other speedup methods to decrease query times even further.
+			An edge $e$, also called \emph{arc}, has a flag consisting of $K$ bits where the $i$-th bit is 1 if $e$ is on any shortest path to any vertex in the cell $i$.
+			When answering shortest path queries with the destination being in cell $j$, all edges without the $j$-th bit set to 1 can be ignored.
+			Arc flags significantly reduce query times and can be used with other speedup methods to further enhance performance.
 			
-			A so-called bounded-hop approach, which precomputes distanced to enable large \enquote{hops} over the graph, is the \emph{hub label} strategy\cite{bast-transportation-networks}.
-			It selects a subset $H$ of vertices in a preprocessing step, called \emph{hubs}, with the property that every pair of two vertices has at least one hub in common.
-			Shortest paths to and from all hubs are precalculated and a vertex is labeled with its corresponding paths.
-			Answering routing queries works by determining the common hubs between the source and destination vertices and concatenating the precomputated paths.
-			This strategy is one of the fastest ways to determine paths but precomputation requires a lot of time and space.
+			Precomputing shortest path distances is done by the \emph{hub label} strategy\cite{bast-transportation-networks}.
+			For every vertex $v$ a set $H_v \subseteq V$ of \emph{hubs} is selected such that any shortest path between two vertices contains at least one hub.
+			Then labels $L(v)$ are attached to $v$ containing the lengths from $v$ to all its hubs.
+			A linear search through the common labels of two vertices yield their shortest path distance.
+			Using hub labels as heuristic in A* yields a fast routing algorithm but precomputation requires a lot of time and space.
 		
 		\subsubsection{Compressed path databases}
 		\label{subsubsec:cpd}
 		
 			A \term{compressed path database} (\term*{CPD}) itself is not directly a routing algorithm but rather a technique to efficiently store shortest paths between any two locations\cite{botea-cpd-2013}.
-			In other words, the solution of the all-pair shortest paths problem from \Cref{subsubsec:all-pair-shortest-path} can be stored in a CPD without having extensive memory requirements.
-			
-			The simplest form of a CPD works on a grid rather than a graph, where the number of neighbors is limited and visualization, calculations and compression is simpler.
-			For a grid of $n$ cells, $n$ many such grid exist in the CPD, each belongs to a cell $c$ and stores the information on how to get from $c$ to all other cells in the grid as illustrated in \Cref{fig:cpd}.
-			Therefore, a potential target cell $t$ contains a movement operation, e.g. \enquote{move to the left cell}, which is the next operation that needs to be performed in order to get from $c$ to $t$ on the shortest path.
-			After performing this movement an getting from $c$ to $c'$, the next movement operation to $t$ is stored in the movement-grid of $c'$.
-			These steps are performed until $t$ has been reached.
-			Answering shortest path queries is therefore linear in the amount of vertices or cells.
+%			In other words, the solution of the all-pair shortest paths problem from \Cref{subsubsec:all-pair-shortest-path} can be stored in a CPD without having extensive memory requirements.
+			In the following grids are considered but CPDs can be created for graphs as well.
+%			The simplest form of a CPD works on a grid rather than a graph, where the number of neighbors is limited and visualization, calculations and compression is simpler.
+			For a grid of $n$ cells, $n$ many such grid exist in the CPD, each belongs to a cell $c$ and stores the information on how to get from $c$ to each other cells in the grid as illustrated in \Cref{fig:cpd}.
+			This information is a movement operation, e.g. a target cell $t$ containing the operation \enquote{move left} means the left cell of $c$ is the next cell on a shortest path from $c$ to $t$.
+%			Therefore, a potential target cell $t$ contains a movement operation, e.g. \enquote{move to the left cell}, which is the next operation that needs to be performed in order to get from $c$ to $t$ on the shortest path.
+			After performing the movement operation and getting from $c$ to $c'$, the next movement towards $t$ is stored in the movement-grid of $c'$ in cell $t$.
+			These steps are performed until $t$ has been reached, which means answering shortest paths queries is a linear time operation.
 			
 			\begin{wrapfigure}{r}{0.225\textwidth}
 				\vspace{-1.5\baselineskip}
@@ -440,26 +438,24 @@ Hence, the topic of agents and simulations will be covered as well.
 				\label{fig:cpd}
 			\end{wrapfigure}
 			
-			The construction of a CPD\cite{botea-cpd-2013} is similarly simple.
-			After solving the all-pairs shortest path problem, the result needs to be compressed.
+			The complex part of constructing a CPD is the compression\cite{botea-cpd-2013} of the all-pairs shortest path solution.
 			Uncompressed data is usually too large as the space requirement is in $\bigo{n^2}$ or even $\bigo{n^2 \log n}$ for graphs.
 			A combination of compression techniques can be used to get sufficient results.
 			This includes the encoding of whole areas with same movement operations, run-length encoding (RLE) and use of default values to reduce the number of explicitly stored values\cite{botea-cpd-2013}.
-			Using these techniques, a compression factor of over 950 compared to an uncompressed database can be achieved.
+			Compared to uncompressed data, a compression factor of 950 was achieved for a road network.
 	
 \section{Geometric routing}
 \label{sec:geometric-routing}
 
-	Finding paths in a geometric domain, also called the \term{euclidean shortest path} problem, is the process of determining shortest paths through open spaces by avoiding obstacles.
+	Finding paths in a geometric domain, also called the \term{euclidean shortest path} problem, is the process of determining shortest paths without a graph but through open spaces avoiding obstacles.
 	There are two main strategies to find euclidean shortest paths:
-	Generate edges for graph-based routing or create a shortest paths map, a structure similar to CPDs.
+	Generating edges for graph-based routing or creating a shortest paths map, a structure similar to CPDs.
 	
 	\subsection{Visibility graphs}
 	\label{subsec:visibility-graph}
 	
-		The first mechanism generates edges and then uses a normal graph-based routing algorithm to actually find the shortest path.
-		There are multiple ways on how to create such edges.
-		One approach is the creation of a so-called \term{visibility graph}, which is a normal graph with edges between vertices that are visible to each other.
+		The first mechanism uses a normal graph-based shortest path algorithm but the edges in the Graph are generated using one of multiple possible approaches.
+		One creates a so-called \term{visibility graph}, which is a normal graph with edges between vertices that are visible to each other.
 		Or in other words, for any two $u, v \in V$ there is an edge $(u, v) \in E$ if and only if there is no obstacle intersecting this edge.
 		A visibility graph might become very large, in fact, the worst-case regarding the size is a complete graph with $\bigo{|V|^2}$ many edges.
 		
@@ -468,49 +464,45 @@ Hence, the topic of agents and simulations will be covered as well.
 		
 		Source and destination locations must be part of the graph and can be connected with the same algorithm used to create the graph itself.
 	
-	\subsection{Continuous Dijkstra}
+	\subsection{Continuous Dijkstra paradigm}
 	\label{subsec:continuous-dijkstra}
 	
-		The second strategy creates a map of regions starting from a source vertex $s$, which has strong similarities to a CPD.
-		Each region of this map stores the predecessor vertex, which can be used to determine shortest paths by following the predecessor relations from any given location back to $s$.
-
-		This map can also be seen as a tree with $s$ as its root and each region as a leaf.
-		The creation of a shortest-path tree might remind one of Dijkstra's algorithm, which gives the \term{continuous Dijkstra} paradigm its name\cite{mitchell-discrete-geodesic}.
+		The second strategy, the \term{continuous Dijkstra paradigm}, creates a map of regions, similar to CPDs, starting from a source vertex $s$.
+		Regions are characterized by the fact that all vertices within a region have the same predecessor on the shortest path from $s$.
+		Following back the predecessors yields the shortest path from $s$ to a given location.
+		This map can also be seen as a tree with root $s$ and each region as a node, which might remind one of Dijkstra's algorithm giving this approach its name\cite{mitchell-discrete-geodesic}.
 		
-		To precisely determine these regions, one popular approach is to create \term[wavefront]{wavefronts} propagating through open spaces.
+		To precisely determine these regions, so-called \term[wavefront]{wavefronts} propagating through open spaces are used.
 		A well-fitting analogy for this approach is the propagation of water waves traveling through a 2D space, folding around obstacles, colliding with each other and finally reaching the destination location.
-		Recursively following each wave back to its origin yields the shortest path from the source to the destination.
-		These wavefronts are also called \term[wavelet]{wavelets}), because they only cover a certain angular range due to collisions and the presence of obstacles.
-		
-		Each wavefront can collide with obstacle and other wavefronts.
+		Collisions between wavefront and obstacles as well as collisions between wavefronts determine the boundaries of the regions with the source of the wavefront being its predecessor.
 		After detecting such a collision, the angular region of the wavefront is adjusted depending on the type of collision.
-		For each region the origin of the wavefront is known, which enables the query routine to follow these predecessors back to the source.
-		The key difficulty of this approach is the efficient detection and handling of collisions with obstacles and other wavefronts\cite{hershberger-suri}.
+%		For each region the origin of the wavefront is known, which enables the query routine to follow these predecessors back to the source.
+		The key difficulty of this approach is the efficient detection and handling of collisions.
+		Efficient algorithms are presented in \Cref{subsec:related-work-geometric-routing}.
 
 \section{Agent-based systems and simulations}
 
-	Simulating complex systems with numerous autonomous individuals, called \term[agent]{agents}, is a complex task.
-	Agent-based models help to break down this complexity by simulating each agent separately with its own behavior and decision-making\cite{macal-introductory-tutorial}.
-	Agents interacting with the environment and other agents are an essential part of this and can in turn affect other agents and the environment.
+	Simulating complex systems with numerous autonomous individuals is difficult, but using so-called \term[agent]{agents} with own behavior and decision-making breaks down this complexity\cite{macal-introductory-tutorial}.
+	Interactions between agents and between the environment are an essential part of this.
 	
-	The modeling of agents can be arbitrarily complex, because agents are able to make decisions on their own making them autonomous without any controlling unit commanding them how to act.
-	Even more complex agents may have a specific goal, are able to adapt themselves to their environment and thus must be able to memorize and plan things.
+	Modeling agents can be arbitrarily complex, because agents make decisions on their own without any central unit controlling them.
+	More sophisticated agents may have a specific goal, are able to adapt to the environment and thus must be able to memorize and plan things.
 	
-	An agent might be a simulated person but could also be a company, car or other non-living part of the simulated domain.
-	Many simulations use pedestrians (or generally humans) as agents to better understand or utilize human behavior but many more scenarios with other types of agents are possible as well\cite{macal-introductory-tutorial}.
+	Agents usually model humans but can represent non-living things like companies or cars.
+	Many simulations use pedestrians (or generally humans) as agents to better understand or utilize human behavior but other scenarios and types of agents are possible as well\cite{macal-introductory-tutorial}.
 
-	Studying the behavior of pedestrians requires a spatial environment where agents can move and interact with each other, which requires algorithms finding optimal paths\cite{kneidl-borrmann-hartmann-navigation,gloor-hybrid-pedestrian-routing,teknomo-millonig-routing}.
-	This not only includes \hyperref[sec:graph-routing]{graph-based routing} but often utilizes \hyperref[sec:geometric-routing]{geometric routing} as well\cite{kneidl-borrmann-hartmann-navigation}.
+	Studying pedestrians requires a spatial environment and algorithms finding optimal paths\cite{kneidl-borrmann-hartmann-navigation,gloor-hybrid-pedestrian-routing,teknomo-millonig-routing}.
+	This includes \hyperref[sec:graph-routing]{graph-based routing} but may utilize \hyperref[sec:geometric-routing]{geometric routing} as well\cite{kneidl-borrmann-hartmann-navigation}.
+	In this thesis, these two concepts are combined to enhance the path-finding component of agent-based simulations.
 	
 	\subsection{The MARS framework}
 	
-		The algorithm presented in this work was implemented to enhance agent-based simulations created using the framework MARS (Multi-Agent Research and Simulation).
-		MARS is a C\#/.NET framework developed by the MARS group, an academic research group of the Hamburg University of Applied Sciences (HAW) in Hamburg, Germany, to create and execute agent-based simulations\cite{mars}.
-		The framework offers the necessary components, algorithms and tools to create tick-based simulations consisting of multiple agents, different layers of data and numerous static entities populating the environment.
+		This work aims to enhance agent-based simulations created using the framework \term*{MARS} (Multi-Agent Research and Simulation).
+		MARS is a C\#/.NET framework to create and execute agent-based simulations and is developed by the eponymous research group of the Hamburg University of Applied Sciences (HAW) in Hamburg, Germany\footnote{\url{https://www.mars-group.org}}.
+		The framework provides components, algorithms and tools to create tick-based simulations with multiple agents, different data-layers and numerous static entities populating the environment.
 		
-		The MARS framework contains several data structures and algorithms for spatial data and especially for path finding.
-		This includes a class representing spatial graphs as well as the A* algorithm, which can determine shortest paths on such graphs.
-		MARS also contains numerous spatial indices, mathematical operations and I/O classes, for example to serialize the trajectories of agents.
+		MARS contains several data structures and algorithms specifically for path finding, such as a spatial graphs and the A* algorithm.
+		It also contains numerous spatial indices, mathematical operations and classes to serialize the trajectories of agents.
 		 
-		This work is based on the MARS framework to be directly usable by simulations, which is why, among other parts, the spatial graph and A* algorithm of MARS are used.
+		This work is based on the MARS framework to be directly usable by simulations and uses the mentioned spatial graph and A* algorithm.
 		More details on the design and implementation are given in \Cref{chap:design} and \ref{chap:implementation}.
