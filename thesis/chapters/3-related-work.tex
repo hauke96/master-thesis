@@ -121,12 +121,12 @@ This section gives an overview about closely related work from these areas.
 	
 		\label{related-work:mitchell}
 		Shortly after Welzl and others published their work on visibility graphs, which can be used in combination with Dijkstra to find shortest paths, Mitchell presented a purely geometric method to find euclidean shortest paths around obstacles in the plain in 1993\cite{mitchell-shortest-path}.
-		This approach is called the \term{continuous Dijkstra} paradigm and its functioning is described in \Cref{subsec:continuous-dijkstra}.
+		This approach is the \term*{continuous Dijkstra paradigm} and its functioning is described in \Cref{subsec:continuous-dijkstra}.
 		His approach creates a shortest path map of size $\bigo{n}$ for one specific source vertex, which allows routing request to be answered in $\bigo{\log{n}}$.
 		Generating this map has a subquadratic time and space complexity of $\bigo{n^{\nicefrac{5}{3}+\epsilon}}$.
 		
 		Another approach to solve the geometric single-source shortest path problem was presented by Hershberger and Suri one year later, in 1997\cite{hershberger-suri}.
-		They also use the \term*{continuous dijkstra} paradigm but increase performance by introducing a special quad-tree like structure as a smart subdivision of the plane and also introduce approximate wavefronts.
+		They also use the \term*{continuous Dijkstra paradigm} but increase performance by introducing a special quad-tree like structure as a smart subdivision of the plane and also introduce approximate wavefronts.
 		The difficult part is the collision handling of non neighboring wavelets.
 		Maintaining some important properties is crucial to the efficiency when creating the subdivision, most important is the $\bigo{1}$ amount of neighboring cells around an edge.
 		Their algorithm calculates a shortest path map allowing queries to be answered in only $\bigo{n \log n}$ time and space, where $n$ is the number of vertices in all obstacles.
