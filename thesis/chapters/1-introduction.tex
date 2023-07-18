@@ -66,7 +66,7 @@
 	Routes strictly following the edges of a graph are therefore inaccurate for pedestrian routing\cite{graser-osm-open-spaces}, which means the calculated route contains detours and is therefore longer than the actual trajectory and additionally may not reach the exact destination location at all.
 	Such inaccuracies significantly affect the quality of agent-based simulations, as well as the helpfulness and user experience of real-world applications, such as mobile navigation apps.
 
-	In this thesis these issues are solved by proposing and designing a hybrid routing algorithm that combines the accuracy of geometric routing using visibility graphs with the optimizations and wide use of network-based routing.
+	In this thesis these issues are solved by proposing and designing an algorithm, called the \term{hybrid routing algorithm}, that combines the accuracy of geometric routing using visibility graphs with the optimizations and wide use of network-based routing.
 	Additionally, an implementation of the proposed algorithm was created and evaluated regarding performance, correctness and usefulness.
 	Determining shortest paths using the resulting approach has a simple structure, enables the use of common speedup techniques and reaches all accessible locations independent of the presence of corresponding vertices in the graph.
 	Any other arbitrary location, for example a location chosen by the user, can be added to the graph.
