@@ -208,27 +208,26 @@ Finally, an overview of the separate components is given as well as a descriptio
 	\label{subsec:suitablilty-edge-creation-approaches}
 
 		The largest and most influential design decision was the decision against an approach from the literature as presented in \Cref{subsec:related-work:visibility-graph}.
-		Several approaches from the literature have either restrictions on the geometric structures or assume that a certain preprocessing of the data was already performed.
+		Several approaches from the literature have either restrictions on the geometric structures or assume that a certain preprocessing of the data has already been performed.
 		
 		The approach by Welzl\cite{welzl-visibility-graph}, for example, explicitly assumes that there are not collinear vertices, i.e. three or more vertices in a straight line.
-		It may seem unlikely at first that collinear vertices occur in real-world datasets, but at least in OpenStreetMap it is very common to align touching buildings and other straight obstacles like walls.
-		\todo[inline]{diagrams/graphics for problems like this alignment thing}
+		It may seem unlikely to occur in real-world datasets, but it is a common practice in OpenStreetMap to align touching buildings and other straight obstacles like walls.
 		
-		An optimization of Welzls approach, by Overmars and Welzl\cite{overmars-weizl-visibility-graph}, only works on non-intersecting line segments.
+		The optimized approach by Overmars and Welzl\cite{overmars-weizl-visibility-graph} only works on non-intersecting line segments.
 		Real-world data is unfortunately too diverse to fulfill this criterion as polygons, longer linestrings and other more complex data structures exist.
-		Preprocessing the data, i.e. cutting all geometries into such non-intersecting line segments, would cause new special cases to solve.
-		For example, cutting a polygon into line segments would add visibility edges within the former polygon, which needs to be avoided e.g. by storing metadata about the relations of these line segment to each other.
-		Handling all those special cases, preventing unwanted edges and still using the approach by Overmars and Welzl would be possible but would also increase the complexity of their approach.
+		Splitting all geometries into such non-intersecting line segments would increase complexity and would also introduce new problems to solve.
+		For example, splitting a polygon into line segments would require metadata on these segments to reconstruct the former polygon-relationship in order to avoid visibility edges within the former polygon.
+		Handling all those special cases, preventing unwanted edges and still using the approach by Overmars and Welzl would be possible but significantly increases the complexity of their approach.
 		
-		Another approach with the limitation of no collinear vertices was the plain-sweep algorithm by Ghosh and Mount\cite{ghosh-output-sensitive-vgraph}.
+		Another approach with the limitation of no collinear vertices is the plain-sweep algorithm by Ghosh and Mount\cite{ghosh-output-sensitive-vgraph}.
 		In addition to the limitation on collinear vertices, they assume x-coordinates to be unique, which would need to be handled as well.
 		Even though coordinates are usually floating point numbers and therefore have a great range of possible values, rounding and size limitations reduce this range and might result in a high number of non-unique x-coordinate values.
 		Counting the number of non-unique x-coordinates in OpenStreetMap illustrates this problem:
-		The OSM dataset of the German state of Hamburg contains over 3.2 million nodes of which 22.8\% have a non-unique x-coordinate.
+		Of all coordinates in the OSM dataset of the German state of Hamburg, 22.8\% have a non-unique x-coordinates.
 		
 		Kapoor and Maheshwari presented a visibility graph creation as well\cite{kapoor-shortest-path-vgraph} but assumed a triangulation of the open space between the obstacles.
-		Such a triangulation can be done quite fast, algorithms with time complexities of $\bigo{n \log{n}}$ and better are known\cite[58-60]{de-berg-computational-geometry}, but libraries such as MARS or the NetTopologySuite do not implement this.
-		They only provide triangulation methods for polygons but not for the space between them.
+		Such a triangulation can be done quite fast, algorithms with time complexities of $\bigo{n \log{n}}$ and better are known\cite[58-60]{de-berg-computational-geometry}.
+		However, libraries such as MARS or the NetTopologySuite do not support triangulation for open spaces, only for closed geometries.
 		Implementing an algorithm for this task would be needed in addition to the visibility graph creation itself.
 		
 		Probably all approaches from the literature would work but preprocessing, restrictions on the input data or adjustments to the approaches would be necessary.
@@ -237,33 +236,29 @@ Finally, an overview of the separate components is given as well as a descriptio
 		
 	\subsection{Early implementation based on the continuous Dijkstra paradigm}
 		
-		An early implementation, before the above mentioned decision for a strategy fell, was not creating a visibility graph but instead it was based on the \term*{continuous Dijkstra paradigm} with wavelets propagating through open spaces.
-		However, there were three reasons why this first approach was replaced by a visibility graph-based algorithm.
+		Before the decision for an aforementioned routing strategy was made, a prototype-implementation was based on the \term*{continuous Dijkstra paradigm} with propagating wavefronts.
+		However, next to the overall strategy decision on the visibility graph approach, two additional reasons existed supporting a switch towards a visibility graph-based algorithm.
 		
-		The main reason was the overall strategy decision on the visibility graph approach.
-		One other reason was the implementation of performance enhancement for the naive continuous Dijkstra.
-		Early stages of the continuous Dijkstra approach used a very naive and simple implementation without optimizations mentioned in recent literature on this topic.
-		Wavelets did not move continuously but instead they snapped to the next \enquote{event}, i.e. to the next visible vertex where new wavelets can spawn.
-		Because the strategy decision was not yet made at that time, no larger efforts went into optimizing the implementation, e.g. by implementing the approach presented by Hershberger and Suri\cite{hershberger-suri}.
+		One reason was the implementation of performance enhancement for the continuous Dijkstra algorithm.
+		Early stages used a very naive and simple implementation without optimizations mentioned in recent literature on this topic.
+		Wavefronts did not move continuously but instead they \enquote{snapped} to the next event, i.e. to the next collision with a visible vertex where new wavelets can spawn.
+		In this early implementation, no larger efforts went into optimizations, e.g. by implementing the approach presented by Hershberger and Suri\cite{hershberger-suri}.
 		Instead, a simple preprocessing was introduced and lead to a major performance improvement.
-		This preprocessing determined the visibility between all vertices used for the above mentioned events.
+		Because wavefront only reach vertices visible to the origin of the wavefront, the visibility between all vertices used for the above mentioned events was determined.
 		Such predetermined visibilities are the core idea of a visibility graph, thus moving to an approach using an actual visibility graph was only a small step.
 		
-		A third reason against this early continuous Dijkstra implementation were the difficulties and the disadvantages of combining the network-based routing with the continuous Dijkstra algorithm, as described in \Cref{sec:combining-routing-algorithms}.
+		A second reason against this early continuous Dijkstra implementation were the difficulties and the disadvantages of combining the network-based routing with the continuous Dijkstra algorithm, as described in \Cref{sec:combining-routing-algorithms}.
 		
 		Therefore, this first continuous Dijkstra approach was not further pursued but converted to a generator for a routable visibility graph with components described in the following section.
 	
 \section{Components}
 \label{sec:components}
 
-	The hybrid routing algorithm consists of two main components, which present public interfaces.
+	The hybrid routing algorithm consists of two main components presenting public interfaces.
 	Generating the underlying routing graph, the so-called \term{hybrid visibility graph}, is the first step and resides in its own component, the \texttt{HybridVisibilityGraphGenerator} class.
 	The hybrid visibility graph itself is contained in the \texttt{HybridVisibilityGraph} class, which primarily contains the graph structure and is used to answer routing queries.
-	A third but internal component, which is not intended to be used from outside the algorithm, is the \texttt{VisibilityGraphGenerator}.
-	Its purpose is the determination of visibility edges for the routable hybrid visibility graph.
-	
-	Since this works resides in a rather technical and algorithmically oriented context, there are no other components involved, like for example a user interface.
-	Also, there are no independent services or applications communicating with or depending on each other, as it would appear in a microservice architecture with different services like an HTTP proxy, application servers and a database.
+	A third but internal component, which is not intended to be used from outside the algorithm, is the \texttt{VisibilityGraphGenerator}, which creates the visibility edges for the routable hybrid visibility graph.
+	Since this works resides in a rather technical and algorithmically oriented context, there are no other components involved, such as a user interface, application server or database.
 	
 	\begin{figure}[h]
 		\begin{figcenter}
@@ -273,11 +268,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 		\label{fig:components}
 	\end{figure}
 	
-	In an agent-based simulation, each agent has the ability to make its own decisions, which includes the calculation of routes as part of its path planning routine.
-	The hybrid visibility graph has the necessary interfaces to answer routing queries, which means, an agent needs access to an instance of this graph for its navigation.
-	In \Cref{fig:components}, the agent itself creates this graph but the visibility graph can also be shared among multiple agent and therefore does not need to be created multiple times for the same input dataset.
-	
-	\begin{figure}[h!]
+	\begin{figure}[h]
 		\begin{figcenter}
 			\includegraphics[scale=0.8]{images/components-sequence-generation.pdf}
 		\end{figcenter}
@@ -291,25 +282,32 @@ Finally, an overview of the separate components is given as well as a descriptio
 		\caption{The most important steps performed during a routing request using the hybrid visibility graph. The variables \texttt{s}, \texttt{t} and \texttt{w} are the source vertex, the target vertex and the weight function.}
 		\label{fig:components-sequence-routing}
 	\end{figure}
-	\clearpage
+	
+	In an agent-based simulation, determination of routes is part of the agent's path planning routine.
+	The hybrid visibility graph has the necessary interfaces to answer routing queries, which means, an agent needs access to an instance of this graph.
+	\Cref{fig:components} illustrates this with an exemplary agent holding an instance of the graph, which can also be created once and shared among multiple agents.
 	
 	The \texttt{HybridVisibilityGraphGenerator} (abbreviated as \enquote{H.V.GraphGenerator} in \Cref{fig:components-sequence-generate}) presents a public \texttt{Generate()} method for the task of the graph generation and, in this exemplary setup, is used by the agent.
 	It returns an instance of the \texttt{HybridVisibilityGraph} class offering public methods to answer shortest path queries.
-	\Cref{fig:components-sequence-routing} illustrates the internal tasks of a routing request using the \texttt{OptimalPath(source, destination, weightFunction)} function.
+	\Cref{fig:components-sequence-routing} illustrates the internal tasks of a routing request using the \texttt{OptimalPath(source, destination, weightFunction)} query method.
 	The result is a list of coordinates representing the shortest path between two input coordinates.
 	
 %	For convenience and due to required preparations, routing queries are put to the hybrid visibility graph.
-	To fulfill the overall concept of this work, finding optimal paths between arbitrary locations, is must be ensures that these location are reachable via the hybrid visibility graph.
+	To fulfill the overall concept of this work of finding optimal paths between arbitrary locations, it must be ensured that these location are reachable via the hybrid visibility graph.
 	Without further considerations of the source and destination locations, there is no guarantee that these locations are represented by any vertex in the graph.
 	Therefore, the hybrid visibility graph has to temporarily connect these locations to the graph if they are not present already.
-	This is done by determining all visible neighbors of the source and destination locations and merging the resulting edges to the underlying graph.
-	To perform this task, the hybrid visibility graph uses the \texttt{VisibilityGraphGenerator} to determine visibility neighbors of a single vertex by calling the same method as the graph generation does.
+	This is done by determining all visible neighbors of the source and destination locations and merging the resulting edges into the underlying graph.
+	Because this is the same step performed during graph creation, the \texttt{VisibilityGraphGenerator} is used during routing as well to determine visibility neighbors of a single vertex.
 	\Cref{sec:answering-queries} covers the process of answering routing queries in more details, including a clean up step that is performed after the shortest path has been found.
+	
+	The actual shortest path algorithm is A*, which uses the underlying spatial graph of the hybrid visibility graph, which temporarily contains the additional edges to and from the source and destination vertices.
+	A custom weight function allows exact control on how strong to prefer road edges.
+	The effects of different weightings are evaluated in \Cref{subsubsec:manual-route-analysis}.
 
 \section{Deployment}
 
 	% published in MARS
-	The goal of this thesis is to enhance route quality for agent-based simuations.
+	The goal of this thesis is to enhance route quality for agent-based simulations.
 	Therefore, the algorithm was implemented using the MARS framework.
 	In order to use this work to improve MARS, the code is published on GitHub\footnote{\url{https://github.com/hauke96/master-thesis/}}.
-	The C\#-Project \enquote{HybridVisibilityGraphRouting} can simply be imported and all necessary classes can be used.
+	The C\#-Project \enquote{HybridVisibilityGraphRouting} contains all necessary classes and interfaces, only the \texttt{Triangulation} project will be needed as well, due to the aforementioned version mismatch regarding the triangulation of polygons.
