@@ -228,15 +228,16 @@ Hence, the topic of agents and simulations will be covered as well.
 	\subsection{Theoretic considerations}
 	\label{subsec:routing-theoretic-considerations}	
 	
-		Graph-based routing takes place on a graph $G=(V, E)$ with $V$ being the set of vertices and $E \subseteq V \times V$ being the set of edges connecting the vertices.
-		Routing is the process of finding a path from a source $s \in V$ to a destination (or target) $t \in V$ of minimal weight using a weight function $w: E \rightarrow \mathbb{R}$.
+		Routing is the process of finding the optimal (often shortest) path between two given locations.
+		Graph-based routing takes place on a graph $G=(V, E)$ with $V$ being the set of vertices and $E \subseteq V \times V$ being the set of edges connecting the vertices\cite[643-644]{cormen-introduction-to-alg}.
+		To goal is to find a path from a source $s \in V$ to a destination (or target) $t \in V$ of minimal weight using a weight function $w: E \rightarrow \mathbb{R}$.
 		A path $p=\left\langle v_0, v_1, \dots v_n \right\rangle$ is an ordered list of connected vertices $v_0, v_1, \dots, v_n \in V$, which means for two consecutive vertices $v_i$ and $v_{i+1}$, $(v_i, v_{i+1}) \in E$ must hold.
 		
-		Often, the shortest path should be determined, thus the weight function is used to calculate the length of an edge, which is not necessarily bound to the geographic length of the edge.
+		Often, the shortest path should be determined, thus the weight function is used to calculate the length of an edge.
 		Even though the following sections refer to shortest paths, determining \enquote{optimal} (or minimal) paths is the general case.
-		Thus, routing is a minimization problem, trying to find a path $p$ with the minimum sum $w(p) = \sum_i{w(v_i, v_{i+1})}$\cite[645]{cormen-introduction-to-alg}.
+		Thus, routing is a minimization problem, trying to find a path $p$ of minimum weight $w(p) = \sum_i{w(v_i, v_{i+1})}$.
 		
-		In theoretic computer science, the fundamental problem behind routing algorithms is called the \term{shortest paths problem}, which exists in several variants\cite[644]{cormen-introduction-to-alg}.
+		In theoretic computer science, the fundamental problem behind routing algorithms is called the \term{shortest paths problem}, which exists in the several following variants.
 		
 		\subsubsection{\term*[single-source shortest paths]{Single-source shortest paths}}
 		\label{subsubsec:single-source-shortest-path}
@@ -254,7 +255,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		\subsubsection{\term*[single-pair shortest paths]{Single-pair shortest paths}}
 		
 			The shortest path from one specific source to one specific destination vertex should be determined.
-			Even though there are specialized algorithms for this problem like TRANSIT (described in \Cref{subsubsec:other-speedup-methods}), more general approaches solving the single-source problem can be used as well, such as the Dijkstra algorithm.
+			Even though there are specialized algorithms for this problem like TRANSIT (described in \Cref{subsubsec:other-speedup-methods}), more general approaches solving the single-source problem can be used as well, such as the Dijkstra algorithm as presented in \Cref{subsubsec:dijkstra}.
 		
 		\subsubsection{\term*[all-pair shortest paths]{All-pair shortest paths}}
 		\label{subsubsec:all-pair-shortest-path}
@@ -267,26 +268,24 @@ Hence, the topic of agents and simulations will be covered as well.
 		
 		A \term{routing engine} is a software built to find an optimal route between a source and destination location.
 		The optimality of this route is determined by a routing profile, which is a weighting function assigning a weight to each edge in the input graph.
-		Routing engines might perform other operations as well, such as map matching or calculation of isochrones, which are a way to visualize the reachability of a region\cite{allen-isochrones}.
+		Routing engines might perform other operations as well, such as the calculation of \term[isochrone]{isochrones}, which are a way to visualize the reachability of a region\cite{allen-isochrones}.
 		Each isochrone is an area reachable from a given source location within the same amount of time, which is determined using routing.
 		
 		To find desirable paths, the weight function $w$ mentioned in \Cref{subsec:routing-theoretic-considerations} needs to be carefully chosen based on the domain of the application, vehicle type, personal preferences and other influencing factors.
 		Applications in our everyday life bundle these aspects into a \term{routing profile}, which maps attributes from the input data to a certain weight.
-		The input data might consist of multiple sources like a road network, a digital elevation model or additional traffic information.
-		Weight functions predict the expected speed on an edge\cite{graphhopper-profile-bike-speeds}, use the length of an edge\cite{graphhopper-profile-shortest} as weight or determine the weight based on existing attributes\cite{graphhopper-profile-short-fastest}.
-		
+		Input data might consist of multiple sources like a road network, a digital elevation model or additional traffic information.
+%		Weight functions predict the expected speed on an edge\cite{graphhopper-profile-bike-speeds}, use the length of an edge\cite{graphhopper-profile-shortest} as weight or determine the weight based on existing attributes\cite{graphhopper-profile-short-fastest}.
 		The open source software Graphhopper is one example of a routing engine and comes with predefined profiles for different modalities and situations.
-		For example the \texttt{car\_delivery} profile is made for delivery services and therefore allows routing via private roads\cite{graphhopper-routing-profiles}.
+		For example the \texttt{car\_delivery} profile is made for car-based delivery services and therefore enables routing via private roads\cite{graphhopper-routing-profiles}, which is not the case the normal \texttt{car} profile.
 		
 		To enhance performance, speedup methods were developed allowing routing queries of continental or even global sizes to be answered quickly.
-		Some popular methods are \term{contraction hierarchies} or the use of \term[landmark]{landmarks}, \term[transit node]{transit nodes} and \term[hub label]{hub labels}.
-		Even though there are several more approaches to increase performance, the mentioned techniques will be described with more details in \Cref{subsec:speedup-methods}.
+		Some popular methods are, among others, \term{contraction hierarchies} and \term[landmark]{landmarks}, which will both described with more details in \Cref{subsec:speedup-methods}.
 		
 		\subsubsection{Dijkstra}
 		\label{subsubsec:dijkstra}
 		
 			Dijkstra's algorithm, often just called \term{Dijkstra}, is originated in the 1950s and can be used to solve the \term*{single-source shortest paths} problem.
-			When no destination vertex is given, this algorithm creates a spanning tree rooted in the source vertex $s$ containing solely shortest paths to all other vertices.
+			When no destination vertex is given, it creates a spanning tree rooted in the source vertex $s$ containing solely shortest paths to all other vertices.
 			Despite its age, Dijkstra's algorithm and optimized versions of it are frequently used in science and real-world applications.
 			\Cref{alg:dijkstra} presents an enhanced version using a priority queue for the vertices\cite[658]{cormen-introduction-to-alg}.
 			
@@ -295,10 +294,11 @@ Hence, the topic of agents and simulations will be covered as well.
 					\ForAll{vertices $v \in V$}
 						\State Set shortest path distance $v.d = \infty$ and predecessor vertex $v.\pi = undefined$
 					\EndFor
-					\State Insert all vertices by distance into min-queue $Q$
+					\State $s.d = 0$
+					\State Insert all vertices into min-priority queue $Q$ with $v.d$ being the priority
 					\State $S = \emptyset$
 					\While{$Q \neq \emptyset$}
-						\State Get closest vertex: $u = Q.min$
+						\State Get closest vertex $u = Q.min$
 						\ForAll{adjacent vertices $v$ of $u$}
 							\State Add $u$ to $S$
 							\If{the path to $v$ via $u$ is shorter than $v.d$, so if $u.d + d(u, v) < v.d$}
@@ -307,14 +307,14 @@ Hence, the topic of agents and simulations will be covered as well.
 						\EndFor \label{alg:dijkstra:end-inner-loop}
 					\EndWhile
 				\end{algorithmic}
-				\caption{Pseudocode of an slightly optimized version of Dijkstra's algorithm.}
+				\caption{Pseudocode of Dijkstra's algorithm using a priority queue and starting at vertex $s \in V$.}
 				\label{alg:dijkstra}
 			\end{algorithm}
 			\noindent
 			Once a vertex is taken from the queue, it is considered as \emph{visited} by adding it to $S$.
 			It can be proven that for each visited vertex $v$ the distance $v.d$ after the last iteration of the inner for-loop is optimal\cite[659-661]{cormen-introduction-to-alg}.
 			This also means following back the predecessor relation $v.\pi$ yields the shortest path.
-			When $u$ is equal to a destination vertex $t$, the algorithm can therefore safely be stopped at line \ref{alg:dijkstra:end-inner-loop} since the optimal path from $s$ to $t$ has been found.
+			When $u$ is equal to a destination vertex $t$, the algorithm can therefore safely be stopped after line \ref{alg:dijkstra:end-inner-loop} since the optimal path from $s$ to $t$ has been found.
 		
 		\subsubsection{A*}
 		\label{subsubsec:astar}
@@ -339,7 +339,7 @@ Hence, the topic of agents and simulations will be covered as well.
 					\EndWhile
 					\State Take $G$, follow $t$ back to the source $s$ and output the path
 				\end{algorithmic}
-				\caption{Pseudocode of the originally proposed A* algorithm\cite{astar}.}
+				\caption{Pseudocode of the original A* algorithm\cite{astar} with length estimate function $f:V\rightarrow\mathbb{R}$.}
 				\label{alg:astar}
 			\end{algorithm}
 			
@@ -347,9 +347,9 @@ Hence, the topic of agents and simulations will be covered as well.
 			However, for a specific problem a so-called \term{effective branching factor} $b^*$ can be determined which approximates the number of new open vertices per processed vertex (see line \ref{alg:astar-open-1} and \ref{alg:astar-open-2} in \Cref{alg:astar}).
 			The optimal branching factor is 1 and a good heuristic has a factor of close to 1.
 			Having $b^*$ and the number of vertices $n$ in the shortest path, a general runtime complexity of $\bigo{(b^*)^n}$ can be assumed.
-			Since all closed vertices have to be stored in the output graph $G$, the space complexity is equal to the time complexity.
-			This is the major drawback of A*, since a bad heuristic can turn A* into an algorithm with potentially unmanageable exponential runtime complexity.
-			Nonetheless, A* is frequently used in real-world applications as well as in the implementation of the algorithm presented in this thesis.
+			Since all closed vertices are stored in the output graph $G$, the space complexity is equal to the time complexity.
+			Therefore, a bad heuristic can turn A* into an algorithm of potentially unmanageable exponential complexity.
+			However, A* is fast in practice and used frequently in science, real-world applications as well as in this thesis.
 		
 	\subsection{Speedup methods}
 	\label{subsec:speedup-methods}
