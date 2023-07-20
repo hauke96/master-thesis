@@ -51,7 +51,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 				\item Determine visibility edges for the source and destination coordinates
 				\item Merge these edges into the graph such that they can be removed afterwards
 				\item Route along the resulting graph with a graph-based routing algorithm such as A*
-				\item Restore the original graph by removing all nodes and edges added before
+				\item Restore the original graph by removing all vertices and edges added before
 			\end{enumerate}
 			The last step ensures that subsequent routing queries are answered based on the original graph and not on an altered version of it.
 			It also prevents an uncontrolled growth of the graph.
@@ -283,8 +283,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 		
 		\subsubsection{Terminology}
 		
-			Before describing the details on determining the $k$ nearest neighbors, there are some terms that need to be defined.
-			
+			Some terms need to be defined before describing the details of determining the $k$ nearest neighbors:
 			\begin{description}
 				\item[obstacle] An \term{obstacle} is a geometry that should be avoided when determining shortest paths. It can have any type of geometry, not only a polygon.
 				\item[visibility neighbor] A \term{visibility neighbor} (sometimes also \emph{visible neighbor}) of a vertex $v$ is another vertex $u$ which is visible to $v$ and vice versa. In other words an imaginary linestring from $v$ to $u$ does not intersect with any obstacle.
@@ -294,7 +293,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 		
 		\subsubsection{Parameter $k$ and consequences on the shortest paths}
 		
-			Not all but $k$ many neighbors per vertex are determined, which is a simple performance enhancement that provides a fixed upper bound on the complexity.
+			As a performance enhancement providing an upper bound on the number of visibility neighbors, only $k$ many neighbors per vertex are determined.
 			The parameter $k$ is not a single numeric parameter, but rather a tuple of two separate values:
 			The number of bins $k_b$ and the number of maximum neighbors per bin $k_n$, which means a maximum of $k_b \cdot k_n$ many neighbors are determined and considered.
 			
@@ -596,6 +595,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 			This procedure is described in the following section and its result is stored for the graph creation, which is described below in \Cref{subsec:step-3-graph-creation}.
 		
 		\subsubsection{Step 2.3: Sort resulting visibility neighbors into bins}
+		\label{subsubsec:sort-visibility-neighbors}
 		
 			A naive approach to create a visibility graph would be to create edges between vertices that are visible to each other.
 			This would make routing through line-based obstacles possible as \Cref{fig:routing-through-line-obstacle} illustrates.
@@ -738,17 +738,15 @@ And third, each algorithmic step of the graph generation and query answering is 
 	\subsection{Step 3: Visibility graph creation}
 	\label{subsec:step-3-graph-creation}
 	
-		The previous step created the necessary data to generate a routable visibility graph, which is done in this third step.
-%		Since the \texttt{SpatialGraph} class in the NetTopologySuite uses the term \emph{node}, the term \emph{vertex} in this section refers to the vertices in the result of step 2, the term \emph{node} refers to the nodes in the output graph.
-		As described at the end of the previous step, one vertex is created for each bin, which corresponds to the angular range between two adjacent obstacle neighbors and contains visibility neighbors.
-		Therefore, mappings between output vertices in the generated graph, input vertices and neighbor bins have to be created.
-%		For example, neighbor vertex $n_a$ in \Cref{fig:routing-through-line-obstacle-b} should be connected to $v$.
-%		Since $v$ is split into two vertices, two nodes are created in the graph and therefore a mapping from node to bin is needed in order to connect the right nodes with each other.
+		The third step is the graph generation using the grouped visibility neighbors from the previous step.
+		One vertex is created for each visibility neighbor bin, which corresponds to the angular range between two adjacent obstacle neighbors.
+		To correctly connect vertices in the output graph, as described in \Cref{subsubsec:sort-visibility-neighbors}, mappings between output vertices in the generated graph, input vertices of the dataset and visibility neighbor bins have to be created.
 		
 		Two iterations over all vertices are performed.
-		The first iteration is used to create one output vertex per bin and to create a mapping of each newly created bin-vertex to the corresponding original input vertex.
-		In a second iteration, this mapping is used to correctly connect all bin-vertices by connecting those bin-vertices which bins contain each other.
-		\Cref{fig:bin-vertex-connection} illustrates this:
+		The first iteration is used to create one output vertex per bin (so-called \emph{bin-vertex}) and to create a mapping of each newly bin-vertex to the corresponding original input vertex.
+		In \Cref{fig:routing-through-line-obstacle}, $v_a$ and $v_b$ are the bin-vertices corresponding to the obstacle vertex $v$.
+		In a second iteration, this mapping is used to correctly connect all bin-vertices with those which bins contain each other.
+		\Cref{fig:bin-vertex-connection} illustrates this with two bin-vertices and color coded angular ranges of the bins:
 		The bin-vertex $v$ is connected to bin-vertex $u$ because the bin of $u$ contains $v$.
 		Same applies to $u$ being connected to $v$ since $u$ is within $v$'s bin.
 		
@@ -788,19 +786,20 @@ And third, each algorithmic step of the graph generation and query answering is 
 			\label{fig:bin-vertex-connection}
 		\end{figure}
 		
-		Without this mapping, it would not be clear which bin-vertices to connect since all bin-vertices of a certain input vertex have the exact same location, which is the problem illustrated earlier in \Cref{fig:routing-through-line-obstacle}:
-		without a mapping between bin and bin-vertex, it is unclear whether to connect $n_a$ to $v_a$ or to $v_b$.
+		Without a mapping between bin and bin-vertex, it would not be clear to which vertex to connect since all bin-vertices of a certain input vertex have the exact same location, which is the problem illustrated earlier in \Cref{fig:routing-through-line-obstacle}:
+		without such a mapping, it would be unclear whether to connect $n_a$ to $v_a$ or to $v_b$.
 		Both are on the exact same location but correspond to different angular ranges.
 		
 		The resulting spatial graph together with some of the mappings, which will also be used to \hyperref[sec:answering-queries]{answer routing queries}, are stored in an instance of the \texttt{HybridVisibilityGraph} class.
-		It contains an instance of the \texttt{SpatialGraph} class, which is provided by the MARS framework, along with all data needed to correctly add and connect new nodes during routing.
+		It contains an instance of the \texttt{SpatialGraph} class, which is provided by the MARS framework, along with all data needed to correctly add and connect new vertices during routing.
 		
 	\subsection{Step 4: Merging a road network into the visibility graph}
 	\label{subsec:step-4-graph merging}
 	
 		To allow a routing algorithm to switch between the road network and visibility edges, the road network needs to be merged into the visibility graph.
-		This happens not just by adding the road segments to the graph but by introducing and connecting new nodes at all intersections between road and visibility edges.
+		This happens not just by adding the road segments to the graph but by cutting and connecting all road and visibility edges at their intersection points.
 		\Cref{fig:merging-edges} illustrates this process for one road segment and two visibility edges.
+		This final graph allows any routing algorithm to switch between road and visibility edges without further instructions or adjustments to the routing algorithm.
 		
 		\begin{figure}[h]
 			\begin{figcenter}
@@ -823,7 +822,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 						\end{tikzpicture}
 					\end{figcenter}
 					\caption{
-						Before merging $r$ into the graph with a total of six nodes and six edges.
+						Before merging $r$ into the graph with a total of six vertices and six edges.
 					}
 					\label{fig:merging-edges-a}
 				\end{subfigure}
@@ -854,7 +853,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 						\end{tikzpicture}
 					\end{figcenter}
 					\caption{
-						After merging $r$. Two new vertices have been created and all edges are split on the intersection points. The graph size therefore increased by two nodes and eight edges (since all edges are bidirectional) to eight nodes and 14 edges.
+						After merging $r$ with two new vertices at the intersections. The graph size increases by one vertex and four directed edges per intersection.
 					}
 					\label{fig:merging-edges-b}
 				\end{subfigure}
@@ -864,38 +863,38 @@ And third, each algorithmic step of the graph generation and query answering is 
 			}
 			\label{fig:merging-edges}
 		\end{figure}
-	
-		This final graph allows any routing algorithm to switch between road and visibility edges without further instructions or adjustments to the routing algorithm.
-		
 
-		With $E_R$ containing all road and $E_V$ all visibility edges, the complexity of the merge operation is within $\bigo{|E_R| \cdot |E_V|}$.
-		This complexity arises from the fact that a road segment intersecting with $n$ visibility edges leads to $n+1$ new road segments, $n$ new intersection points and $n$ new visibility edges connecting them.
-		In the worst case of a road segment intersecting with all visibility edges, $2 \cdot |E_V| + 1$ edges and $|E_V|$ nodes are added to the graph.
-		Therefore, up to $|E_R| \cdot (2 \cdot |E_V| + 1)$ new edges and $|E_R| \cdot |E_V|$ new nodes are created.
-		Even though it does not scale worse than linear in the input size $|E_R|$ of the road edges, the size of the output graph is significantly higher than the input road network, which are typically quite sparse networks.
+		In the following all edges are bidirectional and counted once, the MARS implementation of the \texttt{SpatialGraph}, however, models bidirectional edges as two separate directed edges.
+		The runtime complexity of the road merge operation is in $\bigo{|E_R| \cdot |E_V|}$ with $E_R$ containing all road and $E_V$ all visibility edges.
+		This complexity arises from the fact that a road segment intersecting with $n$ visibility edges leads to $n$ additional road segments, $n$ new intersection vertices and $n$ new visibility edges connecting them.
+		In the worst case, a road segment intersects with all $|E_V|$ many visibility edges increasing the number of edges by $2 \cdot |E_V|$ and the number of vertices by $|E_V|$.
+		Therefore, up to $|E_R| \cdot 2 \cdot |E_V|$ new edges and $|E_R| \cdot |E_V|$ new vertices are created.
+		This means that, even though runtime is linear in the input size $|E_R|$, the size of the output graph is significantly higher than of the input graph.
+		Fortunately, as shown in \Cref{subsec:design-merge-road-network}, road networks are typically quite sparse networks.
 
 		Measured graph sizes and effects on the routing performance are presented and discussed in \Cref{chap:evaluation}.
 	
 \section{Answering shortest path queries}
 \label{sec:answering-queries}
 
-	The process of answering shortest path queries, or routing queries in general, is directly implemented in the \texttt{HybridVisibilityGraph} class.
-	Arbitrary weighting functions can be passed to customize the routing behavior.
-	Implementing the core idea of determining routes between arbitrary location is, with the help of the above described techniques, rather simple:
+	The process of answering routing queries is directly implemented in the \texttt{HybridVisibilityGraph} class and a custom weighting function can be passed to alter the routing behavior.
+	The implementation performs the following steps:
 	\begin{enumerate}
-		\item \label{itm:answering-queries-add-nodes} Add nodes for the source and destination locations of the routing query to the graph.
-		\item \label{itm:answering-queries-vis-edges} Determine visibility edges of each of the two nodes and merge these new edges into the graph.
-		\item \label{itm:answering-queries-routing} Use a normal shortest path algorithm, such as A*, together with a weight function to find the path from the source to the destination.
-		\item \label{itm:answering-queries-cleanup} Remove all previously added nodes and edges to get a clean graph for future routing requests.
+		\item \label{itm:answering-queries-add-vertices} Add vertices at the source and destination locations of the routing query to the graph.
+		\item \label{itm:answering-queries-vis-edges} Determine visibility edges for the two newly created vertices and add them to the graph.
+		\item \label{itm:answering-queries-routing} Use a normal shortest path algorithm, such as A*, together with a weight function to find the optimal path from the source to the destination.
+		\item \label{itm:answering-queries-cleanup} Remove all previously added vertices and edges to restore the augmented graph to the original one to have a clean state for future routing requests.
 	\end{enumerate}
-	Step \ref{itm:answering-queries-add-nodes} creates two new nodes in the spatial graph as far as no node already exists at the respective location.
+	Steps \ref{itm:answering-queries-add-vertices}, \ref{itm:answering-queries-vis-edges} and \ref{itm:answering-queries-cleanup} are only performed for newly added vertices, i.e. for locations that did not already exists in the graph.
 	
-	Because step \ref{itm:answering-queries-vis-edges} is already implemented for the general graph generation, the core method \texttt{VisibilityGraphGenerator.GetVisibilityNeighborsForVertex()} can be reused without further adjustments.
-	The most complex part is to determine the correct node to connect to.
-	Thanks to the mappings of neighbor bins and their covered angle areas, as introduced in \Cref{subsec:step-3-graph-creation}, the correct bin for a location can be determined and a bidirectional edge be created.
-	These are mostly simple filtering operations on the bins and can be implemented with very little code.
+	Because step \ref{itm:answering-queries-vis-edges} is already implemented for the general graph generation, the core method \texttt{VisibilityGraphGenerator.GetVisibilityNeighborsForVertex()} can be used without further adjustments.
+	The most complex part is to determine the correct existing vertices to connect to.
+	Thanks to the mappings of neighbor bins and their covered angle areas, which were created during \hyperref[subsec:step-3-graph-creation]{graph generation}, the correct bin for each newly added vertex can be determined and a bidirectional edge be created.
+	The implementation required very little code and only simple filtering operations on the bins.
 	
-	Fortunately, the \texttt{SpatialGraph.RemoveNode(int)} method removes the node given by its ID and also removes all edges, which are connected to the given node.
-	This makes step \ref{itm:answering-queries-cleanup} very easy since step \ref{itm:answering-queries-add-nodes} and \ref{itm:answering-queries-vis-edges} yield the IDs of created nodes, which are needed for the cleanup.
+	As mentioned above, the graph-based shortest path algorithm, which is A* in this implementation, can now be executed on the augmented graph.
+	
+	Fortunately for the clean-up step performed after the shortest path has been determined, the \texttt{SpatialGraph.RemoveNode(int)} method removes the vertex given by its ID and also removes all adjacent edges.
+	This makes step \ref{itm:answering-queries-cleanup} very easy since step \ref{itm:answering-queries-add-vertices} and \ref{itm:answering-queries-vis-edges} yield the IDs of all created vertices.
 	
 	The performance of routing and quality of the determined routes depend on several factors, with are discussed in the next chapter.
