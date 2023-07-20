@@ -1,46 +1,43 @@
 % !TEX root = ../thesis.tex
 % !TeX spellcheck = en_US
 
-The implementation of the hybrid routing algorithm was evaluated regarding performance and usefulness, which is covered in this chapter.
-For both evaluation aspects, method and design details are given followed by the respective results of the evaluations.
+In this chapter, the implementation of the hybrid routing algorithm is evaluated regarding performance, correctness and usefulness.
+Next to the actual results, methods and design details on the evaluation are given as well.
 
 \section{Performance evaluation}
 
 	The performance evaluation uses different datasets to measure graph generation and routing times.
-	Each of these two steps is measured more fine-grained by measuring the execution times of separate method calls.
-	The datasets have different properties and sizes and consist of artificial and real-world data.
+	Each of these two steps is measured more fine-grained on the level of separate method calls.
+	% TODO Mention memory usage as well
 
 	\subsection{Methods \& Measurements}
 
 		\subsubsection{Collected data}
 		
-			The collected data consists of time measurement, many of them on the level of separate methods.
-			Also, the amount of data is measures, namely the number of edges and vertices at various steps in the process.
-			
-			As a result, two CSV files are written per dataset containing measurement data for the import (including graph generation) and routing.
-			The measurement for the routing requests also contains information about the lengths of the routes, especially beeline and actual route distances.
-			
-			% TODO table with all columns of the measured data including a description and example value?
+			The collected data consists of time and memory usage measurement, of which the time measurements are on the level of separate methods.
+			Also, the amount of data is measures, namely the number of edges and vertices at various steps in the process, as well as the length of routes, which includes the beeline and actual route distances.
 		
 		\subsubsection{Datasets}
 		\label{subsubsec:eval-datasets}
 		
-			There are multiple categories of datasets that were used.
-			Pattern-based datasets are created using a pattern, e.g. a set of rectangles, repeated numerous times to create datasets of various sizes.
+			Two overall types of datasets are used:
+			Pattern-based datasets are created using a recurring pattern of various sizes.
 			OSM-based datasets use differently sized extracts from OpenStreetMap.
 			While the OSM-based datasets contain obstacles and roads (except in the \enquote{without roads/obstacles} datasets), the pattern-based datasets do no contain any roads.
 			
+			For both types, several categories of datasets exist with different properties:
 			\begin{description}
-				\item[Maze pattern] Datasets of this category are made of maze like geometries, meaning it only contains connected linestrings forming a seamless pattern. Many of the contained line obstacles are collinear.
-				\item[Rectangle pattern] Pattern-based datasets, which contain simple rectangles of different sizes.
-				\item[Circle pattern] Like the rectangle datasets but with circles, i.e. polygons with a large number of vertices.
-				\item[OSM city] Real-world extracts from the OpenStreetMap database with data from the city of Hamburg, Germany. The data has been filtered to remove all over- and underground features. These datasets contain all roads in the respective region.
-				\item[OSM rural] Equivalent to the \enquote{OSM city} dataset, but located outside the city of Hamburg and therefore containing more natural obstacles (lakes, ditches, forest), more open spaces and less regular distribution of buildings.
-				\item[OSM export without roads] OSM extracts but without the roads. They are used to show the influence of roads on the graph generation and routing times.
-				\item[OSM export without obstacles] Analogous to the \enquote{OSM export without roads} category, but without the obstacles, i.e. buildings, walls and natural areas such as lakes and forests. This is used to show the influence of the obstacles on the graph generation and routing times.
+				\item[Maze pattern] Datasets with touching and collinear linestrings forming a maze-like structure.
+				\item[Rectangle pattern] Datasets with numerous differently sized, positioned and rotated rectangles.
+				\item[Circle pattern] dataset with differently sized circles having a large amount of vertices.
+				\item[OSM city] Real-world extracts from the OpenStreetMap database with data from the city of Hamburg, Germany. The data has been filtered to remove all over- and underground features.
+				\item[OSM rural] Equivalent to the \enquote{OSM city} dataset, but located outside the city of Hamburg and therefore containing more natural obstacles (lakes, ditches, forest), more open spaces and less regular distributed buildings.
+				\item[OSM export without roads] OSM extracts but without roads.
+				\item[OSM export without obstacles] Analogous to the \enquote{without roads} datasets, but without any obstacles, i.e. buildings, walls and natural areas such as lakes and forests.
 			\end{description}
 			The \enquote{OSM city} and \enquote{OSM rural} categories each contain six dataset of the sizes 0.5, 1, 1.5, 2, 3 and 4 km\textsuperscript{2}.
 			The two OSM categories \enquote{without roads/obstacles} both use the 4 km\textsuperscript{2} datasets from the city and rural categories.
+			All OSM-based dataset are filtered to not contains any over- or underground features, because the hybrid routing algorithm was not made to handle this third spatial dimension.
 			
 			\begin{figure}[h!]
 				\centering
@@ -60,9 +57,9 @@ For both evaluation aspects, method and design details are given followed by the
 		
 		\subsubsection{Optimizations}
 		
-			As described in \Cref{chap:implementation}, there were several optimizations made to the implementation.
+			As described in \Cref{chap:implementation}, there are several optimizations made to the implementation.
 			Some of which are on the level of data structures, some on algorithmic level.
-			The effectiveness of these optimization was also evaluated using the OSM dataset.
+			The effectiveness of these optimization was also evaluated using the 4 km\textsuperscript{2} \enquote{OSM city} dataset.
 			Each of the following optimizations was deactivated or replaced for the evaluation:
 
 			\begin{description}
@@ -71,21 +68,18 @@ For both evaluation aspects, method and design details are given followed by the
 				\item[BinIndex] Instead, the \texttt{Bintree} from the NTS was used.
 				\item[Convex hull] The restriction to only consider vertices on the convex hull of obstacles was removed.
 				\item[Valid angle areas] Considering only potential visibility neighbors within certain angular ranges was deactivated.
-				\item[$k$-NN search] The $k$ of the k-NN search was deactivated to determine all visibility neighbors in all directions.
+				\item[kNN search] Instead, all visibility neighbors in all directions were determined.
 			\end{description}		
 			
 		\subsubsection{Measurement method}
 		
-			Measuring the performance was done by a small agent-based simulation project called \texttt{HikerModel}, which consists of one agent, a list of coordinates and the input dataset.
-			The coordinates are given via a linestring within a GeoJSON file and each coordinate in this linestring is visited by the agent using the hybrid routing algorithm to determine the path from one location the the next.
-%			The time of the graph generation as well as the time of each routing request are measured.
+			Measuring the performance was done by a small agent-based simulation project called \texttt{HikerModel}, consisting of one agent consecutively visiting a given list of coordinates (routing waypoints) and using a given dataset as input to the hybrid routing algorithm.
+			The coordinates are given via a linestring within a GeoJSON file, of which each coordinate of the linestring is visited by the agent in order.
 			Each waypoint was within the range of the dataset, meaning each coordinate was surrounded by obstacles.
 			The euclidean distances (beeline distances) of the line segments within this linestring were distributed evenly to measure the required routing time relative to the distance and dataset size.
 			
-			Because the OSM datasets within one category cover differently sized areas, each waypoint linestring of a dataset contains all waypoints of the next smaller one plus some additional ones.
-			This the waypoints of the smallest dataset are used by every other dataset as well.
-%			In other words, the second smallest dataset contains all waypoints of the smallest plus some additional ones.
-%			The third smallest contains all waypoints of the second smallest plus some additional ones, and so on.
+			Because the OSM datasets within one category cover differently sized areas, each waypoint linestring of an OSM-based dataset contains all waypoints of the next smaller one plus some additional ones.
+			This means that the waypoints of the smallest dataset are used by every other dataset as well.
 		
 		\subsubsection{Technical considerations}
 		
