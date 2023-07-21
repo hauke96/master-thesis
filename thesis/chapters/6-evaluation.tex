@@ -565,17 +565,15 @@ All optimizations active	&  11.1 s		&  1.00									&  11.1 s		& 71.13									\
 	
 		\subsubsection{Route quality definition and determination}
 	
-			The quality of a route does not only refer to a mathematical metric, but also to a more subjective quality of routes.
-			However, subjective as well as mathematical metrics are consideres in this quality analysis.
+			The quality of a route is not only measurable by a mathematical metric, but also to a more subjective quality of routes.
+			However, subjective as well as mathematical metrics are considered in this quality analysis.
 			
-			An ideal route, meaning a route of maximum quality, would exactly match a manually chosen expected path.
-			This expected paths used in the following sections were determined using aerial imagery, local knowledge and the data contained in OSM.
+			An ideal route, meaning a route of maximum quality, would exactly match a path chosen by a human observer.
+			The expected paths used in the following sections were obtained using aerial imagery, local knowledge and the data contained in OSM.
 			Therefore, an expected path is realistically walkable in the real world and would likely be chosen by actual pedestrians.
-			This also means that an expected path contains a certain subjective component, for example the exact place where the route changes to the other side of a road.
+			This also means that an expected path contains a certain subjective component, for example the exact location of a road crossing, the preference of shortcuts via unpaved areas or the avoidance of steps.
 	
-			The evaluation of the route quality is performed using two criterions.
-			First, a manual analysis is performed using an expected path to compare a determined route against.
-			Second, mathematical metrics are used to quantify the similarity between an expected and actual route.
+			The similarity between an actual calculated route and an expected route can be quantified using certain mathematical metrics, which are used in a second quality analysis.
 		
 		% How realistic are the routes (= can I go there in real life)? If not: Why not?
 		\subsubsection{Manual route analysis}
@@ -584,49 +582,39 @@ All optimizations active	&  11.1 s		&  1.00									&  11.1 s		& 71.13									\
 			In the following examples, routes determined by graph-based routing and the hybrid routing algorithm are compared against an expected result.
 			This expected route was created based on OpenStreetMap data, aerial imagery and also local knowledge.
 			It was \emph{not} created to intentionally match the results from the hybrid routing algorithm.
+			
+			\begin{wrapfigure}[14]{r}{0.5\textwidth}
+				\vspace{-1.5\baselineskip}
+				\begin{figcenter}
+					\includegraphics[width=\linewidth]{images/qgis-routing-osterstrasse}
+				\end{figcenter}
+				\caption{Graph-based route (red), hybrid routing algorithm result (blue) and the expected route (green). The dashed part of the expected result is an equally good alternative route.}
+				\label{fig:eval-osterstrasse}
+			\end{wrapfigure}
 		
 			% From motivation
-			The first situation shows a small square at the subway station \enquote{Osterstraße} in Hamburg, Germany, which only exist as an mostly unconnected area not usable for graph-based algorithms.
-			\Cref{fig:eval-osterstrasse-route-expected} shows the route between two POIs determined using Graphhopper.
-			The result is unfortunate as it does not cross the square due to the lack of necessary edges needed by the routing algorithm.
-			The hybrid routing algorithm, shown in \Cref{fig:eval-osterstrasse-actual-expected}, does not directly match the expected route but yielded a much closer and comparably good result.
-			
-			\begin{figure}[h!]
-				\begin{minipage}[t]{.48\textwidth}
-					\begin{subfigure}[t]{\linewidth}
-						\begin{figcenter}
-							\includegraphics[width=\textwidth]{images/qgis-routing-osterstrasse-expected-vs-routing}
-						\end{figcenter}
-						\caption{The graph-based routing result (red) and the expected route (blue). The red dotted parts are direct connections to the closest point on an edge.}
-						\label{fig:eval-osterstrasse-route-expected}
-					\end{subfigure}
-				\end{minipage}
-				\hfill
-				\begin{minipage}[t]{.48\textwidth}
-					\begin{subfigure}[t]{\linewidth}
-						\begin{figcenter}
-							\includegraphics[width=\textwidth]{images/qgis-routing-osterstrasse-expected-vs-actual}
-						\end{figcenter}
-						\caption{The result of the hybrid routing algorithm (green) and the expected route (blue).}
-						\label{fig:eval-osterstrasse-actual-expected}
-					\end{subfigure}
-				\end{minipage}
-				\caption{Comparison of a graph-based route (red; determined on \href{https://www.openstreetmap.org/directions?engine=fossgis\_osrm\_foot\&route=53.57657\%2C9.95210\%3B53.57601\%2C9.95268\#map=19/53.57632/9.95218}{osm.org}) with the hybrid routing algorithm (green) and the expected result (blue). The dashed part of the expected result is an equally good alternative route. The difficulty of this scenario is the traversal of the square \enquote{Fanny-Mendelssohn Platz}.}
-				\label{fig:eval-osterstrasse}
-			\end{figure}
+			The first situation, shown in \Cref{fig:eval-osterstrasse}, illustrates the problem of missing edges for graph-based algorithms.
+			The square \enquote{Fanny-Mendelssohn Platz} in Hamburg, Germany, is a mostly unconnected area and therefore not traversable by graph-based algorithms.
+			A routing request using Graphhopper\footnote{\url{https://www.osm.org/directions?engine=graphhopper\_foot\&route=53.57657,9.95210;53.57601,9.95268}} yields the red route, which does not cross the square due to missing edges and therefore takes a detour.
+			The hybrid routing algorithm (blue path) does not completely match the expected route but is a better approximation than the graph-based result.
 			
 			% Interesting passages from the city dataset
-			Next to the above example and comparison to graph-based routing, an analysis of the routes determined within the 1km\textsuperscript{2} \enquote{OSM city} dataset yields some noteworthy findings.
+			Next to this example, analyzing routes determined within the 1km\textsuperscript{2} \enquote{OSM city} dataset yields some noteworthy findings.
 			
-			First, the quality of a route significantly decreases with missing or wrong data as visible in \Cref{fig:eval-city-usefulness-b} and \ref{fig:eval-city-usefulness-c}.
-			The passages marked in red in these images are often shortcuts via private property.
-			Those areas, however, are usually filled with obstacles such as fences, walls or different kinds of vegetation.
-			As described in \Cref{subsubsec:data-not-in-osm}, private areas in OSM often contain very few to no details.
+			\begin{itemize}
+				\item The route quality significantly decreases with missing or wrong data as shown in \Cref{fig:eval-osterstrasse} as well as \Cref{fig:eval-city-usefulness-b} to \ref{fig:eval-city-usefulness-c}.
+				Red passages are not usable in the real world, often traversing private areas, which usually contain obstacles such as fences or vegetation.
+				As described in \Cref{subsubsec:data-not-in-osm}, data of private areas in OSM is often sparse resulting in these unrealistic routes.
+				\item Within densely built-up areas, larger open spaces are rare and the combination of roads and buildings form corridors in which routes tend to lie.
+				When and how often a route determined by the hybrid routing algorithm follows a road depends on the weighting function.
+				\item Larger roads result in wide obstacle-free corridor areas, in which unrealistic road crossings might appear.
+				Such situation can be seen in \Cref{fig:eval-city-road-crossing} with crossings over a six-lane road, which would be dangerous and unrealistic for real-world pedestrians.
+				\item The weight function has a huge impact on the route quality.
+				The weighting factors used in this work specify how strongly roads should be preferred, which is illustrated in \Cref{fig:eval-city-weights} with the same route using different weights for road edges.
+				Adjusting and defining fine-grained weight functions may help to improve the route quality.
+				\item In the \enquote{OSM city} datasets with only smaller open areas, graph-based routes and routes determined by the hybrid routing algorithm were often similar and some parts are even identical.
+			\end{itemize}
 			
-			Second, within densely built-up areas, larger open spaces are rare and the combination of roads and buildings form corrdidors in which routes tend to lie.
-			When and how often the route determined by the hybrid routing algorithm follows a road depends on the weighting function.
-			
-			\clearpage
 			\begin{figure}[h!]
 				\begin{minipage}[t]{.48\textwidth}
 					\begin{subfigure}[t]{\linewidth}
@@ -669,6 +657,9 @@ All optimizations active	&  11.1 s		&  1.00									&  11.1 s		& 71.13									\
 				\end{minipage}
 				\caption{Expected (green), graph-based (black) and hybrid routing algorithm results (blue) using the 1km\textsuperscript{2} city dataset. Unexpected parts due to missing or faulty data are marked in red.}
 				\label{fig:eval-city-usefulness}
+			\end{figure}
+			
+			\begin{figure}[h!]
 				\begin{minipage}[t]{.48\textwidth}
 					\begin{figcenter}
 						\includegraphics[width=\textwidth]{images/qgis-routing-city-roads}
@@ -686,28 +677,21 @@ All optimizations active	&  11.1 s		&  1.00									&  11.1 s		& 71.13									\
 				\end{minipage}
 			\end{figure}
 			
-			Third, large roads create instances of the aforementioned rare but wide obstacle-free areas, which, however, might result in unrealistic road crossings.
-			Such situation can be seen in \Cref{fig:eval-city-road-crossing} with crossings over a six-lane road, which would be dangerous and unrealistic for real-world pedestrians.
-			
-			Forth, the weight function has a huge impact on the route quality.
-			It specifies for example how strongly roads should be preferred, which is illustrated in \Cref{fig:eval-city-weights} with the same route using different weights for road edges.
-			Adjusting and definiting fine-grained weight functions may help to imporove the routing behavior in some of the above mentioned situations.
-			
 			% Interesting passages from the rural dataset
-			In the \enquote{OSM city} datasets with only smaller open areas, graph-based routes and routes determined by the hybrid routing algorithm were often similar and some parts even identical.
-			Datasets with larger open areas and irregular distributed obstacles, as in the \enquote{OSM rural} datasets, can greatly benefit from the hybrid routing algorithm.
 			
 			Figures \Cref{fig:eval-rural-routing-6} and \ref{fig:eval-rural-graph-based-comparison} give some examples on routes in a rural area with large open spaces.
 			Two findings can be inferred from the analysis of the rural routing results.
 			
-			First, the difference between graph-based routes and routes from the hybrid routing algorithm is significantly larger.
-			In fact, routes might not share any location and graph-based routes tend to be significantly longer.
-			This can be seen in \Cref{fig:eval-rural-graph-based-comparison-6} with a graph-based route of 1.73km while the expected result is only 0.67km long.
-			\Cref{fig:eval-rural-graph-based-comparison-17} shows a similar behavior even though the difference in distance is smaller because the graph-based, expected and actual route share common parts.
-			
-			Second, the accuracy and therefore the usefulness for real-world applications (such as navigation apps) heavily relies on the amount of details in the dataset.
-			\Cref{fig:eval-rural-routing-6-osm} illustrates the problem of missing data, which are in this case missing ditches within the farmland.
-			The determined route has a length of 365m while the shortest possible route (determined using aerial imagery as seen in \Cref{fig:eval-rural-routing-6-aerial}) is 677m long.
+			\begin{itemize}
+				\item Datasets with larger open areas and irregular distributed obstacles, as in the \enquote{OSM rural} datasets, can greatly benefit from the hybrid routing algorithm because graph-based routes might take long detours due to a sparse road network.
+				\item The difference between graph-based routes and routes from the hybrid routing algorithm is significantly larger.
+				In fact, routes might not share any location and graph-based routes tend to be significantly longer.
+				This can be seen in \Cref{fig:eval-rural-graph-based-comparison-6} with a graph-based route of 1.73km while the expected result is only 0.67km long.
+				\Cref{fig:eval-rural-graph-based-comparison-17} shows a similar behavior even though the difference in distance is smaller because the graph-based, expected and actual route share common parts.
+				\item The accuracy and therefore the usefulness for real-world applications (such as navigation apps) heavily relies on the amount of details in the dataset.
+				\Cref{fig:eval-rural-routing-6-osm} illustrates the problem of missing data, which are in this case missing ditches within the farmland.
+				The determined route has a length of 365m while the shortest possible route (determined using aerial imagery as seen in \Cref{fig:eval-rural-routing-6-aerial}) is 677m long.
+			\end{itemize}
 			
 			\begin{figure}[h!]
 				\begin{minipage}[t]{.48\textwidth}
@@ -725,7 +709,7 @@ All optimizations active	&  11.1 s		&  1.00									&  11.1 s		& 71.13									\
 						\label{fig:eval-rural-routing-6-aerial}
 					\end{subfigure}
 				\end{minipage}
-				\caption{Routing on farmland illustrating the importance of correct data in the routing result showing the expected route (green) and actual path determined by the hybrid routing algorithm (green).}
+				\caption{Routing on farmland illustrating the importance of correct data in the routing result showing the expected route (green) and determined route by the hybrid routing algorithm (green).}
 				\label{fig:eval-rural-routing-6}
 			\end{figure}
 			
@@ -741,44 +725,55 @@ All optimizations active	&  11.1 s		&  1.00									&  11.1 s		& 71.13									\
 				\begin{minipage}[t]{.48\textwidth}
 					\begin{subfigure}[t]{\linewidth}
 						\includegraphics[width=\textwidth]{images/qgis-routing-rural-routing-17-graph-based}
-						\caption{Example of detours created by a graph-based routing algorithm even though the first part of the result is equal to the one of the hybrid routing algorithm. The shortcut of the actual result (horizontal part of the blue route) is a result of missing obstacles similar to the situation visible in \Cref{fig:eval-rural-routing-6-aerial}.}
+						\caption{Detours created by a graph-based routing algorithm, even though the first part of the result is equal to the one of the hybrid routing algorithm. The shortcut of the actual result (horizontal part of the blue route) is a result of missing obstacles similar to the situation visible in \Cref{fig:eval-rural-routing-6-aerial}.}
 						\label{fig:eval-rural-graph-based-comparison-17}
 					\end{subfigure}
 				\end{minipage}
 				\caption{Comparison of graph-based routing results (red) with the expected route (green) and actual results (blue) of the hybrid routing algorithm.}
 				\label{fig:eval-rural-graph-based-comparison}
 			\end{figure}
+			
+			In general the manual route analysis showed that the route quality is determined by two main factors:
+			The quality (mainly completeness) of the data and the weighting factor.
+			For densely built-up city datasets the routes might still be good, even though a graph-based routing algorithm might yield similar routes.
 		
 		\subsubsection{Mathematical route quality analysis}
 		
-			After a manual analysis of the route quality, mathematical approaches were used to obtain quantifiable results, which was done using two metrics.
-			First, the beeline distance between two waypoints was compared to the distances of the corresponding expected route, the route based on the hybrid visibility graph and the route of graph-based routing.
-			Second, the similarity of routes was determined to determine how well the results fit to the expected route
-			Both comparisons were performed on the first ten routing requests of the OSM datasets.
+			Two mathematical approaches were used to obtain quantifiable results on the route quality.
+			This was done by comparing the expected route to the graph-based and hybrid routing algorithm results.
+			The first metric uses the beeline distance between two waypoints and compares it to the distances of the three corresponding routes.
+			The second metric uses the Hausdorff distance (described below) to obtain a numeric similarity between the expected route and the two corresponding routing results.
+			Both comparisons were performed on the first ten routing requests of the city and rural OSM datasets.
 			
+			\Cref{fig:eval-route-distances} shows the relation between route and the beeline distances.
+			The hybrid routing algorithm creates the shortest routes on average, which tend to be even shorter than the expected routes.
+			Even though determining shortest routes is the overall goal, it indicates that missing obstacles lead to unrealistically short routes.
+			This is in line with the results of the previous manual route analysis, according to which missing data leads to short but unrealistic routes.
 			\begin{wrapfigure}{r}{0.35\textwidth}
-				\vspace{-1\baselineskip}
+%				\vspace{-0.55\baselineskip}
 				\begin{figcenter}
 					\begin{tikzpicture}
-					[
+						[
 						every node/.append style={outer sep=0.5mm, inner sep=0}
-					]
+						]
 						\def\d{0.75}
 						
-						\node (c00) at (0.5*\d ,0) {};
+						\node (c00) at (0.6*\d ,0.1) {};
 						\node (c01) at (1*\d   ,1*\d) {};
 						\node (c02) at (0.15*\d ,2*\d) {};
 						\node (c03) at (0.55*\d,3*\d) {};
-						\node (c04) at (0      ,4*\d) {};
+						\node (c04) at (0      ,3.7*\d) {};
 						
-						\node (c10) at (2*\d  ,0.15) {};
-						\node (c11) at (2.1*\d,0.9*\d) {};
-						\node (c12) at (1.25*\d,1.8*\d) {};
+						\node (c10) at (1.8*\d  ,0.25) {};
+						\node (c11) at (2.0*\d,0.9*\d) {};
+						\node (c12) at (1.2*\d,1.8*\d) {};
 						\node (c13) at (3*\d  ,2.8*\d) {};
-						\node (c14) at (1.2*\d,4.15*\d) {};
+						\node (c14) at (1.2*\d,3.8*\d) {};
 						
 						\draw (c00.center) -- (c01.center) -- (c02.center) -- (c03.center) -- (c04.center);
 						\draw (c10.center) -- (c11.center) -- (c12.center) -- (c13.center) -- (c14.center);
+						%						\draw (c01.center) -- (c02.center) -- (c03.center) -- (c04.center);
+						%						\draw (c11.center) -- (c12.center) -- (c13.center) -- (c14.center);
 						
 						\draw[>=stealth',<->,densely dotted] (c00) -- (c10);
 						\draw[>=stealth',<->,densely dotted] (c01) -- (c11);
@@ -787,20 +782,27 @@ All optimizations active	&  11.1 s		&  1.00									&  11.1 s		& 71.13									\
 						\draw[>=stealth',<->,densely dotted] (c04) -- (c14);
 						
 						% Enlarge BBOX to avoid cropping off some of the arrow heads:
-						\node (bbox_a) at (-0.1,-0.1) {};
-						\node (bbox_b) at (3*\d+0.1,4.15*\d+0.1) {};
+						\node (bbox_a) at (-0.05,0.05) {};
+						\node (bbox_b) at (3*\d+0.05,3.8*\d+0.05) {};
 					\end{tikzpicture}
 				\end{figcenter}
 				\caption{Hausdorff distance (red) between two linestrings.}
 				\label{fig:hausdorff-distance}
 			\end{wrapfigure}
+			The route length comparison also supports the previous results, that graph-based routing leads to longer routes with sometimes significant detours, which can be seen in the routing requests 6 and 7 in \Cref{fig:eval-route-distances-rural}.
 			
-			In \Cref{fig:eval-route-distances}, the distance factors show an important relation between the route distances.
-			The mean value of both datasets indicate, that the average route from the hybrid routing algorithm is shorter and the average route of the graph-based routing is longer than the expected route.
-			This is in line with the results of the previous manual route analysis, according to which missing data lead to unrealistic but shorter routes.
-			The route length comparison also confirms the previous results, that graph-based routing leads to longer routes with sometimes significant detours, which can be seen in the routing requests 6 and 7 in \Cref{fig:eval-route-distances-rural}.
+			Comparing route lengths only yields a vague indication of the route's quality.
+			The second metric uses the \term{Hausdorff distance} to quantify the similarity of two routes by determining the maximum distance between them as illustrated in \Cref{fig:hausdorff-distance}.
 			
-			\begin{figure}[h]
+			\Cref{fig:eval-hausdorff} shows the results for both OSM datasets and yields some insights into the route similarities:
+			\begin{itemize}
+				\item In both datasets, the average Hausdorff distances of the routes determined using the hybrid routing algorithm are shorter than those of the graph-based algorithm.
+				\item The difference is smaller in the city dataset, which supports the aforementioned hypothesis, that the buildings in a city create corridors leading to similar routes for graph-based and geometric routing algorithms.
+				\item Except for the routing requests 6 and 7 in the \enquote{OSM rural} datasets, the Hausdorff distances of the routes by the hybrid routing algorithm tend to be larger than the distances of the graph-based routes.
+				This is likely due to missing data as discussed in the previous section and illustrated in \Cref{fig:eval-rural-routing-6} leading to shorter but less realistic routes.
+			\end{itemize}
+			
+			\begin{figure}[h!]
 				\begin{subfigure}[t]{\linewidth}
 					\begin{figcenter}
 						\input{images/evaluation/similarity-metric/plot.py_osm-city_relative-beeline.pgf}
@@ -818,9 +820,10 @@ All optimizations active	&  11.1 s		&  1.00									&  11.1 s		& 71.13									\
 				\end{subfigure}
 				\caption{Relative route distances compared to the beeline distance between the waypoints of each routing request using the 0.5km\textsuperscript{2} OSM datasets.}
 				\label{fig:eval-route-distances}
-			\end{figure}
-			
-			\begin{figure}[h]
+				\vspace{3ex}
+	%			\end{figure}
+				
+	%			\begin{figure}[h]
 				\begin{subfigure}[t]{\linewidth}
 					\begin{figcenter}
 						\input{images/evaluation/similarity-metric/plot.py_osm-city_hausdorff.pgf}
@@ -839,29 +842,18 @@ All optimizations active	&  11.1 s		&  1.00									&  11.1 s		& 71.13									\
 				\caption{Hausdorff distances between the expected routes and the corresponding routes of the hybrid routing algorithm and graph-based routing using the 0.5km\textsuperscript{2} OSM datasets.}
 				\label{fig:eval-hausdorff}
 			\end{figure}
-			
-			The comparisons of route lengths only yield vague insights into the similarities of calculated to expected routes and therefore only give a first indication of the route's quality.
-			In the following, results using the \term{Hausdorff distance} as a second metric will be presented.
-			The Hausdorff distance can be used to quantify the similarity of two linestrings by determining the maximum distance between them, which is illustrated in \Cref{fig:hausdorff-distance}.
-			
-			\Cref{fig:eval-hausdorff} shows the results for both OSM datasets and yields some insights into the route similarities:
-			\begin{itemize}
-				\item In both datasets, the average Hausdorff distances of the routes determined using the hybrid routing algorithm are shorter than those of the graph-based algorithm.
-				\item The difference is smaller in the city dataset, which supports the aforementioned hypothesis, that the buildings in a city create corridors leading to similar routes for graph-based and geometric routing algorithms.
-				\item Except for the routing requests 6 and 7 in the \enquote{OSM rural} datasets, the Hausdorff distances of the routes by the hybrid routing algorithm tend to be larger than the distances of the graph-based routes.
-				This is likely due to missing data as discussed in the previous section and illustrated in \Cref{fig:eval-rural-routing-6} leading to shorter but less realistic routes.
-			\end{itemize}
+			\clearpage
 
 		\subsubsection{Route quality analysis summary}
 			
-			The manual route analysis as well as both metrics, the comparison to the beeline distance and the Hausdorff distance, yield similar results regarding the quality of routes:
+			The manual route analysis as well as both mathematical approaches, the comparison to the beeline distance and the Hausdorff distance, yield similar results regarding the quality of routes:
 			
 			\begin{itemize}
 				\item The route quality heavily depends on the data quality.
-				Missing data, for example some missing ditches on farmland, lead to shorter but unrealistic routes determined with the hybrid routing algorithm.
-				\item Cities and densely built-up areas form corridors through with geometric- and graph-based routes tend to be very similar.
-				\item Graph-based routes between waypoints in rural or remote areas might create long detours.
-				Such detours often are unrealistic, especially in agent-based models simulating scenarios in which pedestrians do not respect access restrictions to private areas, such as in emergency or evacuation scenarios.
+				Missing data, for example even a small number of missing ditches on farmland or one fence between two larger building, result in shorter but unrealistic routes determined with the hybrid routing algorithm.
+				\item Cities and densely built-up areas form corridors through which geometric- and graph-based routing results tend to be very similar.
+				\item Graph-based routes between waypoints in rural or remote areas tends to create long detours.
+				Such detours often are unrealistic, especially in agent-based models simulating scenarios in which pedestrians do not necessarily respect access restrictions, such as in emergency or evacuation scenarios.
 			\end{itemize}
 			\noindent
-			In scenarios with a high quality in data, for example when using official indoor room plans of buildings or when the data quality is manually ensured by surveying an area, then the hybrid routing algorithm will likely create high quality routes reflecting the behavior of real pedestrians.
+			In scenarios with a high quality in data, for example when using official indoor room plans of buildings or when the data quality is ensured by a manual on-ground survey, the hybrid routing algorithm will likely create high quality routes well reflecting the behavior of real pedestrians.
