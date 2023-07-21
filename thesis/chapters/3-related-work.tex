@@ -16,9 +16,8 @@ This section gives an overview about closely related work from these areas.
 
 		Constructing a visibility graph is a central part of this thesis.
 		Even though numerous approaches to create such graphs were presented over the last decades, the worst-case time complexity of this problem will always be quadratic.
-		This is due to the worst case graph where all vertices are visible to each other resulting in $\Omega(n^2)$ (precisely $|E| \leq \frac{n^2-n}{n}$) edges in the output graph.
+		This is due to the worst case graph (complete graph) where all $n$ vertices are visible to each other creating $\Omega(n^2)$ edges in the output graph (precisely $\frac{n^2-n}{n}$, which is the hightest number of edges in a graph).
 		
-		% with some assumptions like no collinear vertices (even though these assumptions are not necessary): Constructing the visibility graph for n-line segments in O(n²) time (Emo Welzl, 1985)
 		The construction of visibility graphs in $\bigo{n^2}$ time and space (with $n$ line segments), under the condition of no collinear vertices and no intersecting line segments, was presented by Welzl in 1985\cite{welzl-visibility-graph}.
 		
 		A few years later in 1988, Overmars and Welzl presented two new methods reducing the space complexity to $\bigo{n}$\cite{overmars-weizl-visibility-graph} and one of these methods has a time complexity of $\bigo{E \log n}$ with $E$ being the number of output edges.
