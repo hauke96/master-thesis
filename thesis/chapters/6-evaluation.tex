@@ -483,6 +483,26 @@ Total time			& 12,853.51 ms		& 6,201.96 ms		&  51.75\%								& 37.19 ms				& 99
 				\caption{Routing time between the longest distant waypoints in each pattern-based dataset.}
 				\label{fig:eval-pattern-routing-details}
 			\end{figure}
+			
+	\subsection{Memory consumption}
+	
+		\begin{figure}[h]
+			\begin{figcenter}
+				\input{images/evaluation/osm-based-city/plot-memory-usage.py_osm-based-city-4km2.pgf}
+			\end{figcenter}
+			\caption{Memory usage of the 4km\textsuperscript{2} \enquote{OSM city} dataset. The marks represent the following operations: \textbf{(1)} Start of unwrapping and triangulating obstacles and also determining obstacle neighbors, \textbf{(2)} start of kNN search, \textbf{(3)} create visibility graph, \textbf{(4)} prepare road merge operation, \textbf{(5)} start of merging road edges into graph, \textbf{(6)} end of graph generation and start of agent routing, \textbf{(7)} end agent routing and end of simulation.}
+			\label{fig:eval-memory-usage}
+		\end{figure}
+	
+		In this section, the memory usage of the hybrid routing algorithm is analyzed using the 4km\textsuperscript{2} \enquote{OSM city} dataset as presented in \Cref{fig:eval-memory-usage}.
+		
+		Until the creation of the visibility graph (3) the memory requirement only shows a very slight linear increase due to simple mapping without new and larger data structures.
+		With the start of the merge operation (4), the memory usage rises due to additional data structures and newly added vertices and edges to the graph.
+		The period between (4 to 5) determined dead-end road vertices, which are connected with new nodes separately to the graph.
+		Merging road edges (5 to 6) then introduces many new nodes and edges due to the large number of intersections.
+		Routing requests (6 to 7) do also require a certain amount of memory and the garbage collection regularly frees up the memory of prior requests resulting in recurring spikes in the memory usage.
+		
+		Possible memory optimizations and other performance improvements are discussed in \Cref{sec:future-work}.
 		
 	\subsection{Optimizations}
 	
@@ -563,34 +583,30 @@ All optimizations active	&  11.1 s		&  1.00									&  11.1 s		& 71.13									\
 		
 	\subsection{Quality of routes}
 	
-		\subsubsection{Route quality definition and determination}
+		\subsubsection{Definition and measurement of route quality}
 	
-			The quality of a route is not only measurable by a mathematical metric, but also to a more subjective quality of routes.
-			However, subjective as well as mathematical metrics are considered in this quality analysis.
-			
-			An ideal route, meaning a route of maximum quality, would exactly match a path chosen by a human observer.
-			The expected paths used in the following sections were obtained using aerial imagery, local knowledge and the data contained in OSM.
+			An ideal route, meaning a route of maximum quality, would exactly match a path chosen by a real pedestrian.
+			To approximate a real pedestrian, the expected paths used in the following sections were obtained using aerial imagery, data contained in OSM and local knowledge.
 			Therefore, an expected path is realistically walkable in the real world and would likely be chosen by actual pedestrians.
 			This also means that an expected path contains a certain subjective component, for example the exact location of a road crossing, the preference of shortcuts via unpaved areas or the avoidance of steps.
-	
-			The similarity between an actual calculated route and an expected route can be quantified using certain mathematical metrics, which are used in a second quality analysis.
+			Therefore, the quality analysis of routes uses mathematical metrics as well as a manual analysis.
 		
 		% How realistic are the routes (= can I go there in real life)? If not: Why not?
 		\subsubsection{Manual route analysis}
 		\label{subsubsec:manual-route-analysis}
 		
-			In the following examples, routes determined by graph-based routing and the hybrid routing algorithm are compared against an expected result.
-			This expected route was created based on OpenStreetMap data, aerial imagery and also local knowledge.
-			It was \emph{not} created to intentionally match the results from the hybrid routing algorithm.
-			
-			\begin{wrapfigure}[14]{r}{0.5\textwidth}
-				\vspace{-1.5\baselineskip}
+			\begin{wrapfigure}[15]{r}{0.5\textwidth}
+				\vspace{-0.65\baselineskip}
 				\begin{figcenter}
 					\includegraphics[width=\linewidth]{images/qgis-routing-osterstrasse}
 				\end{figcenter}
 				\caption{Graph-based route (red), hybrid routing algorithm result (blue) and the expected route (green). The dashed part of the expected result is an equally good alternative route.}
 				\label{fig:eval-osterstrasse}
 			\end{wrapfigure}
+		
+			In the following examples, routes determined by graph-based routing and the hybrid routing algorithm are compared against an expected result.
+			This expected route was created based on OpenStreetMap data, aerial imagery and also local knowledge.
+			It was \emph{not} created to intentionally match the results from the hybrid routing algorithm.
 		
 			% From motivation
 			The first situation, shown in \Cref{fig:eval-osterstrasse}, illustrates the problem of missing edges for graph-based algorithms.
@@ -790,10 +806,8 @@ All optimizations active	&  11.1 s		&  1.00									&  11.1 s		& 71.13									\
 				\label{fig:hausdorff-distance}
 			\end{wrapfigure}
 			The route length comparison also supports the previous results, that graph-based routing leads to longer routes with sometimes significant detours, which can be seen in the routing requests 6 and 7 in \Cref{fig:eval-route-distances-rural}.
-			
-			Comparing route lengths only yields a vague indication of the route's quality.
+			But comparing route lengths only yields a vague indication of the route's quality.
 			The second metric uses the \term{Hausdorff distance} to quantify the similarity of two routes by determining the maximum distance between them as illustrated in \Cref{fig:hausdorff-distance}.
-			
 			\Cref{fig:eval-hausdorff} shows the results for both OSM datasets and yields some insights into the route similarities:
 			\begin{itemize}
 				\item In both datasets, the average Hausdorff distances of the routes determined using the hybrid routing algorithm are shorter than those of the graph-based algorithm.
@@ -842,7 +856,6 @@ All optimizations active	&  11.1 s		&  1.00									&  11.1 s		& 71.13									\
 				\caption{Hausdorff distances between the expected routes and the corresponding routes of the hybrid routing algorithm and graph-based routing using the 0.5km\textsuperscript{2} OSM datasets.}
 				\label{fig:eval-hausdorff}
 			\end{figure}
-			\clearpage
 
 		\subsubsection{Route quality analysis summary}
 			
