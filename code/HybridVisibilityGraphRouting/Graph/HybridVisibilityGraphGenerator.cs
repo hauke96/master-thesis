@@ -41,6 +41,8 @@ public static class HybridVisibilityGraphGenerator
     public static HybridVisibilityGraph Generate(IEnumerable<IFeature> features,
         int visibilityNeighborBinCount = 36,
         int visibilityNeighborsPerBin = 10,
+        // int visibilityNeighborBinCount = 1,
+        // int visibilityNeighborsPerBin = 1_000_000,
         string[]? obstacleExpressions = null,
         string[]? poiExpressions = null,
         string[]? roadExpressions = null)
@@ -162,7 +164,7 @@ public static class HybridVisibilityGraphGenerator
                 {
                     // Only take the convex hull of polygons into account. Line based obstacles might bend around other
                     // obstacles so that the convex hull would prevent the generation of important edges.
-                    return g.Value.ConvexHull().Coordinates;
+                    return g.Value.Coordinates;
                 }
 
                 return g.Value.Coordinates;

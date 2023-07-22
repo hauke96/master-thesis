@@ -194,7 +194,7 @@ public static class VisibilityGraphGenerator
 
             result[vertex] = GetVisibilityNeighborsForVertex(obstacles, new List<Vertex>(vertices),
                 coordinateToObstacles,
-                vertex, visibilityNeighborBinCount, visibilityNeighborsPerBin);
+                vertex, visibilityNeighborBinCount, visibilityNeighborsPerBin, false); // <-
         });
 
         Log.D($"  100% done after a total of {totalTimeStopWatch.ElapsedMilliseconds}ms");
@@ -239,7 +239,7 @@ public static class VisibilityGraphGenerator
          * Keeping track of these shadow areas and their distances reduces the amount of expensive collision checks
          * significantly (i.e. by a factor of 20 for a ~250 obstacles large dataset).
          */
-        var shadowAreas = new BinIndex<ShadowArea>(360);
+        // var shadowAreas = new BinIndex<ShadowArea>(360);
 
         // Store the shadow areas for each obstacle, to no add them twice and to prevent unnecessary intersection checks.
         var obstacleToShadowArea = new Dictionary<Obstacle, ShadowArea>();
@@ -290,12 +290,12 @@ public static class VisibilityGraphGenerator
             {
                 continue;
             }
-
-            var isInShadowArea = IsInShadowArea(shadowAreas, angle, distanceToOtherVertex);
-            if (isInShadowArea)
-            {
-                continue;
-            }
+            //
+            // var isInShadowArea = IsInShadowArea(shadowAreas, angle, distanceToOtherVertex);
+            // if (isInShadowArea)
+            // {
+            //     continue;
+            // }
 
             var envelope = new Envelope(vertex.Coordinate, otherVertex.Coordinate);
             var intersectsWithObstacle = false;
@@ -307,35 +307,35 @@ public static class VisibilityGraphGenerator
                 }
 
                 ShadowArea? shadowArea;
-                bool obstacleIsAlreadyCastingShadow;
-                if (obstacleToShadowArea.TryGetValue(obstacle, out var value))
-                {
-                    shadowArea = value;
-                    obstacleIsAlreadyCastingShadow = true;
-                }
-                else
-                {
+                // bool obstacleIsAlreadyCastingShadow;
+                // if (obstacleToShadowArea.TryGetValue(obstacle, out var value))
+                // {
+                //     shadowArea = value;
+                //     obstacleIsAlreadyCastingShadow = true;
+                // }
+                // else
+                // {
                     shadowArea = obstacle.GetShadowAreaOfObstacle(vertex);
-                    obstacleIsAlreadyCastingShadow = false;
-                }
-
-                // Only consider obstacles not belonging to this vertex (could lead to false shadows) and also just
-                // consider new obstacles, since a shadow test with existing obstacles was already performed earlier.
-                if (!obstacleIsAlreadyCastingShadow)
-                {
-                    if (shadowArea.IsValid)
-                    {
-                        shadowAreas.Add(shadowArea.From, shadowArea.To, shadowArea);
-                        obstacleToShadowArea[obstacle] = shadowArea;
-
-                        if (IsInShadowArea(shadowAreas, angle, distanceToOtherVertex))
-                        {
-                            // otherVertex is within newly added shadow areas -> definitely not visible
-                            intersectsWithObstacle = true;
-                            return;
-                        }
-                    }
-                }
+                    // obstacleIsAlreadyCastingShadow = false;
+                // }
+                
+                // // Only consider obstacles not belonging to this vertex (could lead to false shadows) and also just
+                // // consider new obstacles, since a shadow test with existing obstacles was already performed earlier.
+                // if (!obstacleIsAlreadyCastingShadow)
+                // {
+                //     if (shadowArea.IsValid)
+                //     {
+                //         shadowAreas.Add(shadowArea.From, shadowArea.To, shadowArea);
+                //         obstacleToShadowArea[obstacle] = shadowArea;
+                //
+                //         if (IsInShadowArea(shadowAreas, angle, distanceToOtherVertex))
+                //         {
+                //             // otherVertex is within newly added shadow areas -> definitely not visible
+                //             intersectsWithObstacle = true;
+                //             return;
+                //         }
+                //     }
+                // }
 
                 var otherVertexIsInObstacleAngleArea = Angle.IsBetweenEqual(shadowArea.From, angle, shadowArea.To);
                 if (!otherVertexIsInObstacleAngleArea)

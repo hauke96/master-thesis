@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using NetTopologySuite.Algorithm;
 using NetTopologySuite.Geometries;
 
 namespace HybridVisibilityGraphRouting.Geometry
@@ -10,6 +11,8 @@ namespace HybridVisibilityGraphRouting.Geometry
     /// </summary>
     public static class Intersect
     {
+        private static RobustLineIntersector robustLineIntersector = new RobustLineIntersector();
+        
         /// <summary>
         /// Precondition: The segments p, q and r are collinear (-> Orientation(p, q, r) == 0).
         ///
@@ -50,32 +53,35 @@ namespace HybridVisibilityGraphRouting.Geometry
 
         public static bool DoIntersectOrTouch(Coordinate start1, Coordinate end1, Coordinate start2, Coordinate end2)
         {
-            if (
-                start1.X > start2.X && start1.X > end2.X && end1.X > start2.X && end1.X > end2.X ||
-                start1.X < start2.X && start1.X < end2.X && end1.X < start2.X && end1.X < end2.X ||
-                start1.Y > start2.Y && start1.Y > end2.Y && end1.Y > start2.Y && end1.Y > end2.Y ||
-                start1.Y < start2.Y && start1.Y < end2.Y && end1.Y < start2.Y && end1.Y < end2.Y
-            )
-            {
-                return false;
-            }
-
-            if (start1.Equals(start2) || end1.Equals(end2) ||
-                start1.Equals(end2) || end1.Equals(start2))
-            {
-                return true;
-            }
-
-            var orientation1 = Orientation(start2, end2, start1);
-            var orientation2 = Orientation(start2, end2, end1);
-            if (orientation1 == orientation2)
-            {
-                return false;
-            }
-
-            var orientation3 = Orientation(start1, end1, start2);
-            var orientation4 = Orientation(start1, end1, end2);
-            return orientation3 != orientation4;
+            robustLineIntersector.ComputeIntersection(start1, end1, start2, end2);
+            return robustLineIntersector.HasIntersection;
+            //
+            // if (
+            //     start1.X > start2.X && start1.X > end2.X && end1.X > start2.X && end1.X > end2.X ||
+            //     start1.X < start2.X && start1.X < end2.X && end1.X < start2.X && end1.X < end2.X ||
+            //     start1.Y > start2.Y && start1.Y > end2.Y && end1.Y > start2.Y && end1.Y > end2.Y ||
+            //     start1.Y < start2.Y && start1.Y < end2.Y && end1.Y < start2.Y && end1.Y < end2.Y
+            // )
+            // {
+            //     return false;
+            // }
+            //
+            // if (start1.Equals(start2) || end1.Equals(end2) ||
+            //     start1.Equals(end2) || end1.Equals(start2))
+            // {
+            //     return true;
+            // }
+            //
+            // var orientation1 = Orientation(start2, end2, start1);
+            // var orientation2 = Orientation(start2, end2, end1);
+            // if (orientation1 == orientation2)
+            // {
+            //     return false;
+            // }
+            //
+            // var orientation3 = Orientation(start1, end1, start2);
+            // var orientation4 = Orientation(start1, end1, end2);
+            // return orientation3 != orientation4;
         }
     }
 }

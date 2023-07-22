@@ -120,7 +120,7 @@ namespace HikerModel.Model
 
                 var performanceMeasurementResult = PerformanceMeasurement.NewMeasurementForFunction(
                     () => { routingResult = ObstacleLayer.HybridVisibilityGraph.WeightedShortestPath(from, to); },
-                    "CalculateRoute");
+                    "CalculateRoute", 1, 0);
                 performanceMeasurementResult.Print();
 
                 if (PerformanceMeasurement.IsActive)

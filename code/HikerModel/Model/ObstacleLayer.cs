@@ -36,7 +36,7 @@ namespace HikerModel.Model
                             roadExpressions: HybridVisibilityGraphGenerator.DefaultRoadExpressions
                         );
                     },
-                    "GenerateGraph");
+                    "GenerateGraph", 1, 0);
                 GraphGenerationResult.Print();
                 GraphGenerationResult.WriteToFile();
             }
