@@ -1,3 +1,5 @@
+using System;
+using System.Diagnostics;
 using System.Linq;
 using HybridVisibilityGraphRouting;
 using Mars.Components.Layers;
@@ -25,6 +27,11 @@ namespace HikerModel.Model
             }
 
             var features = Features.Map(f => f.VectorStructured).ToList();
+            
+            Console.WriteLine($"PID: {Process.GetCurrentProcess().Id}");
+            Console.Write("Press ENTER to continue...");
+            Console.Read();
+            PerformanceMeasurement.TimestampBeforeGraphGeneration = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
             if (PerformanceMeasurement.IsActive)
             {
@@ -47,6 +54,7 @@ namespace HikerModel.Model
                     roadExpressions: HybridVisibilityGraphGenerator.DefaultRoadExpressions
                 );
             }
+            PerformanceMeasurement.TimestampAfterGraphGeneration = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             
             Exporter.WriteGraphToFile(HybridVisibilityGraph.Graph);
 

@@ -256,6 +256,35 @@ public class PerformanceMeasurement
         }
     }
 
+    public static long TimestampBeforeGraphGeneration = 0;
+    public static long TimestampAfterGraphGeneration = 0;
+    public static long TimestampGraphGenerationGetObstacleStart = 0;
+    public static long TimestampGraphGenerationObstacleNeighborsStart = 0;
+    public static long TimestampGraphGenerationKNNStart = 0;
+    public static long TimestampGraphGenerationCreateGraphStart = 0;
+    public static long TimestampGraphGenerationMergePrepareStart = 0;
+    public static long TimestampGraphGenerationMergeInsertStart = 0;
+    public static long TimestampAfterAgentInit = 0;
+    public static long TimestampAfterAgent = 0;
+
+    public static void PrintTimestamps()
+    {
+        Console.WriteLine("Store the following to the according 'timestamps.csv' file:");
+        Console.WriteLine();
+        Console.WriteLine("name,time");
+        Console.WriteLine($"before_graph_generation,{TimestampBeforeGraphGeneration}");
+        Console.WriteLine($"graph_creation_get_obstacle_start,{TimestampGraphGenerationGetObstacleStart}");
+        Console.WriteLine($"graph_creation_obstacle_neighbors_start,{TimestampGraphGenerationObstacleNeighborsStart}");
+        Console.WriteLine($"graph_creation_knn_start,{TimestampGraphGenerationKNNStart}");
+        Console.WriteLine($"graph_creation_create_graph_start,{TimestampGraphGenerationCreateGraphStart}");
+        Console.WriteLine($"graph_creation_merge_prepare_start,{TimestampGraphGenerationMergePrepareStart}");
+        Console.WriteLine($"graph_creation_merge_insert_start,{TimestampGraphGenerationMergeInsertStart}");
+        Console.WriteLine($"after_graph_generation,{TimestampAfterGraphGeneration}");
+        Console.WriteLine($"after_agent_init,{TimestampAfterAgentInit}");
+        Console.WriteLine($"after_agent,{TimestampAfterAgent}");
+        Console.WriteLine();
+    }
+
     /// <summary>
     /// Prepares the measurement setup by setting process and thread parameter.
     /// See also:

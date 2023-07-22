@@ -63,6 +63,7 @@ public static class HybridVisibilityGraphGenerator
         }
 
         // GetObstacles
+        PerformanceMeasurement.TimestampGraphGenerationGetObstacleStart = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         time = PerformanceMeasurement.AddFunctionDurationToCurrentRun(
             () => { obstacles = GetObstacles(features, obstacleExpressions); },
             "get_obstacle_time"
@@ -83,6 +84,7 @@ public static class HybridVisibilityGraphGenerator
         ArgumentNullException.ThrowIfNull(vertexNeighbors);
 
         // AddVisibilityVerticesAndEdges
+        PerformanceMeasurement.TimestampGraphGenerationCreateGraphStart = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         time = PerformanceMeasurement.AddFunctionDurationToCurrentRun(
             () =>
             {
@@ -333,6 +335,7 @@ public static class HybridVisibilityGraphGenerator
     public static void MergeRoadsIntoGraph(IEnumerable<IFeature> features, HybridVisibilityGraph hybridGraph,
         string[]? roadExpressions = null)
     {
+        PerformanceMeasurement.TimestampGraphGenerationMergePrepareStart = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         roadExpressions ??= DefaultRoadExpressions;
 
         var watch = Stopwatch.StartNew();
@@ -393,6 +396,7 @@ public static class HybridVisibilityGraphGenerator
                 hybridGraph.ConnectNodeToGraph(node, true, false);
             });
 
+        PerformanceMeasurement.TimestampGraphGenerationMergeInsertStart = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         // Merge the segments into the graph
         roadSegments.Each((i, roadSegment) =>
         {

@@ -53,6 +53,8 @@ namespace HikerModel.Model
                 new Position(_hikerLayer.BBOX.MaxX, _hikerLayer.BBOX.MaxY)) / 2500;
 
             _routingPerformanceResult = new PerformanceMeasurement.RawResult("Routing");
+
+            PerformanceMeasurement.TimestampAfterAgentInit = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         }
 
         public void Tick()
@@ -94,6 +96,8 @@ namespace HikerModel.Model
                     if (NextDestinationWaypoint == null)
                     {
                         Log.I("Hiker reached last waypoint. He will now die of exhaustion. Farewell dear hiker.");
+                        PerformanceMeasurement.TimestampAfterAgent = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                        PerformanceMeasurement.PrintTimestamps();
                         _routingPerformanceResult.WriteToFile();
                         Log.D("Performance data written to file");
                         _hikerLayer.Environment.Remove(this);

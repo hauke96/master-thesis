@@ -149,11 +149,13 @@ public static class VisibilityGraphGenerator
         int visibilityNeighborBinCount, int visibilityNeighborsPerBin, bool debugModeActive = false)
     {
         Log.D("Get direct neighbors on each obstacle geometry");
+        PerformanceMeasurement.TimestampGraphGenerationObstacleNeighborsStart = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         var allObstacles = obstacles.QueryAll();
         var coordinateToObstacles = GetCoordinateToObstaclesMapping(allObstacles);
         var allVertices = AddObstacleNeighborsForObstacles(allObstacles, debugModeActive);
 
         Log.D("Calculate KNN to get visible vertices");
+        PerformanceMeasurement.TimestampGraphGenerationKNNStart = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         var vertexNeighbors = CalculateVisibleKnnInternal(obstacles, coordinateToObstacles, allVertices,
             visibilityNeighborBinCount, visibilityNeighborsPerBin, debugModeActive);
 
