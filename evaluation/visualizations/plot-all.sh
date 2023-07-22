@@ -38,6 +38,15 @@ echo "===================="
 echo "  Combined pattern-based plot"
 echo "===================="
 ./plot-times-pattern-datasets.py
+
+echo "===================="
+echo "  Memory usage"
+echo "===================="
+./plot-memory-usage.py
+
+echo "===================="
+echo "  Clean PGF files"
+echo "===================="
 adjust_pgf .
 
 echo "Done"
