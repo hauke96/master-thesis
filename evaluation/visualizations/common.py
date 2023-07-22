@@ -122,6 +122,7 @@ def create_lineplot(
 		color=None,
 		marker="o",
 		scientific_labels=True,
+		markersize=5,
 	):
 
 	err_kws={"elinewidth": 1} if err_style == "bars" else None
@@ -135,7 +136,7 @@ def create_lineplot(
 		color=color,
 		palette=color_palette_selected_name,
 		marker=marker,
-		markersize=5,
+		markersize=markersize,
 		err_style=err_style,
 		errorbar=errorbar,
 		err_kws=err_kws,
