@@ -30,7 +30,7 @@
 	
 	% problem: Most real world destinations are not on the network
 	A similar problem arises with the source and destination locations of real-world routing.
-	Because things like addresses, \term*{points of interest} (POIs) and manually chosen locations are often not part of roads or ways, they are rarely part of the underlying routing graph and therefore not reachable by classical routing algorithms.
+	Because things like addresses, \term[point of interest]*{points of interest} (\term[POI]{POIs}) and manually chosen locations are often not part of roads or ways, they are rarely part of the underlying routing graph and therefore not reachable by classical routing algorithms.
 	Even though there are algorithmic approaches to connect points to a graph (e.g. by searching for the nearest vertex on an edge), these simple approaches are often inaccurate.
 	Such inaccuracies exist due to the space between an arbitrary location and the actual road network, which can contain numerous obstacles, such as walls or buildings.
 	Furthermore, a walkable or drivable connection might not even exist at all, for example if the routing destination is located inside a lake.
@@ -42,7 +42,7 @@
 		\begin{figcenter}
 			\includegraphics[width=0.5\textwidth]{images/qgis-routing-osterstrasse}
 		\end{figcenter}
-		\caption{A short route between two locations with the actually calculated route using a normal routing algorithm (red) the expected route a human would likely take (green) compared to the actual result of the algorithm presented in this work (blue).}
+		\caption[Comparison of normal routing with hybrid visibility routing.]{A short route between two locations with the actually calculated route using a normal routing algorithm (red) the expected route a human would likely take (green) compared to the actual result of the algorithm presented in this work (blue).}
 		\label{fig:osterstrasse-routing-vs-expected}
 	\end{figure}
 	

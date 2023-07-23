@@ -32,7 +32,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		
 		The \term{Simple Feature Access} (\term*{SFA}) standard by the Open Geospatial Consortium (\term*{OGC}) defines numerous geometry types\cite{ogc-sfa}.
 		Not all of them are implemented in all data formats and most of them are not relevant for this thesis.
-		The GeoJSON file format (described in more detail in \Cref{subsubsec:geojson}) implements the most important geometries and data structures of the SFA standard and is frequently used in this work.
+		The \term*{GeoJSON} file format (described in more detail in \Cref{subsubsec:geojson}) implements the most important geometries and data structures of the SFA standard and is frequently used in this work.
 		Therefore, an overview of these geometry types as well as an introduction to the concept of features is given in this section.
 		
 		\subsubsection{Geometries}
@@ -58,7 +58,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			Common standards were defined by organizations like the OGC as well as companies or government agencies.
 			
 			A widely used proprietary standard established by the company Esri Inc. is the Shapefile file format, which will be covered in \Cref{subsubsec:other-formats}.
-			One example for a governmental standard is the INSPIRE standard based on an initiative of the European Commission\footnote{\url{https://inspire.ec.europa.eu}}.
+			One example for a governmental standard is the \term{INSPIRE} standard based on an initiative of the European Commission\footnote{\url{https://inspire.ec.europa.eu}}.
 			Next to proprietary or governmental standardizations, the \term*{OpenStreetMap} project uses a system based on proposals and democratic votes, which is further described in \Cref{subsec:osm}.
 			
 	\subsection{File formats}
@@ -116,13 +116,13 @@ Hence, the topic of agents and simulations will be covered as well.
 		Processing the data is part of applications referred to as \term[geographic information system]{geographic information systems} (\term*{GIS}).
 		
 		The term GIS is very broad and describes nearly all systems working with spatial data.
-		This includes databases like Postgres with the PostGIS extension, software libraries like the NetTopologySuite, servers like GeoServer and desktop applications like ArcMap or QGIS.
+		This includes databases like Postgres with the PostGIS extension, software libraries like the \term*{NetTopologySuite}, servers like \term*{GeoServer} and desktop applications like \term*{ArcMap} or \term*{QGIS}.
 		Such desktop application often combine multiple functionalities to visualize, analyze or otherwise process the data.
 	
 	\subsection{OpenStreetMap}
 	\label{subsec:osm}
 	
-		\term{OpenStreetMap} (\term*{OSM}) is a publicly available and free geospatial database that is maintained by a global community and licensed under the \term{Open Data Commons Open Database License} (\term*{ODbL})\cite{osm-wiki-about}.
+		\term{OpenStreetMap} (\term*{OSM}) is a publicly available and free geospatial database that is maintained by a global community and licensed under the \emph{Open Data Commons Open Database License} (\term*{ODbL})\cite{osm-wiki-about}.
 		It can therefore be used, changed and redistributed as long as a proper attribution is given and results stay under the ODbL\footnote{\url{https://opendatacommons.org/licenses/odbl}}.
 		All spatial data used in this thesis is data from the OSM database.
 		In 2006, two years after the OSM project started, the OpenStreetMap Foundation\footnote{\url{https://osmfoundation.org}} was established to perform fund-raising, maintain the servers and also act as a legal entity for the project.
@@ -255,7 +255,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		\subsubsection{\term*[single-pair shortest paths]{Single-pair shortest paths}}
 		
 			The shortest path from one specific source to one specific destination vertex should be determined.
-			Even though there are specialized algorithms for this problem like TRANSIT (described in \Cref{subsubsec:other-speedup-methods}), more general approaches solving the single-source problem can be used as well, such as the Dijkstra algorithm as presented in \Cref{subsubsec:dijkstra}.
+			Even though there are specialized algorithms for this problem like \term*{TRANSIT} (described in \Cref{subsubsec:other-speedup-methods}), more general approaches solving the single-source problem can be used as well, such as the Dijkstra algorithm as presented in \Cref{subsubsec:dijkstra}.
 		
 		\subsubsection{\term*[all-pair shortest paths]{All-pair shortest paths}}
 		\label{subsubsec:all-pair-shortest-path}
@@ -274,7 +274,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		To find desirable paths, the weight function $w$ mentioned in \Cref{subsec:routing-theoretic-considerations} needs to be carefully chosen based on the domain of the application, vehicle type, personal preferences and other influencing factors.
 		Applications in our everyday life bundle these aspects into a \term{routing profile}, which maps attributes from the input data to a certain weight.
 		Input data might consist of multiple sources like a road network, a digital elevation model or additional traffic information.
-		The open source software Graphhopper is one example of a routing engine and comes with predefined profiles for different modalities and situations.
+		The open source software \term*{Graphhopper} is one example of a routing engine and comes with predefined profiles for different modalities and situations.
 		For example the \texttt{car\_delivery} profile is made for car-based delivery services enabling the use of private roads\cite{graphhopper-routing-profiles}, which are avoided in the normal \texttt{car} profile.
 		
 		To enhance performance, speedup methods were developed allowing routing queries of continental or even global sizes to be answered quickly.
@@ -318,7 +318,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		\subsubsection{A*}
 		\label{subsubsec:astar}
 		
-			The A* shortest path algorithm was introduced in 1968 and uses a heuristic $h : V \rightarrow \mathbb{R}$ in combination with a distance function $g : V \rightarrow \mathbb{R}$ to decide which vertex to visit next\cite{astar}.
+			The \term{A*} shortest path algorithm was introduced in 1968 and uses a heuristic $h : V \rightarrow \mathbb{R}$ in combination with a distance function $g : V \rightarrow \mathbb{R}$ to decide which vertex to visit next\cite{astar}.
 			The heuristic $h$ is used to estimate the distance from a given vertex $v$ to the destination (or target) vertex $t$.
 			The distance function $g$ yields the already determined distance from the source vertex $s$ to $v$.
 			Summing up the two functions to $f(v) = g(v) + h(v)$, gives the estimated length of a shortest path from $s$ via $v$ to $t$ and is used to decide which successor of $v$ to process next.
@@ -358,7 +358,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		\subsubsection{Contraction Hierarchies}
 		\label{subsubsec:ch}
 		
-			Contraction hierarchies are based on the idea to reduce the number of vertices a routing algorithm has to visit by adding so-called \emph{shortcut edges}\cite{geisberger-contraction-hierarchies}.
+			\term{Contraction hierarchies} are based on the idea to reduce the number of vertices a routing algorithm has to visit by adding so-called \emph{shortcut edges}\cite{geisberger-contraction-hierarchies}.
 			Consider a vertex $v$ with incoming edge $(u, v)$ and outgoing edge $(v, w)$, meaning there is a path from $u$ via $v$ to $w$.
 			Vertex $v$ is \emph{contracted} by adding a shortcut edge $e = (u, w)$ with weight $w(e) = w(u, v) + w(v, w)$.
 			If $e$ already exists with a higher weight, its weight is decreased accordingly.
@@ -390,11 +390,11 @@ Hence, the topic of agents and simulations will be covered as well.
 						\draw[->,densely dotted,DodgerBlue3] (l) -- (v);
 					\end{tikzpicture}
 				\end{figcenter}
-				\caption{The heuristic using landmark $l$ (blue) is a longer but better estimate than the euclidean heuristic (red).}
+				\caption[Illustration of landmark heuristic.]{The heuristic using landmark $l$ (blue) is a longer but better estimate than the euclidean heuristic (red).}
 				\label{fig:landmarks}
 			\end{wrapfigure}
 			
-			A popular usage of so-called \term[landmark]{landmarks} is the ALT algorithm, which stands for A*, landmarks and triangle inequality\cite{goldberg-landmarks}.
+			A popular usage of so-called \term[landmark]{landmarks} is the \term*{ALT} algorithm, which stands for A*, landmarks and triangle inequality\cite{goldberg-landmarks}.
 			The heuristic in A* is usually the euclidean distance to the destination, which is simple but inaccurate.
 			A better, but also computationally more complex approach is the use of landmarks $L \subseteq V$ and for each $l \in L$ to precompute the distances to and from all other vertices as illustrated in \Cref{fig:landmarks}.
 			The heuristic takes all landmarks into account and uses the triangle inequality between the source, destination and landmarks to determine the tightest bound on the estimated shortest path distance.
@@ -411,7 +411,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			When answering shortest path queries with the destination being in cell $j$, all edges without the $j$-th bit set to 1 can be ignored.
 			Arc flags significantly reduce query times and can be used with other speedup methods to further enhance performance.
 			
-			Precomputing shortest path distances is done by the \emph{hub label} strategy\cite{bast-transportation-networks}.
+			Precomputing shortest path distances is done by the \term{hub label} strategy\cite{bast-transportation-networks}.
 			For every vertex $v$ a set $H_v \subseteq V$ of \emph{hubs} is selected such that any shortest path between two vertices contains at least one hub.
 			Then labels $L(v)$ are attached to $v$ containing the lengths from $v$ to all its hubs.
 			A linear search through the common labels of two vertices yield their shortest path distance.
@@ -433,14 +433,14 @@ Hence, the topic of agents and simulations will be covered as well.
 			\begin{wrapfigure}{r}{0.225\textwidth}
 				\vspace{-1.5\baselineskip}
 				\includegraphics[width=\linewidth]{images/botea-cpd.pdf}
-				\caption{Movement-grid for cell $c$\cite{botea-cpd-2013}.}
+				\caption[Movement information in grid-based CPD.]{Movement-grid for cell $c$ in a grid-based CPD\cite{botea-cpd-2013}.}
 				\label{fig:cpd}
 			\end{wrapfigure}
 			
 			The complex part of constructing a CPD is the compression\cite{botea-cpd-2013} of the all-pairs shortest path solution.
 			Uncompressed data is usually too large as the space requirement is in $\bigo{n^2}$ or even $\bigo{n^2 \log n}$ for graphs.
 			A combination of compression techniques can be used to get sufficient results.
-			This includes the encoding of whole areas with same movement operations, run-length encoding (RLE) and use of default values to reduce the number of explicitly stored values\cite{botea-cpd-2013}.
+			This includes the encoding of whole areas with same movement operations, \term*{run-length encoding} (\term*{RLE}) and use of default values to reduce the number of explicitly stored values\cite{botea-cpd-2013}.
 			Compared to uncompressed data, a compression factor of 950 was achieved for a road network.
 	
 \section{Geometric routing}

@@ -2,7 +2,7 @@
 % !TeX spellcheck = en_US
 
 As mentioned in the introductory motivation, the developed \term{hybrid routing algorithm} has to find optimal paths through open spaces and must also be able to connect arbitrary source and destination locations.
-Current routing approaches are either not capable of correctly connecting arbitrary locations (in the case of graph-based algorithm like A*) or do not allow the use of existing road edges and speedup techniques (for example in the \term*[continuous Dijkstra paradigm]{continuous Dijkstra} approach).
+Current routing approaches are either not capable of correctly connecting arbitrary locations (in the case of graph-based algorithm like A*) or do not allow the use of existing road edges and speedup techniques (for example in the continuous Dijkstra approach).
 Additionally, none of the existing approaches uses both, the open spaces between obstacle and the existing road network.
 Latter may still contain relevant information for pedestrian navigation, such as sidewalk information, surface or access restrictions, and are therefore relevant for routing.
 
@@ -84,7 +84,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 	\subsection{Ad hoc generation of edges}
 	
 		The idea of an ad hoc generation of edges is the following:
-		Whenever the graph routing algorithm reaches a road junction, it's pauses and the continuous Dijkstra algorithm is started.
+		Whenever the graph routing algorithm reaches a road junction, it's pauses and the \term*[continuous Dijkstra paradigm]{continuous Dijkstra} algorithm is started.
 		No destination vertex is defined, which means the geometric routing will be stopped after the furthest wavefront reached a certain distance.
 		The continuous Dijkstra approach actually creates a shortest path map, so the shortest paths to all reached vertices in the road graph are calculated.
 		All shortest path edges are then added to the road graph and the paused graph-based routing resumes.
@@ -148,7 +148,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 	\label{subsec:design-merge-road-network}
 	
 		Previous approaches tried to first calculate shortest paths and then merge their results.
-		This last approach, which was ultimately implemented, first merges a generated visibility graph with an existing road graph.
+		This last approach, which was ultimately implemented, first merges a generated \term*{visibility graph} with an existing road graph.
 		The actual merge operation is very simple:
 		Whenever a road edge and a visibility edge intersect, split the edges, create a new vertex at the intersection point and connect the split edges accordingly.
 		
@@ -265,7 +265,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 		\begin{figcenter}
 			\includegraphics[scale=0.8]{images/components.pdf}
 		\end{figcenter}
-		\caption{The components and usages of interfaces of the resulting implementation.}
+		\caption[Component diagram of the hybrid visibility graph implementation.]{The components and usages of interfaces of the resulting implementation.}
 		\label{fig:components}
 	\end{figure}
 	
@@ -273,14 +273,14 @@ Finally, an overview of the separate components is given as well as a descriptio
 		\begin{figcenter}
 			\includegraphics[scale=0.8]{images/components-sequence-generation.pdf}
 		\end{figcenter}
-		\caption{The generation process to obtain the hybrid visibility graph.}
+		\caption[Sequence-diagram of hybrid visibility graph generation.]{The generation process to obtain the hybrid visibility graph.}
 		\label{fig:components-sequence-generate}
 		\hfill
 		\\
 		\begin{figcenter}
 			\includegraphics[scale=0.8]{images/components-sequence-routing.pdf}
 		\end{figcenter}
-		\caption{The most important steps performed during a routing request using the hybrid visibility graph. The variables \texttt{s}, \texttt{t} and \texttt{w} are the source vertex, the target vertex and the weight function.}
+		\caption[Sequence-diagram of routing queries.]{The most important steps performed during a routing request using the hybrid visibility graph. The variables \texttt{s}, \texttt{t} and \texttt{w} are the source vertex, the target vertex and the weight function.}
 		\label{fig:components-sequence-routing}
 	\end{figure}
 	

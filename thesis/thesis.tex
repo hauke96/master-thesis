@@ -219,8 +219,12 @@
 \usepackage[outline]{contour}
 \contourlength{1.2pt}
 
+% Hide subsubsections in TOC
+\setcounter{tocdepth}{1}
+
 \begin{document}
 	\include{titlepage.tex}
+	\clearpage
 	
 	\pagenumbering{Roman}
 	
@@ -269,6 +273,9 @@
 	\printbibliography
 
 	\printindex
+	
+	\listoffigures
+	\listoftables
 	
 	\chapter*{Appendix}
 	

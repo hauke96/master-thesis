@@ -14,7 +14,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 	\label{subsec:frameworks-technology}
 	
 		As mentioned in \Cref{subsec:constraints} regarding the constraints, the used programming language is C\# due to the dependency to the MARS framework.
-		The MARS framework is based on the widely used C\# library \term{NetTopologySuite} (\term*{NTS}), which contains numerous data structures and algorithms to work with geospatial data.
+		The \term*{MARS} framework is based on the widely used C\# library \term{NetTopologySuite} (\term*{NTS}), which contains numerous data structures and algorithms to work with geospatial data.
 		No additional third-party libraries were used.
 		
 		Primarily, the NTS was used for basic data structures like coordinates, geometries and features but also for calculations, e.g. the calculation of distances.
@@ -123,7 +123,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 					\draw (o0) -- (o1) -- (o2) -- (o0);
 				\end{tikzpicture}
 			\end{figcenter}
-			\caption{Shadow area $S$ cast by obstacle $o$ seen from vertex $v$. The two red vertices of obstacle $o$ are the bounding vertices determining angular range and distance of $S$. The vertex $v''$ is not visible from $v$ since it lies inside the shadow area. Note that $v'$ is not visible either even though it is not inside the shadow area.}
+			\caption[Illustration of a shadow area.]{Shadow area $S$ cast by obstacle $o$ seen from vertex $v$. The two red vertices of obstacle $o$ are the bounding vertices determining angular range and distance of $S$. The vertex $v''$ is not visible from $v$ since it lies inside the shadow area. Note that $v'$ is not visible either even though it is not inside the shadow area.}
 			\label{fig:shadow-area}
 		\end{figure}
 		
@@ -218,7 +218,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 					\node[align=right] at (-1.25,0.5*\countY*\l+0.5*\l) {Linked lists\\of bins};
 				\end{tikzpicture}
 			\end{figcenter}
-			\caption{Bin index filled with two items A (added first) and B (added last). Since item A was added first, B's entries in, which fall into a bin where en entry for item A already exists, are moved to a next item in the linked list of the bin. Each bin covers a range, which means non integer value are rounded down (for from-values) or up (for to-values).}
+			\caption[BinIndex example with two inserted items.]{Bin index filled with two items A (added first) and B (added last). Since item A was added first, B's entries in, which fall into a bin where en entry for item A already exists, are moved to a next item in the linked list of the bin. Each bin covers a range, which means non integer value are rounded down (for from-values) or up (for to-values).}
 			\label{fig:bin-index}
 		\end{figure}
 		
@@ -263,7 +263,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 		For performance reasons (for triangulation as described below), multi-geometries and polygons are split up into their separate geometries.
 		The NTS implementation of a polygon can have outer and inner rings, which are unwrapped into separate geometries.
 		Unwrapping \texttt{MultiLineString} geometries is unproblematic as well, since the result are just multiple normal linestrings.
-		Features made of \texttt{Point} geometries are also considered so that visibility edges can reach \term*{points of interest} (POIs).
+		Features made of \texttt{Point} geometries are also considered so that visibility edges can reach \term[point of interest]*{points of interest} (\term[POI]{POIs}).
 		
 		The second task within this first step is the triangulation of all polygonal shapes, which happens during the unwrapping of multi geometries.
 		The main reason is a better performance for intersection checks, which is an important operation when checking if an obstacle is between two vertices.
@@ -275,7 +275,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 	\subsection{Step 2: Determining $k$ nearest visible neighbors}
 	\label{subsec:step-2-knn-search}
 			
-		This step performs the main task of the visibility graph creation, namely for each vertex the determination of all visible $k$ many nearest neighbors (kNN).
+		This step performs the main task of the visibility graph creation, namely for each vertex the determination of all visible \term*[k-nearest neighbors]{$k$ many nearest neighbors} (\term*{kNN}).
 %		Determining not only $k$ but all visible neighbors would also be possible, but the parameter $k$ is an easy way to increase performance with the downside of not having all possible edges in the final routing graph.
 %		The fact of potential suboptimal routes is discussed in the following.
 		Before the actual algorithm is presented, some concepts and optimizations are described to understand the implemented algorithm.
@@ -408,7 +408,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 						\draw[->,Red2,thick] (c11) -- (t);
 					\end{tikzpicture}
 				\end{figcenter}
-				\caption{
+				\caption[Visualization of valid angle areas.]{
 					The path from $s$ via $v_1$ and $v_2$ to $t$ bends along the convex hulls of $o_1$ and $o_2$.
 					The segment from $v_1$ to $v_2$ is a connecting line between the hull parts.
 					The angle area at $v_1$ (green) indicates one of its valid angle areas.
@@ -443,10 +443,8 @@ And third, each algorithmic step of the graph generation and query answering is 
 			Both intersection checks are performed using an own implementation instead of methods from the the NetTopologySuite.
 			
 			This custom implementation has solely performance reasons:
-			Performing ten million collision checks between random line segments took 195 ms on average with the custom implementation and 746 ms with the fastes NTS method \texttt{RobustLineIntersector.ComputeIntersection()}.
-			% and the NTS \texttt{LineSegment.Intersection()} method took 1552 ms.
+			Performing ten million collision checks between random line segments took 195 ms on average with the custom implementation and 746 ms with the fastest NTS method \texttt{RobustLineIntersector.ComputeIntersection()}.
 			Analogously, performing one million random triangle intersection checks required 138 ms on average using the custom implementation and 174 ms using the fastest NTS method \texttt{Triangle.Intersects()}.
-%			Other method like \texttt{IPreparedGeometry.Intersects()} (406 ms), the \texttt{IndexedPointInAreaLocator} (707 ms) or the simple \texttt{Polygon.Intersects()} (2424 ms) were slower.
 			
 			The line segment intersection check uses cross products as presented in \emph{Introduction to algorithms} by Cormen et al.\cite[1018]{cormen-introduction-to-alg}.
 			Due to the performance of this approach, it is used to check whether a line segment intersects with a whole obstacle by performing this intersection check for each segment of the obstacle.
@@ -477,7 +475,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 						\tikzDot[label={right:$b=(-0.2,0.5,0.7)$}]{(3.4,2.1)}{right}
 					\end{tikzpicture}
 				\end{figcenter}
-				\caption{A triangle with barycentric coordinates and dotted coordinate axes. Noteworthy is coordinate $b$ being outside the triangle, which can be directly seen from the negative value $-0.2$.}
+				\caption[Example of a barycentric coordinate system.]{A triangle with barycentric coordinates and dotted coordinate axes. Noteworthy is coordinate $b$ being outside the triangle, which can be directly seen from the negative value $-0.2$.}
 				\label{fig:barycentric-triangle}
 			\end{figure}
 			
@@ -539,7 +537,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 							\draw[gray] (v3) -- (v4);
 						\end{tikzpicture}
 					\end{figcenter}
-					\caption{The black arrows point to the obstacle neighbors $v_1$ and $v_3$ of $v_2$.}
+					\caption[Illustration of line-based obstacle neighbors.]{The black arrows point to the obstacle neighbors $v_1$ and $v_3$ of $v_2$.}
 				\end{minipage}
 				\hfill
 				\begin{minipage}[t]{0.475\textwidth}
@@ -566,7 +564,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 							\draw[gray] (c20) -- (v2);
 						\end{tikzpicture}
 					\end{figcenter}
-					\caption{The black arrows point to the obstacle neighbors $v_0$ and $v_2$ of $v_1$. Vertex $v_3$ is also a neighbor, but hidden because $o_1$ and $o_2$ touch each other at the edge $(v_1, v_3)$.}
+					\caption[Illustration of obstacle neighbors on touching polygons.]{The black arrows point to the obstacle neighbors $v_0$ and $v_2$ of $v_1$. Vertex $v_3$ is also a neighbor, but hidden because $o_1$ and $o_2$ touch each other at the edge $(v_1, v_3)$.}
 					\label{fig:obstacle-neighbors-touching}
 				\end{minipage}
 			\end{figure}
@@ -625,7 +623,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 								\draw[dotted] (n2) -- (vo2);
 							\end{tikzpicture}
 						\end{figcenter}
-						\caption{
+						\caption[Naive node and visibility edge creation.]{
 							Visibility graph with naive connections.
 							The two dotted visibility edges at $v$ allow a shortest path to go through the obstacle from $n_a$ via $v$ to $n_b$.
 						}
@@ -669,7 +667,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 								\draw[dotted] (n2) -- (vo2);
 							\end{tikzpicture}
 						\end{figcenter}
-						\caption{
+						\caption[Correct visibility edge creation with duplicated vertices.]{
 							The visibility graph with connection respecting the obstacle. Vertex $v$ is split into two, $v_a$ and $v_b$, but with exact same location (all gaps are for illustration purposes only).
 							However, $v_a$ and $v_b$ are not connected, which ensures that a shortest path from $n_a$ to $n_b$ does not lead through the middle vertex of the obstacle.
 						}
@@ -723,7 +721,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 %							\draw[Green4,dashdotted,->] ($(v)+(-0.075,\d)$) -- ($(n1)+(0.075,\d)$);
 					\end{tikzpicture}
 				\end{figcenter}
-				\caption{
+				\caption[Example of vertices sorted into obstacle neighbor-based bins.]{
 					All visible neighbors of $v$ colored by their resulting bin.
 					The neighbors $n_1$, $n_2$ and $n_3$ are added to both adjacent bins, for example $n_2$ is added to the green (left) and red (right) bins.
 				}
@@ -782,7 +780,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 					\draw[dashed] (v) -- node[above] {$e$} (u);
 				\end{tikzpicture}
 			\end{figcenter}
-			\caption{Edge $e$ connecting the two bin-vertices $v$ and $u$ corresponding to the green angular ranges representing the bins of $v$ and $u$.}
+			\caption[Usage of obstacle neighbor-based bins for visibility edge creation.]{Edge $e$ connecting the two bin-vertices $v$ and $u$ corresponding to the green angular ranges representing the bins of $v$ and $u$.}
 			\label{fig:bin-vertex-connection}
 		\end{figure}
 		
@@ -821,7 +819,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 							\draw[<->] (rn1) -- node[left] {$r$} (rn2);
 						\end{tikzpicture}
 					\end{figcenter}
-					\caption{
+					\caption[Road and visibility edges before merging.]{
 						Before merging $r$ into the graph with a total of six vertices and six edges.
 					}
 					\label{fig:merging-edges-a}
@@ -852,7 +850,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 							\draw[<->] (i2)  -- node[right] {$r_3$} (rn2);
 						\end{tikzpicture}
 					\end{figcenter}
-					\caption{
+					\caption[Road and visibility edges after merging.]{
 						After merging $r$ with two new vertices at the intersections. The graph size increases by one vertex and four directed edges per intersection.
 					}
 					\label{fig:merging-edges-b}
