@@ -15,8 +15,8 @@ Hence, the topic of agents and simulations will be covered as well.
 	In other words, data with any kind of address, coordinate or other location reference belongs to the class of \term{geospatial data}, or \term{geodata} for short.
 	
 	Examples are customer information (address information of each customer), meteorological data (measured temperature and humidity with a coordinate and altitude) and, primarily used in this thesis, road and path data suitable for routing.
-	Since addresses are not globally standardized, describe only a vague location and usually belong to a whole area, they are of less importance for this thesis.
-	Geodata with an additional time dimension is also categorized as \term{spatiotemporal data}\cite{iso-19108} and even though the time dimension is relevant to many real-world use cases, this type of data is of less importance for this thesis as well.
+	Since addresses are not globally standardized, they only describe a vague location and usually belong to a whole area, therefore they are of less importance for this thesis.
+	Geodata may have an additional time dimension, is therefore categorized as \term{spatiotemporal data}\cite{iso-19108} and even though the time dimension is relevant in many real-world use cases, this type of data is of less importance for this thesis as well.
 	The term \emph{geodata} in this thesis refers to data structures as described below in \Cref{subsec:data-structures}.
 	
 	Besides the mentioned explicit references to locations, such as coordinates, implicit location references can be encoded within metadata of datasets as well.
@@ -122,7 +122,7 @@ Hence, the topic of agents and simulations will be covered as well.
 	\subsection{OpenStreetMap}
 	\label{subsec:osm}
 	
-		\term{OpenStreetMap} (\term*{OSM}) is a geospatial database that is maintained by a global community and licensed under the \term{Open Data Commons Open Database License} (\term*{ODbL})\cite{osm-wiki-about}.
+		\term{OpenStreetMap} (\term*{OSM}) is a publicly available and free geospatial database that is maintained by a global community and licensed under the \term{Open Data Commons Open Database License} (\term*{ODbL})\cite{osm-wiki-about}.
 		It can therefore be used, changed and redistributed as long as a proper attribution is given and results stay under the ODbL\footnote{\url{https://opendatacommons.org/licenses/odbl}}.
 		All spatial data used in this thesis is data from the OSM database.
 		In 2006, two years after the OSM project started, the OpenStreetMap Foundation\footnote{\url{https://osmfoundation.org}} was established to perform fund-raising, maintain the servers and also act as a legal entity for the project.
@@ -274,7 +274,6 @@ Hence, the topic of agents and simulations will be covered as well.
 		To find desirable paths, the weight function $w$ mentioned in \Cref{subsec:routing-theoretic-considerations} needs to be carefully chosen based on the domain of the application, vehicle type, personal preferences and other influencing factors.
 		Applications in our everyday life bundle these aspects into a \term{routing profile}, which maps attributes from the input data to a certain weight.
 		Input data might consist of multiple sources like a road network, a digital elevation model or additional traffic information.
-%		Weight functions predict the expected speed on an edge\cite{graphhopper-profile-bike-speeds}, use the length of an edge\cite{graphhopper-profile-shortest} as weight or determine the weight based on existing attributes\cite{graphhopper-profile-short-fastest}.
 		The open source software Graphhopper is one example of a routing engine and comes with predefined profiles for different modalities and situations.
 		For example the \texttt{car\_delivery} profile is made for car-based delivery services enabling the use of private roads\cite{graphhopper-routing-profiles}, which are avoided in the normal \texttt{car} profile.
 		

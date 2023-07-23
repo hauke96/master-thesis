@@ -75,7 +75,7 @@ The source and destination locations are added and connected to the graph, as fa
 		Without these barriers, the routing will avoid the road, due to the barrier-attribute, but instead might use a visibility edge next to the road.
 		Adding the missing linestring barriers to the underlying dataset is the ideal solution but algorithmic approaches might exist as well to automatically infer these linestrings.
 		
-	\subsection{Technical enhancements}
+	\subsection{Technical and performance enhancements}
 		
 		Future work might also take technical enhancements into account, improving the implementation and eventually improving routing results and performance as well.
 	
@@ -93,6 +93,16 @@ The source and destination locations are added and connected to the graph, as fa
 		This approach of first determining visibility neighbors and then splitting the vertices introduces a certain complexity to the code.
 		Splitting vertices based on their obstacle neighbors \emph{before} determining the visibility neighbors makes handling of valid angle areas easier and sorting the visibility neighbors into bins will no longer be necessary.
 		Not only the code complexity but the overall performance might benefit from such a refactoring as well.
+		
+		Next to performance enhancements in terms of the required time, memory usage can be improved as well.
+		As illustrated in \Cref{subsec:memory-consumption} with the largest \enquote{OSM city} dataset, merging the road graph lead to the largest increase in memory usage.
+		Further analysis needs to take place which steps cause this increase in memory.
+		One possible enhancement is the combination of data structures and indices in the \texttt{HybridVisibilityGraph}.
+		However, the number of nodes and edges are likely the cause of the high memory usage, which can be reduced by the following approach.
+		
+		% Reduce edge-count e.g. with approaches described in "A Modular Routing Graph Generation Method for Pedestrian Simulation" (Kielar, 2016). This might not speed up anything, though since the visibility calculation is based on vertices. However, this might result in fewer road-segments and faster connection of new edges (which is not that slow anyway)
+		The number of edges in the hybrid visibility graph is very high due to the functioning of visibility edges but also due to merged road edges.
+		Approaches exist to reduce the number of edges in a routing graph with little effect on the route quality \cite{aumann-reducing-routing-graph}, which will speed up graph generation and routing and reduce the memory requirements.
 
 	\subsection{Additional functionalities}
 		
@@ -114,10 +124,6 @@ The source and destination locations are added and connected to the graph, as fa
 		Next to evaluating existing attributes, added attributes on visibility edges can then be used by the underlying graph-based algorithm for more accurate routing and also for additional path information for potential end-users.
 		For example, visibility edges traversing grass areas can be augmented with an attribute such as \texttt{surface=grass}.
 		Having attributes on visibility edges enables the routing algorithm to take preferences for e.g. the surface conditions into account.
-		
-		% Reduce edge-count e.g. with approaches described in "A Modular Routing Graph Generation Method for Pedestrian Simulation" (Kielar, 2016). This might not speed up anything, though since the visibility calculation is based on vertices. However, this might result in fewer road-segments and faster connection of new edges (which is not that slow anyway)
-		The number of edges in the hybrid visibility graph is very high due to the functioning of visibility edges but also due to merged road edges.
-		Approaches exist to reduce the number of edges in a routing graph with little effect on the route quality \cite{aumann-reducing-routing-graph}, which will speed up graph generation and routing.
 		
 		% Storing graph in a format that keeps the same-location-nodes + additional angle information
 		The current implementation works solely in the main memory, which means the import has to be performed to every execution of a simulation.
