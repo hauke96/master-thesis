@@ -264,7 +264,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 		For performance reasons (during triangulation as described below), multi-geometries and polygons are split into their separate geometries.
 		The NTS implementation of a polygon can have outer and inner rings, which are unwrapped into separate geometries.
 		Unwrapping \texttt{MultiLineString} geometries is also unproblematic since the result is just a collection of ordinary linestrings.
-		Features made of \texttt{Point} geometries are also considered so that visibility edges can reach \term[point of interest]*{points of interest} (\term[POI]{POIs}).
+		Features made of \texttt{Point} geometries are also considered so that visibility edges can reach \term*[point of interest]{points of interest} (\term[POI]{POIs}).
 		
 		The second task within this first step is the triangulation of all polygonal shapes, which happens during the unwrapping of multi-geometries.
 		The main reason is a better performance for intersection checks, which is an important operation when checking if an obstacle is between two vertices.
