@@ -26,7 +26,7 @@ In this chapter, an overview of scientific literature from the areas of graph co
 		The time complexity of Overmars' and Welzl's approach is output-sensitive with respect to the number of edges in the output graph\cite{ghosh-output-sensitive-vgraph}.
 		Ghosh and Mount presented an algorithm with an output-sensitive complexity of $\bigo{E + n \log n}$, which is a significant improvement since $E$ is in $\bigo{n^2}$.
 		However, their approach needs $\bigo{E + n}$ space compared to $\bigo{n}$ from the algorithms by Overmars and Welzl.
-		Ghosh and Mount use plain sweeps to create a triangulation of the free space and introduced so-called \emph{funnel sequences}, which are sets of vertices visible to parts of an edge.
+		Ghosh and Mount use plane-sweeps to create a triangulation of the free space and introduced so-called \emph{funnel sequences}, which are sets of vertices visible to parts of an edge.
 		To avoid numerous edge cases, their approach assumes no collinear vertices and unique x-coordinates.
 		
 		Kapoor and Maheshwari introduced two algorithms, one for determining shortest paths and one for creating a visibility graph, which are both based on triangulations as well\cite{kapoor-shortest-path-vgraph}.
@@ -120,7 +120,7 @@ In this chapter, an overview of scientific literature from the areas of graph co
 	\label{subsec:related-work-geometric-routing}
 	
 		\label{related-work:mitchell}
-		Shortly after Welzl and others published their work on visibility graphs, which can be used in combination with Dijkstra to find shortest paths, Mitchell presented a purely geometric method to find Euclidean shortest paths around obstacles in the plain in 1993\cite{mitchell-shortest-path}.
+		Shortly after Welzl and others published their work on visibility graphs, which can be used in combination with Dijkstra to find shortest paths, Mitchell presented a purely geometric method to find Euclidean shortest paths around obstacles in the plane in 1993\cite{mitchell-shortest-path}.
 		This approach is the \term*{continuous Dijkstra paradigm} and its functioning is described in \Cref{subsec:continuous-dijkstra}.
 		His approach creates a shortest path map of size $\bigo{n}$ for one specific source vertex, which allows routing requests to be answered in $\bigo{\log{n}}$.
 		Generating this map has a subquadratic time and space complexity of $\bigo{n^{\nicefrac{5}{3}+\epsilon}}$.

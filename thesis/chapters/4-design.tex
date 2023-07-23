@@ -220,7 +220,7 @@ Finally, an overview of the separate components is given as well as a descriptio
 		For example, splitting a polygon into line segments would require metadata on these segments to reconstruct the former polygon-relationship in order to avoid visibility edges within the former polygon.
 		Handling all those special cases, preventing unwanted edges and still using the approach by Overmars and Welzl would be possible but significantly increases the complexity of their approach.
 		
-		Another approach with the limitation of no collinear vertices is the plain-sweep algorithm by Ghosh and Mount\cite{ghosh-output-sensitive-vgraph}.
+		Another approach with the limitation of no collinear vertices is the plane-sweep algorithm by Ghosh and Mount\cite{ghosh-output-sensitive-vgraph}.
 		In addition to the limitation on collinear vertices, they assume x-coordinates to be unique, which would need to be handled as well.
 		Even though coordinates are usually floating point numbers and therefore have a great range of possible values, rounding and size limitations reduce this range and might result in a high number of non-unique x-coordinate values.
 		Counting the number of non-unique x-coordinates in OpenStreetMap illustrates this problem:

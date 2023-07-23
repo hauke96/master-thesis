@@ -566,16 +566,16 @@ All optimizations active	&  11.1 s		&  1.00									&  11.1 s		& 71.13									\
 		
 		Edges in the generated visibility graph represent shortest segments between vertices of obstacles.
 		In other words, for any two vertices $v$ and $v'$, a visibility edge $e=(v, v')$ is the shortest possible connection between these two vertices.
-		A shortest path through a visibility graph is therefore equal to a shortest geometric path around obstacles in the plain.
+		A shortest path through a visibility graph is therefore equal to a shortest geometric path around obstacles in the plane.
 		
 		For shortest path algorithms, such as A* or Dijkstra, the term \emph{correct} refers to the fact that their result is the shortest possible path between two vertices in a graph.
-		Using a correct graph-based shortest path algorithm in a visibility graph yields the shortest path in the plain.
+		Using a correct graph-based shortest path algorithm in a visibility graph yields the shortest path in the plane.
 		Regarding the shortest path between existing vertices, the hybrid visibility routing is therefore considered correct.
 		
 		In addition to routing on a visibility graph, the presented hybrid routing algorithm actively connects locations to the graph as part of answering the routing query yielding a temporarily augmented graph.
 		This means the resulting path $p$ from a newly added vertex $s$ to a newly added vertex $t$ contains two additional new edges $e_s=(s, v_s)$ and $e_t=(v_t, t)$, which are not part of the normal non-augmented hybrid visibility graph, resulting in $p=\left\langle s, v_s, ..., v_t, t \right\rangle$.
 		The correctness of the path from $v_s$ to $v_t$ follows from the argumentation above.
-		The edges $e_s$ and $e_t$ are visibility edges and the correctness argument applies to them as well, meaning that the overall path $p$ is shortest on the augmented visibility graph and therefore shortest in the plain with the presence of obstacles.
+		The edges $e_s$ and $e_t$ are visibility edges and the correctness argument applies to them as well, meaning that the overall path $p$ is shortest on the augmented visibility graph and therefore shortest in the plane with the presence of obstacles.
 		Therefore, the overall hybrid routing algorithm is considered to be correct.
 		
 		One noteworthy aspect is the filtering of vertices, as described in \Cref{subsec:step-2-knn-search}, which might result in missing edges.
