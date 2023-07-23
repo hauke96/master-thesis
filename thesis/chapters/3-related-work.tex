@@ -31,8 +31,7 @@ This section gives an overview about closely related work from these areas.
 		
 		Kapoor and Maheshwari introduced two algorithms, one for determining shortest paths and one to create a visibility graph, which are based on triangulations as well\cite{kapoor-shortest-path-vgraph}.
 		Finding shortest paths in the presence of $m$ polygonal obstacles works in $\bigo{m^2 \log{n} + n\log{n}}$ with their approach but only uses a certain subset of the visibility graph to actually determine the shortest path.
-		Their visibility graph creation is done in $\bigo{E+T}$, with $T$ being the time needed to triangulate the space between the obstacles, and therefore has the same complexity as Ghosh and Mounts algorithm since a triangulation of the space between $n$ obstacles can be done in $\bigo{n \log{n}}$.
-		% TODO https://www.researchgate.net/profile/Vasyl-Tereshchenko/publication/321979941_Triangulating_a_region_between_arbitrary_polygons/links/5a6b1b94458515b2d0539612/Triangulating-a-region-between-arbitrary-polygons.pdf
+		Their visibility graph creation is done in $\bigo{E+T}$, with $T$ being the time needed to triangulate the space between the obstacles, and therefore has the same complexity as Ghosh and Mounts algorithm since a triangulation of the space between $n$ obstacles can be done in $\bigo{N \log{N}}$\cite{tereshchenko-triangulating-open-spaces}, where $N$ is the number of vertices.
 		Due to its simpler structure, the approach by Kapoor and Maheshwari might lead to a better performance in practice.
 		
 		% evtl. noch: A NEW ALGORITHM FOR COMPUTING VISIBILITY GRAPHS OF POLYGONAL OBSTACLES IN THE PLANE
