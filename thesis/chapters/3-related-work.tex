@@ -33,10 +33,12 @@ In this chapter, an overview of scientific literature from the areas of graph co
 		With their approach, finding shortest paths in the presence of $m$ polygonal obstacles works in $\bigo{m^2 \log{n} + n\log{n}}$, but only uses a certain subset of the visibility graph to actually determine the shortest path.
 		Their visibility graph creation is done in $\bigo{E+T}$, with $T$ being the time needed to triangulate the space between the obstacles, and therefore has the same complexity as Ghosh and Mounts algorithm since a triangulation of the space between $n$ obstacles can be done in $\bigo{N \log{N}}$\cite{tereshchenko-triangulating-open-spaces}, where $N$ is the number of vertices.
 		Due to its simpler structure, the approach by Kapoor and Maheshwari might lead to a better performance in practice.
-		
-		% evtl. noch: A NEW ALGORITHM FOR COMPUTING VISIBILITY GRAPHS OF POLYGONAL OBSTACLES IN THE PLANE
-		
-		% Showing low performance of visibility graph generation (probably not well optimized? + 2010 computers): https://www.researchgate.net/profile/Jukka_Krisp/publication/311582140_Goal_Directed_Visibility_Polygon_Routing_for_Pedestrian_Navigation/links/584ec1cf08aecb6bd8d004a1/Goal-Directed-Visibility-Polygon-Routing-for-Pedestrian-Navigation.pdf
+
+		Krisp et al. also implemented a visibility graph-based routing algorithm and, more interesting in this case, measured its performance\cite{krisp-goal-directed-routing}:
+		It took over 9.5 hours to determine a path through a city quarter.
+		One must mention, that the paper was published in 2010 and the speed of computers has increased since then.
+		Also, it is unknown how well optimized their implementation was.
+		Nonetheless, this time gives an indication of the computational complexity of creating a visibility graph.
 	
 	\subsection{Enhancing existing graphs}
 	
