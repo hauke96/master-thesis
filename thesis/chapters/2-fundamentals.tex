@@ -61,6 +61,18 @@ Hence, the topic of agents and simulations will be covered as well.
 			One example for a governmental standard is the \term{INSPIRE} standard based on an initiative of the European Commission\footnote{\url{https://inspire.ec.europa.eu}}.
 			Next to proprietary or governmental standardizations, the \term*{OpenStreetMap} project uses a system based on proposals and democratic votes, which is further described in \Cref{subsec:osm}.
 			
+		\subsection{Spatial indices}
+		
+			Storing data for efficiently access, e.g. to query all features within a certain area, a so-called \term{spatial index} is used.
+			Some commonly used indices are the following.
+			
+			The \term{$k$-d tree}\cite[Ch.\ 19,p. 4]{mehta-handbook-data-structures} divides the space at each vertex along one axis at a time alternating through all axis (dimensions) of the dataset, which leads to a binary tree for 2-dimensional data.
+			A \term{quadtree}\cite[Ch.\ 19,p. 1]{mehta-handbook-data-structures} works on 2-d data and divides the space equally into four equally sized quadrants.
+			Depending on the data in each quadrant, it gets divided again, which leads to a tree with four children per node.
+			The \term{R-tree}\cite[Ch.\ 21,p. 2]{mehta-handbook-data-structures} determined bounding rectangles for areas with dense data and efficiently stores a hierarchy of these areas, i.e. all features of child nodes are within the bounding rectangle of the parent node.
+			
+			The implementation of the hybrid routing algorithm makes use of some of these indices to enhance performance as presented and analyzed in the later chapters of this work.
+			
 	\subsection{File formats}
 	\label{subsec:file-formats}
 	
@@ -87,21 +99,8 @@ Hence, the topic of agents and simulations will be covered as well.
 		\subsubsection{Other formats}
 		\label{subsubsec:other-formats}
 		
-			There are many more formats for numerous use cases ranging from simple unstandardized to complex, feature rich and fully standardized formats.
-			
-			A \emph{comma-separated value} (\term*{CSV}) file can also serve as a simple spatial file, however, there is no formal widely used standard based on CSV files.
-			
-			The \term{Well-known Text} (\term*{WKT}) format is also a simple and text-based format, which is specified by the OGC\cite[51]{ogc-sfa}.
-			One popular use case is communication with databases, for example when using the PostgreSQL extension PostGIS\footnote{\url{https://postgis.net/}}.
-			
-			More complex formats are \term{SpatiaLite} and \term{GeoPackage}.
-			SpatiaLite specifies an extension to file-based SQLite database engine and offers additional geodata specific functionality\footnote{\url{https://www.gaia-gis.it/fossil/libspatialite}}.
-			The GeoPackage format is very similar to SpataLite as it is based on an SQLite database as well, but it diverged from the SpatiaLite format, for example by using a different WKB encoding\footnote{\url{http://www.geopackage.org}}.
-			
-			The \term[kml]{Keyhole Markup Language} (KML) is a XML-based format with the ability to contain much more data than just spatial features, such as the lifetime of data or camera positions used for visualization purposes \cite{ogc-kml-2.2}.
-			
-			Another widely used format is the proprietary \term[shapefile]{Esri Shapefile} format, which was developed in the 1990s by the company Esri \cite{esri-shapefile-spec} and is often used in Esri products like the ArcGIS platform.
-			One shapefile actually consists of multiple separate files containing coordinate system information, indices or attributes.
+			Other formats are for example \term{Well-known Text} (\term*{WKT}), consisting of the geometry type followed by a list of coordinates\cite[51]{ogc-sfa}, \term{GeoPackage}\footnote{\url{http://www.geopackage.org}}, consisting of a SQLite database with support for spatial functions and indices, or the widely used and proprietary \term{Esri Shapefile} format\cite{esri-shapefile-spec}.
+			However, numerous additional formats exist for general and special use-cases.
 			
 	\subsection{OGC web services}
 	
