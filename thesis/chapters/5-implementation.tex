@@ -142,7 +142,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 		Thus, checking whether a specific coordinate is within any given shadow area is a simple operation using just a few numeric comparisons.
 		
 		Keeping track of these shadow areas for each vertex significantly improves performance, especially with the use of the \texttt{BinIndex} data structure described \hyperref[subsec:binindex]{below}.
-		Enabling the shadow area optimization yielded a speedup factor of 10.62 for a 0.5km\textsuperscript{2} real-world dataset as described in \Cref{subsubsec:eval-datasets}).
+		Enabling the shadow area optimization yielded a speedup factor of 10.62 for a 0.5 km\textsuperscript{2} real-world dataset as described in \Cref{subsubsec:eval-datasets}).
 
 	\subsection{BinIndex for intervals}
 	\label{subsec:binindex}
@@ -230,18 +230,18 @@ And third, each algorithmic step of the graph generation and query answering is 
 		The NetTopologySuite offers several indices specifically made for intervals, namely the \texttt{Bintree}, \texttt{SIRtree} and \texttt{SortedPackedIntervalRTree}, of which only the first one is dynamic and thus allows insertions and deletions after the first query was made.
 		This dynamic behavior is crucial for the use of shadow areas because the creation and handling happens in an online fashion by processing each vertex and its adjacent obstacles.
 		
-		\begin{wraptable}[10]{r}{8.5cm}
-			\vspace{-1.25\baselineskip}
+		\begin{wraptable}{r}{8.8cm}
+			\vspace{-0.5\baselineskip}
 			\begin{tabularx}{\linewidth}{rRRRR}
 \toprule
 				& \multicolumn{2}{c}{\textbf{\texttt{BinIndex}}}	& \multicolumn{2}{c}{\textbf{\texttt{Bintree}}}	\\
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}
 \textbf{Items}	& \textbf{Insert}	& \textbf{Query}				& \textbf{Insert}	& \textbf{Query}			\\
 \midrule
-   10,000		& 0.05s				&   0.32ms						&   3.83ms			&      1.75s				\\
-  100,000		& 0.91s				&   2.65ms						&  22.71ms			&    164s					\\
-  200,000		& 1.95s				&   4.27ms						&  58.86ms			&    635s					\\
-1,000,000		& 9.86s				&  21.27ms						&  89.11ms			& 12,549s					\\
+   10,000		& 0.05 s			&   0.32 ms						&   3.83 ms			&      1.75 s				\\
+  100,000		& 0.91 s			&   2.65 ms						&  22.71 ms			&    164 s					\\
+  200,000		& 1.95 s			&   4.27 ms						&  58.86 ms			&    635 s					\\
+1,000,000		& 9.86 s			&  21.27 ms						&  89.11 ms			& 12,549 s					\\
 \bottomrule
 			\end{tabularx}
 			\caption{Comparison of \texttt{BinIndex} and \texttt{Bintree} on random intervals with one query per interval.}
@@ -315,7 +315,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 			From a theoretical perspective, using the above-mentioned default values of ten edges per 10° range, an omitted neighbor $u$ of a vertex $v$ was located in a similar direction as all other neighbors in this bin did.
 			The additional distance of a detour from $v$ over some other vertices to $u$, due to the missing direct connection, is most likely relatively small.
 			From a practical perspective, described in more detail in \Cref{subsubsec:eval-datasets}, no large detours were observed in any used dataset.
-			Using a 0.5km\textsuperscript{2} large real-world dataset, enabling this optimization with the described default values reduced the number of edges by 5.4\% and increased performance by 9.3\%.
+			Using a 0.5 km\textsuperscript{2} large real-world dataset, enabling this optimization with the described default values reduced the number of edges by 5.4\% and increased performance by 9.3\%.
 			
 		\subsubsection{Convex hull filtering}
 		\label{subsubsec:convex-hull}
