@@ -206,29 +206,30 @@ Next to the actual results, methods and design details on the evaluation are des
 	
 		\subsubsection{Routing}
 		
-			Routing consists of several tasks with varying degrees of impact on the total routing time.
-			Two main factors influence the time required for a routing task.
-			First, the dataset size is a strong influencing factor but has differently large impacts on the time of the routing task.
-			Second, the structure of the data, meaning the number, size and distribution of obstacles, also influences the required time for routing.
-			However, the dataset size is the strongest influence on the overall routing time as it affects all tasks during routing.
+			Routing consists of several tasks with different impact on the total routing time, which is mainly influences by two factors.
+			First, the dataset size is a strong influencing factor but with differently large impact depending on the dataset.
+			Second, the structure of the data, i.e. size, distribution and number of obstacles, also influences the routing time.
+			However, the dataset size has the strongest influence as it affects all tasks during routing.
 			\Cref{fig:eval-city-routing-details} and \ref{fig:eval-rural-routing-details} show the routing times from the \enquote{OSM city} and \enquote{OSM rural} datasets as well as details on the separate tasks during routing.
 			
 			Starting with the total routing times, both categories show different runtime behavior relative to the route length.
 			While the \enquote{OSM city} datasets shows no clear correlation between the beeline distance and the routing time, the \enquote{OSM rural} dataset shows a negative correlation (longer distance means shorter routing time).
 			
-			This negative correlation is most prominent in the largest \enquote{OSM rural} dataset between the first and the fifth routing request.
-			Since the majority of the time is needed to connect the source and destination locations to the graph, the presence of nearby obstacles has a significant impact on the routing time.
+			This negative correlation is most prominent in the largest \enquote{OSM rural} dataset between the first and fifth routing request.
+			Since the majority of the time is needed to connect the source and destination locations to the graph, the presence of close obstacles has a significant impact on the routing time.
 			As illustrated in \Cref{fig:eval-osm-rural-map}, the destination vertex of the first routing request has no nearby obstacles.
 			This means shadow areas can not be used efficiently, resulting in more visibility checks and a slower runtime.
-			The destination vertex of the fifth request has multiple obstacles nearby, casting large shadow areas towards many buildings, which do not need to be further checked.
+			The close obstacles of the destination vertex of the fifth request cast large shadow areas towards many buildings and therefore cause fewer visibility checks.
 			As a result, 86 visibility edges are connected to the source vertex of the first and 18 to the source vertex of the fifth request.
 			
 			This phenomenon of longer routing times for closer waypoints does not appear in the \enquote{OSM city} dataset due to the high density of obstacles and efficient use of shadow areas.
 			However, the effect is still visible in \Cref{fig:eval-city-routing-details-a} at the requests with a beeline distance between 0.5 km and 1 km.
-			Requests in this range, which have a longer processing time, contain vertices at junctions or wide roads with only a few surrounding obstacles, which yields longer processing times.
-
-% TODO A* runtime rises -> general query times will rise with dataset size
+			Requests of a longer processing time within this range contain vertices at junctions or wide roads with only a few surrounding obstacles.
 			
+			However, the A* algorithm in both OSM-based categories takes longer for longer routes.
+			It can therefore be generally assumed that the routing time increases with longer routes.
+			
+			\vspace{3ex}
 			\begin{minipage}{\textwidth}
 				\begin{minipage}{0.4\textwidth}
 					\centering
