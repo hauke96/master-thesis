@@ -124,7 +124,6 @@ Next to the actual results, methods and design details on the evaluation are des
 			A few aspects regarding the runtime behavior can be inferred from the general graph generation times shown in \Cref{fig:eval-import-city} and \Cref{fig:eval-import-rural}.
 			First, as mentioned at the beginning of \Cref{subsec:related-work:visibility-graph}, the process of generating a visibility graph has an inherent quadratic runtime.
 			This fact is directly visible in the import measurements shown in \Cref{fig:eval-import-city-abs} and \Cref{fig:eval-import-rural-abs}, even though it is less prominent in the \enquote{OSM rural} datasets.
-%			Details on the contribution of each task to the overall graph generation time discussed below.
 			Second, \Cref{fig:eval-import-city-rel} and \ref{fig:eval-import-rural-rel} show an increase in the per-vertex processing time, which not necessarily grows quadratic as the \enquote{OSM rural} dataset shows.
 			
 			\begin{figure}[h!]
@@ -144,14 +143,6 @@ Next to the actual results, methods and design details on the evaluation are des
 						\caption{Graph generation times per input vertex.}
 						\label{fig:eval-import-city-rel}
 					\end{subfigure}
-%					\\[3ex]
-%					\begin{subfigure}[t]{\linewidth}
-%						\begin{figcenter}
-%							\input{images/evaluation/osm-based-city/plot-import-time-per-vertices.py_per-vertex-added.pgf}
-%						\end{figcenter}
-%						\caption{Increase in graph generation time per additionally added vertex.}
-%						\label{fig:eval-import-city-rel-increase}
-%					\end{subfigure}
 					\caption{Graph generation times using the \enquote{OSM city} datasets.}
 					\label{fig:eval-import-city}
 				\end{minipage}
@@ -172,14 +163,6 @@ Next to the actual results, methods and design details on the evaluation are des
 						\caption{Graph generation times per input vertex.}
 						\label{fig:eval-import-rural-rel}
 					\end{subfigure}
-%					\\[3ex]
-%					\begin{subfigure}[t]{\linewidth}
-%						\begin{figcenter}
-%							\input{images/evaluation/osm-based-rural/plot-import-time-per-vertices.py_per-vertex-added.pgf}
-%						\end{figcenter}
-%						\caption{Increase in graph generation time per additionally added vertex.}
-%						\label{fig:eval-import-rural-rel-increase}
-%					\end{subfigure}
 					\caption{Graph generation times using the \enquote{OSM rural} datasets.}
 					\label{fig:eval-import-rural}
 				\end{minipage}
@@ -246,8 +229,6 @@ Next to the actual results, methods and design details on the evaluation are des
 
 % TODO A* runtime rises -> general query times will rise with dataset size
 			
-%			\vspace{3ex}
-%			\noindent
 			\begin{minipage}{\textwidth}
 				\begin{minipage}{0.4\textwidth}
 					\centering
@@ -592,7 +573,6 @@ All optimizations active	&  11.1 s		&  1.00									&  11.1 s		& 71.13									\
 			This also means that an expected path contains a certain subjective component, for example, the exact location of a road crossing, the preference of shortcuts via unpaved areas or the avoidance of steps.
 			Therefore, the quality analysis of routes uses mathematical metrics in addition to a manual analysis.
 		
-		% How realistic are the routes (= can I go there in real life)? If not: Why not?
 		\subsubsection{Manual route analysis}
 		\label{subsubsec:manual-route-analysis}
 		
@@ -609,7 +589,6 @@ All optimizations active	&  11.1 s		&  1.00									&  11.1 s		& 71.13									\
 			This expected route was created based on OpenStreetMap data, aerial imagery and local knowledge.
 			It was \emph{not} created to intentionally match the results from the hybrid routing algorithm.
 		
-			% From motivation
 			The first situation, shown in \Cref{fig:eval-osterstrasse}, illustrates the problem of missing edges for graph-based algorithms.
 			The square \enquote{Fanny-Mendelssohn Platz} in Hamburg, Germany, is a mostly unconnected area and therefore not traversable by graph-based algorithms.
 			A routing request using GraphHopper\footnote{\url{https://www.osm.org/directions?engine=graphhopper\_foot\&route=53.57657,9.95210;53.57601,9.95268}} yields the red route, which does not cross the square due to missing edges and therefore takes a detour.
@@ -765,7 +744,6 @@ All optimizations active	&  11.1 s		&  1.00									&  11.1 s		& 71.13									\
 			Even though determining shortest routes is the overall goal, it indicates that missing obstacles lead to unrealistically short routes.
 			This is in line with the results of the previous manual route analysis, according to which missing data leads to short but unrealistic routes.
 			\begin{wrapfigure}{r}{0.35\textwidth}
-%				\vspace{-0.55\baselineskip}
 				\begin{figcenter}
 					\begin{tikzpicture}
 						[
@@ -787,8 +765,6 @@ All optimizations active	&  11.1 s		&  1.00									&  11.1 s		& 71.13									\
 						
 						\draw (c00.center) -- (c01.center) -- (c02.center) -- (c03.center) -- (c04.center);
 						\draw (c10.center) -- (c11.center) -- (c12.center) -- (c13.center) -- (c14.center);
-						%						\draw (c01.center) -- (c02.center) -- (c03.center) -- (c04.center);
-						%						\draw (c11.center) -- (c12.center) -- (c13.center) -- (c14.center);
 						
 						\draw[>=stealth',<->,densely dotted] (c00) -- (c10);
 						\draw[>=stealth',<->,densely dotted] (c01) -- (c11);
@@ -834,9 +810,6 @@ All optimizations active	&  11.1 s		&  1.00									&  11.1 s		& 71.13									\
 				\caption[Relative route distance comparison.]{Relative route distances compared to the beeline distance between the waypoints of each routing request using the 0.5 km\textsuperscript{2} OSM datasets.}
 				\label{fig:eval-route-distances}
 				\vspace{3ex}
-	%			\end{figure}
-				
-	%			\begin{figure}[h]
 				\begin{subfigure}[t]{\linewidth}
 					\begin{figcenter}
 						\input{images/evaluation/similarity-metric/plot.py_osm-city_hausdorff.pgf}

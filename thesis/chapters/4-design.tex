@@ -26,7 +26,6 @@ Finally, an overview of the separate components and a description of the deploym
 		Functional requirements of the resulting software can be formulated without problems since this is not a complex software system but a single algorithm with a distinct task.
 		The hybrid routing algorithm should determine an optimal path between two arbitrary locations by following existing ways but also by traversing open spaces while avoiding obstacles.
 		An optional weight function should assign custom edge weights to find minimum-weight paths.
-%		Processing of geospatial data must consider existing road network data as well as obstacles, which are features that will be avoided on paths traversing open spaces.
 		The weight function should enable the algorithm to alternate between road segments and open spaces.
 		
 		More complex and time-consuming are the quality requirements.
@@ -194,9 +193,6 @@ Finally, an overview of the separate components and a description of the deploym
 		The same situation would arise with two arbitrary obstacles, including polygonal ones, touching each other in a single vertex.
 		Both cases must be considered to ensure that shortest paths lead \emph{around} the obstacle.
 		
-%		Since the visibility graph is solely used to determine shortest paths, some assumptions and optimizations can still be made.
-%		As mentioned above, these optimizations did not influence the overall architecture and are therefore described in detail in \Cref{sec:visibility-graph-creation}.
-		
 		A core aspect of the routing algorithm is the reachability of arbitrary locations not represented by vertices within the graph.
 		Therefore, adding visibility edges after the graph creation must be possible and should ideally be independent of the algorithm chosen to generate the graph and edges.
 		
@@ -205,7 +201,7 @@ Finally, an overview of the separate components and a description of the deploym
 		The routing behavior is significant to agent-based simulations as it directly affects the time required for a simulation.
 		Creating the graph in a preprocessing step decouples its processing time from the simulation, especially when persisting the graph for later uses.
 		
-		All these requirements and considerations, including problems and efforts outlined below, lead to the decision of implementing a simple graph generation approach with some easy but effective optimizations.
+		All these requirements and considerations, including problems and efforts outlined below, led to the decision of implementing a simple graph generation approach with some easy but effective optimizations.
 	
 	\subsection{Suitability of existing approaches}
 	\label{subsec:suitablilty-edge-creation-approaches}
@@ -295,7 +291,7 @@ Finally, an overview of the separate components and a description of the deploym
 	\Cref{fig:components-sequence-routing} illustrates the internal tasks of a routing request using the \texttt{OptimalPath(source, destination, weightFunction)} query method.
 	The result is a list of coordinates representing the shortest path between two input coordinates.
 	
-%	For convenience and due to required preparations, routing queries are put to the hybrid visibility graph.
+	% For convenience and due to required preparations, routing queries are put to the hybrid visibility graph.
 	To fulfill the overall goal of this work of finding optimal paths between arbitrary locations, it must be ensured that these locations are reachable via the hybrid visibility graph.
 	Without further consideration of the source and destination locations, there is no guarantee that these locations are represented by any vertex in the graph.
 	Therefore, the hybrid visibility graph has to temporarily connect these locations to the graph if they are not present already.

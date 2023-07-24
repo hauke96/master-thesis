@@ -22,7 +22,6 @@ Hence, the topic of agents and simulations will be covered as well.
 	
 	Besides the mentioned explicit references to locations, such as coordinates, implicit location references can also be encoded within the metadata of datasets.
 	One example is the image-based GeoTIFF format described in \Cref{subsubsec:geotiff-format}.
-%	The exact coordinate of a data point (in this case a pixel in the TIFF image), must then be calculated using this metadata.
 		
 	\subsection{Data structures}
 	\label{subsec:data-structures}
@@ -421,12 +420,9 @@ Hence, the topic of agents and simulations will be covered as well.
 		\label{subsubsec:cpd}
 		
 			A \term{compressed path database} (\term*{CPD}) itself is not directly a routing algorithm but rather a technique to efficiently store shortest paths between any two locations\cite{botea-cpd-2013}.
-%			In other words, the solution of the all-pair shortest paths problem from \Cref{subsubsec:all-pair-shortest-path} can be stored in a CPD without having extensive memory requirements.
 			Grids are used in the following, but CPDs can also be created on graphs.
-%			The simplest form of a CPD works on a grid rather than a graph, where the number of neighbors is limited and visualization, calculations and compression is simpler.
 			For a grid of $n$ cells, $n$ many such grids exist in the CPD, each belongs to a cell $c$ and stores the information on how to get from $c$ to each other cells in the grid as illustrated in \Cref{fig:cpd}.
 			This information is a movement operation, e.g. a target cell $t$ containing the operation \enquote{move left} means the left cell of $c$ is the next cell on the shortest path from $c$ to $t$.
-%			Therefore, a potential target cell $t$ contains a movement operation, e.g. \enquote{move to the left cell}, which is the next operation that needs to be performed to get from $c$ to $t$ on the shortest path.
 			After performing the movement operation and getting from $c$ to $c'$, the next movement towards $t$ is stored in the movement grid of $c'$ in cell $t$.
 			These steps are performed until $t$ has been reached, which means answering shortest paths queries is a linear time operation.
 			
@@ -475,7 +471,6 @@ Hence, the topic of agents and simulations will be covered as well.
 		A well-fitting analogy for this approach is the propagation of water waves traveling through a 2D space, folding around obstacles, colliding with each other and finally reaching the destination location.
 		Collisions between wavefronts and obstacles as well as collisions between two wavefronts determine the regions' boundaries with the source of the wavefront as its predecessor.
 		After detecting such a collision, the angular region of the wavefront is adjusted depending on the type of collision.
-%		For each region the origin of the wavefront is known, which enables the query routine to follow these predecessors back to the source.
 		The fundamental difficulty of this approach is the efficient detection and handling of collisions.
 		Efficient algorithms are presented in \Cref{subsec:related-work-geometric-routing}.
 

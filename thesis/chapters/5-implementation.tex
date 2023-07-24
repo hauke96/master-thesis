@@ -277,8 +277,6 @@ And third, each algorithmic step of the graph generation and query answering is 
 	\label{subsec:step-2-knn-search}
 			
 		This step performs the main task of the visibility graph creation, namely for each vertex the determination of all visible \term*[k-nearest neighbors]{$k$ many nearest neighbors} (\term*{kNN}).
-%		Determining not only $k$ but all visible neighbors would also be possible, but the parameter $k$ is an easy way to increase performance with the downside of not having all possible edges in the final routing graph.
-%		The fact of potential suboptimal routes is discussed in the following.
 		Before the actual algorithm is presented, some concepts and optimizations are described to understand the implemented algorithm.
 		Then an overview of the performed steps is given, followed by details on each step.
 		
@@ -310,7 +308,6 @@ And third, each algorithmic step of the graph generation and query answering is 
 			Subdividing the neighbors into bins ensures that there will definitely be some connections to the other side of the park.
 			
 			Generally restricting the number of neighbors reduces the number of created edges and leads to less accurate routing results, i.e. to non-shortest paths.
-%			As mentioned above, one bin contains the $k_n$ visibility neighbors, which are turned into edges during the graph creation.
 			However, the negative impact due to this restriction is not considered significant for sufficient values of $k_b$ and $k_n$.
 			From a theoretical perspective, using the above-mentioned default values of ten edges per 10° range, an omitted neighbor $u$ of a vertex $v$ was located in a similar direction as all other neighbors in this bin did.
 			The additional distance of a detour from $v$ over some other vertices to $u$, due to the missing direct connection, is most likely relatively small.
@@ -386,7 +383,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 							+(180:0.35) arc [start angle=180, delta angle=-97.126, radius=0.35];
 						\draw[thin,Green4] (c03) -- (intersection of c03--[shift=(c03)]82.874:3 and c12--c13);
 						\draw[thin,Green4] ($(c03)+(0,\d)$) -- +(180:4);
-						%							
+						
 						\filldraw[line width=0,DodgerBlue3!35!white]
 							($(c12)+(0,-\d)$) --
 							+(279.462:0.4) arc [start angle=279.462, delta angle=80.538, radius=0.4];
@@ -499,15 +496,6 @@ And third, each algorithmic step of the graph generation and query answering is 
 			\begin{enumerate}[leftmargin=2.25em+\widthof{2.},label={2.\arabic*.}]
 				\item Determine the obstacle neighbors for each vertex.
 				\item Determine the visibility neighbors of every convex hull vertex.
-%				\begin{enumerate}
-%					\item For each other vertex $u$, do the following:
-%					\begin{enumerate}
-%						\item Is $u$ in any shadow area \emph{or} not on any convex hull \emph{or} not in any valid angle area? If so: $u$ is not relevant, move to the next other vertex.
-%						\item Query all obstacles between $v$ and $u$. This is done by the bounding box spanned by $v$ and $u$.
-%						\item Create and store the shadow area for each of these obstacles.
-%						\item Check if $u$ is a visibility neighbor, which is true if a) $u$ is still not in any shadow area and b) the line segment from $v$ to $u$ intersects with none of the above queries obstacles.
-%					\end{enumerate}
-%				\end{enumerate}
 				\item Sort the visibility neighbors into bins based on the obstacle neighbors.
 			\end{enumerate}
 		
@@ -648,10 +636,9 @@ And third, each algorithmic step of the graph generation and query answering is 
 								\filldraw (vo1)++(-\gap,0)++(90:\r) arc (90:270:\r);
 								\filldraw (vo1)++( \gap,0)++(90:\r) arc (90:-90:\r);
 								
-%								\draw (vo1)++(270:\rMargin) -- (vo0);
 								\draw ($(vo1)+(270:\r)+(-0.275mm,0)$) -- ($(vo0)+(-0.275mm,2mm)$) -- (vo0.north);
 								\draw ($(vo1)+(270:\r)+( 0.275mm,0)$) -- ($(vo0)+( 0.275mm,2mm)$) -- (vo0.north);
-%								\draw (vo1)++(90:\rMargin) -- (vo2);
+
 								\draw ($(vo1)+(90:\r)+(-0.275mm,0)$) -- ($(vo2)+(-0.275mm,-2mm)$) -- (vo2.south);
 								\draw ($(vo1)+(90:\r)+( 0.275mm,0)$) -- ($(vo2)+( 0.275mm,-2mm)$) -- (vo2.south);
 								
@@ -703,22 +690,16 @@ And third, each algorithmic step of the graph generation and query answering is 
 						\draw[DodgerBlue3,densely dashed,->] (v) -- (vn1);
 						\draw[DodgerBlue3,densely dashed,->] (v) -- (vn2);
 						\draw[DodgerBlue3,densely dashed,->] (v) -- (vn3);
-%							\draw[DodgerBlue3,densely dashed,->] ($(v)+(-0.075,-\d)$) -- ($(n1)+(0.075,-\d)$);
-%							\draw[DodgerBlue3,densely dashed,->] ($(v)+(0.075,-\d)$) -- ($(n3)+(-0.075,-\d)$);
 						
 						% Visibility edges to n3
 						\tikzDot[Red2]{(0.7,1.4)}{vn4}
 						\tikzDot[Red2]{(2,1)}{vn5}
 						\draw[Red2,densely dotted,->] (v) -- (vn4);
 						\draw[Red2,densely dotted,->] (v) -- (vn5);
-%							\draw[Red2,densely dotted,->] ($(v)+(0.075,\d)$) -- ($(n3)+(-0.075,\d)$);
-%							\draw[Red2,densely dotted,->] ($(v)+(\d,0.075)$) -- ($(n2)+(\d,-0.075)$);
 						
 						% Visibility edges to n2
 						\tikzDot[Green4]{(-2,1.3)}{vn6}
 						\draw[Green4,dashdotted,->] (v) -- (vn6);
-%							\draw[Green4,dashdotted,->] ($(v)+(-\d,0.075)$) -- ($(n2)+(-\d,-0.075)$);
-%							\draw[Green4,dashdotted,->] ($(v)+(-0.075,\d)$) -- ($(n1)+(0.075,\d)$);
 					\end{tikzpicture}
 				\end{figcenter}
 				\caption[Example of vertices sorted into obstacle neighbor-based bins.]{
