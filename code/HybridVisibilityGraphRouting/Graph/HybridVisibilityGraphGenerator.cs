@@ -54,10 +54,10 @@ public static class HybridVisibilityGraphGenerator
         var vertexNeighbors =
             VisibilityGraphGenerator.CalculateVisibleKnn(obstacles, visibilityNeighborBinCount,
                 visibilityNeighborsPerBin);
-        var (hybridVisibilityGraph, spatialGraph) = AddVisibilityVerticesAndEdges(vertexNeighbors, obstacles);
+        var hybridVisibilityGraph = CreateVisibilityGraph(vertexNeighbors, obstacles);
 
         MergeRoadsIntoGraph(features, hybridVisibilityGraph, roadExpressions);
-        AddAttributesToPoiNodes(features, spatialGraph, 0.001, poiExpressions);
+        AddAttributesToPoiNodes(features, hybridVisibilityGraph, poiExpressions);
 
         Log.D($"{nameof(HybridVisibilityGraphGenerator)}: Done after {watch.ElapsedMilliseconds}ms");
         return hybridVisibilityGraph;
@@ -115,7 +115,7 @@ public static class HybridVisibilityGraphGenerator
         return obstacleIndex;
     }
 
-    public static (HybridVisibilityGraph, SpatialGraph) AddVisibilityVerticesAndEdges(
+    public static HybridVisibilityGraph CreateVisibilityGraph(
         Dictionary<Vertex, List<List<Vertex>>> vertexNeighbors,
         QuadTree<Obstacle> obstacles)
     {
@@ -248,7 +248,7 @@ public static class HybridVisibilityGraphGenerator
         Log.D($"  Number of edges: {graph.EdgesMap.Count}");
 
         var hybridVisibilityGraph = new HybridVisibilityGraph(graph, obstacles, vertexToNode, nodeToAngleArea);
-        return (hybridVisibilityGraph, graph);
+        return hybridVisibilityGraph;
     }
 
     /// <summary>
@@ -339,8 +339,8 @@ public static class HybridVisibilityGraphGenerator
     /// Takes each feature with an attribute name from "poiKeys" and adds all attributes of this feature to the closest
     /// node (within the given distance) in the graph.
     /// </summary>
-    public static void AddAttributesToPoiNodes(IEnumerable<IFeature> features, ISpatialGraph graph,
-        double nodeDistanceTolerance = 0.001, string[]? poiExpressions = null)
+    public static void AddAttributesToPoiNodes(IEnumerable<IFeature> features, HybridVisibilityGraph graph, string[]? poiExpressions = null,
+        double nodeDistanceTolerance = 0.001)
     {
         poiExpressions ??= DefaultPoiExpressions;
 
@@ -349,6 +349,7 @@ public static class HybridVisibilityGraphGenerator
             {
                 var featurePosition = f.Geometry.Coordinates[0].ToPosition();
                 var nearestNodes = graph
+                    .Graph
                     .NodesMap
                     .Values
                     .Where(n => n.Position.DistanceInMTo(featurePosition) < nodeDistanceTolerance)
