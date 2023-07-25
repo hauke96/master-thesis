@@ -1,52 +1,36 @@
-This document is as of: 2023-06-09 (commit 1b64146857cc69089fa11d1f56b458f35d6ded9f).
+**Note:**
+This document is as of: 2023-07-25 (commit 0460b47688e1b8a483a89b626f4019b8866f6b7b).
 
 # Idea and Strategy
 
-The evaluation should three times:
-
-1. Geometric routing only. This tests the preprocessing and routing performance of my code.
-2. Network based routing only. This gives the basis to which my hybrid approach will be compared to.
-3. The hybrid approach, which can be compared to the pure network and geometric approaches.
-
-There will be two categories of datasets: Artificial datasets produced by a pattern and real world OSM-based datasets.
-The OSM-based ones can be used in all three steps, the pattern one will only be used for the pure geometric and hybrid routing since no highways are in there, just obstacles.
+There will be two categories of datasets: Patter pattern-based datasets and real-world OSM-based datasets.
+One agent (s. `code/HikerModel`) is used with an agent creating and walking along numerous routes in a given dataset.
 
 ## Data to collect
 
-* Import time & memory consumption relative to amount of vertices
-* Routing time & memory consumption relative to
+* Import time relative to amount of vertices
+* Routing time relative to
 	* Euclidean distance
 	* Route distance
 	* Amount of vertices
-* Distance difference of euclidean and route distance (Kind of: Optimality of routing results)
+	* Amount of edges
+* Times of different methods (i.e. not only the total time of the algorithm/routing)
+* General memory consumption (via additional `record-ram-usage.sh` script)
 
 ## How each experiment is performed
 
-The `HikierModel` will be used and the agent travels through the world based on the given file with waypoints.
-The waypoints have different distances, e.g. 10m, 100m, 500m, 1000m, 2000m.
+The `HikierModel` will be used and the agent travels through the world based on the given file with waypoints of different distances.
 
 ## Visualization
 
-The following things should be visualized:
+Numerous things can then be visualized, e.g. the processing time of each task or the relation between the beeline and actual distance.
 
-1. Length of waypoint distances to show that they are evenly distributed
-2. Vertex count of datasets
-3. Import
-	1. Time & memory consumption over vertex count
-	1. Time & memory consumption per vertex over vertex count
-	2. Separate graphs for the above metrics for `GetNeighborsFromObstacleVertices` and `CalculateVisibleKnn`
-4. Routing
-	1. Time & memory consumption relative to: Euclidean distance (time per m), route distance (time per m), amount of vertices (time per vertex)
-	2. Routing time divided by import time over vertex count (How much work was moved into the import?)
-	3. Factor of which the route was longer than the euclidean distance relative to the euclidean distance
+Visualization is done by python scripts using the `seaborn` library.
+See the according [README](./visualization/README.md) for further details.
 
-### Tool
+## Evaluations
 
-Visualization is done by python scripts using the seaborn library. See the according [README](./visualization/README.md) for further details.
-
-## Evaluation checklist
-
-This is a list of evaluations that should be performed categorized by dataset.
+This is a list of evaluations that were performed, categorized by dataset.
 Details on each dataset can be found below.
 
 ### 1. Without roads
@@ -54,88 +38,37 @@ Details on each dataset can be found below.
 The graph generation and routing is performed as is (without adjustments).
 This means the merging takes place (even though there are no roads) and routing is done on the resulting hybrid visisibility graph.
 
-* [x] Maze like pattern
-	* [x] Create dataset
-	* [x] Measurement
-	* [x] Visualize
-* [x] Rectangle pattern
-	* [x] Create dataset
-	* [x] Measurement
-	* [x] Visualize
-* [x] Circle pattern
-	* [x] Create dataset
-	* [x] Measurement
-	* [x] Visualize
-* [x] OSM "city" dataset without roads (multiple area sizes)
-	* [x] Create dataset
-	* [x] Measurement
-	* [x] Visualize
-* [x] OSM "rural" dataset without roads (multiple area sizes)
-	* [x] Create dataset
-	* [x] Measurement
-	* [x] Visualize
+* Maze like pattern
+* Rectangle pattern
+* Circle pattern
+* OSM "city" dataset without roads (multiple area sizes)
+* OSM "rural" dataset without roads (multiple area sizes)
 
 ### 2. With roads
 
 The import takes place as is, without adjustments. Merging is performed and routing takes place on the resulting visisibility graph.
 
-* [x] OSM "city" dataset with roads (multiple area sizes)
-	* [x] Create dataset
-	* [x] Measurement
-	* [x] Visualize
-* [x] OSM "rural" dataset with roads (multiple area sizes)
-	* [x] Create dataset
-	* [x] Measurement
-	* [x] Visualize
+* OSM "city" dataset with roads (multiple area sizes)
+* OSM "rural" dataset with roads (multiple area sizes)
 
 ### 3. Without obstacles
 
-The import takes place but without obstacle considerstion. The dataset contains them, but `GetObstacles` is modified to return an empty set.
+The import takes place but without obstacle, they got removed in beforehand.
 Merging is performed and routing takes place on the resulting visisibility graph.
 
-* [x] OSM "city" dataset without obstacles (multiple area sizes)
-	* [x] Create dataset
-	* [x] Measurement
-	* [x] Visualize
-* [x] OSM "rural" dataset without obstacles (multiple area sizes)
-	* [x] Create dataset
-	* [x] Measurement
-	* [x] Visualize
+* OSM "city" dataset without obstacles (multiple area sizes)
+* OSM "rural" dataset without obstacles (multiple area sizes)
 
 ### 4. Optimizations
 
-Use the full OSM dataset and run it with different optimizations turned on/off:
+The full OSM dataset were usef with different optimizations turned on/off:
 
-* [x] Shadow areas
-	* [x] Measurement
-	* [x] Visualize
-* [x] Convex hull (only consider vertices on convex hull)
-	* [x] Measurement
-	* [x] Visualize
-* [x] Convex hull (only consider valid angle areas)
-	* [x] Measurement
-	* [x] Visualize
-* [x] Convex hull (both)
-	* [x] Measurement
-	* [x] Visualize
-* [x] BinTree instead of BinIndex
-	* [x] Measurement (just raw index runtimes, not within the application)
-	* [x] Visualize (just as table)
-* [x] Normal NTS collision detection instead of my implementation
-	* [x] Measurement
-	* [x] Visualize
-* [x] Without knn restriction (= search for all visibility neighbors)
-	* [x] Measurement
-	* [x] Visualize
-
-## Theoretic considerations
-
-The optimum would be a Big-O notation of the algorithm.
-A separate view on preprocessing and routing would be good.
-
-Use these considerations as a kind of hypothesis for the experiments below (check if the experiment data behaves like the theoretic considerations predict it to behave).
-
-TODO: These considerations are still to be done.
+* Shadow areas
+* Convex hull filtering
+* Valid angle area filtering
+* BinTree instead of BinIndex
+* Normal NTS collision detection instead of my implementation
+* Without knn restriction (= search for all visibility neighbors)
 
 # Datasets
 
@@ -143,7 +76,7 @@ TODO: These considerations are still to be done.
 
 See the [README](./datasets/osm-based/README.md) for osm-based datasets.
 
-## Create an artificial pattern based datasets
+## Create an artificial pattern-based datasets
 
 See the general [README](./datasets/README.md) for datasets.
 
@@ -151,12 +84,12 @@ See the general [README](./datasets/README.md) for datasets.
 
 To run the evaluation, I used the CLI to be able to run the whole process using `sudo`.
 This allows the model to set the thread priority to "high" so that the evaluation process runs more or less on its own thread.
+This is optional, the model worls without `sudo` as well.
 
 ## Build the model
 
 1. Go into the `HikerModel` folder (the hole process is tailored for this project)
-2. Make sure the hiker has a good step size for the dataset you're using (see `StepSize` in the `Model/Hiker.cs` class)
-3. `dotnet build --configuration Release` (can also be executed from within the IDE)
+2. `dotnet build --configuration Release` (can also be executed from within the IDE)
 
 ## Run the model
 
@@ -167,29 +100,24 @@ There are two options which are described in detail below:
 
 ### A: Using script
 
-The Script `./evaluation/execute-evaluation.sh` accepts the model path and parameter for the models themselves (see `-h` parameter for more information).
+The `execute-all-evaluations.sh`, as the name suggests, executed all evaluations using all datasets.
+It internally uses the `execute-evaluation.sh` script.
+
+The Script `execute-evaluation.sh` accepts the model path and parameter for the models themselves (see `-h` parameter for more information).
 Running it like this uses the three smallest datasets from the pattern-datasets:
 
 ```
 execute-evaluation.sh ../code/HikerModel datasets/pattern-based-rectangles results/pattern-based-rectangles "pattern_1x1 pattern_2x2 pattern_3x3"
 ```
 
-Little helper script to not manually copy-paste all dataset names:
+Little helper script to not manually copy-paste all dataset names as used in the `all-evaluations`-script:
 
 ```
 DATASETS=$(ls datasets/pattern-based-rectangles/ | grep --color=never -P "pattern_\\d*x\\d*\.geojson" | sed "s/\.geojson//g")
 sudo ./execute-evaluation.sh ../code/HikerModel datasets/pattern-based-rectangles results/pattern-based-rectangles/ "$DATASETS"
 ```
 
-**Note:** You must use `sudo` on Linux to change the thread priority to "high".
-
-#### Getting dataset files
-
-Specifying all dataset names manually is boring, so here's some helping code getting all relevant GeoJSON files for the rectangle pattern based dataset:
-
-`DATASETS=$(ls datasets/pattern-based-rectangles/ | grep --color=never -P "pattern_\\d*x\\d*\.geojson" | sed "s/\.geojson//g")`
-
-Using `./execute.sh ... $DATASETS` is much easier.
+**Note:** You must use `sudo` on Linux to change the thread priority to "high" (but it will work without it as well).
 
 ### B: Manual execution
 
@@ -203,7 +131,4 @@ Within the `code/HikerModel` folder:
 # Visualize the results
 
 The `visualizations/` folder contains several python sripts generating visualizations via the python library seaborn.
-
-
-
-
+See according README.md there.
