@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HybridVisibilityGraphRouting.Geometry;
 using HybridVisibilityGraphRouting.Graph;
+using HybridVisibilityGraphRouting.IO;
 using Mars.Common;
 using Mars.Common.Collections;
 using Mars.Common.Collections.Graph;
@@ -92,6 +94,8 @@ public class HybridVisibilityGraphGeneratorTest
             var obstacle1Coord1 = GetNode(graph, featureObstacle1.Geometry.Coordinates[1]);
 
             var obstacle2Coord0 = GetNode(graph, featureObstacle2.Geometry.Coordinates[0]);
+            
+            // Second vertex of obstacle 2 is represented by two nodes (called upper and lower here)
             var obstacle2Coord1Upper = GetNodeForNeighbor(hybridVisibilityGraph,
                 featureObstacle2.Geometry.Coordinates[1], new Coordinate(1.5, 1.5));
             var obstacle2Coord1Lower = GetNodeForNeighbor(hybridVisibilityGraph,
@@ -106,6 +110,8 @@ public class HybridVisibilityGraphGeneratorTest
             var intersection_O1C1_O2C0_road2 = GetNode(graph, new Coordinate(1.5, 1));
             var intersection_O1C1_O2C1 = GetNode(graph, new Coordinate(1.5, 1.5));
             var intersection_O1C1_O2C2 = GetNode(graph, new Coordinate(1, 1.5));
+            
+            Exporter.WriteGraphToFile(hybridVisibilityGraph.Graph);
 
             // All edges on obstacle1 should exist
             AssertEdges(graph, obstacle1Coord0, obstacle1Coord1);
@@ -114,8 +120,8 @@ public class HybridVisibilityGraphGeneratorTest
             AssertEdges(graph, obstacle2Coord0, obstacle2Coord1Upper);
             AssertEdges(graph, obstacle2Coord1Upper, obstacle2Coord2);
 
-            AssertEdges(graph, obstacle2Coord0, obstacle2Coord1Lower);
-            AssertEdges(graph, obstacle2Coord1Lower, obstacle2Coord2);
+            AssertNoEdges(graph, obstacle2Coord0, obstacle2Coord1Lower);
+            AssertNoEdges(graph, obstacle2Coord1Lower, obstacle2Coord2);
 
             // Intersections between Obstacle1-Coordinate0 and Obstacle2
             AssertEdges(graph, obstacle1Coord0, intersection_O1C0_O2C2);
@@ -141,11 +147,15 @@ public class HybridVisibilityGraphGeneratorTest
             AssertEdges(hybridVisibilityGraph, (0.75, 1.5), (1, 1.5));
             AssertEdges(hybridVisibilityGraph, (1, 1.5), (1.5, 1.5));
             AssertEdges(hybridVisibilityGraph, (1.5, 1.5), (1.75, 1.5));
-            AssertEdges(hybridVisibilityGraph, (1.75, 1.5), (3, 1.5));
+            AssertEdges(hybridVisibilityGraph, (1.75, 1.5), (1.9166666667, 1.5));
+            AssertEdges(hybridVisibilityGraph, (1.9166666667, 1.5), (3, 1.5));
 
             // Nodes and edges in road 2
-            AssertEdges(hybridVisibilityGraph, (1.5, 1.5), (1.5, 1));
-            AssertEdges(hybridVisibilityGraph, (1.5, 1), (1.5, -1));
+            AssertEdges(hybridVisibilityGraph, (1.5, 1.5), (1.5, 1.25));
+            AssertEdges(hybridVisibilityGraph, (1.5, 1.25), (1.5, 1.125));
+            AssertEdges(hybridVisibilityGraph, (1.5, 1.125), (1.5, 1));
+            AssertEdges(hybridVisibilityGraph, (1.5, 1), (1.5, 0.375));
+            AssertEdges(hybridVisibilityGraph, (1.5, 0.375), (1.5, -1));
         }
 
         [Test]
@@ -184,23 +194,29 @@ public class HybridVisibilityGraphGeneratorTest
             var (newNodes, newEdges) = hybridVisibilityGraph.ConnectNodeToGraph(nodeForPosition);
 
             Assert.AreEqual(positionToAdd, hybridVisibilityGraph.Graph.NodesMap[nodeForPosition.Key].Position);
-            CollectionAssert.AreEquivalent(new[] { nodeForPosition.Key, 16, 17 }, newNodes.Map(n => n.Key));
-            Assert.AreEqual(new Position(1.5, 0.33333333333333337), hybridVisibilityGraph.Graph.NodesMap[16].Position);
-            Assert.AreEqual(new Position(2.25, 1.5), hybridVisibilityGraph.Graph.NodesMap[17].Position);
-            // Assert new edges between existing intersection nodes 9 and 13
-            AssertEdges(hybridVisibilityGraph.Graph, 11, 1);
-            AssertEdges(hybridVisibilityGraph.Graph, 13, 2);
+            CollectionAssert.AreEquivalent(new[] { nodeForPosition.Key, 20, 21 }, newNodes.Map(n => n.Key));
+            Assert.AreEqual(new Position(1.5, 0.33333333333333337), hybridVisibilityGraph.Graph.NodesMap[20].Position);
+            Assert.AreEqual(new Position(2.25, 1.5), hybridVisibilityGraph.Graph.NodesMap[21].Position);
+            
+            // Assert new edges from new intersection nodes 20/21 to neighbor vertices on the roads 
+            AssertEdges(hybridVisibilityGraph.Graph, 21, 13);
+            AssertEdges(hybridVisibilityGraph.Graph, 21, 7);
+            
+            AssertEdges(hybridVisibilityGraph.Graph, 20, 8);
+            AssertEdges(hybridVisibilityGraph.Graph, 20, 15);
+            
             // Assert correct connections to new nodes 15, 16 and 17
-            AssertEdges(hybridVisibilityGraph.Graph, 15, 10);
-            AssertEdges(hybridVisibilityGraph.Graph, 15, 13);
-            AssertEdges(hybridVisibilityGraph.Graph, 15, 16);
-            AssertEdges(hybridVisibilityGraph.Graph, 15, 17);
-            AssertEdges(hybridVisibilityGraph.Graph, 16, 2);
-            AssertEdges(hybridVisibilityGraph.Graph, 16, 13);
-            AssertEdges(hybridVisibilityGraph.Graph, 16, 14);
-            AssertEdges(hybridVisibilityGraph.Graph, 17, 1);
-            AssertEdges(hybridVisibilityGraph.Graph, 17, 11);
-            AssertEdges(hybridVisibilityGraph.Graph, 17, 12);
+            AssertEdges(hybridVisibilityGraph.Graph, 19, 12);
+            AssertEdges(hybridVisibilityGraph.Graph, 12, 0);
+            
+            AssertEdges(hybridVisibilityGraph.Graph, 19, 18);
+            AssertEdges(hybridVisibilityGraph.Graph, 18, 4);
+            
+            AssertEdges(hybridVisibilityGraph.Graph, 19, 20);
+            AssertEdges(hybridVisibilityGraph.Graph, 20, 2);
+            
+            AssertEdges(hybridVisibilityGraph.Graph, 19, 21);
+            AssertEdges(hybridVisibilityGraph.Graph, 21, 1);
             Assert.AreEqual(24, newEdges.Count);
         }
 
@@ -218,6 +234,7 @@ public class HybridVisibilityGraphGeneratorTest
                     new(1, 1.5),
                     new(1.5, 1.5),
                     new(1.75, 1.5),
+                    new(1.9166666666666667, 1.5),
                     new(3, 1.5)
                 },
                 shortestPath
@@ -235,23 +252,6 @@ public class HybridVisibilityGraphGeneratorTest
                     new(0.5, 2),
                     new(0.75, 1.5),
                     new(1, 1),
-                    new(1, 0)
-                },
-                shortestPath
-            );
-        }
-
-        [Test]
-        public void RouteOnRoadEndVisibilityEdges()
-        {
-            var shortestPath = hybridVisibilityGraph.ShortestPath(new Position(-1, 1.5), new Position(1, 0));
-
-            CollectionAssert.AreEqual(
-                new List<Position>
-                {
-                    new(-1, 1.5),
-                    new(0.25, 1.5),
-                    new(0, 1),
                     new(1, 0)
                 },
                 shortestPath
@@ -294,7 +294,7 @@ public class HybridVisibilityGraphGeneratorTest
         }
 
         [Test]
-        public void RouteBetweenArbitraryLocations_existingStartAndDestination()
+        public void RouteToDeadEnd()
         {
             var shortestPath = hybridVisibilityGraph.ShortestPath(new Position(0, 1), new Position(3, 1.5));
 
@@ -302,10 +302,25 @@ public class HybridVisibilityGraphGeneratorTest
                 new List<Position>
                 {
                     new(0, 1),
-                    new(1, 1.5),
-                    new(1.5, 1.5),
-                    new(1.75, 1.5),
+                    new(1.5, 1.25),
                     new(3, 1.5)
+                },
+                shortestPath
+            );
+        }
+
+        [Test]
+        public void RouteBetweenArbitraryLocations_existingStartAndDestination()
+        {
+            var shortestPath = hybridVisibilityGraph.ShortestPath(new Position(1, 0), new Position(0.5, 2));
+
+            CollectionAssert.AreEqual(
+                new List<Position>
+                {
+                    new(1, 0),
+                    new(1, 1),
+                    new(0.75, 1.5),
+                    new(0.5, 2)
                 },
                 shortestPath
             );
@@ -316,11 +331,36 @@ public class HybridVisibilityGraphGeneratorTest
         {
             var originalNodeMap = hybridVisibilityGraph.Graph.NodesMap.CreateCopy();
             var originalEdges = hybridVisibilityGraph.Graph.Edges.CreateCopy();
-            Assert.AreEqual(15, originalNodeMap.Count);
-            Assert.AreEqual(46, originalEdges.Count);
+            Assert.AreEqual(19, originalNodeMap.Count);
+            Assert.AreEqual(86, originalEdges.Count);
 
-            // TODO Source and destination location see each other -> Test case not working anymore -> Fix this (e.g. by a routing profile?) 
             var shortestPath = hybridVisibilityGraph.ShortestPath(new Position(-0.5, 1.55), new Position(3, 1.45));
+
+            CollectionAssert.AreEqual(
+                new List<Position>
+                {
+                    new(-0.5, 1.55),
+                    new(1.25, 1.5),
+                    new(1.5, 1.4928571428571429),
+                    new(3, 1.45)
+                },
+                shortestPath
+            );
+
+            CollectionAssert.AreEquivalent(originalNodeMap, hybridVisibilityGraph.Graph.NodesMap);
+            CollectionAssert.AreEquivalent(originalEdges, hybridVisibilityGraph.Graph.Edges);
+        }
+
+        [Test]
+        public void RouteBetweenArbitraryLocations_weightedRoute()
+        {
+            var originalNodeMap = hybridVisibilityGraph.Graph.NodesMap.CreateCopy();
+            var originalEdges = hybridVisibilityGraph.Graph.Edges.CreateCopy();
+            Assert.AreEqual(19, originalNodeMap.Count);
+            Assert.AreEqual(86, originalEdges.Count);
+
+            Func<EdgeData,NodeData,double> weightFunction = (edge, _) => edge.Length * (edge.Data.IsEmpty() ? 1 : 0.8);
+            var optimalPath = hybridVisibilityGraph.OptimalPath(new Position(-0.5, 1.55), new Position(3, 1.45), weightFunction);
 
             CollectionAssert.AreEqual(
                 new List<Position>
@@ -332,10 +372,11 @@ public class HybridVisibilityGraphGeneratorTest
                     new(1, 1.5),
                     new(1.5, 1.5),
                     new(1.75, 1.5),
-                    new(2.7727272727272725, 1.5),
+                    new(1.9166666666666667, 1.5),
+                    new(3, 1.5),
                     new(3, 1.45)
                 },
-                shortestPath
+                optimalPath
             );
 
             CollectionAssert.AreEquivalent(originalNodeMap, hybridVisibilityGraph.Graph.NodesMap);
@@ -347,8 +388,8 @@ public class HybridVisibilityGraphGeneratorTest
         {
             var originalNodeMap = hybridVisibilityGraph.Graph.NodesMap.CreateCopy();
             var originalEdges = hybridVisibilityGraph.Graph.Edges.CreateCopy();
-            Assert.AreEqual(15, originalNodeMap.Count);
-            Assert.AreEqual(46, originalEdges.Count);
+            Assert.AreEqual(19, originalNodeMap.Count);
+            Assert.AreEqual(86, originalEdges.Count);
 
             var shortestPath = hybridVisibilityGraph.ShortestPath(new Position(1.5, 1.75), new Position(2.5, 1.75));
 
