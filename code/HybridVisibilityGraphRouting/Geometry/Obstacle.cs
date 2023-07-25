@@ -35,6 +35,13 @@ namespace HybridVisibilityGraphRouting.Geometry
                     $"Obstacle of type {geometry.GeometryType} is closed but not a triangle (has {geometry.Coordinates.Length - 1} vertices)!");
             }
 
+            var isCounterClockwiseTriangle = IsClosed && Intersect.Orientation(Coordinates[0], Coordinates[1], Coordinates[2]) == -1;
+            if (isCounterClockwiseTriangle)
+            {
+                // Triangle coordinates must be in clockwise rotation for "isInTriangle" checks.
+                Coordinates.Reverse();
+            }
+
             Vertices = vertices;
             Envelope = geometry.EnvelopeInternal;
             OriginalGeometry = originalGeometry;
@@ -122,16 +129,16 @@ namespace HybridVisibilityGraphRouting.Geometry
                 IsClosed &&
                 (
                     IsInTriangle(
+                        coordinateStart,
                         Coordinates[0],
                         Coordinates[1],
-                        Coordinates[2],
-                        coordinateStart
+                        Coordinates[2]
                     ) ||
                     IsInTriangle(
+                        coordinateEnd,
                         Coordinates[0],
                         Coordinates[1],
-                        Coordinates[2],
-                        coordinateEnd
+                        Coordinates[2]
                     )
                 ) ||
                 IntersectsWithLineString(coordinateStart, coordinateEnd);
@@ -166,13 +173,9 @@ namespace HybridVisibilityGraphRouting.Geometry
         }
 
         /// <summary>
-        /// Check is the coordinate specified by "x" and "y"" is inside the given triangle using
-        /// the barycentric collision check, which is considered one of the fastest ways to check is a point is inside
-        /// a triangle.
-        /// If "x" and "y" build a location on an edge or corner of the triangle, it's not
-        /// considered "inside" and returns false.
+        /// Check "p" is inside the given triangle using a barycentric collision check. If "p" is location on an edge or
+        /// corner of the triangle, it's not considered "inside" and returns false.
         /// </summary>
-        // public static bool IsInTriangle(double x, double y, double x1, double y1, double x2, double y2, double x3,
         public static bool IsInTriangle(Coordinate p, Coordinate c1, Coordinate c2, Coordinate c3)
         {
             var d = (c2.X - c1.X) * (c3.Y - c1.Y) - (c3.X - c1.X) * (c2.Y - c1.Y);

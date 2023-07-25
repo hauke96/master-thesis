@@ -193,9 +193,9 @@ public class ObstacleTest
             obstacle.IntersectsWithLine(new Coordinate(0, 1.5), new Coordinate(3, 1.5), coordinateToObstacles));
 
         // collinear vertices
-        Assert.IsFalse(obstacle.IntersectsWithLine(coordinates[0],
+        Assert.IsTrue(obstacle.IntersectsWithLine(coordinates[0],
             new Coordinate(coordinates[1].X + 1, coordinates[0].Y), coordinateToObstacles));
-        Assert.IsFalse(obstacle.IntersectsWithLine(coordinates[0],
+        Assert.IsTrue(obstacle.IntersectsWithLine(coordinates[0],
             new Coordinate(coordinates[1].X + 10, coordinates[0].Y), coordinateToObstacles));
 
         Assert.IsFalse(obstacle.IntersectsWithLine(coordinates[0],
@@ -258,11 +258,11 @@ public class ObstacleTest
             coordinateToObstacles));
 
         // collinear vertices
-        Assert.IsFalse(obstacle1.IntersectsWithLine(triangle1[0], triangle2[2], coordinateToObstacles));
-        Assert.IsFalse(obstacle2.IntersectsWithLine(triangle1[0], triangle2[2], coordinateToObstacles));
+        Assert.IsTrue(obstacle1.IntersectsWithLine(triangle1[0], triangle2[2], coordinateToObstacles));
+        Assert.IsTrue(obstacle2.IntersectsWithLine(triangle1[0], triangle2[2], coordinateToObstacles));
 
-        Assert.IsFalse(obstacle1.IntersectsWithLine(new Coordinate(2, 0), new Coordinate(2, 3), coordinateToObstacles));
-        Assert.IsFalse(obstacle2.IntersectsWithLine(new Coordinate(2, 0), new Coordinate(2, 3), coordinateToObstacles));
+        Assert.IsTrue(obstacle1.IntersectsWithLine(new Coordinate(2, 0), new Coordinate(2, 3), coordinateToObstacles));
+        Assert.IsTrue(obstacle2.IntersectsWithLine(new Coordinate(2, 0), new Coordinate(2, 3), coordinateToObstacles));
 
         // Line from an vertex to the inside
         Assert.IsTrue(obstacle1.IntersectsWithLine(triangle1[0], new Coordinate(1.8, 1.5), coordinateToObstacles));
