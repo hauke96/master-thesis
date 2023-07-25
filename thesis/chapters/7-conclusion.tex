@@ -1,159 +1,140 @@
 % !TEX root = ../thesis.tex
 % !TeX spellcheck = en_US
 
-% visibility graphs contain shortest paths
-% adding source/destination nodes to graph and connecting them allows determination of shortest path between arbitrary locations in the presence of obstacles in the plain
-% Connecting visibility edges to roads enables more flexible and realistic routes
-% A* routing still fast (speedup methods can be applied) but connecting locations is slowing routing down
-This thesis presented a routing algorithm that combines graph-based with geometric routing and was therefore called \emph{hybrid routing algorithm}.
-It uses road data as well as open spaces between obstacles to find shortest path.
+In this last chapter, the work is summarized and future work is presented.
 
-The geometric routing component is based on visibility graphs, which is a graph that contains only edges between vertices that are visible to each other, i.e. only edges that so not intersect any obstacle from the input dataset.
-Edges in visibility graphs are therefore shortest paths between their vertices, which is a useful property for finding general shortest paths between vertices.
+The presented \emph{hybrid routing algorithm} combines graph-based with geometric routing and, furthermore, determines shortest paths between arbitrary source and destination locations.
+The geometric routing component is based on visibility graphs containing only edges between vertices that are visible to each other.
+Edges in visibility graphs are therefore the shortest connection between two vertices, a useful property for finding general shortest paths.
 Generating a routable visibility graph is one core task of the hybrid routing algorithm.
 
-Merging the visibility graph with the existing road edges from the input dataset is the second core task of the hybrid routing algorithm.
-The challenge in this task is the connecting between a road edge and intersecting visibility edges to allow a graph-based routing algorithm to switch between these two types of edges.
+Merging road edges from the input dataset into the visibility graph is the second core task of the hybrid routing algorithm.
+During this step, intersecting road and visibility edges are split and connected to allow paths to alternate between these two types of edges.
 
-The graph-based routing component consists of the popular A* algorithm, but any graph-based routing algorithm, including ones using speedup techniques, could be used.
-Because source and destination coordinates of a routing query do not necessarily correspond to vertices in the routing graph, these location must be added to the graph.
-After adding vertices for the source and destination, these two new vertices need to be connected to the surrounding graph in order to be reachable by the graph-based routing algorithm.
-
+The graph-based routing component consists of a normal graph-based algorithm, A* in this case, and may use speedup techniques.
+The source and destination locations are added and connected to the graph, as far as they are not represented by existing vertices, which allows the determination of shortest paths between arbitrary locations.
+	
 \section{Future work}
 \label{sec:future-work}
 
-	Even though the presented algorithm works as intended, some problems are known and the potential for further enhancements exists.
-	This sections discusses these problems including potential solutions, lists additional technical enhancements as well as additional functionalities that might be beneficial for routing.
+	Even though the presented algorithm works as intended, some problems are known and a certain potential for further enhancements exists.
+	This section discusses these problems and potential solutions, lists additional technical enhancements and outlines additional functionalities the hybrid routing algorithm might benefit from.
 
 	\subsection{Known problems}
-		% Overall: Speed up visibility edge generation for initial import + routing
-		Even though it might not be a severe problem, the graph generation and routing performance offers potential to be improved, either by an optimization of the current implementation or by implementing a different graph generation algorithm.
+	
+		It might not be a severe problem to all agent-based models and scenarios, but the graph generation and routing performance offers potential for improvement.
+		This can happen by optimizing the current implementation or implementing a different graph generation algorithm.
 		
 		The first approach might use better data structured for vertices and obstacles.
-		In the current implementation, for every vertex, ever other vertex in the dataset is considered a potential neighbor and then filtered out using e.g. valid angle and shadow areas.
-		Using a QuadTree might increase performance for this process since not all vertices need to be checked.
+		In the current implementation, for every vertex, every other vertex in the dataset is considered a potential neighbor and then filtered out using e.g. valid angle and shadow areas.
+		Using a spatial index to query vertices in certain areas might increase performance since not all vertices need to be checked.
 		However, any additional data structure also introduces additional overhead and might only be beneficial for datasets of a certain size.
-		The usefulness of this approach needs testing and evaluation.
+		Therefore, the usefulness of this approach needs to be tested and evaluated.
 		
-		The second approach to reduce graph generation times is a complete reimplementation of the edge creation.
-		Such a reimplementation might use approaches mentioned in \Cref{subsec:suitablilty-edge-creation-approaches}, which showed promising sub-quadratic runtime complexities.
+		The second approach is a complete reimplementation of the edge creation.
+		Such a reimplementation might use approaches mentioned in \Cref{subsec:related-work:visibility-graph,subsec:suitablilty-edge-creation-approaches}, which showed promising sub-quadratic runtime complexities.
 		
 		\begin{wrapfigure}{r}{0.35\textwidth}
-			\vspace{-1.5\baselineskip}
 			\includegraphics[width=\linewidth]{images/qgis-future-work-connectivity-problem}
-			\caption{Connectivity problem in case of too few visibility edges. The green path might be the expected result but the red path is the actual shortest path.}
+			\caption[Example connectivity problem.]{Connectivity problem in case of too few visibility edges. The green path might be the expected result, but the red path is the determined shortest path.}
 			\label{fig:connectivity-problem}
-			\vspace{\baselineskip}
+			\vspace{0.5\baselineskip}
 			\includegraphics[width=\linewidth]{images/qgis-future-work-convex-hull-problem}
-			\caption{Concave polygons do not always contain all necessary edges (red) but only those edges connecting the convex hull (blue). Some regions are therefore unreachable (red marked area).}
+			\caption[Illustration of unreachable areas in concave polygons.]{Concave polygons do not always contain all necessary edges (red) but only those edges connecting the convex hull (blue). Some regions are therefore unreachable (red marked area).}
 			\label{fig:convex-hull-problem}
 		\end{wrapfigure}
 				
-		% Connection to roads based on the hope that there are many visibility edges (in the end the vast number of edges creates a irregular grid like structure even though v-edges are not connected to each other)
-		A problem that might arise with datasets containing very few obstacles are the reduced possibilities to leave a road in order to traverse an open space.
-		This is illustrated in \Cref{fig:connectivity-problem} where the green expected path cannot be used due to missing edges.
-		Forcing the creation of additional edges, i.e. by connecting all vertices of roads and maybe even creating new vertices by splitting roads at certain distances.
+		In datasets with very few obstacles, the connectivity between road and visibility edges may be reduced due to a sparse visibility graph, meaning edges are missing to switch between road and visibility edges properly.
+		\Cref{fig:connectivity-problem} illustrates this:
+		the green expected path cannot be used due to missing edges, which leads to the suboptimal red route.
+		Forcing the creation of additional edges, e.g. by connecting all vertices of roads or splitting roads at certain distances, might solve this problem.
 		
-		Another known problem arises with islands inside of obstacles, for example an island inside a lake that is reachable via a road edge.
-		Even though the hybrid routing algorithm does create edges inside the island, it may also create edges inside the lake.
+		Another problem arises with \enquote{islands} inside of obstacles, for example, an actual island inside a lake that is reachable via an edge representing a pedestrian bridge.
+		Even though the hybrid routing algorithm creates edges inside the island, it might also create edges inside the lake.
 		Handling inner rings of (multi-)polygons is therefore needed to correctly navigate within islands of obstacles.
 		
-		% Convex hull filtering might lead to problems for obstacle part not directly visible to outside (like a cave). Concave hull filtering might be the correct solution.
-		One optimization of the graph generation process is the filtering of vertices by convex hull as introduced in \Cref{subsubsec:convex-hull}.
-		This optimization, however, only works for polygons with no hidden vertices, i.e. vertices with are theoretically reachable but inside the obstacle and not visible to the outside.
+		One optimization of the graph generation process is filtering vertices by convex hulls as introduced in \Cref{subsubsec:convex-hull}.
+		However, this optimization only works for polygons with no hidden vertices, i.e. vertices that are theoretically reachable but inside the obstacle and not visible to the outside.
 		\Cref{fig:convex-hull-problem} illustrates the problem with the red marked area, which is not reachable when only vertices of the convex hull are connected.
-		The red edges are necessary to create correct shortest path from and to the area within the obstacle.
+		The red edges are necessary to create a shortest path from and to the area within the obstacle.
 		
-		% Point like barriers (e.g gate on a road) have nearly no effect → generate orthogonal line-barrier or remove all visibility edges within a radius or something
-		A different type of problem arises with punctual barriers, which are modeled as attributes on roads.
-		This is for example the case for gates and entrances, which are often just attributes in roads or ways.
-		However, in reality gates and entrances are not always punctual features but are often part of a wall or fence.
-		These line-based barriers are not relevant for purely graph-based routing and do often not exist, which is at least the case for OpenStreetMap.
-		For the hybrid routing algorithm, these line-based barriers are of huge value and ensure correct routing results.
-		Without these barriers, the routing will avoid the road with the barrier-attribute but instead might use a visibility edge next to the road.
-		Contributing the missing line-based barriers is the ideal solution but algorithmic approaches might exist as well and may already help to achieve satisfying results.
+		A different type of problem arises with road vertices containing attributes that make them a punctual barrier.
+		In OSM, this is for example the case for a node being part of a road and containing the tag \texttt{barrier=gate}.
+		In reality, however, such gates and entrances are not only punctual features but often belong to a wall or fence.
+		These linestring barriers are not relevant for purely graph-based routing and therefore do not always exist in OpenStreetMap.
+		These line-based barriers are very important for the hybrid routing algorithm to ensure correct routing results.
+		Without these barriers, the routing will avoid the road, due to the barrier-attribute, but instead might use a visibility edge next to the road.
+		Adding the missing linestring barriers to the underlying dataset is the ideal solution but algorithmic approaches might also exist to infer these linestrings automatically.
 		
-	\subsection{Technical enhancements}
+	\subsection{Technical and performance enhancements}
 		
-		Next to general routing problems, the implementation faced several challenges, too.
-		Therefore, future work might also focus on technical enhancements improving the implementation and eventually improving routing results and performance as well.
+		Future work might also consider technical enhancements, improving the implementation and eventually improving routing results and performance.
 	
-		% kD-tree implementations: MARS implementation expensive, NTS implementation only works on classes (MARS stuff often struct) + not supports multiple nodes at same location. Own implementation specifically for points might help
-		The \texttt{HybridVisibilityGraph} class uses a k-d tree as index for the nodes in the graph, which allows fast queries to find existing nodes at given coordinates.
-		This is faster than searching through the entire list of all nodes and is used when adding locations to the graph, which happens during the road edge merging and during routing.
-		Even though the data structure works, there are some technical reasons why this can be enhanced.
-		First, the used k-d tree implementation of MARS internally uses a stack, which is based in an array, which is resized numerous times when answering queries, which significantly reduces the performance of the query method.
-		Second, the NTS also offers a generic k-d tree implementation which only works on classes and only allows unique values, i.e. one node per coordinate.
-		Unfortunately, both criterions are not fulfilled since each node is a \texttt{struct} and multiple nodes might exist per coordinate.
-		Enhancing an existing implementation or choosing a different index structure is a way to improve performance of the graph generation and routing.
+		The \texttt{HybridVisibilityGraph} class uses a k-d tree as a spatial index for the nodes in the graph, which allows fast queries to find existing nodes at given coordinates.
+		This operation is used multiple times when answering routing queries to add locations to the graph.
+		Even though the data structure is suitable for this task, there are some technical reasons why this can be enhanced.
+		First, the used k-d tree implementation of MARS internally uses an array-based stack, which is resized multiple times when answering queries to the k-d tree and therefore significantly reduces its performance.
+		Second, the NTS also offers a generic k-d tree implementation that only works on classes and only allows unique values, i.e. one node per coordinate.
+		Unfortunately, both criteria are not fulfilled since each node is a \texttt{struct} and multiple nodes might exist per coordinate.
+		Working around these problems, enhancing an existing implementation or choosing a different index structure will likely improve the performance of routing queries.
 		
-		% Splitting vertices by their valid angle area might simplify implementation + speeds up graph generation since angle area checks are very very fast.
-		In the current implementation, the visibility relation, i.e. the fact whether or not two input vertices are visible to each other, is done on the level of input vertices.
-		With the help of the vertices obstacle neighbors the visibility neighbors are sorted into bins and for each bin one node is created.
-		This approach introduces a certain complexity to the code, which can be reduced by duplicating vertices based on their obstacle neighbors \emph{before} determining the visibility neighbors.
-		Handling of valid angle areas might become easier and sorting the visibility neighbors into bins will no longer be necessary.
-		The overall performance might also benefit from such a refactoring.
+		In the current implementation, visibility neighbors are determined for each input vertex, then sorted into bins based on the obstacle neighbors of the vertex and finally output vertices are created per bin.
+		This approach of determining visibility neighbors first and then splitting the vertices introduces a certain complexity to the code.
+		Splitting vertices based on their obstacle neighbors \emph{before} determining the visibility neighbors makes handling of valid angle areas easier and sorting the visibility neighbors into bins will no longer be necessary.
+		Not only the code complexity but the overall performance might benefit from such a refactoring as well.
+		
+		Next to performance enhancements in terms of the required time, memory usage can also be improved.
+		As illustrated in \Cref{subsec:memory-consumption}, merging the road graph led to the most significant increase in memory usage.
+		Further analysis needs to take place to find the steps responsible for this increase in memory.
+		One possible enhancement is the combination of data structures and indices in the \texttt{HybridVisibilityGraph}.
+		However, the number of nodes and edges are likely the cause of the high memory usage, which can be reduced by the following approach.
+		
+		The number of edges in the hybrid visibility graph is very high due to the functioning of visibility edges but also due to merged road edges.
+		Approaches exist to reduce the number of edges in a routing graph with little effect on the route quality \cite{aumann-reducing-routing-graph}, which will speed up graph generation and routing but reduce the memory consumption.
 
 	\subsection{Additional functionalities}
 		
-		Possible future work on the hybrid visibility approach might nor only improve the performance and solve existing issue but might also introduce new useful functionalities.
+		Possible future work on the hybrid visibility approach might not only improve the performance and solve existing issue but might also introduce new useful functionalities.
 		
-		% Taking road restrictions into account (tags as well as size)
 		One possible feature is the consideration of road tags.
-		On the one hand this includes the usage pedestrian focused attributes during the A* routing, such as legal restrictions for pedestrian traffic.
-		But on the other hand, road attributes can be used to find unrealistic visibility edges.
-		For example, a visibility edge crossing a eight lane primary road is of very little use since real pedestrians, at least under normal circumstances, will probably not cross such roads without explicit pedestrian crossings.
-		Knowing the size of the road can also help to identify visibility edges lying within the area of the road, which means they will not be used by pedestrians as well.
+		On the one hand, this includes the usage attributes in the weighting function, such as legal restrictions for pedestrian traffic.
+		On the other hand, road attributes can be used to find unrealistic visibility edges.
+		For example, a visibility edge crossing an eight-lane primary road can be removed since real pedestrians, at least under normal circumstances, will probably not cross such roads.
+		Knowing the size of the road can also help to identify visibility edges lying within the area of that road, which means these edges are not realistically usable by pedestrians in the real world.
 		Road attributes can therefore enhance the quality of the routes.
 		
-		% 3D data: Handling OSM level-tags (vertical relation between roads)
-		At least in OpenStreetMap, the third dimension, meaning the vertical orientation of features, is given by attributes as well.
-		This 3D data is currently not supported but would enhance routing in densely built-up urban scenarios.
+		At least in OpenStreetMap, the third dimension, meaning the vertical orientation of features, is specified by specific attributes.
+		This 3D data is currently not supported but would enhance routing in densely built-up urban scenarios with bridges, tunnels or multi-story datasets.
 		
-		% Adding attributes to edges (e.g. when visibility edge goes over grass area → surface=grass to edge)
-		Next to evaluating existing attributes, adding such attributes to visibility edges can be used by the underlying A* algorithm for more accurate routing and also for additional path information for potential end-users.
-		For example, visibility edges traversing grass areas can be augmented with the OSM tag \texttt{surface=grass}.
+		Next to evaluating existing attributes, added attributes on visibility edges can be used by the underlying graph-based algorithm for more accurate routing and also for additional path information for potential end-users.
+		For example, visibility edges traversing grass areas can be augmented with an attribute such as \texttt{surface=grass}.
+		Having attributes on visibility edges enables the routing algorithm to prefer or avoid edges, e.g. by their surface conditions.
 		
-		% Connecting visibility egdes to each other might be a good idea when adding attributes to the edges
-		Having attributes on visibility edges, creating nodes visibility edge intersections enables the routing algorithm to better navigate around undesirable areas, e.g. unpaved surfaces.
+		The current implementation works solely in the main memory, which means the import has to be performed for every execution of a simulation.
+		Storing the hybrid visibility graph to disk detaches the graph generation from its use.
 		
-		% Reduce edge-count e.g. with approaches described in "A Modular Routing Graph Generation Method for Pedestrian Simulation" (Kielar, 2016). This might not speed up anything, though since the visibility calculation is based on vertices. However, this might result in fewer road-segments and faster connection of new edges (which is not that slow anyway)
-		When visibility edges are split at intersection points and reconnected, just like the road edges are merged in the current implementation, then the number of edges in the overall graph increases significantly.
-		Fortunately, approaches exist reducing the number of edges in a routing graph with little effect on the route quality \cite{aumann-reducing-routing-graph}.
-		
-		% Storing graph in a format that keeps the same-location-nodes + additional angle information
-		The current implementation works solely in the main memory of the main memory, which means the import has to be performed to every execution of a simulation.
-		Storing the hybrid visibility graph to disk enables detaches the graph generation from its use.
-		
-		% Parallel usage of routing
 		When using the hybrid visibility graph, routing requests might change the underlying graph by adding new nodes and edges.
-		Even though this only adds new possibilities to routing, parallel routing requests are currently not explicitly supported and might cause problems and unexpected routing results.
-		Allowing parallel routing requests helps autonomous agents in simulations to independently determine optimal paths.
+		Even though this only adds new possibilities to the routing, parallel routing requests are currently not explicitly supported and might cause problems and unexpected routing results.
+		Allowing parallel routing requests helps autonomous agents to determine optimal paths independently.
+		Possible strategies to introduce parallelism need to be determined.
 		
-		% Dynamic changes in obstacles, meaning add, remove or change existing obstacles. Visibility edges need to be re-calculated, but not all → which ones?
-		Currently, the graph is static, which means the data does not change.
+		The presented hybrid visibility graph is static, meaning the data does not change.
 		However, it is already possible to dynamically and temporarily add and connect nodes to the graph.
-		Extending this into the functionality of dynamically change existing data enables the hybrid visibility graph to be used in numerous other scenarios in which the environment dynamically changes.
-		This is particularly interesting for agent-based simulations, e.g. in evacuation scenarios with destroyed or otherwise blocked areas, but also for real-world applications taking for example real-time traffic data and construction sites into account.
+		Extending this into the possibility of dynamically changing the existing data of the graph enables the hybrid visibility graph to be used in numerous additional scenarios in which the environment dynamically changes.
+		This is particularly interesting for agent-based simulations, e.g. in a flooding scenario where the flooded area changed over time, but also for real-world applications taking for example real-time traffic data and construction sites into account.
 		
 \section{Conclusion}
 
-	The presented hybrid routing algorithm enables the determination of shortest paths between arbitrary locations by using an existing road network in combination with edges allowing the traversal of open spaces.
+	The presented hybrid routing algorithm enables the determination of shortest paths between arbitrary locations by using a combination of an existing road network with visibility edges to cross open areas.
 	An evaluation of the implementation showed expected results for the following three main aspects regarding performance and route quality.
 	
-	First, the overall performance has an inherent quadratic time complexity due to the visibility graph creation.
-	Second, the route quality does benefit from edges covering open spaces and the routes did become shorter and more realistic with respect to expected routes real pedestrians would likely choose.
-	This increased realism of the routes can therefore have beneficial effects on agent-based models used to simulate human behaviors.
-	In contrast to the hybrid routing algorithm, purely graph-based routes showed a lower quality with longer routes and large detours, which is especially the case in rural areas with larger open spaces and a less dense road networks.
-	And third, the data quality has significant impact on the route quality.
-	Missing or wrong data leads to routes that are inaccurate or not possible to use in the real world.
+	First, the overall performance shows the expected inherent quadratic time complexity due to the visibility graph creation.
+	Effective optimizations were able to reduce the required processing time significantly.
+	Second, the route quality does benefit from edges covering open spaces and the routes did become shorter and more realistic considering expected routes real pedestrians would likely choose.
+	Agent-based models simulating human behavior can benefit from this increased realism of the routes.
+	In contrast to the hybrid routing algorithm, purely graph-based routes showed a lower quality with longer routes and sometimes large detours, especially in rural areas with larger open spaces and a less dense road network.
+	And third, the data quality significantly impacts the route quality.
+	Missing or wrong data leads to inaccurate or routes that are unusable in the real world.
 	
-	However, the presented algorithm has drawbacks which are covered in the following section about potential \hyperref[sec:future-work]{future work} as well as in my following final thoughts on the algorithm.
-	The most prominent drawback and disadvantage compared to common graph-based algorithm is the low performance.
-	On the one hand, the visibility graph creation has a quadratic runtime complexity, on the other hand does the implementation still offer potential for performance enhancements.
-	This concerns both the import and the routing, since new edges might get generated for the source an destination location.
-	Even though the generated hybrid visibility graph can be stored to disk and only needs to be created once, the routing time cannot be optimized by such simple caching and precomputation.
-	Depending on the agent-based model, this might significantly increase the simulation time.
-	Additional problems and concerns are discussed in the section below.
-	
-	However, I am convinced, that use-cases in agent-based simulations as well as real-world applications exist where the benefits of the hybrid routing algorithm outweigh its drawbacks.
+	The presented algorithm has the potential for enhancements and might be part of future work.
+	However, I am convinced that use cases in agent-based simulations and real-world applications exist in which the hybrid routing algorithm is beneficial for the quality of the determined routes.

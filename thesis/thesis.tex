@@ -215,11 +215,19 @@
 \let\origttfamily=\ttfamily
 \renewcommand{\ttfamily}{\origttfamily \hyphenchar\font=`\-}
 
+% To create contours around text and define default contour size
+\usepackage[outline]{contour}
+\contourlength{1.2pt}
+
+% Hide subsubsections in TOC
+\setcounter{tocdepth}{1}
+
 \begin{document}
 	\include{titlepage.tex}
 	
 	\pagenumbering{Roman}
 	
+	\cleardoubleoddpage
 	\input{chapters/abstract.tex}
 	\vfill
 	
@@ -265,6 +273,9 @@
 	\printbibliography
 
 	\printindex
+	
+	\listoffigures
+	\listoftables
 	
 	\chapter*{Appendix}
 	

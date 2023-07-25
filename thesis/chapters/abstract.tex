@@ -2,5 +2,22 @@
 % !TeX spellcheck = en_US
 
 \begin{abstract}
-	Foo bar
+	% Problem handles in this thesis
+	Determining the shortest path between two locations is a common problem in real-world and scientific applications, such as agent-based simulations.
+	It is usually done by graph-based algorithms, which are widely used and highly optimized but bound to the edges of the underlying graph, which is usually a network of roads and ways.
+	This also means that graph-based algorithms cannot reach every possible location but only vertices on the underlying graph.
+	Finding shortest paths between arbitrary locations in open spaces, meaning without using roads and ways, is the task performed by geometric shortest path algorithms and is especially useful for agent-based simulations containing pedestrians.
+	However, not considering roads with their potentially helpful information, e.g. surface conditions or access restrictions, likely yield unrealistic routes.
+	
+	% Scientific question
+	In this thesis, graph-based and geometric routing were combined to create a flexible routing algorithm that can reach arbitrary locations, traverse open spaces and is still able to use detailed road data.
+	This is done by generating a visibility graph and merging road edges into it to allow routing algorithms to switch between these edges at intersection points.
+	The question of whether this approach yields high-quality routes and, thus, is beneficial for the pathfinding routine of agent-based simulations is answered in the evaluation of the developed algorithm.
+	
+	% Which methods were used
+	% Central results & conclusions
+	Insights into the performance of the algorithm but also into the quality of the routes are obtained using real-world datasets of different sizes and regions, as well as artificial datasets with controlled properties.
+	A performance analysis showed the expected quadratic runtime complexity and effectiveness of the implemented optimizations.
+	The analysis of routes showed that the algorithm presented in this thesis is beneficial for the quality of routes, meaning it creates shorter and more realistic routes but strongly depends on the quality and completeness of the data.
+	
 \end{abstract}
