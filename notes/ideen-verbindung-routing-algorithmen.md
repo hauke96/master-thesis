@@ -1,3 +1,8 @@
+**Note:**
+Not only is this file in German, it's deprecated. The result of the consideration on which approach to take can be found in the thesis.
+
+---
+
 # Verbindung Routing Srategien
 
 tl;dr "Merge der Netze" wird weiter verfolgt.

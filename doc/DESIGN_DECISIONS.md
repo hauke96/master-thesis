@@ -1,3 +1,8 @@
+**Note:**
+This file contains design decisions on data structures and algorithms. Many of which are not implemented (anymore). The thesis contains a design description of the current algorithm.
+
+---
+
 # Design decisions
 
 ## General

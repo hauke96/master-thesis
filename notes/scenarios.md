@@ -1,3 +1,8 @@
+**Note:**
+Not relevant for the current approach and thesis. This was part of the topic-finding process and earily considerations.
+
+---
+
 This is a list of possible scenarios.
 Each scenarios has to fulfill a set of criteria to be a good scenario.
 
