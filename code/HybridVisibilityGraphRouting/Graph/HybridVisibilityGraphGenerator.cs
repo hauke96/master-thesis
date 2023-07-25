@@ -88,18 +88,17 @@ public static class HybridVisibilityGraphGenerator
         time = PerformanceMeasurement.AddFunctionDurationToCurrentRun(
             () =>
             {
-                (hybridVisibilityGraph, spatialGraph) = AddVisibilityVerticesAndEdges(vertexNeighbors, obstacles);
+                hybridVisibilityGraph = CreateVisibilityGraph(vertexNeighbors, obstacles);
             },
             "build_graph_time"
         );
         Log.D($"{nameof(HybridVisibilityGraphGenerator)}: get_knn_search_time done after {time}ms");
         ArgumentNullException.ThrowIfNull(hybridVisibilityGraph);
-        ArgumentNullException.ThrowIfNull(spatialGraph);
 
         if (PerformanceMeasurement.CurrentRun != null)
         {
             PerformanceMeasurement.CurrentRun.VisibilityEdgesBeforeMerging =
-                spatialGraph.Edges.Values.Count(e => e.Data.IsEmpty());
+                hybridVisibilityGraph.Graph.Edges.Values.Count(e => e.Data.IsEmpty());
         }
 
         // MergeRoadsIntoGraph
@@ -131,7 +130,7 @@ public static class HybridVisibilityGraphGenerator
 
         // AddAttributesToPoiNodes
         time = PerformanceMeasurement.AddFunctionDurationToCurrentRun(
-            () => { AddAttributesToPoiNodes(features, spatialGraph, 0.001, poiExpressions); },
+            () => { AddAttributesToPoiNodes(features, hybridVisibilityGraph, poiExpressions); },
             "add_poi_attributes_time"
         );
         Log.D($"{nameof(HybridVisibilityGraphGenerator)}: add_poi_attributes_time done after {time}ms");
@@ -192,7 +191,7 @@ public static class HybridVisibilityGraphGenerator
         return obstacleIndex;
     }
 
-    public static (HybridVisibilityGraph, SpatialGraph) AddVisibilityVerticesAndEdges(
+    public static HybridVisibilityGraph CreateVisibilityGraph(
         Dictionary<Vertex, List<List<Vertex>>> vertexNeighbors,
         QuadTree<Obstacle> obstacles)
     {
@@ -325,7 +324,7 @@ public static class HybridVisibilityGraphGenerator
         Log.D($"  Number of edges: {graph.EdgesMap.Count}");
 
         var hybridVisibilityGraph = new HybridVisibilityGraph(graph, obstacles, vertexToNode, nodeToAngleArea);
-        return (hybridVisibilityGraph, graph);
+        return hybridVisibilityGraph;
     }
 
     /// <summary>
@@ -418,8 +417,8 @@ public static class HybridVisibilityGraphGenerator
     /// Takes each feature with an attribute name from "poiKeys" and adds all attributes of this feature to the closest
     /// node (within the given distance) in the graph.
     /// </summary>
-    public static void AddAttributesToPoiNodes(IEnumerable<IFeature> features, ISpatialGraph graph,
-        double nodeDistanceTolerance = 0.001, string[]? poiExpressions = null)
+    public static void AddAttributesToPoiNodes(IEnumerable<IFeature> features, HybridVisibilityGraph graph, string[]? poiExpressions = null,
+        double nodeDistanceTolerance = 0.001)
     {
         poiExpressions ??= DefaultPoiExpressions;
 
@@ -428,6 +427,7 @@ public static class HybridVisibilityGraphGenerator
             {
                 var featurePosition = f.Geometry.Coordinates[0].ToPosition();
                 var nearestNodes = graph
+                    .Graph
                     .NodesMap
                     .Values
                     .Where(n => n.Position.DistanceInMTo(featurePosition) < nodeDistanceTolerance)

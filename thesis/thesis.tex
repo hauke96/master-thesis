@@ -44,6 +44,7 @@
 
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+\usepackage{minted}
 
 \usepackage[x11names]{xcolor}
 \usepackage{graphicx}
@@ -222,6 +223,20 @@
 % Hide subsubsections in TOC
 \setcounter{tocdepth}{1}
 
+
+% minted style
+%\usemintedstyle{vs}
+\definecolor{light-gray}{RGB}{245, 245, 245}
+\setminted[csharp]{
+	frame=lines,
+	framesep=2mm,
+	baselinestretch=0.9,
+	bgcolor=light-gray,
+	fontsize=\small,
+	linenos,
+	tabsize=4
+}
+
 \begin{document}
 	\include{titlepage.tex}
 	
@@ -278,6 +293,10 @@
 	\listoftables
 	
 	\chapter*{Appendix}
+		
+		\input{chapters/appendix.tex}
+	
+	\chapter*{}
 	
 		\input{chapters/eidesstattliche-versicherung.tex}
 \end{document}
