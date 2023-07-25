@@ -1,4 +1,5 @@
-**This document is DEPRECATED!**
+**Note:**
+This file is out-of-date!
 
 # Algorithms
 

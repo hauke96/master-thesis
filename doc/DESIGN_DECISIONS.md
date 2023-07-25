@@ -1,4 +1,7 @@
-**Parts regarding wavelets, wavefronts and geometric routing are DEPRECATED!**
+**Note:**
+This file contains design decisions on data structures and algorithms. Many of which are not implemented (anymore). The thesis contains a design description of the current algorithm.
+
+---
 
 # Design decisions
 

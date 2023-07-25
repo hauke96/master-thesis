@@ -1,4 +1,6 @@
-# Usage
+This script determined the amount of coordinate with non-unique x-coordinate.
+
+## Usage
 
 1. Make sure `osmium` is installed
 2. Download the region as `.osm.pbf` file of your choice (for example https://download.geofabrik.de/europe/germany-latest.osm.pbf)
@@ -6,7 +8,7 @@
     * This step might take a while, depending on the dataset size
 4. Analyze the file: `python non-unique-x-coordinates.py data.osm.pbf`
 
-# Results
+## Results
 
 For Hamburg (2023-06-04) *without* any filtering:
 
