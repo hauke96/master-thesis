@@ -1,0 +1,120 @@
+% !TEX root = ../thesis.tex
+% !TeX spellcheck = en_US
+
+In the following code example are given, showing the entry points of the implementation as well as the usage of the hybrid visibility graph.
+
+\section*{Implementation of the graph generation and routing}
+
+	\subsection*{Graph generation}
+		
+		In this section, insights on the implementation of the graph generation from the \texttt{HybridVisibilityGraphGenerator} class are given, covering mainly the methods evaluated in \Cref{chap:evaluation}.
+		Next to the first and mandatory feature parameter, the $k=(k_b, k_n)$ for the kNN search can be specified with \texttt{visibilityNeighborBinCount} ($k_b$) and \texttt{visibilityNeighborsPerBin} ($k_n$).
+		The remaining arguments are regex-like filtering expressions used to get the respective features from the input data.
+		
+		\begin{minted}{csharp}
+public static HybridVisibilityGraph Generate(
+	IEnumerable<IFeature> features,
+	int visibilityNeighborBinCount = 36,
+	int visibilityNeighborsPerBin = 10,
+	string[]? obstacleExpressions = null,
+	string[]? poiExpressions = null,
+	string[]? roadExpressions = null)
+{
+	features = features.ToList(); // Prevent multiple enumerations
+	
+	// Getting, unwrapping and triangulatin gobstacles
+	var obstacles = GetObstacles(features, obstacleExpressions);
+	
+	// Performing the kNN search
+	var vertexNeighbors = VisibilityGraphGenerator.CalculateVisibleKnn(
+		obstacles, visibilityNeighborBinCount, visibilityNeighborsPerBin
+	);
+	
+	// Generate the hybrid visibility graph, which currently only contains
+	// visibility edges
+	var graph = CreateVisibilityGraph(
+		vertexNeighbors, obstacles
+	);
+	
+	// Merge the road edges into the visibility graph
+	MergeRoadsIntoGraph(features, graph, roadExpressions);
+	
+	// Add attributes to POI nodes in the graph
+	AddAttributesToPoiNodes(features, graph, poiExpressions);
+	
+	return graph;
+}
+		\end{minted}
+		
+	\subsection*{Routing}
+	
+		The following code example is a slightly simplified version of the actual routing method that can be used by agents.
+		An example for the \texttt{heuristic} can be seen in the usage examples below.
+		
+		\begin{minted}{csharp}
+public List<Position> OptimalPath(Position source, Position destination,
+	Func<EdgeData, NodeData, double> heuristic)
+{
+	var sourceNode = AddPositionToGraph(source);
+	var destNode = AddPositionToGraph(destination);
+	
+	// Connect the nodes to the graph, which creates new nodes and edges
+	var (sourceNodes, sourceEdges) = ConnectNodeToGraph(sourceNode, false);
+	var (destNodes, destEdges) = ConnectNodeToGraph(destinationNode, false);
+	
+	var result = Graph.AStarAlgorithm(sourceNode.Key, destNode.Key, heuristic);
+	
+	// Remove temporarily created nodes (which automatically removes the edges too)
+	sourceEdges.Each(RemoveEdge);
+	destEdges.Each(RemoveEdge);
+	sourceNodes.Each(RemoveNode);
+	destNodes.Each(RemoveNode);
+	
+	// Merge all coordinates of the edges into the final list
+	return result
+		.Aggregate(new List<Position>(), (list, edge) => { ... })
+		.ToList();
+}
+		\end{minted}
+
+\section*{Usage of the hybrid visibility graph}
+	
+	\subsection*{Graph generation}
+	
+		The graph generation itself just requires one method call accepting a list of \texttt{VectorStructuredData} objects representing all features (obstacles and roads) of the input data:
+	
+		\begin{minted}{csharp}
+// Get the VectorStructuredData from the input features
+var features = Features.Map(f => f.VectorStructured).ToList();
+
+// Generate the hybrid visibility graph
+this.HybridVisibilityGraph = HybridVisibilityGraphGenerator.Generate(features);
+		\end{minted}
+		
+		\noindent
+		This code can, for example, be used in a shared class such as a layer in MARS or any other stateful class storing the \texttt{HybridVisibilityGraph} instance.
+		
+	\subsection*{Routing}
+	
+		The entry point for routing requests is within the hybrid visibility graph class and therefore can be invoked by a single method call.
+		Three methods are available and shown in the following example.
+		The predefined weighted shortest path uses a function with a factor of 0.8 on any road edge.
+		Using a custom weighting function is also possible, in this example a relatively strong preference for bridleways is defined.
+	
+		\begin{minted}{csharp}
+// Using existing methods:
+this.Route = this.HybridVisibilityGraph.ShortestPath(source, dest);
+this.Route = this.HybridVisibilityGraph.WeightedShortestPath(source, dest);
+
+// Using a custom weighting function:
+var weightingFunction =(edge, _) =>
+{
+	edge.Data.TryGetValue("highway", out object? highwayAttribute);
+	var factor = "bridleway".Equals(highwayAttribute)
+		? 0.5
+		: 1;
+	return edge.Length * factor;
+};
+
+this.Route = this.HybridVisibilityGraph.WeightedShortestPath(source, dest);
+		\end{minted}
