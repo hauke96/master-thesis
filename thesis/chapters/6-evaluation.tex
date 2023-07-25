@@ -605,7 +605,8 @@ All optimizations active	&  11.1 s		&  1.00									&  11.1 s		& 71.13									\
 				\item Larger roads result in wide obstacle-free corridor areas where unrealistic road crossings might appear.
 				Such a situation can be seen in \Cref{fig:eval-city-road-crossing} with crossings over a six-lane road, which would be dangerous and unrealistic for real-world pedestrians.
 				\item The weight function has a huge impact on the route quality.
-				The weighting factors used in this work specify how strongly roads should be preferred, which is illustrated in \Cref{fig:eval-city-weights} with the same route using different weights for road edges.
+				\Cref{fig:eval-city-weights} illustrates this with different preferences on road edges.
+				Neither a complete avoidance nor a complete preference of road edges yields a realistic route.
 				Adjusting and defining fine-grained weight functions may help to improve the route quality.
 				\item In the \enquote{OSM city} datasets with only smaller open areas, graph-based routes and routes determined by the hybrid routing algorithm were often similar and some parts are even identical.
 			\end{itemize}
