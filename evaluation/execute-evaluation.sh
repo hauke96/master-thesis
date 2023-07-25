@@ -22,8 +22,8 @@ then
 	cat<<END
 Execute multiple datasets on a given model.
 
-Parameters: {model-dll}         {dataset-dir}  {result-dir}  {dataset-names}
-Example:    models/HikingModel  datasets/foo   results/foo   "1 2 3 foo bar"
+Parameters: {model-dll}        {dataset-dir}  {result-dir}  {dataset-names}
+Example:    models/HikerModel  datasets/foo   results/foo   "1 2 3 foo bar"
 
 This script does the following:
  1. Clean-build the model in "Release" configuration
