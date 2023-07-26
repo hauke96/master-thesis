@@ -99,7 +99,7 @@ Finally, an overview of the separate components and a description of the deploym
 		When using Dijkstra as a graph-based routing algorithm, $\bigo{|V|}$ many vertices are visited, causing $\bigo{|V|}$ many geometric routing queries for the continuous Dijkstra algorithm.
 		Even when using the algorithm from Hershberger and Suri\cite{hershberger-suri} with a time complexity of $\bigo{n \log n}$, it can be assumed that $n > |V|$ resulting in a complexity of $\omega(|V|^2)$.
 		Caching the shortest path map using a \term*{CPD} would increase query performance but it would also increase implementation complexity and processing time during preprocessing.
-		Instead, precomputing all shortest-path edges and directly merging them into the road graph would eliminate complexities, enhance performance and is used in the fourth approach.
+		Instead, precomputing all shortest path edges and directly merging them into the road graph would eliminate complexities, enhance performance and is used in the fourth approach.
 		
 		The ad hoc idea of this approach yields no significant advantage compared to a preprocessing-based algorithm.
 		Therefore, this approach was not further pursued.

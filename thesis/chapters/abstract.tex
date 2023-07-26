@@ -2,23 +2,18 @@
 % !TeX spellcheck = en_US
 
 \begin{abstract}
-	% Problem handles in this thesis
 	Determining the shortest path between two locations is a common problem in real-world and scientific applications, such as agent-based simulations.
-	It is usually done by graph-based algorithms, which are widely used and highly optimized but limited to the edges of the underlying graph, which usually creates a network of roads and ways.
+	It is usually done by graph-based algorithms, which are widely used and highly optimized but limited to the edges of the underlying graph, which usually represents a network of roads and ways.
 	This also means that graph-based algorithms cannot reach every possible location but only locations on edges of the underlying graph.
 	Finding shortest paths between arbitrary locations in open spaces, meaning without using roads and ways, is the task performed by geometric shortest path algorithms and is especially useful for agent-based pedestrians models simulating human behavior.
 	However, not considering roads with their potentially helpful information, e.g. surface conditions or access restrictions, likely yields unrealistic routes.
 	
-	% Scientific question
-	In this thesis, a new routing algorithm is presented to enhance the path finding component of agent-based simulations.
+	In this thesis, a new routing algorithm is presented to enhance the pathfinding component of agent-based simulations.
 	This is done by combining graph-based and geometric shortest path approaches to create a flexible routing algorithm that can reach arbitrary locations, traverse open spaces and is still able to use detailed road data.
 	This is done by generating a visibility graph and merging road edges into it, allowing routing algorithms to switch between these edges at their intersection points.
-	The question of whether this approach yields high-quality routes and, thus, is beneficial for the path finding routine of agent-based simulations is answered in the evaluation of the developed algorithm.
 	
-	% Which methods were used
-	% Central results & conclusions
-	Insights into the performance of the algorithm but also into the quality of the routes are obtained using real-world datasets of different sizes and regions, as well as artificial datasets with controlled properties.
-	A performance analysis showed the expected quadratic runtime complexity and effectiveness of the implemented optimizations.
-	The analysis of routes showed that the algorithm presented in this thesis is beneficial for the quality of routes, meaning it creates shorter and more realistic routes but strongly depends on the quality and completeness of the data.
-	
+	An evaluation of the performance and route quality is conducted using artificial and real-world datasets.
+	The performance analysis shows the expected quadratic runtime complexity as well as the effectiveness of the implemented optimizations.
+	An analysis of the route quality shows, that it heavily depends on the quality and completeness of the input data and chosen weight function for the graph-based routing algorithm.
+	Assuming complete and high-quality data, the routing approach presented in this thesis yields realistic routes and is therefore beneficial for the pathplanning routine of agent-based models.
 \end{abstract}

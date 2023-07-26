@@ -319,7 +319,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		
 			The \term{A*} shortest path algorithm was introduced in 1968 and uses a heuristic $h : V \rightarrow \mathbb{R}$ in combination with a distance function $g : V \rightarrow \mathbb{R}$ to decide which vertex to visit next\cite{astar}.
 			The heuristic $h$ estimates the distance from a vertex $v$ to the given destination (or target) vertex $t$.
-			The distance function $g$ yields the already known shortest-path distance from the source $s$ to $v$.
+			The distance function $g$ yields the already known shortest path distance from the source $s$ to $v$.
 			Summing up the two functions to $f(v) = g(v) + h(v)$, gives the estimated length of a shortest path from $s$ via $v$ to $t$ and is used to decide which successor of $v$ to process next.
 			A crucial criterion to $h$ is that it never overestimates the distance to $t$, which is especially important for the triangle inequality used by the ALT speedup method presented in \Cref{subsubsec:landmarks}.
 			The structure of A* is relatively simple and is expressed in pseudocode in \Cref{alg:astar}.
