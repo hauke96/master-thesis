@@ -4,113 +4,111 @@
 In this chapter, the implementation of the hybrid routing algorithm is evaluated regarding performance, correctness and usefulness.
 Next to the actual results, methods and design details on the evaluation are described as well.
 
-\section{Performance evaluation}
+\section{Methods \& Measurements}
 
 	The performance evaluation uses different datasets to measure graph generation times, routing times and memory consumption.
 
-	\subsection{Methods \& Measurements}
+	\subsection{Collected data}
+	
+		The collected data consists of time and memory usage measurements on the detail level of single algorithm steps.
+		Also, the amount of data is measured, namely the number of edges and vertices at various steps in the process, as well as the length of routes, which includes the beeline and actual route distances.
+	
+	\subsection{Datasets}
+	\label{subsubsec:eval-datasets}
+	
+		Two overall types of datasets are used:
+		Pattern-based datasets are created using a recurring pattern of various sizes.
+		OSM-based datasets use differently sized extracts from OpenStreetMap.
+		While the OSM-based datasets contain obstacles and roads (except in the \enquote{without roads/obstacles} datasets), the pattern-based datasets do not contain any roads.
+		
+		For both types, several categories of datasets exist with different properties:
+		\begin{description}
+			\item[Maze pattern] Datasets with touching and collinear linestrings forming a maze-like structure.
+			\item[Rectangle pattern] Datasets with numerous differently sized, positioned and rotated rectangles.
+			\item[Circle pattern] dataset with differently sized circles consisting of many vertices.
+			\item[OSM city] Real-world extracts from the OpenStreetMap database with data from the city of Hamburg, Germany. The data has been filtered to remove all over- and underground features.
+			\item[OSM rural] Equivalent to the \enquote{OSM city} dataset, but located outside the city of Hamburg and therefore containing more natural obstacles (lakes, ditches, forest), more open spaces and less regular distributed buildings.
+			\item[OSM export without roads] OSM extracts but without roads.
+			\item[OSM export without obstacles] Analogous to the \enquote{without roads} datasets, but without any obstacles, i.e. buildings, walls and natural areas such as lakes and forests.
+		\end{description}
+		The \enquote{OSM city} and \enquote{OSM rural} categories each contain six datasets of the sizes 0.5, 1, 1.5, 2, 3 and 4 km\textsuperscript{2}.
+		The two OSM categories \enquote{without roads/obstacles} use the 4 km\textsuperscript{2} datasets from the city and rural categories.
+		All OSM-based datasets are filtered to not contains any over- or underground features, because the hybrid routing algorithm was not made to handle this third spatial dimension.
+		
+		\begin{figure}[h!]
+			\centering
+			\begin{minipage}[t]{.38\textwidth}
+				\begin{figcenter}
+					\includegraphics[width=\textwidth]{images/qgis-overview-city-rural_city}
+				\end{figcenter}
+			\end{minipage}
+			\hspace{0.04\textwidth}
+			\begin{minipage}[t]{.38\textwidth}
+				\begin{figcenter}
+					\includegraphics[width=\textwidth]{images/qgis-overview-city-rural_rural}
+				\end{figcenter}
+			\end{minipage}
+			\caption[Areas of the \enquote{OSM city} and \enquote{OSM rural} datasets.]{All six regions from 0.5 km\textsuperscript{2} to 4 km\textsuperscript{2} of the \enquote{OSM city} datasets (left) and \enquote{OSM rural} datasets (right).}
+		\end{figure}
+	
+	\subsection{Optimizations}
+	
+		As described in \Cref{chap:implementation}, several optimizations were made to the implementation.
+		The effectiveness of these optimizations was evaluated using the 4 km\textsuperscript{2} \enquote{OSM city} dataset.
+		Each of the following optimizations was deactivated or replaced for the evaluation:
 
-		\subsubsection{Collected data}
+		\begin{description}
+			\item[Shadow areas] Instead, every visibility check was performed using the custom intersection check described in \Cref{subsubsec:intersection-checks}.
+			\item[Custom intersection check] The custom intersection check was replaced by the \texttt{RobustLineIntersector} class from the NTS to determine intersections between line segments.
+			\item[BinIndex] Instead, the \texttt{Bintree} from the NTS was used.
+			\item[Convex hull] The restriction to only consider vertices on the convex hull of obstacles was removed.
+			\item[Valid angle areas] Considering only potential visibility neighbors within certain angular ranges was deactivated.
+			\item[kNN search] Instead, all visibility neighbors in all directions were determined.
+		\end{description}		
 		
-			The collected data consists of time and memory usage measurements on the detail level of single algorithm steps.
-			Also, the amount of data is measured, namely the number of edges and vertices at various steps in the process, as well as the length of routes, which includes the beeline and actual route distances.
+	\subsection{Measurement method}
+	
+		Measuring the performance was done by a small agent-based simulation project called \texttt{HikerModel}, consisting of one agent consecutively visiting a given list of coordinates (routing waypoints) and using a given dataset as input to the hybrid routing algorithm.
+		The coordinates are given via a linestring within a GeoJSON file, of which each coordinate of the linestring is visited by the agent in order.
+		Each waypoint was within the range of the dataset, meaning each coordinate was surrounded by obstacles.
+		The Euclidean distances (beeline distances) of the line segments within this linestring were distributed evenly to measure the required routing time relative to the distance and dataset size.
 		
-		\subsubsection{Datasets}
-		\label{subsubsec:eval-datasets}
+		Because the OSM datasets within one category cover differently sized areas, each waypoint linestring of an OSM-based dataset contains all waypoints of the next smaller one plus some additional ones.
+		This means that the waypoints of the smallest dataset are also used by every other dataset.
+	
+	\subsection{Technical considerations}
+	
+		The measurement was done by an auxiliary class \texttt{PerformanceMeasurement}, which provides a method that measures the execution time of a passed function delegate.
 		
-			Two overall types of datasets are used:
-			Pattern-based datasets are created using a recurring pattern of various sizes.
-			OSM-based datasets use differently sized extracts from OpenStreetMap.
-			While the OSM-based datasets contain obstacles and roads (except in the \enquote{without roads/obstacles} datasets), the pattern-based datasets do not contain any roads.
-			
-			For both types, several categories of datasets exist with different properties:
-			\begin{description}
-				\item[Maze pattern] Datasets with touching and collinear linestrings forming a maze-like structure.
-				\item[Rectangle pattern] Datasets with numerous differently sized, positioned and rotated rectangles.
-				\item[Circle pattern] dataset with differently sized circles consisting of many vertices.
-				\item[OSM city] Real-world extracts from the OpenStreetMap database with data from the city of Hamburg, Germany. The data has been filtered to remove all over- and underground features.
-				\item[OSM rural] Equivalent to the \enquote{OSM city} dataset, but located outside the city of Hamburg and therefore containing more natural obstacles (lakes, ditches, forest), more open spaces and less regular distributed buildings.
-				\item[OSM export without roads] OSM extracts but without roads.
-				\item[OSM export without obstacles] Analogous to the \enquote{without roads} datasets, but without any obstacles, i.e. buildings, walls and natural areas such as lakes and forests.
-			\end{description}
-			The \enquote{OSM city} and \enquote{OSM rural} categories each contain six datasets of the sizes 0.5, 1, 1.5, 2, 3 and 4 km\textsuperscript{2}.
-			The two OSM categories \enquote{without roads/obstacles} use the 4 km\textsuperscript{2} datasets from the city and rural categories.
-			All OSM-based datasets are filtered to not contains any over- or underground features, because the hybrid routing algorithm was not made to handle this third spatial dimension.
-			
-			\begin{figure}[h!]
-				\centering
-				\begin{minipage}[t]{.38\textwidth}
-					\begin{figcenter}
-						\includegraphics[width=\textwidth]{images/qgis-overview-city-rural_city}
-					\end{figcenter}
-				\end{minipage}
-				\hspace{0.04\textwidth}
-				\begin{minipage}[t]{.38\textwidth}
-					\begin{figcenter}
-						\includegraphics[width=\textwidth]{images/qgis-overview-city-rural_rural}
-					\end{figcenter}
-				\end{minipage}
-				\caption[Areas of the \enquote{OSM city} and \enquote{OSM rural} datasets.]{All six regions from 0.5 km\textsuperscript{2} to 4 km\textsuperscript{2} of the \enquote{OSM city} datasets (left) and \enquote{OSM rural} datasets (right).}
-			\end{figure}
+		As part of its memory management, C\#/.NET uses automatic garbage collection, adding unavoidable noise to the measurements.
+		Unfortunately, the garbage collector cannot be turned off and controlling it is only partially possible.
 		
-		\subsubsection{Optimizations}
+		Before each measurement, the garbage collector was triggered to provide equal circumstances to all iterations.
+		This was done by the \texttt{GC.Collect()} and \texttt{GC.WaitForPendingFinalizers()} methods of the .NET framework.
+		Using these two methods forces a garbage collection and waits for it to finish\footnote{\url{https://learn.microsoft.com/en-us/dotnet/api/system.gc.waitforpendingfinalizers?view=net-7.0}}.
 		
-			As described in \Cref{chap:implementation}, several optimizations were made to the implementation.
-			The effectiveness of these optimizations was evaluated using the 4 km\textsuperscript{2} \enquote{OSM city} dataset.
-			Each of the following optimizations was deactivated or replaced for the evaluation:
-
-			\begin{description}
-				\item[Shadow areas] Instead, every visibility check was performed using the custom intersection check described in \Cref{subsubsec:intersection-checks}.
-				\item[Custom intersection check] The custom intersection check was replaced by the \texttt{RobustLineIntersector} class from the NTS to determine intersections between line segments.
-				\item[BinIndex] Instead, the \texttt{Bintree} from the NTS was used.
-				\item[Convex hull] The restriction to only consider vertices on the convex hull of obstacles was removed.
-				\item[Valid angle areas] Considering only potential visibility neighbors within certain angular ranges was deactivated.
-				\item[kNN search] Instead, all visibility neighbors in all directions were determined.
-			\end{description}		
-			
-		\subsubsection{Measurement method}
+		To prevent the garbage collection from interfering with the execution, a 256 MiB large no-GC-region is placed around the measured function call via \texttt{GC.TryStartNoGCRegion(256 * 1024 * 1024)}.
+		Introducing this no-GC-region noticeably reduced noise in the measured times.
+	
+		C\#/.NET also uses \term*[just-in-time compilation]{just-in-time} (\term*{JIT}) compilation changing the code during runtime, which potentially yields different measurements for subsequent method calls.
+		JIT compilation can not be turned off for regular .NET executions via the command \texttt{dotnet program.dll}.
+		An alternative would be the usage of \term*[ahead-of-time compilation]{ahead-of-time} (\term*{AOT}) compilation, negatively affecting the performance of LINQ operations\footnote{\url{https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot/?tabs=net7}}, which are frequently used in the implementation.
+		Because both compilation strategies have disadvantages, the default JIT compilation was chosen.
 		
-			Measuring the performance was done by a small agent-based simulation project called \texttt{HikerModel}, consisting of one agent consecutively visiting a given list of coordinates (routing waypoints) and using a given dataset as input to the hybrid routing algorithm.
-			The coordinates are given via a linestring within a GeoJSON file, of which each coordinate of the linestring is visited by the agent in order.
-			Each waypoint was within the range of the dataset, meaning each coordinate was surrounded by obstacles.
-			The Euclidean distances (beeline distances) of the line segments within this linestring were distributed evenly to measure the required routing time relative to the distance and dataset size.
-			
-			Because the OSM datasets within one category cover differently sized areas, each waypoint linestring of an OSM-based dataset contains all waypoints of the next smaller one plus some additional ones.
-			This means that the waypoints of the smallest dataset are also used by every other dataset.
+		The dynamic behavior of JIT compilation was mitigated by calling the measured function three times without storing the measurement results (warm-ups) before executing it five times and storing these last five results.
+		This ensures that any JIT compilation and garbage collection of prior code was performed during the warm-up iterations and interfered with the actual iteration as little as possible.
 		
-		\subsubsection{Technical considerations}
+		Another step to get stable and reproducible results was increasing the process priority to exclusively use one CPU core on which the single-threaded application ran.
+		Increasing the process priority was done by settings the \texttt{Thread.CurrentThread.Priority} to \texttt{ProcessPriorityClass.High}, which required root permissions on Linux systems.
+	
+	\subsection{System and hardware}
+	
+		The measurements were performed on an up-to-date Arch Linux operating system (Kernel 6.4.3) with .NET Core 7.0.107 and MARS framework 4.5.2.
+		Apart from necessary operating system processes and a minimal desktop environment, no other applications ran during the performance measurements.
 		
-			The measurement was done by an auxiliary class \texttt{PerformanceMeasurement}, which provides a method that measures the execution time of a passed function delegate.
-			
-			As part of its memory management, C\#/.NET uses automatic garbage collection, adding unavoidable noise to the measurements.
-			Unfortunately, the garbage collector cannot be turned off and controlling it is only partially possible.
-			
-			Before each measurement, the garbage collector was triggered to provide equal circumstances to all iterations.
-			This was done by the \texttt{GC.Collect()} and \texttt{GC.WaitForPendingFinalizers()} methods of the .NET framework.
-			Using these two methods forces a garbage collection and waits for it to finish\footnote{\url{https://learn.microsoft.com/en-us/dotnet/api/system.gc.waitforpendingfinalizers?view=net-7.0}}.
-			
-			To prevent the garbage collection from interfering with the execution, a 256 MiB large no-GC-region is placed around the measured function call via \texttt{GC.TryStartNoGCRegion(256 * 1024 * 1024)}.
-			Introducing this no-GC-region noticeably reduced noise in the measured times.
-		
-			C\#/.NET also uses \term*[just-in-time compilation]{just-in-time} (\term*{JIT}) compilation changing the code during runtime, which potentially yields different measurements for subsequent method calls.
-			JIT compilation can not be turned off for regular .NET executions via the command \texttt{dotnet program.dll}.
-			An alternative would be the usage of \term*[ahead-of-time compilation]{ahead-of-time} (\term*{AOT}) compilation, negatively affecting the performance of LINQ operations\footnote{\url{https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot/?tabs=net7}}, which are frequently used in the implementation.
-			Because both compilation strategies have disadvantages, the default JIT compilation was chosen.
-			
-			The dynamic behavior of JIT compilation was mitigated by calling the measured function three times without storing the measurement results (warm-ups) before executing it five times and storing these last five results.
-			This ensures that any JIT compilation and garbage collection of prior code was performed during the warm-up iterations and interfered with the actual iteration as little as possible.
-			
-			Another step to get stable and reproducible results was increasing the process priority to exclusively use one CPU core on which the single-threaded application ran.
-			Increasing the process priority was done by settings the \texttt{Thread.CurrentThread.Priority} to \texttt{ProcessPriorityClass.High}, which required root permissions on Linux systems.
-		
-		\subsubsection{System and hardware}
-		
-			The measurements were performed on an up-to-date Arch Linux operating system (Kernel 6.4.3) with .NET Core 7.0.107 and MARS framework 4.5.2.
-			Apart from necessary operating system processes and a minimal desktop environment, no other applications ran during the performance measurements.
-			
-			The hardware consisted of an octa-core Intel\textregistered\ Xeon\textregistered\ E3-1231 v3 CPU at 3.40 GHz, a total of 16GB DDR3 1333 MHz RAM and a Samsung EVO 850 SSD.
-			However, the whole algorithm and the \texttt{HikerModel} simulation is single-threaded.
-			File system operations are only performed to initially load the input data and to write the measurement results after completing all executions.
+		The hardware consisted of an octa-core Intel\textregistered\ Xeon\textregistered\ E3-1231 v3 CPU at 3.40 GHz, a total of 16GB DDR3 1333 MHz RAM and a Samsung EVO 850 SSD.
+		However, the whole algorithm and the \texttt{HikerModel} simulation is single-threaded.
+		File system operations are only performed to initially load the input data and to write the measurement results after completing all executions.
 	
 \section{Performance evaluation}
 

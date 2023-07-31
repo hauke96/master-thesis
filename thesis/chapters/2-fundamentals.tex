@@ -66,7 +66,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			Storing data for efficient access, e.g. to query all features within a particular area, a so-called \term{spatial index} is used.
 			Some commonly used indices are the following.
 			
-			The \term{$k$-d tree}\cite[Ch.\ 19,p. 4]{mehta-handbook-data-structures} divides the space at each vertex along one axis at a time alternating through all axis (dimensions) of the dataset, which leads to a binary tree for 2-dimensional data.
+			The \term[k-d tree]{$k$-d tree}\cite[Ch.\ 19,p. 4]{mehta-handbook-data-structures} divides the space at each vertex along one axis at a time alternating through all axis (dimensions) of the dataset, which leads to a binary tree for 2-dimensional data.
 			A \term{quadtree}\cite[Ch.\ 19,p. 1]{mehta-handbook-data-structures} works on 2-d data and divides the space equally into four equally sized quadrants.
 			Depending on the data in each quadrant, it gets divided again, which leads to a tree with four children per node.
 			The \term{R-tree}\cite[Ch.\ 21,p. 2]{mehta-handbook-data-structures} determined bounding rectangles for areas with dense data and efficiently stores a hierarchy of these areas, i.e. all features of child nodes are within the bounding rectangle of the parent node.
@@ -200,10 +200,10 @@ Hence, the topic of agents and simulations will be covered as well.
 			Other sources of spatial data exist but are non-free (in terms of price and the license of the data), fragmented over multiple sources (files, servers, APIs) or not as detailed as OSM.
 			
 			One example of such a fragmented source is provided by the state office for geoinformation and surveying (Landesbetrieb für Geoinformationen und Vermesseung -- LGV) in Hamburg, Germany.
-			The road network and building data can be downloaded via the official website \href{https://geoportal-hamburg.de}{geoportal-hamburg.de} but are contained in two different datasets (called \enquote{HH-SIB} and \enquote{ALKIS}).
-			In addition to the fragmentation, some data is not necessarily suitable for routing.
-			The \enquote{HH-SIB} dataset contains numerous line segments representing ways and roads which are not connected to the overall road network.
-			The \enquote{ALKIS} dataset also contains road data, but only as areas.
+			Many datasets can be downloaded from the official website \href{https://geoportal-hamburg.de}{geoportal-hamburg.de} but roads and building data are contained in separate datasets, primarily \enquote{HH-SIB} and \enquote{ALKIS}.
+			In addition to the fragmentation, some of data is not suitable for routing.
+			The \enquote{HH-SIB} dataset contains numerous line segments, which represent ways and roads, that are not connected to the remaining road network.
+			The \enquote{ALKIS} dataset also contains road data, but only as areas, which is not suitable for routing as well.
 			However, OpenStreetMap offers free access to numerous usable features in one dataset.
 			
 			Since geometric routing is the major topic, not only the road network is used, but also certain features of OSM representing impassable obstacles, which are avoided during routing:
