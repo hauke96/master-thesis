@@ -1,4 +1,4 @@
-% !TEX root = ../thesis.tex
+% !TeX root = ../thesis.tex
 % !TeX spellcheck = en_US
 
 As mentioned in the introductory motivation, the task of the developed \term{hybrid routing algorithm} is to find optimal paths through open spaces between arbitrary source and destination locations.
@@ -48,7 +48,6 @@ Finally, an overview of the separate components and a description of the deploym
 	\subsection{Constraints}
 	\label{subsec:constraints}
 		
-		% Well integrated into MARS and NTS, no new dependencies
 		One major constraint is the ability to integrate the implementation of the final algorithm into the \term*{MARS} framework.
 		This means the programming language C\# and the use of the \term{NetTopologySuite} (\term*{NTS}) library are predetermined since MARS is based on these as well.
 		However, these technical constraints do not affect the higher-level architecture and its components.
@@ -79,7 +78,6 @@ Finally, an overview of the separate components and a description of the deploym
 		\item Merge of an existing network with a visibility graph
 	\end{enumerate}
 	
-	% Ad-hoc creation of edges by stopping A* and continuing with wavefront algorithm
 	\subsection{Ad hoc generation of edges}
 	
 		The idea of an ad hoc generation of edges is the following:
@@ -99,12 +97,11 @@ Finally, an overview of the separate components and a description of the deploym
 		When using Dijkstra as a graph-based routing algorithm, $\bigo{|V|}$ many vertices are visited, causing $\bigo{|V|}$ many geometric routing queries for the continuous Dijkstra algorithm.
 		Even when using the algorithm from Hershberger and Suri\cite{hershberger-suri} with a time complexity of $\bigo{n \log n}$, it can be assumed that $n > |V|$ resulting in a complexity of $\omega(|V|^2)$.
 		Caching the shortest path map using a \term*{CPD} would increase query performance but it would also increase implementation complexity and processing time during preprocessing.
-		Instead, precomputing all shortest-path edges and directly merging them into the road graph would eliminate complexities, enhance performance and is used in the fourth approach.
+		Instead, precomputing all shortest path edges and directly merging them into the road graph would eliminate complexities, enhance performance and is used in the fourth approach.
 		
 		The ad hoc idea of this approach yields no significant advantage compared to a preprocessing-based algorithm.
 		Therefore, this approach was not further pursued.
 	
-	% Concurrent routing: Use A* and wavefront in parallel and merge the results
 	\subsection{Concurrent routing}
 	
 		Combining the results of two concurrent routing procedures, one graph-based and one geometric, is another approach.
@@ -118,7 +115,6 @@ Finally, an overview of the separate components and a description of the deploym
 		Second, even if they do intersecting, too few intersections on a long route result in suboptimal paths because routing parts of a long segment with the respective other routing technique might further reduce the overall weight.
 		Only if two routes intersect frequently enough, the selection of segments based on the weight function could result in good routes.
 	
-	% Concurrent routing for segments (e.g. start new routing calls every 100 m)
 	\subsection{Concurrent routing on smaller segments}
 	
 		This approach is very similar to the one above, but it tries to fix the uncertainty of intersections between the two resulting paths.
@@ -136,14 +132,13 @@ Finally, an overview of the separate components and a description of the deploym
 		Geometric shortest paths are determined between all points, resulting in $O(n^2)$ many routing queries.
 		The graph-based segments and the geometric routing results are then merged, forming a new intermediate graph.
 		Finally, one last routing query on this intermediate graph is performed to get the final optimal route.
-		Other combinatorial approaches could be used instead of an intermediate graph since the shortest path problem is a combinatorial problem and, thus, can be solved using linear programming\cite{handler-zang-lp-duality}. % TODO rausnehmen?
+		Other combinatorial approaches could be used instead of an intermediate graph since the shortest path problem is a combinatorial problem and, thus, can be solved using linear programming\cite{handler-zang-lp-duality}.
 		
 		There are likely to be more possible ways to ensure a sufficient amount of segments or intersections.
 		However, this overall approach was not further pursued because both approaches have worse time complexities than any popular routing algorithm, including pure geometric routing.
 		The first one would cause $\bigo{2^n}$ and the second one $\bigo{n^2}$ many routing requests, of which each request has a certain complexity itself.
 		Even though the second idea might work well for appropriate segment lengths, the complexity and definite time overhead make it an unfavorable choice.
 	
-	% Merge of networks
 	\subsection{Merge of an existing network with a visibility graph}
 	\label{subsec:design-merge-road-network}
 	
@@ -291,7 +286,6 @@ Finally, an overview of the separate components and a description of the deploym
 	\Cref{fig:components-sequence-routing} illustrates the internal tasks of a routing request using the \texttt{OptimalPath(source, destination, weightFunction)} query method.
 	The result is a list of coordinates representing the shortest path between two input coordinates.
 	
-	% For convenience and due to required preparations, routing queries are put to the hybrid visibility graph.
 	To fulfill the overall goal of this work of finding optimal paths between arbitrary locations, it must be ensured that these locations are reachable via the hybrid visibility graph.
 	Without further consideration of the source and destination locations, there is no guarantee that these locations are represented by any vertex in the graph.
 	Therefore, the hybrid visibility graph has to temporarily connect these locations to the graph if they are not present already.
@@ -305,7 +299,6 @@ Finally, an overview of the separate components and a description of the deploym
 
 \section{Deployment}
 
-	% published in MARS
 	The goal of this thesis is to enhance route quality for agent-based simulations.
 	Therefore, the algorithm was implemented using the MARS framework.
 	In order to use this work to improve MARS, the code is published on GitHub\footnote{\url{https://github.com/hauke96/master-thesis/}}.

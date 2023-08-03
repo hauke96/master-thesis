@@ -1,4 +1,4 @@
-% !TEX root = ../thesis.tex
+% !TeX root = ../thesis.tex
 % !TeX spellcheck = en_US
 
 In the following code example are given, showing the entry points of the implementation as well as the usage of the hybrid visibility graph.
@@ -81,18 +81,25 @@ public List<Position> OptimalPath(Position source, Position destination,
 	
 	\subsection*{Graph generation}
 	
-		The graph generation itself just requires one method call accepting a list of \texttt{VectorStructuredData} objects representing all features (obstacles and roads) of the input data:
+		The graph generation itself just requires one method call accepting a list of \texttt{VectorStructuredData} objects representing all features (obstacles and roads) of the input data.
+		This code can, for example, be used in a shared class such as a layer in MARS or any other stateful class storing the \texttt{HybridVisibilityGraph} instance.
+		In the following example, the implementation of an \texttt{InitLayer} method of a \texttt{VectorLayer} is shown:
 	
 		\begin{minted}{csharp}
-// Get the VectorStructuredData from the input features
-var features = Features.Map(f => f.VectorStructured).ToList();
-
-// Generate the hybrid visibility graph
-this.HybridVisibilityGraph = HybridVisibilityGraphGenerator.Generate(features);
+public override bool InitLayer(LayerInitData layerInitData, RegisterAgent
+	registerHandle = null, UnregisterAgent unregisterAgent = null)
+{
+	var initLayer = base.InitLayer(layerInitData, registerHandle, unregisterAgent);
+	
+	// Get the VectorStructuredData from the input features
+	var features = Features.Map(f => f.VectorStructured).ToList();
+	
+	// Generate the hybrid visibility graph
+	this.HybridVisibilityGraph = HybridVisibilityGraphGenerator.Generate(features);
+	
+	return initLayer;
+}
 		\end{minted}
-		
-		\noindent
-		This code can, for example, be used in a shared class such as a layer in MARS or any other stateful class storing the \texttt{HybridVisibilityGraph} instance.
 		
 	\subsection*{Routing}
 	
@@ -102,9 +109,11 @@ this.HybridVisibilityGraph = HybridVisibilityGraphGenerator.Generate(features);
 		Using a custom weighting function is also possible, in this example a relatively strong preference for bridleways is defined.
 	
 		\begin{minted}{csharp}
+List<Position> route;
+
 // Using existing methods:
-this.Route = this.HybridVisibilityGraph.ShortestPath(source, dest);
-this.Route = this.HybridVisibilityGraph.WeightedShortestPath(source, dest);
+route = this.HybridVisibilityGraph.ShortestPath(source, dest);
+route = this.HybridVisibilityGraph.WeightedShortestPath(source, dest);
 
 // Using a custom weighting function:
 var weightingFunction =(edge, _) =>
@@ -116,5 +125,5 @@ var weightingFunction =(edge, _) =>
 	return edge.Length * factor;
 };
 
-this.Route = this.HybridVisibilityGraph.WeightedShortestPath(source, dest);
+route = this.HybridVisibilityGraph.WeightedShortestPath(source, dest);
 		\end{minted}

@@ -1,4 +1,4 @@
-% !TEX root = ../thesis.tex
+% !TeX root = ../thesis.tex
 % !TeX spellcheck = en_US
 
 In this chapter, basic concepts are described, which are relevant for this thesis.
@@ -66,7 +66,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			Storing data for efficient access, e.g. to query all features within a particular area, a so-called \term{spatial index} is used.
 			Some commonly used indices are the following.
 			
-			The \term{$k$-d tree}\cite[Ch.\ 19,p. 4]{mehta-handbook-data-structures} divides the space at each vertex along one axis at a time alternating through all axis (dimensions) of the dataset, which leads to a binary tree for 2-dimensional data.
+			The \term[k-d tree]{$k$-d tree}\cite[Ch.\ 19,p. 4]{mehta-handbook-data-structures} divides the space at each vertex along one axis at a time alternating through all axis (dimensions) of the dataset, which leads to a binary tree for 2-dimensional data.
 			A \term{quadtree}\cite[Ch.\ 19,p. 1]{mehta-handbook-data-structures} works on 2-d data and divides the space equally into four equally sized quadrants.
 			Depending on the data in each quadrant, it gets divided again, which leads to a tree with four children per node.
 			The \term{R-tree}\cite[Ch.\ 21,p. 2]{mehta-handbook-data-structures} determined bounding rectangles for areas with dense data and efficiently stores a hierarchy of these areas, i.e. all features of child nodes are within the bounding rectangle of the parent node.
@@ -162,7 +162,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			Like features, each changeset itself can contains tags adding metadata to the change.
 			Tags like \texttt{created\_by} (containing the username), \texttt{comment} (describing the change) and \texttt{source} (data sources like aerial imagery or manual survey) are the most common ones but editors may add additional information.
 			The \texttt{source} tag is particularly important since the ODbL is not necessarily compatible with licenses of other data sources and this tag helps to verify this compatibility.
-			Ideally, a changeset should be coherent, which means that it should focus on one thematic aspect in one local area, but this is not always the case and some editors automatically split larger changesets into smaller ones. % TODO weg?
+			Ideally, a changeset should be coherent, which means that it should focus on one thematic aspect in one local area, but this is not always the case and some editors automatically split larger changesets into smaller ones.
 			
 		\subsubsection{Data contained in OSM}
 		
@@ -200,10 +200,10 @@ Hence, the topic of agents and simulations will be covered as well.
 			Other sources of spatial data exist but are non-free (in terms of price and the license of the data), fragmented over multiple sources (files, servers, APIs) or not as detailed as OSM.
 			
 			One example of such a fragmented source is provided by the state office for geoinformation and surveying (Landesbetrieb für Geoinformationen und Vermesseung -- LGV) in Hamburg, Germany.
-			The road network and building data can be downloaded via the official website \href{https://geoportal-hamburg.de}{geoportal-hamburg.de} but are contained in two different datasets (called \enquote{HH-SIB} and \enquote{ALKIS}).
-			In addition to the fragmentation, some data is not necessarily suitable for routing.
-			The \enquote{HH-SIB} dataset contains numerous line segments representing ways and roads which are not connected to the overall road network.
-			The \enquote{ALKIS} dataset also contains road data, but only as areas.
+			Many datasets can be downloaded from the official website \href{https://geoportal-hamburg.de}{geoportal-hamburg.de} but roads and building data are contained in separate datasets, primarily \enquote{HH-SIB} and \enquote{ALKIS}.
+			In addition to the fragmentation, some of data is not suitable for routing.
+			The \enquote{HH-SIB} dataset contains numerous line segments, which represent ways and roads, that are not connected to the remaining road network.
+			The \enquote{ALKIS} dataset also contains road data, but only as areas, which is not suitable for routing as well.
 			However, OpenStreetMap offers free access to numerous usable features in one dataset.
 			
 			Since geometric routing is the major topic, not only the road network is used, but also certain features of OSM representing impassable obstacles, which are avoided during routing:
@@ -319,7 +319,7 @@ Hence, the topic of agents and simulations will be covered as well.
 		
 			The \term{A*} shortest path algorithm was introduced in 1968 and uses a heuristic $h : V \rightarrow \mathbb{R}$ in combination with a distance function $g : V \rightarrow \mathbb{R}$ to decide which vertex to visit next\cite{astar}.
 			The heuristic $h$ estimates the distance from a vertex $v$ to the given destination (or target) vertex $t$.
-			The distance function $g$ yields the already known shortest-path distance from the source $s$ to $v$.
+			The distance function $g$ yields the already known shortest path distance from the source $s$ to $v$.
 			Summing up the two functions to $f(v) = g(v) + h(v)$, gives the estimated length of a shortest path from $s$ via $v$ to $t$ and is used to decide which successor of $v$ to process next.
 			A crucial criterion to $h$ is that it never overestimates the distance to $t$, which is especially important for the triangle inequality used by the ALT speedup method presented in \Cref{subsubsec:landmarks}.
 			The structure of A* is relatively simple and is expressed in pseudocode in \Cref{alg:astar}.

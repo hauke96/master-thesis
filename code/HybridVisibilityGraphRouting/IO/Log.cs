@@ -19,14 +19,4 @@ public static class Log
             I(message);
         }
     }
-
-    public static void Note(string message)
-    {
-        D("- " + message);
-    }
-
-    public static void W(string message)
-    {
-        I("WARN: " + message);
-    }
 }

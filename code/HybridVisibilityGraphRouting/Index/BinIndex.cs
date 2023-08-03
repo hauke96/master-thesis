@@ -1,5 +1,11 @@
 namespace HybridVisibilityGraphRouting.Index;
 
+/// <summary>
+/// This class implements a simple index storing intervals into bins. Each bin, therefore, covers a certain range. This
+/// index only supports point-queries but answers them in O(1) time. <br/>
+/// <br/>
+/// The index considers the intervals to form a ring, further information is given in the <see cref="Add"/> method.
+/// </summary>
 public class BinIndex<T>
 {
     private readonly int _maxKey;
@@ -16,6 +22,13 @@ public class BinIndex<T>
         }
     }
 
+    /// <summary>
+    /// Adds an interval with the given object to the index. Duplicates are not handled, i.e. it's possible to add
+    /// duplicate entries. <br/>
+    /// <br/>
+    /// The index forms a ring and inverse intervals (to &lt; from) are split. <br/>
+    /// Example: If the maximum key is 10, an interval (8, 2) is stored as two intervals (8, 10) and (0, 2).
+    /// </summary>
     public void Add(double from, double to, T value)
     {
         if (from < 0 || _maxKey < from)
@@ -50,6 +63,10 @@ public class BinIndex<T>
         }
     }
 
+    /// <summary>
+    /// Gets all elements stored in the bin of the given key. This means the result may contain elements not
+    /// intersecting the given key.
+    /// </summary>
     public LinkedList<T> Query(double key)
     {
         if (key < 0 || _maxKey < key)

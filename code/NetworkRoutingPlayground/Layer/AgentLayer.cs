@@ -27,7 +27,7 @@ namespace NetworkRoutingPlayground.Layer
 
         public void InitEnvironment(HybridVisibilityGraph graph)
         {
-            Environment = GeoHashEnvironment<Agent>.BuildByBBox(graph.BoundingBox, 1);
+            Environment = GeoHashEnvironment<Agent>.BuildByBBox(graph.Graph.BoundingBox, 1);
         }
     }
 }

@@ -12,7 +12,9 @@ public class GeometryHelper
 {
     /// <summary>
     /// Triangulates each geometry after unwrapping it, which means multi-geometries (e.g. MultiPolygon) are split up
-    /// into the separate single geometries (e.g. Polygon). These simple geometries are then triangulated.
+    /// into the separate single geometries (Polygon in this case). <br/>
+    /// <br/>
+    /// Unwrapped polygonal geometries are then triangulated. Non-polygonal geometries are not affected by this.
     /// </summary>
     /// <param name="features">The features whose geometries should be triangulated</param>
     /// <param name="debugModeActive">Set to true to write the result to disk.</param>
@@ -91,12 +93,9 @@ public class GeometryHelper
     }
 
     /// <summary>
-    /// Unwraps the given geometry, which means resolving multi-geometry relations.
-    ///
-    /// However, only MultiPolygon and MultiLineString geometries are currently unwrapped. For each polygon in a
-    /// multi-polygon, their exterior rings are collected and returned.
-    ///
-    /// All other geometry types will be returned unchanged.
+    /// Unwraps the given geometry. This means unpacking all geometry collections (multi-geometries are geometry
+    /// collections internally) into the set of separate geometries as well as unpacking polygon rings into separate
+    /// polygons. All other geometry types will be returned unchanged.
     /// </summary>
     public static List<NetTopologySuite.Geometries.Geometry> UnwrapMultiGeometries(
         NetTopologySuite.Geometries.Geometry inputGeometry)
@@ -133,9 +132,10 @@ public class GeometryHelper
     }
 
     /// <summary>
-    /// This assumes that the edge only consists of two coordinates.
+    /// Returns the envelope of the given coordinates interpreting them as line segment coordinates. I.E. it is
+    /// assumed that there are only two coordinates.
     /// </summary>
-    public static Envelope GetEnvelope(Position[] coordinates)
+    public static Envelope GetEnvelopeOfLineSegment(Position[] coordinates)
     {
         var minX = coordinates.Min(c => c.X);
         var maxX = coordinates.Max(c => c.X);

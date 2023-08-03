@@ -1,11 +1,9 @@
-% !TEX root = ../thesis.tex
+% !TeX root = ../thesis.tex
 % !TeX spellcheck = en_US
 
-In this last chapter, the work is summarized and future work is presented.
-
-The presented \emph{hybrid routing algorithm} combines graph-based with geometric routing and, furthermore, determines shortest paths between arbitrary source and destination locations.
+The presented \emph{hybrid routing algorithm} combines graph-based with geometric routing and determines shortest paths between arbitrary source and destination locations.
 The geometric routing component is based on visibility graphs containing only edges between vertices that are visible to each other.
-Edges in visibility graphs are therefore the shortest connection between two vertices, a useful property for finding general shortest paths.
+Edges in visibility graphs are therefore the shortest connection between two vertices, which is a useful property for finding general shortest paths.
 Generating a routable visibility graph is one core task of the hybrid routing algorithm.
 
 Merging road edges from the input dataset into the visibility graph is the second core task of the hybrid routing algorithm.
@@ -22,10 +20,10 @@ The source and destination locations are added and connected to the graph, as fa
 
 	\subsection{Known problems}
 	
-		It might not be a severe problem to all agent-based models and scenarios, but the graph generation and routing performance offers potential for improvement.
+		The runtime and memory performance of the graph generation and routing routine offer potential for improvements.
 		This can happen by optimizing the current implementation or implementing a different graph generation algorithm.
 		
-		The first approach might use better data structured for vertices and obstacles.
+		The first approach might use better data structures for vertices and obstacles.
 		In the current implementation, for every vertex, every other vertex in the dataset is considered a potential neighbor and then filtered out using e.g. valid angle and shadow areas.
 		Using a spatial index to query vertices in certain areas might increase performance since not all vertices need to be checked.
 		However, any additional data structure also introduces additional overhead and might only be beneficial for datasets of a certain size.
@@ -53,7 +51,7 @@ The source and destination locations are added and connected to the graph, as fa
 		Even though the hybrid routing algorithm creates edges inside the island, it might also create edges inside the lake.
 		Handling inner rings of (multi-)polygons is therefore needed to correctly navigate within islands of obstacles.
 		
-		One optimization of the graph generation process is filtering vertices by convex hulls as introduced in \Cref{subsubsec:convex-hull}.
+		A possible performance optimization of the graph generation process is filtering vertices by convex hulls as introduced in \Cref{subsubsec:convex-hull}.
 		However, this optimization only works for polygons with no hidden vertices, i.e. vertices that are theoretically reachable but inside the obstacle and not visible to the outside.
 		\Cref{fig:convex-hull-problem} illustrates the problem with the red marked area, which is not reachable when only vertices of the convex hull are connected.
 		The red edges are necessary to create a shortest path from and to the area within the obstacle.
@@ -61,8 +59,7 @@ The source and destination locations are added and connected to the graph, as fa
 		A different type of problem arises with road vertices containing attributes that make them a punctual barrier.
 		In OSM, this is for example the case for a node being part of a road and containing the tag \texttt{barrier=gate}.
 		In reality, however, such gates and entrances are not only punctual features but often belong to a wall or fence.
-		These linestring barriers are not relevant for purely graph-based routing and therefore do not always exist in OpenStreetMap.
-		These line-based barriers are very important for the hybrid routing algorithm to ensure correct routing results.
+		These linestring barriers are not relevant for purely graph-based routing and therefore do not always exist in OpenStreetMap, but they are very important for the hybrid routing algorithm to ensure correct routing results.
 		Without these barriers, the routing will avoid the road, due to the barrier-attribute, but instead might use a visibility edge next to the road.
 		Adding the missing linestring barriers to the underlying dataset is the ideal solution but algorithmic approaches might also exist to infer these linestrings automatically.
 		
@@ -87,10 +84,9 @@ The source and destination locations are added and connected to the graph, as fa
 		As illustrated in \Cref{subsec:memory-consumption}, merging the road graph led to the most significant increase in memory usage.
 		Further analysis needs to take place to find the steps responsible for this increase in memory.
 		One possible enhancement is the combination of data structures and indices in the \texttt{HybridVisibilityGraph}.
-		However, the number of nodes and edges are likely the cause of the high memory usage, which can be reduced by the following approach.
 		
-		The number of edges in the hybrid visibility graph is very high due to the functioning of visibility edges but also due to merged road edges.
-		Approaches exist to reduce the number of edges in a routing graph with little effect on the route quality \cite{aumann-reducing-routing-graph}, which will speed up graph generation and routing but reduce the memory consumption.
+		The high number of nodes and edges is likely the cause of the significant memory usage.
+		Approaches exist to reduce the number of edges in a routing graph with little effect on the route quality \cite{aumann-reducing-routing-graph}, which will speed up graph generation and routing while reduce the memory consumption.
 
 	\subsection{Additional functionalities}
 		
@@ -136,5 +132,5 @@ The source and destination locations are added and connected to the graph, as fa
 	And third, the data quality significantly impacts the route quality.
 	Missing or wrong data leads to inaccurate or routes that are unusable in the real world.
 	
-	The presented algorithm has the potential for enhancements and might be part of future work.
+	The presented algorithm has the potential for enhancements, which might be part of future work.
 	However, I am convinced that use cases in agent-based simulations and real-world applications exist in which the hybrid routing algorithm is beneficial for the quality of the determined routes.
