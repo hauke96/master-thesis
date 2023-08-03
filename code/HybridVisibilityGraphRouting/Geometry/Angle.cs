@@ -62,9 +62,9 @@ public class Angle
     }
 
     /// <summary>
-    /// Like "Normalize(double)" but 360° will be turned into 0.
-    ///
-    /// Assumption: -360 <= a < 720
+    /// Like "Normalize(double)" but 360° will be turned into 0. <br/>
+    /// <br/>
+    /// Assumption: -360 &lt;= a &lt; 720
     /// </summary>
     public static double StrictNormalize(double a)
     {
@@ -83,11 +83,11 @@ public class Angle
 
     /// <summary>
     /// Calculates the enclosing angle between the original angles. Meaning the angle between them that's at most 180°.
-    /// Or in other words: An angle between the returned fromAngle and toAngle is "inside" that area.
-    ///
+    /// Or in other words: An angle between the returned fromAngle and toAngle is "inside" that area. <br/>
+    /// <br/>
     /// Precondition:
-    /// The angles are strictly normalized (e.g. by using the StrictNormalize(double) method).
-    ///
+    /// The angles are strictly normalized (e.g. by using the StrictNormalize(double) method). <br/>
+    /// <br/>
     /// Example:
     /// Say originalFrom is 10° and originalTo is 200° building an angle of 190°. Then the returning fromAngle is
     /// 200° and toAngle is 10° marking an angle of 170°.
@@ -130,10 +130,10 @@ public class Angle
         return a < b;
     }
 
-    /**
-     * Merges the given angle intervals. The returned interval might exceed the 0° border. If no merge was possible
-     * (because the intervals do not overlap or touch), a (-1, -1) interval is returned.
-     */
+    /// <summary>
+    /// Merges the given angle intervals. The returned interval might exceed the 0° border. If no merge was possible
+    /// (because the intervals do not overlap or touch), a (-1, -1) interval is returned.
+    /// </summary>
     public static (double, double) Merge(double from1, double to1, double from2, double to2)
     {
         if (AreEqual(to1, from2))

@@ -14,6 +14,14 @@ using Position = Mars.Interfaces.Environments.Position;
 
 namespace HybridVisibilityGraphRouting.Graph;
 
+/// <summary>
+/// This class represents a visibility graph in which a road network has been merged. <br/>
+/// <br/>
+/// It offers methods for routing. <br/>
+///  <br/>
+/// It is also able to dynamically add and connect points to the graph. All added edges are visibility edges, therefore,
+/// this graph also contains all relevant obstacles that were used to create it.
+/// </summary>
 public class HybridVisibilityGraph
 {
     public static readonly Func<EdgeData, NodeData, double> WeightedHeuristic =
@@ -21,6 +29,7 @@ public class HybridVisibilityGraph
 
     public static readonly Func<EdgeData, NodeData, double> ShortestHeuristic = (edge, _) => edge.Length;
 
+    // Required stores/indices to connect points to the graph
     private readonly QuadTree<Obstacle> _obstacles;
     private readonly Dictionary<Vertex, int[]> _vertexToNodes;
     private readonly Dictionary<Coordinate, List<Obstacle>> _vertexToObstacleMapping;
@@ -30,7 +39,6 @@ public class HybridVisibilityGraph
     private KdTree<Vertex> _vertexIndex;
 
     public readonly SpatialGraph Graph;
-    public BoundingBox BoundingBox => Graph.BoundingBox;
 
     public HybridVisibilityGraph(SpatialGraph graph,
         QuadTree<Obstacle> obstacles,
@@ -46,7 +54,7 @@ public class HybridVisibilityGraph
         _edgeIndex = new QuadTree<int>();
         Graph.Edges.Values.Each((i, e) =>
         {
-            var envelope = GeometryHelper.GetEnvelope(e.Geometry);
+            var envelope = GeometryHelper.GetEnvelopeOfLineSegment(e.Geometry);
             _edgeIndex.Insert(envelope, i);
         });
 
@@ -57,6 +65,10 @@ public class HybridVisibilityGraph
         InitNodeIndex();
     }
 
+    /// <summary>
+    /// Creates a new node index (k-d tree) storing all nodes of the current graph. It also updates the vertex index
+    /// and vertex-to-node mapping accordingly.
+    /// </summary>
     private void InitNodeIndex()
     {
         _nodeIndex = new KdTree<NodeData>(2);
@@ -66,18 +78,30 @@ public class HybridVisibilityGraph
         _vertexToNodes.Keys.Each(vertex => _vertexIndex.Add(vertex.Coordinate.ToPosition(), vertex));
     }
 
+    /// <summary>
+    /// Uses the A* algorithm to find the optimal path between the given locations. The weighting function slightly
+    /// prefers road edges.
+    /// </summary>
     public List<Position> WeightedShortestPath(Position source, Position destination)
     {
         return OptimalPath(source, destination, WeightedHeuristic);
     }
 
+    /// <summary>
+    /// Uses the A* algorithm to find the truly shortest path between the given locations.
+    /// </summary>
     public List<Position> ShortestPath(Position source, Position destination)
     {
         return OptimalPath(source, destination, ShortestHeuristic);
     }
 
+    /// <summary>
+    /// Uses the A* algorithm to find the optimal path between the given locations with respect to the given weight
+    /// function (heuristic).
+    /// </summary>
     public List<Position> OptimalPath(Position source, Position destination, Func<EdgeData, NodeData, double> heuristic)
     {
+        // 1. Add and connect input points to the graph
         var (sourceNode, sourceNodeHasBeenCreated) = AddPositionToGraph(source);
         var (destinationNode, destinationNodeHasBeenCreated) = AddPositionToGraph(destination);
 
@@ -96,9 +120,10 @@ public class HybridVisibilityGraph
             (newCreatedNodesForDestination, newEdgedForDestination) = ConnectNodeToGraph(destinationNode, false);
         }
 
+        // 2. Actually determine the route
         var routingResult = Graph.AStarAlgorithm(sourceNode.Key, destinationNode.Key, heuristic);
 
-        // Remove temporarily created nodes (which automatically removes the edges too) to have a clean graph for
+        // 3. Remove temporarily created nodes (which automatically removes the edges too) to have a clean graph for
         // further routing requests.
         newEdgedForSource.Each(RemoveEdge);
         newEdgedForDestination.Each(RemoveEdge);
@@ -106,6 +131,7 @@ public class HybridVisibilityGraph
         newCreatedNodesForDestination.Each(RemoveNode);
         InitNodeIndex();
 
+        // 4. Determine the list of coordinates from the edges of the determined path
         if (routingResult.IsEmpty())
         {
             return new List<Position>();
@@ -130,8 +156,8 @@ public class HybridVisibilityGraph
     }
 
     /// <summary>
-    /// Adds the given position to the graph, if not already exists. When a new node was created, visibility edges are
-    /// determined and connected to the graph.
+    /// Adds the given position to the graph and connects it by determining visibility edges and adding them to the
+    /// graph as well. If a node given location already exists, the graph stays unchanged and this node is returned.
     /// </summary>
     /// <returns>The node and a flag which is true when the node is new (false when the node already existed).</returns>
     public (NodeData, bool) AddPositionToGraph(Position positionToAdd)
@@ -153,16 +179,13 @@ public class HybridVisibilityGraph
     }
 
     /// <summary>
-    /// </summary>
-    /// <returns>A tuple with a list of all newly added nodes (including the given nodeToConnect) and edges.</returns>
-    /// <summary>
     /// Determines all visibility edges for the given node and adds them to the graph. The node itself will be part of
     /// the returned result set and therefore might be removed in other steps.
     /// </summary>
     /// <param name="nodeToConnect">The node from with edges to other visible nodes should be created.</param>
     /// <param name="onlyConnectToObstacles">When true (default), then only edges to vertices which belong to an obstacle are created.</param>
     /// <param name="respectValidAngleAreas">When true (default), then valid angle areas are respected.</param>
-    /// <returns></returns>
+    /// <returns>A tuple with a list of all newly added nodes (including the given nodeToConnect) and edges.</returns>
     public (IList<NodeData>, IList<EdgeData>) ConnectNodeToGraph(NodeData nodeToConnect,
         bool onlyConnectToObstacles = true,
         bool respectValidAngleAreas = true,
@@ -229,12 +252,14 @@ public class HybridVisibilityGraph
     }
 
     /// <summary>
-    /// Merges the given line segment into the graph.
+    /// Merges the given line segment into the graph. New nodes are created at intersection points and connected
+    /// accordingly.
     /// </summary>
     /// <param name="hybridGraph">The graph in which the given segment feature should be merged to. New nodes and edges might be added.</param>
     /// <param name="segmentFeature">The line segment to add. This must have a line geometry, meaning a <code>LineSegment</code> or <code>LineString</code>. Only the first two coordinates are considered, any additional coordinates will be ignored.</param>
     /// <param name="onlyConsiderRoads">Set to true if only intersections with road segments should be considered. Otherwise all intersections of the given segment with any edge will be considered.</param>
-    /// <param name="removeVacantEdges">Set to true to remove edges from the graph that have been split into two segments.</param>
+    /// <param name="removeVacantEdges">When true, edges are removed from the graph that have been split into two segments. Default: true.</param>
+    /// <returns>All newly created nodes and edges.</returns>
     public (IEnumerable<NodeData>, IEnumerable<EdgeData>) MergeSegmentIntoGraph(HybridVisibilityGraph hybridGraph,
         IFeature segmentFeature, bool onlyConsiderRoads = false, bool removeVacantEdges = true)
     {
@@ -462,14 +487,21 @@ public class HybridVisibilityGraph
         );
     }
 
-    public List<NodeData> GetNodesByAttribute(string attributeName)
+    /// <summary>
+    /// Returns the nodes which contain an attribute with the given key.
+    /// </summary>
+    public List<NodeData> GetNodesByAttributeKey(string attributeKey)
     {
         return Graph.NodesMap
             .Values
-            .Where(node => node.Data.ContainsKey(attributeName))
+            .Where(node => node.Data.ContainsKey(attributeKey))
             .ToList();
     }
 
+    /// <summary>
+    /// Returns the nodes for which the given coordinate is in any of their angle area (this does not use the valid
+    /// angle area but the covered angle area of the bin-sorting).
+    /// </summary>
     public IEnumerable<int> GetNodeForAngle(Coordinate coordinate, IEnumerable<NodeData> nodeCandidates)
     {
         return HybridVisibilityGraphGenerator.GetNodeForAngle(coordinate.ToPosition(), nodeCandidates.Map(n => n.Key),
@@ -504,13 +536,13 @@ public class HybridVisibilityGraph
         return Graph.EdgesMap.ContainsKey((fromNode, toNode));
     }
 
-    /// <returns>The new edge or null if from & to are equal or if the edge already existed.</returns>
+    /// <returns>The new edge or null if from- and to-node are equal or if the edge already exists.</returns>
     private EdgeData? AddEdge(int fromNode, int toNode)
     {
         return AddEdge(fromNode, toNode, new Dictionary<string, object>());
     }
 
-    /// <returns>The new edge or null if from & to are equal or if the edge already existed.</returns>
+    /// <returns>The new edge or null if from- and to-node are equal or if the edge already exists.</returns>
     private EdgeData? AddEdge(int fromNode, int toNode, IDictionary<string, object> attributes)
     {
         var hasEdge = ContainsEdge(fromNode, toNode);
@@ -520,10 +552,13 @@ public class HybridVisibilityGraph
         }
 
         var edge = Graph.AddEdge(fromNode, toNode, attributes);
-        _edgeIndex.Insert(GeometryHelper.GetEnvelope(edge.Geometry), edge.Key);
+        _edgeIndex.Insert(GeometryHelper.GetEnvelopeOfLineSegment(edge.Geometry), edge.Key);
         return edge;
     }
 
+    /// <summary>
+    /// Removes the given node from the graph. This also removes all adjacent edges.
+    /// </summary>
     private void RemoveNode(NodeData node)
     {
         Graph.RemoveNode(node);
@@ -534,6 +569,6 @@ public class HybridVisibilityGraph
     private void RemoveEdge(EdgeData edge)
     {
         Graph.RemoveEdge(edge.Key);
-        _edgeIndex.Remove(GeometryHelper.GetEnvelope(edge.Geometry), edge.Key);
+        _edgeIndex.Remove(GeometryHelper.GetEnvelopeOfLineSegment(edge.Geometry), edge.Key);
     }
 }

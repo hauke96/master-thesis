@@ -2,6 +2,15 @@ using NetTopologySuite.Geometries;
 
 namespace HybridVisibilityGraphRouting.Geometry
 {
+    /// <summary>
+    /// This class represents an obstacle, which is not passable by visibility edges.
+    /// 
+    /// The geometry of an obstacle is either a Point, LineString or triangle (Polygon/MultiPolygon). Closed geometries
+    /// with a vertex count of !=4 are not permitted due to assumptions on the collision checks.
+    /// 
+    /// This class not only wraps a geometry, it also contains the respective vertices, which hold information about
+    /// neighboring/touching obstacles.
+    /// </summary>
     public class Obstacle
     {
         public readonly List<Coordinate> Coordinates;
@@ -12,6 +21,9 @@ namespace HybridVisibilityGraphRouting.Geometry
 
         private readonly int _hash;
 
+        /// <summary>
+        /// Creates a new obstacle. The geometry but either be a Point, LineString or a triangle (Multi)Polygon. 
+        /// </summary>
         public Obstacle(NetTopologySuite.Geometries.Geometry geometry,
             NetTopologySuite.Geometries.Geometry originalGeometry, List<Vertex> vertices)
         {
@@ -54,12 +66,12 @@ namespace HybridVisibilityGraphRouting.Geometry
         }
 
         /// <summary>
-        /// Check if this obstacle intersects with the given line, specified by the two coordinate parameters.
-        ///
+        /// Check if this obstacle intersects with the given line, specified by the two coordinate parameters. <br/>
+        /// <br/>
         /// A few remarks and edge cases on what's considered an intersection:
         /// <ul>
-        ///   <li>A line touching the obstacle (i.e. having at least one coordinate in common) is <i>not</i> considered an intersection.</li>
-        ///   <li>A line fully within the obstacle (in case of a closed polygon) is considered as intersecting this obstacle.</li>
+        ///   <li>A line touching the obstacle (i.e. having at least one coordinate in common) does <i>not</i> intersect this obstacle.</li>
+        ///   <li>A line fully within the obstacle (in case of a closed polygon) intersects this obstacle.</li>
         /// </ul>
         /// </summary>
         public bool IntersectsWithLine(Coordinate coordinateStart, Coordinate coordinateEnd,
@@ -90,7 +102,7 @@ namespace HybridVisibilityGraphRouting.Geometry
         }
 
         /// <summary>
-        /// Checks of the line segment, specified by the two given coordinates, intersects with this open obstacle. Both
+        /// Checks if the line segment, specified by the two given coordinates, intersects with this open obstacle. Both
         /// coordinates are considered to be part of the obstacle, hence the two given indices must point to existing
         /// coordinates.
         /// </summary>
@@ -116,7 +128,7 @@ namespace HybridVisibilityGraphRouting.Geometry
         }
 
         /// <summary>
-        /// Check for intersection with the given line, specified by the two given coordinates. It's assumes that one
+        /// Check for intersection with the given line segment, specified by the two coordinates. It's assumes that one
         /// or none of the coordinates is part of this obstacle. When this obstacle is a polygonal obstacle, a line
         /// being fully within the obstacle counts as an intersection.
         /// </summary>
@@ -145,9 +157,8 @@ namespace HybridVisibilityGraphRouting.Geometry
         }
 
         /// <summary>
-        /// Checks if the given line string defined by the coordinate parameters, intersects with any line segment of
-        /// the obstacle. It is assumes that the line segment between the given two coordinates is NOT part of this
-        /// obstacle.
+        /// Checks if the given line segment, specified by the coordinates, intersects with any line segment of the
+        /// obstacle. It is assumes that the given line segment is NOT part of this obstacle.
         /// </summary>
         private bool IntersectsWithLineString(Coordinate coordinateStart, Coordinate coordinateEnd)
         {
@@ -173,8 +184,8 @@ namespace HybridVisibilityGraphRouting.Geometry
         }
 
         /// <summary>
-        /// Check "p" is inside the given triangle using a barycentric collision check. If "p" is location on an edge or
-        /// corner of the triangle, it's not considered "inside" and returns false.
+        /// Checks if "p" is inside the given triangle using a barycentric collision check. If "p" is location on an
+        /// edge or corner of the triangle, it's not considered "inside" and returns false.
         /// </summary>
         public static bool IsInTriangle(Coordinate p, Coordinate c1, Coordinate c2, Coordinate c3)
         {
@@ -189,6 +200,10 @@ namespace HybridVisibilityGraphRouting.Geometry
                    0 < w && w < d;
         }
 
+        /// <summary>
+        /// Checks if this obstacle contains a line segment specified by the two coordinates. The order of the
+        /// coordinates is irrelevant.
+        /// </summary>
         public bool HasLineSegment(Coordinate coordinateStart, Coordinate coordinateEnd)
         {
             // Offset of 1 for closed obstacles because first and last coordinates are the same.
@@ -215,7 +230,7 @@ namespace HybridVisibilityGraphRouting.Geometry
         /// <summary>
         /// Calculates the shadow area seen from a given vertex.
         /// </summary>
-        public ShadowArea GetShadowAreaOfObstacle(Vertex vertex)
+        public ShadowArea? GetShadowAreaOfObstacle(Vertex vertex)
         {
             var angleFrom = double.NaN;
             var angleTo = double.NaN;
@@ -315,7 +330,7 @@ namespace HybridVisibilityGraphRouting.Geometry
             distanceToToCoordinate = vertex.Coordinate.Distance(coordinateTo);
             var maxDistance = Math.Max(distanceToFromCoordinate, distanceToToCoordinate);
 
-            return new ShadowArea(angleFrom, angleTo, maxDistance);
+            return ShadowArea.Of(angleFrom, angleTo, maxDistance);
         }
 
         public override int GetHashCode()

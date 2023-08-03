@@ -13,9 +13,12 @@ using Position = Mars.Interfaces.Environments.Position;
 
 namespace HybridVisibilityGraphRouting.Graph;
 
+/// <summary>
+/// This generator class creates an instance of the HybridVisibilityGraph based on given obstacles and road edges.
+/// </summary>
 public static class HybridVisibilityGraphGenerator
 {
-    // See method FilterFeaturesByKeys for documentation on filter expression strings
+    /// <seealso cref="FeatureHelper.FilterFeaturesByExpressions" />
     public static readonly string[] DefaultObstacleExpressions =
     {
         "barrier!=^no$",
@@ -27,8 +30,10 @@ public static class HybridVisibilityGraphGenerator
         "waterway"
     };
 
+    /// <seealso cref="FeatureHelper.FilterFeaturesByExpressions" />
     public static readonly string[] DefaultPoiExpressions = { "poi" };
 
+    /// <seealso cref="FeatureHelper.FilterFeaturesByExpressions" />
     public static readonly string[] DefaultRoadExpressions =
     {
         "highway!=^(motorway|trunk|motorway_link|trunk_link|bus_guideway|raceway)$"
@@ -36,7 +41,10 @@ public static class HybridVisibilityGraphGenerator
 
     /// <summary>
     /// Generates the complete hybrid visibility graph based on the obstacles in the given feature collection. This
-    /// method also merges the road and ways within the features correctly with the visibility edges.
+    /// method also merges the road and ways within the features correctly with the visibility edges.<br/>
+    /// <br/>
+    /// Expressions can be used to only consider certain objects. The syntax is further described in
+    /// <see cref="FeatureHelper.FilterFeaturesByExpressions" />.
     /// </summary>
     public static HybridVisibilityGraph Generate(IEnumerable<IFeature> features,
         int visibilityNeighborBinCount = 36,
@@ -64,11 +72,9 @@ public static class HybridVisibilityGraphGenerator
     }
 
     /// <summary>
-    /// Takes all obstacle features and calculates for each vertex the visibility neighbors. The obstacles are filtered
-    /// by the passed expressions and additionally by their geometry type. Only non-point obstacles (because they
-    /// have no spatial size) are considered.
+    /// Filters all obstacles, unwraps and triangulates them. This method also creates the required vertices and
+    /// obstacle objects. Vertices do NOT have the obstacle neighbors set.
     /// </summary>
-    /// <returns>A map from each vertex to the bins of visibility neighbors.</returns>
     public static QuadTree<Obstacle> GetObstacles(IEnumerable<IFeature> features, string[]? obstacleExpressions = null)
     {
         obstacleExpressions ??= DefaultObstacleExpressions;
@@ -115,6 +121,10 @@ public static class HybridVisibilityGraphGenerator
         return obstacleIndex;
     }
 
+    /// <summary>
+    /// Creates an instance of the hybrid visibility graph that does not contain any roads. It therefore is a plain
+    /// visibility graph.
+    /// </summary>
     public static HybridVisibilityGraph CreateVisibilityGraph(
         Dictionary<Vertex, List<List<Vertex>>> vertexNeighbors,
         QuadTree<Obstacle> obstacles)
@@ -134,10 +144,6 @@ public static class HybridVisibilityGraphGenerator
             vertexToNode[vertex] = new int[vertexNeighborBin.Count];
             vertexNeighborBin.Each((i, _) =>
             {
-                // For debug porposes to see the different nodes in the GeoJSON file.
-                // var nodePosition = PositionHelper.CalculatePositionByBearing(vertex.Position.X, vertex.Position.Y,
-                //     360 / vertexNeighborBin.Count * i, 0.000005);
-
                 var nodeKey = graph.AddNode(vertex.Coordinate.X, vertex.Coordinate.Y, new Dictionary<string, object>())
                     .Key;
                 vertexToNode[vertex][i] = nodeKey;
@@ -252,8 +258,8 @@ public static class HybridVisibilityGraphGenerator
     }
 
     /// <summary>
-    /// This merges all features with a "highway=*" attribute into the given graph. Whenever a road-edge intersects
-    /// an existing edge, both edges will be split at the intersection point where a new node is added.
+    /// Merges all features with a "highway=*" attribute into the given graph. Whenever a road-edge intersects a
+    /// visibility edge, both edges are split at the intersection and a new node is added and connected.
     /// </summary>
     public static void MergeRoadsIntoGraph(IEnumerable<IFeature> features, HybridVisibilityGraph hybridGraph,
         string[]? roadExpressions = null)
@@ -336,8 +342,8 @@ public static class HybridVisibilityGraphGenerator
     }
 
     /// <summary>
-    /// Takes each feature with an attribute name from "poiKeys" and adds all attributes of this feature to the closest
-    /// node (within the given distance) in the graph.
+    /// Takes each feature matching the filter expression and adds all attributes of this feature to the closest node
+    /// (within the given distance tolerance) in the graph.
     /// </summary>
     public static void AddAttributesToPoiNodes(IEnumerable<IFeature> features, HybridVisibilityGraph graph, string[]? poiExpressions = null,
         double nodeDistanceTolerance = 0.001)
@@ -363,7 +369,8 @@ public static class HybridVisibilityGraphGenerator
     }
 
     /// <summary>
-    /// Filters the given node candidates and keeps each node for which the given position is within its angle area.
+    /// Filters the given node candidates and keeps each node for which the given position is within its angle area
+    /// (this does not use the valid angle area but the covered angle area of the bin-sorting).
     /// </summary>
     public static IEnumerable<int> GetNodeForAngle(Position position, IEnumerable<int> nodeCandidates,
         Dictionary<int, (double, double)> nodeToAngleArea, IDictionary<int, NodeData> nodesMap)

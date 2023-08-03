@@ -11,15 +11,19 @@ using Position = Mars.Interfaces.Environments.Position;
 
 namespace HybridVisibilityGraphRouting.Graph;
 
+/// <summary>
+/// Generates all required information needed to create a routable visibility graph. The actual instantiation of a
+/// spatial graph is not performed by this class.
+/// </summary>
 public static class VisibilityGraphGenerator
 {
     /// <summary>
-    /// Calculates the neighbor relationship for each vertex v in the given obstacles. The term "neighbor" here means
-    /// neighboring positions on adjacent obstacles but not across open spaces. This means there is an edge on at least
-    /// one of the given obstacles from any vertex v to its neighboring positions.
-    ///
-    /// This neighbor relation is stored on the vertices of the obstacles. They therefore need to share the vertex
-    /// instances for identical vertices.
+    /// Calculates the obstacle neighbor relationship for each vertex v in the given obstacles. The term  "obstacle
+    /// neighbor" means neighboring positions on adjacent obstacles but not across open spaces. For a vertex v another
+    /// vertex v' is an obstacle neighbor if there is an edge on at least one of the given obstacles from v to v'<br/>
+    /// <br/>
+    /// This neighbor relation is stored within the vertices. No new vertices are created, the returned set simply
+    /// contains all vertices from all obstacles.
     /// </summary>
     public static HashSet<Vertex> AddObstacleNeighborsForObstacles(
         IList<Obstacle> obstacles,
@@ -71,11 +75,10 @@ public static class VisibilityGraphGenerator
     }
 
     /// <summary>
-    /// Adds the obstacle neighbors (neighbors on this and touching obstacles but not across open spaces) to the given
-    /// map.
+    /// Adds the obstacle neighbor information to each vertex of the given obstacle.
     /// </summary>
     /// <param name="obstacle">The obstacle of which the neighbor relation should be determined.</param>
-    /// <param name="isCoordinateHidden">A function that determines if the obstacle is between the two given coordinates , in other words, if the two coordinates see each other.</param>
+    /// <param name="isCoordinateHidden">A function that determines if the obstacle is between the two given coordinates, in other words, if the two coordinates see each other.</param>
     private static void AddObstacleNeighborsForObstacle(
         Obstacle obstacle,
         Func<Coordinate, Coordinate, Obstacle, bool> isCoordinateHidden)
@@ -134,13 +137,13 @@ public static class VisibilityGraphGenerator
 
     /// <summary>
     /// Determines for each vertex the "k" nearest visible vertices (visibility neighbors) with respect to the given
-    /// obstacles. The vertices are extracted from the obstacles.
-    ///
+    /// obstacles. The vertices are extracted from the obstacles. <br/>
+    /// <br/>
     /// The parameter "k" (for the knn search, hence the methods name) is determined by the following partitioning
-    /// strategy:
+    /// strategy: <br/>
     /// This method uses bins to limit the number of visibility neighbors per angle area, since each bin covers a
-    /// certain angle area of each vertex. Example: If "visibilityNeighborBinCount" is set to 4, then each bin covers 90°. The
-    /// "neighborsPerBin" also limit the amount of visible vertices per bin.
+    /// certain angle area of each vertex. Example: If <paramref name="visibilityNeighborBinCount" /> is set to 4, then
+    /// each bin covers 90°. The <paramref name="visibilityNeighborsPerBin" /> limits the amount of vertices per bin.
     /// </summary>
     /// <returns>
     /// A map from vertex to "visibilityNeighborBinCount"-many sub-lists, each containing vertices of one bin.
@@ -153,46 +156,24 @@ public static class VisibilityGraphGenerator
         var coordinateToObstacles = GetCoordinateToObstaclesMapping(allObstacles);
         var allVertices = AddObstacleNeighborsForObstacles(allObstacles, debugModeActive);
 
-        Log.D("Calculate KNN to get visible vertices");
-        var vertexNeighbors = CalculateVisibleKnnInternal(obstacles, coordinateToObstacles, allVertices,
-            visibilityNeighborBinCount, visibilityNeighborsPerBin, debugModeActive);
-
-        return vertexNeighbors;
-    }
-
-    /// <summary>
-    /// Same as "CalculateVisibleKnn()" but takes the already determined vertices and the mapping from coordinate to
-    /// obstacles.
-    /// </summary>
-    /// <param name="coordinateToObstacles">
-    /// A map from coordinate to all obstacles that include this geometry somewhere in their geometry.
-    /// </param>
-    private static Dictionary<Vertex, List<List<Vertex>>> CalculateVisibleKnnInternal(
-        QuadTree<Obstacle> obstacles,
-        Dictionary<Coordinate, List<Obstacle>> coordinateToObstacles,
-        ICollection<Vertex> vertices,
-        int visibilityNeighborBinCount,
-        int visibilityNeighborsPerBin,
-        bool debugModeActive)
-    {
-        var result = new Dictionary<Vertex, List<List<Vertex>>>();
         Log.D(
-            $"Calculate nearest visible neighbors for each vertex. Bin size is {visibilityNeighborBinCount} with {visibilityNeighborsPerBin} neighbors per bin.");
-
+            $"Calculate knn with bin size {visibilityNeighborBinCount} and {visibilityNeighborsPerBin} neighbors per bin.");
+        var result = new Dictionary<Vertex, List<List<Vertex>>>();
         var totalTimeStopWatch = new Stopwatch();
         var stopWatch = new Stopwatch();
         totalTimeStopWatch.Start();
         stopWatch.Start();
 
-        vertices.Each((i, vertex) =>
+        allVertices.Each((i, vertex) =>
         {
-            if (Log.LogLevel == Log.DEBUG && i % (vertices.Count / 10) == 0)
+            if (Log.LogLevel == Log.DEBUG && i % (((ICollection<Vertex>)allVertices).Count / 10) == 0)
             {
-                Log.D($"  {i / (vertices.Count / 100)}% done ({stopWatch.ElapsedMilliseconds}ms)");
+                Log.D(
+                    $"  {i / (((ICollection<Vertex>)allVertices).Count / 100)}% done ({stopWatch.ElapsedMilliseconds}ms)");
                 stopWatch.Restart();
             }
 
-            result[vertex] = GetVisibilityNeighborsForVertex(obstacles, new List<Vertex>(vertices),
+            result[vertex] = GetVisibilityNeighborsForVertex(obstacles, new List<Vertex>(allVertices),
                 coordinateToObstacles,
                 vertex, visibilityNeighborBinCount, visibilityNeighborsPerBin);
         });
@@ -217,8 +198,9 @@ public static class VisibilityGraphGenerator
     }
 
     /// <summary>
-    /// Determines all visibility neighbors with respect to the limits given by the maximum of "neighborsPerBin" many
-    /// neighbors per bin for each of the "visibilityNeighborBinCount" many bins.
+    /// Determines all visibility neighbors with respect to the limits given by the maximum of
+    /// <paramref name="visibilityNeighborsPerBin"/> many neighbors per bin for each of the
+    /// <paramref name="visibilityNeighborBinCount"/> many bins.
     /// </summary>
     public static List<List<Vertex>> GetVisibilityNeighborsForVertex(
         QuadTree<Obstacle> obstacles,
@@ -321,9 +303,9 @@ public static class VisibilityGraphGenerator
 
                 // Only consider obstacles not belonging to this vertex (could lead to false shadows) and also just
                 // consider new obstacles, since a shadow test with existing obstacles was already performed earlier.
-                if (!obstacleIsAlreadyCastingShadow)
+                if (shadowArea != null)
                 {
-                    if (shadowArea.IsValid)
+                    if (!obstacleIsAlreadyCastingShadow)
                     {
                         shadowAreas.Add(shadowArea.From, shadowArea.To, shadowArea);
                         obstacleToShadowArea[obstacle] = shadowArea;
@@ -335,14 +317,14 @@ public static class VisibilityGraphGenerator
                             return;
                         }
                     }
-                }
 
-                var otherVertexIsInObstacleAngleArea = Angle.IsBetweenEqual(shadowArea.From, angle, shadowArea.To);
-                if (!otherVertexIsInObstacleAngleArea)
-                {
-                    // If "otherVertex" is NOT within the angle area of the obstacle, then there's no chance they
-                    // intersect. Therefore, a subsequent intersection check can be skipped.
-                    return;
+                    var otherVertexIsInObstacleAngleArea = Angle.IsBetweenEqual(shadowArea.From, angle, shadowArea.To);
+                    if (!otherVertexIsInObstacleAngleArea)
+                    {
+                        // If "otherVertex" is NOT within the angle area of the obstacle, then there's no chance they
+                        // intersect. Therefore, a subsequent intersection check can be skipped.
+                        return;
+                    }
                 }
 
                 intersectsWithObstacle |=
@@ -358,8 +340,6 @@ public static class VisibilityGraphGenerator
 
             // For simplicity, only the neighbor list is used for null checks. However, the maxDistance list is
             // null if and only if the neighbor list is null.
-            // TODO Find a better solution for this two-list-situation
-
             if (visibilityNeighbors[binKey] == null)
             {
                 visibilityNeighbors[binKey] = new LinkedList<Vertex>();
@@ -440,10 +420,8 @@ public static class VisibilityGraphGenerator
             };
         }
 
-        /*
-         * This following routing collects all visibility neighbors we just determined above and puts them into bins.
-         * Each bin covers the angle area between two obstacle neighbors on the vertex.
-         */
+        // This following routing collects all visibility neighbors we just determined above and puts them into bins.
+        // Each bin covers the angle area between two obstacle neighbors on the vertex.
         var result = new List<List<Vertex>>();
         var bin = new List<Vertex>();
 
@@ -498,6 +476,9 @@ public static class VisibilityGraphGenerator
         return result;
     }
 
+    /// <summary>
+    /// Create a map from coordinate to all obstacles with a vertex of this coordinate.
+    /// </summary>
     public static Dictionary<Coordinate, List<Obstacle>> GetCoordinateToObstaclesMapping(
         IEnumerable<Obstacle> allObstacles)
     {

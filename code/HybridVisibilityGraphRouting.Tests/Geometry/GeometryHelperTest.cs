@@ -245,10 +245,10 @@ public class GeometryHelperTest
     {
         var edgeData = new EdgeData(0, new Dictionary<string, object>(),
             new[] { new Position(0, 0), new Position(1, 2) }, new[] { 1, 2 }, 1, 2, 3);
-        Assert.AreEqual(new Envelope(0, 1, 0, 2), GeometryHelper.GetEnvelope(edgeData.Geometry));
+        Assert.AreEqual(new Envelope(0, 1, 0, 2), GeometryHelper.GetEnvelopeOfLineSegment(edgeData.Geometry));
 
         edgeData = new EdgeData(0, new Dictionary<string, object>(),
             new[] { new Position(0, 0), new Position(1, 2), new Position(5, 0) }, new[] { 1, 2, 3 }, 1, 2, 3);
-        Assert.AreEqual(new Envelope(0, 5, 0, 2), GeometryHelper.GetEnvelope(edgeData.Geometry));
+        Assert.AreEqual(new Envelope(0, 5, 0, 2), GeometryHelper.GetEnvelopeOfLineSegment(edgeData.Geometry));
     }
 }

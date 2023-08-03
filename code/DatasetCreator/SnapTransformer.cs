@@ -26,31 +26,13 @@ public class SnapTransformer : GeometryTransformer
 {
     private readonly double _snapTolerance;
     private readonly Coordinate[] _snapPts;
-    private readonly bool _isSelfSnap;
 
-    /// <summary>
-    ///
-    /// </summary>
-    /// <param name="snapTolerance"></param>
-    /// <param name="snapPts"></param>
     public SnapTransformer(double snapTolerance, Coordinate[] snapPts)
     {
         _snapTolerance = snapTolerance;
         _snapPts = snapPts;
     }
 
-    public SnapTransformer(double snapTolerance, Coordinate[] snapPts, bool isSelfSnap)
-        : this(snapTolerance, snapPts)
-    {
-        _isSelfSnap = isSelfSnap;
-    }
-
-    /// <summary>
-    ///
-    /// </summary>
-    /// <param name="coords"></param>
-    /// <param name="parent"></param>
-    /// <returns></returns>
     protected override CoordinateSequence TransformCoordinates(CoordinateSequence coords, Geometry parent)
     {
         var srcPts = coords.ToCoordinateArray();
@@ -58,16 +40,9 @@ public class SnapTransformer : GeometryTransformer
         return Factory.CoordinateSequenceFactory.Create(newPts);
     }
 
-    /// <summary>
-    ///
-    /// </summary>
-    /// <param name="srcPts"></param>
-    /// <param name="snapPts"></param>
-    /// <returns></returns>
     private Coordinate[] SnapLine(Coordinate[] srcPts, Coordinate[] snapPts)
     {
         var snapper = new LineStringSnapper(srcPts, _snapTolerance);
-        snapper.AllowSnappingToSourceVertices = _isSelfSnap;
         return snapper.SnapTo(snapPts);
     }
 }

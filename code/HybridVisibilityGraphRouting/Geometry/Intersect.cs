@@ -4,15 +4,15 @@ using NetTopologySuite.Geometries;
 namespace HybridVisibilityGraphRouting.Geometry
 {
     /// <summary>
-    /// Provides a method to check for intersection of two line segments.
-    ///
-    /// Credit goes to Cormen 3rd edition chapter 33.1. 
+    /// Provides a method to check for intersection of two line segments. <br/>
+    /// <br/>
+    /// This approach is based on Cormen 3rd edition chapter 33.1, but with a different handling of touching segments. 
     /// </summary>
     public static class Intersect
     {
         /// <summary>
-        /// Precondition: The segments p, q and r are collinear (-> Orientation(p, q, r) == 0).
-        ///
+        /// Precondition: The segments p, q and r are collinear (-> Orientation(p, q, r) == 0). <br/>
+        /// <br/>
         /// <param name="orientation">The orientation of p to the other coordinates. Only a collinear p (with means
         /// orientation == 0) can be on the line segment.</param>
         /// </summary>
@@ -48,6 +48,9 @@ namespace HybridVisibilityGraphRouting.Geometry
             return (val > 0) ? 1 : -1;
         }
 
+        /// <summary>
+        /// Determines if the line segments (start1, end1) and (start2, end2) intersect or touch each other.
+        /// </summary>
         public static bool DoIntersectOrTouch(Coordinate start1, Coordinate end1, Coordinate start2, Coordinate end2)
         {
             if (

@@ -96,7 +96,7 @@ namespace NetworkRoutingPlayground.Model
 
         private List<NodeData> FindNodesByKey(string attributeName)
         {
-            return NetworkLayer.Graph.GetNodesByAttribute(attributeName);
+            return NetworkLayer.Graph.GetNodesByAttributeKey(attributeName);
         }
     }
 }

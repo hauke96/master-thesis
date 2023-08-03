@@ -51,6 +51,10 @@ public class FeatureHelper
             .ToList();
     }
 
+    /// <summary>
+    /// Creates one LineString feature for all neighboring coordinates. This means "coordinates.Length - 1" many
+    /// features are returned. Each feature has the given attributes.
+    /// </summary>
     private static List<Feature> ToSegmentFeatures(Coordinate[] coordinates, IAttributesTable attributesTable)
     {
         var newFeatures = new List<Feature>();
@@ -65,14 +69,13 @@ public class FeatureHelper
 
     /// <summary>
     /// Gets all features based on the given filter expression. The "filterExpressionStrings" can contain simple keys or
-    /// regular expressions to exclude features.
-    ///
+    /// regular expressions to exclude features. A feature is returned if any of the filter expressions matches. <br/>
+    /// <br/>
     /// Syntax:
     /// <ul>
     ///   <li>{key}</li>
     ///   <li>{key}!={regex}</li>
     /// </ul>
-    /// 
     /// Examples:
     /// <ul>
     ///   <li>barrier</li>

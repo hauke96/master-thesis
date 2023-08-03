@@ -5,6 +5,14 @@ using Position = Mars.Interfaces.Environments.Position;
 
 namespace HybridVisibilityGraphRouting.Geometry;
 
+/// <summary>
+/// A vertex is a coordinate with some meta information of its surroundings:
+/// <ul>
+///     <li>It contains the information whether or not this vertex is part of any convex hull.</li>
+///     <li>It contains its valid angle areas.</li>
+///     <li>It contains its obstacle neighbors.</li>
+/// </ul>
+/// </summary>
 public class Vertex
 {
     private static int ID_COUNTER;
@@ -62,15 +70,14 @@ public class Vertex
         return Equals(obj as Vertex);
     }
 
-
     /// <summary>
-    /// Calculates the valid angle areas for the given vertex.
-    ///
+    /// Calculates the valid angle areas for the given vertex. <br/>
+    /// <br/>
     /// A valid angle area is an angle area in which potential visibility neighbors are. Not all neighboring nodes
     /// are potential visibility neighbors since not all resulting visibility edges would be part of shortest paths.
     /// To avoid unnecessary checks, only nodes which have a chance to be on a shortest path are selected. To do this,
-    /// certain angle areas are used to exclude irrelevant nodes.
-    ///
+    /// certain angle areas are used to exclude irrelevant nodes. <br/>
+    /// <br/>
     /// Valid angle areas are determined depending on the obstacle neighbors of the given vertex. Angle areas that
     /// would enlarge the convex hull of the obstacle (without removing the given vertex from it) are determined.
     /// </summary>
