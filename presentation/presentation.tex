@@ -107,21 +107,39 @@
 	
 	\section{Motivation}
 	
-		\begin{frame}{Graph-based routing}
+		\begin{frame}{Realistic pedestrian routing}
+			Beneficial for
 			\begin{itemize}
-				\item Graph $G = (V, E)$, edges representing roads / ways
-				\item Shortest path between two vertices
-				\item Well optimized (speedup techniques)
-				\item Widely used (Dijkstra, A*)
-				\item Detailed attributes in edges
-				\end{itemize}
-				\vspace{3ex}
+				\item real-world end-user applications\\\textrightarrow\ indoor navigation, campus navigation
 				\pause
-				Only vertices are reachable\ \textrightarrow\ Unable to traverse open spaces
+				\item higher level applications\\\textrightarrow\ isochrones, walkability analysis
+				\pause
+				\item \textbf{agent-based simulations}\\\textrightarrow\ crowd behavior in evacuation scenario
+			\end{itemize}
 		\end{frame}
-		
-		\begin{frame}[Geometric routing]
-			TODO
+	
+		\begin{frame}{Routing techniques}
+			Graph-based:
+			\begin{itemize}
+				\item graph with edges representing roads / ways
+				\item well optimized: Dijkstra, A*, speedup techniques
+				\item detailed attributes in edges
+				\pause
+				\item only vertices are reachable\ \textrightarrow\ unable to traverse open spaces
+			\end{itemize}
+			\pause
+			\vspace{2ex}
+			Geometric routing:
+			\begin{itemize}
+				\item shortest path in presence of obstacles (i.e. lines and polygons)
+				\item two strategies:
+				\begin{itemize}
+					\item graph generation (e.g. visibility graphs) + graph-based routing
+					\item continuous Dijkstra
+				\end{itemize}
+				\pause
+				\item path realism heavily depends on data quality
+			\end{itemize}
 		\end{frame}
 	
 		\begin{frame}{Example 1: Pure graph-based routing}
@@ -142,17 +160,17 @@
 			\end{figure}
 		\end{frame}
 		
-		\begin{frame}{Example 2: Densely built-up areas}
-			\begin{figure}[t]
-				\begin{figcenter}
-					\includegraphics[width=0.5\textwidth]{images/qgis-routing-similar.pdf}
-				\end{figcenter}
-				\caption{Expected routes often follow graph edges, which hold valuable information.}
-			\end{figure}
-		\end{frame}
+%		\begin{frame}{Example 2: Densely built-up areas}
+%			\begin{figure}[t]
+%				\begin{figcenter}
+%					\includegraphics[width=0.5\textwidth]{images/qgis-routing-similar.pdf}
+%				\end{figcenter}
+%				\caption{Expected routes often follow graph edges, which hold valuable information.}
+%			\end{figure}
+%		\end{frame}
 		
 		\begin{frame}{Value of graph data}
-			Graph data is valuable\\[3ex]
+			Graph data is still valuable:\n
 			\begin{itemize}
 				\item detailed information
 				\begin{itemize}
@@ -170,8 +188,14 @@
 			\end{itemize}
 		\end{frame}
 		
-		\begin{frame}{Implemented approach}
-			TODO
+		\begin{frame}{Wanted routing algorithm}
+			Should be able to\n
+			\begin{itemize}
+				\item traverse open spaces
+				\item use roads and ways
+				\item reach arbitrary locations
+				\item create more realistic routes than purely graph-based routing
+			\end{itemize}
 		\end{frame}
 	
 	\section{Design}
