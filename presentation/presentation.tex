@@ -71,7 +71,7 @@
 	\begin{beamercolorbox}[colsep=1.5pt]{upper separation line head}
 	\end{beamercolorbox}
 	\begin{beamercolorbox}{section in head/foot}
-		\vskip2pt\insertnavigation{\paperwidth}\vskip4pt
+		\vskip-5pt\insertnavigation{\paperwidth}\vskip5pt
 	\end{beamercolorbox}%
 	\begin{beamercolorbox}[colsep=1.5pt]{lower separation line head}
 	\end{beamercolorbox}
@@ -96,7 +96,7 @@
 	{
 		\setbeamertemplate{headline}{}
 		\setbeamertemplate{footline}{}
-		\vspace*{-0.8cm}
+		\vspace*{-0.65cm}
 		\maketitle
 		\addtocounter{page}{-1}
 	}
@@ -108,7 +108,7 @@
 	\section{Motivation}
 	
 		\begin{frame}{Realistic pedestrian routing}
-			Beneficial for
+			Beneficial for\n
 			\begin{itemize}
 				\item real-world end-user applications\\\textrightarrow\ indoor navigation, campus navigation
 				\pause
@@ -119,7 +119,7 @@
 		\end{frame}
 	
 		\begin{frame}{Routing techniques}
-			Graph-based:
+			Graph-based:\n
 			\begin{itemize}
 				\item graph with edges representing roads / ways
 				\item well optimized: Dijkstra, A*, speedup techniques
@@ -127,9 +127,9 @@
 				\pause
 				\item only vertices are reachable\ \textrightarrow\ unable to traverse open spaces
 			\end{itemize}
+			\n
 			\pause
-			\vspace{2ex}
-			Geometric routing:
+			Geometric routing:\n
 			\begin{itemize}
 				\item shortest path in presence of obstacles (i.e. lines and polygons)
 				\item two strategies:
@@ -142,19 +142,19 @@
 			\end{itemize}
 		\end{frame}
 	
-		\begin{frame}{Example 1: Pure graph-based routing}
+		\begin{frame}{Example: Pure graph-based routing}
 			\begin{figure}[t]
 				\begin{figcenter}
-					\includegraphics[width=0.5\textwidth]{images/qgis-routing-osterstrasse_routing.pdf}
+					\includegraphics[width=0.65\textwidth]{images/qgis-routing-osterstrasse_routing.pdf}
 				\end{figcenter}
 				\caption{Graph-based routing result using \href{https://www.osm.org/directions?engine=graphhopper\_foot\&route=53.57657,9.95210;53.57601,9.95268}{\emph{GraphHopper}}.}
 			\end{figure}
 		\end{frame}
 		
-		\begin{frame}{Example 1: Expected routing behavior}
+		\begin{frame}{Example: Expected routing behavior}
 			\begin{figure}[t]
 				\begin{figcenter}
-					\includegraphics[width=0.5\textwidth]{images/qgis-routing-osterstrasse_expected.pdf}
+					\includegraphics[width=0.65\textwidth]{images/qgis-routing-osterstrasse_expected.pdf}
 				\end{figcenter}
 				\caption{Routes an actual pedestrian would likely choose.}
 			\end{figure}
@@ -163,7 +163,7 @@
 %		\begin{frame}{Example 2: Densely built-up areas}
 %			\begin{figure}[t]
 %				\begin{figcenter}
-%					\includegraphics[width=0.5\textwidth]{images/qgis-routing-similar.pdf}
+%					\includegraphics[width=0.65\textwidth]{images/qgis-routing-similar.pdf}
 %				\end{figcenter}
 %				\caption{Expected routes often follow graph edges, which hold valuable information.}
 %			\end{figure}
@@ -187,7 +187,9 @@
 				\end{itemize}
 			\end{itemize}
 		\end{frame}
-		
+	
+	\section{Design}
+	
 		\begin{frame}{Wanted routing algorithm}
 			Should be able to\n
 			\begin{itemize}
@@ -196,9 +198,64 @@
 				\item reach arbitrary locations
 				\item create more realistic routes than purely graph-based routing
 			\end{itemize}
+			\n
+			\pause
+			Additional requirements:\n
+			\begin{itemize}
+				\item based on C\# / .NET and MARS (Multi-Agent Research and Simulation)
+				\item low impact on simulation time
+				\item correct and high-quality routes
+			\end{itemize}
 		\end{frame}
-	
-	\section{Design}
+		
+		\begin{frame}{Design decisions}
+			Decisions of implemented algorithm:\n
+			\begin{itemize}
+				\item visibility graph generation
+				\item merge with existing road network
+				\item connect source / destination with visibility edges
+				\item usage of graph-based routing
+			\end{itemize}
+			\n
+			\pause
+			Alternative approaches:\n
+			\begin{itemize}
+				\item alternating routing with continuous Dijkstra
+				\item merge of route segments in postprocessing step
+				\item other graph-generation methods
+				\begin{itemize}
+					\item Voronoi diagrams, skeletonization
+					\item ad-hoc generation (e.g. by using continuous Dijkstra)
+				\end{itemize}
+			\end{itemize}
+		\end{frame}
+		
+		\begin{frame}{Components}
+			\begin{figure}[t]
+				\begin{figcenter}
+					\includegraphics[width=0.95\textwidth]{images/components.pdf}
+				\end{figcenter}
+				\caption{Components of the implemented hybrid routing algorithm.}
+			\end{figure}
+		\end{frame}
+		
+		\begin{frame}{Graph generation}
+			\begin{figure}[t]
+				\begin{figcenter}
+					\includegraphics[width=0.95\textwidth]{images/components-sequence-generation-short.pdf}
+				\end{figcenter}
+				\caption{Separate steps of the graph generation.}
+			\end{figure}
+		\end{frame}
+		
+		\begin{frame}{Routing}
+			\begin{figure}[t]
+				\begin{figcenter}
+					\includegraphics[width=0.95\textwidth]{images/components-sequence-routing-short.pdf}
+				\end{figcenter}
+				\caption{Separate steps of answering a routing request.}
+			\end{figure}
+		\end{frame}
 	
 	\section{Implementation}
 	
