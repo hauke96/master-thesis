@@ -42,6 +42,7 @@
 %
 
 \newcommand{\bigo}[1]{\mathcal{O}(#1)}
+\renewcommand{\n}{\hfill\\[0.5ex]}
 
 % Environment to center content of a figure without adding extra spacing before the caption
 \newenvironment{figcenter}
@@ -76,6 +77,8 @@
 	\begin{beamercolorbox}[colsep=1.5pt]{lower separation line head}
 	\end{beamercolorbox}
 }
+
+\defbeamertemplate{description item}{align left}{\insertdescriptionitem\hfill}
 
 %
 % Metadata
@@ -128,6 +131,7 @@
 				\item only vertices are reachable\ \textrightarrow\ unable to traverse open spaces
 			\end{itemize}
 			\n
+			\vspace{0.25cm}
 			\pause
 			Geometric routing:\n
 			\begin{itemize}
@@ -242,7 +246,7 @@
 		\begin{frame}{Graph generation}
 			\begin{figure}[t]
 				\begin{figcenter}
-					\includegraphics[width=0.95\textwidth]{images/components-sequence-generation-short.pdf}
+					\includegraphics[width=0.98\textwidth]{images/components-sequence-generation-short.pdf}
 				\end{figcenter}
 				\caption{Separate steps of the graph generation.}
 			\end{figure}
@@ -258,6 +262,56 @@
 		\end{frame}
 	
 	\section{Implementation}
+	
+		\begin{frame}{Visibility graph creation}
+			Key considerations:\n
+			\begin{itemize}
+				\item custom implementation that supports
+				\begin{itemize}
+					\item collinear vertices
+					\item arbitrary obstacle geometries (especially lines and polygons)
+					\item intersecting obstacles
+					\item arbitrary positions and non-unique coordinates
+				\end{itemize}
+				\item generate and connect nodes suitable for routing
+			\end{itemize}
+			\n
+			\vspace{0.25cm}
+			\pause
+			Terminology:\n
+			\begin{description}[visibility neighbor]
+				\item[obstacle neighbor] vertex on same or touching obstacle
+				\item[visibility neighbor] vertex across open space that is visible
+				\item[input vertex] vertex / coordinate in the input dataset
+				\item[output vertex] generated vertex in the visibility graph
+			\end{description}
+		\end{frame}
+		
+		\begin{frame}{Visibility graph creation: vertex and edge creation}
+			\begin{itemize}
+				\item naive vertex creation: one vertex per input coordinate
+				\begin{itemize}
+					\item problem: routing through line-based obstacles possible
+				\end{itemize}
+				\pause
+				\item correct vertex creation: one vertex between each neighbor vertices on the obstacle
+				\begin{itemize}
+					\item multiple vertices at same location
+					\item vertices are not connected
+					\item routing through obstacle not possible
+				\end{itemize}
+			\end{itemize}
+			\n
+			\pause
+			\begin{figure}[b]
+				\begin{figcenter}
+					\includegraphics[scale=0.75]{images/thesis-figure7.pdf}
+					\hspace{0.75cm}
+					\includegraphics[scale=0.75]{images/thesis-figure8.pdf}
+				\end{figcenter}
+				\caption{Naive (left) and correct (right) vertex creation and connection.}
+			\end{figure}
+		\end{frame}
 	
 	\section{Evaluation}
 	
