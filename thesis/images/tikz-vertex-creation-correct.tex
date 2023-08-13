@@ -1,0 +1,33 @@
+\begin{tikzpicture}
+	\def\r{0.85mm}
+	\def\rMargin{1.1mm} % = r + 0.25mm
+	\def\gap{0.1875mm}
+	
+	\tikzDot{(2,0)}{vo0};
+	\node (vo1) at (2,1) {};
+	\node[label={[label distance=-1.25mm]above left:$v_a$}] at (vo1) {};
+	\node[label={[label distance=-1.25mm]above right:$v_b$}] at (vo1) {};
+	\coordinate (vo11) at ($(vo1)+(180:\rMargin)$);
+	\coordinate (vo12) at ($(vo1)+(0:\rMargin)$);
+	\tikzDot{(2,2)}{vo2};
+	
+	\filldraw (vo1)++(-\gap,0)++(90:\r) arc (90:270:\r);
+	\filldraw (vo1)++( \gap,0)++(90:\r) arc (90:-90:\r);
+	
+	\draw ($(vo1)+(270:\r)+(-0.275mm,0)$) -- ($(vo0)+(-0.275mm,2mm)$) -- (vo0.north);
+	\draw ($(vo1)+(270:\r)+( 0.275mm,0)$) -- ($(vo0)+( 0.275mm,2mm)$) -- (vo0.north);
+	
+	\draw ($(vo1)+(90:\r)+(-0.275mm,0)$) -- ($(vo2)+(-0.275mm,-2mm)$) -- (vo2.south);
+	\draw ($(vo1)+(90:\r)+( 0.275mm,0)$) -- ($(vo2)+( 0.275mm,-2mm)$) -- (vo2.south);
+	
+	\tikzDot[label=left:$n_a$,outer sep=0.5mm]{(0.5,1.3)}{n1};
+	\tikzDot[label=right:$n_b$,outer sep=0.5mm]{(3.5,1)}{n2};
+	
+	\draw[dotted] (n1) -- (vo11);
+	\draw[dotted] (vo12) -- (n2);
+	
+	\draw[dotted] (n1) -- (vo0);
+	\draw[dotted] (n1) -- (vo2);
+	\draw[dotted] (n2) -- (vo0);
+	\draw[dotted] (n2) -- (vo2);
+\end{tikzpicture}

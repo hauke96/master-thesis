@@ -376,18 +376,7 @@ Hence, the topic of agents and simulations will be covered as well.
 			\begin{wrapfigure}{r}{0.35\textwidth}
 				\vspace{-3\baselineskip}
 				\begin{figcenter}
-					\begin{tikzpicture}
-						\tikzDot[label={left:$u$}]{(0,0)}{u}
-						\tikzDot[label={right:$v$}]{(3,1)}{v}
-						\coordinate (w) at (1.25,2);
-						\tikzDot[label={below:$l$}]{(1.35,1.7)}{l}
-						
-						\draw[->,decorate,decoration=snake,segment length=6.85mm] (u) to [out=70,in=180] (w) to [out=0,in=120] (v);
-						
-						\draw[->,densely dotted,Red2] (u) -- (v);
-						\draw[->,densely dotted,DodgerBlue3] (u) -- (l);
-						\draw[->,densely dotted,DodgerBlue3] (l) -- (v);
-					\end{tikzpicture}
+					\input{images/tikz-landmarks.tex}
 				\end{figcenter}
 				\caption[Illustration of landmark heuristic.]{The heuristic using landmark $l$ (blue) is a longer but better estimate than the Euclidean heuristic (red).}
 				\label{fig:landmarks}

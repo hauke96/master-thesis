@@ -1,0 +1,24 @@
+
+\begin{tikzpicture}
+	\tikzDot[label={below left:$(1,0,0)$}]{(0,0)}{a}
+	\tikzDot[label={below right:$(0,1,0)$}]{(4,0)}{b}
+	\tikzDot[label={above:$(0,0,1)$}]{(2,3)}{c}
+	
+	\coordinate[between={a and c}] (ac);
+	\coordinate[between={b and c}] (bc);
+	\coordinate[between={a and b}] (ab);
+	
+	\draw (a) -- (b);
+	\draw (a) -- (c);
+	\draw (b) -- (c);
+	
+	\draw[dotted] (a) -- (bc);
+	\draw[dotted] (b) -- (ac);
+	\draw[dotted] (c) -- (ab);
+	
+	\tikzDot{(intersection of a--bc and b--ac)}{center};
+	\node[below=1mm of center,inner sep=0mm,fill=white] {$c=(\nicefrac{1}{3},\nicefrac{1}{3},\nicefrac{1}{3})$};
+	
+	\tikzDot[label={left:$a=(0.5,0,0.5)$}]{(ac)}{left}
+	\tikzDot[label={right:$b=(-0.2,0.5,0.7)$}]{(3.4,2.1)}{right}
+\end{tikzpicture}

@@ -1,0 +1,12 @@
+\begin{tikzpicture}
+	\tikzDot[label={[text=gray]below:$v_0$},gray]{(0,0)}{v0}
+	\tikzDot[label=above:$v_1$]{(1,1.5)}{v1}
+	\tikzDot[label=below:$v_2$]{(2,0)}{v2}
+	\tikzDot[label=above:$v_3$]{(3,1.5)}{v3}
+	\tikzDot[label={[text=gray]below:$v_4$},gray]{(4,0)}{v4}
+	
+	\draw[gray] (v0) -- (v1);
+	\draw[->,very thick] (v2) -- (v1);
+	\draw[->,very thick] (v2) -- (v3);
+	\draw[gray] (v3) -- (v4);
+\end{tikzpicture}

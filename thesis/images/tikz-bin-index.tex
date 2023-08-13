@@ -1,0 +1,66 @@
+
+\begin{tikzpicture}
+	\def\l{0.5}
+	\def\countX{9} % One more is added due to start at x=0
+	\def\countY{1} % One more is added due to start at x=0
+	
+	\def\itemBStartX{1.6}
+	\def\itemBIndexStart{1}
+	\def\itemBLength{4.1}
+	
+	\def\itemAStartX{4}
+	\def\itemAIndexStart{4}
+	\def\itemALength{7.8}
+	
+	% Item A: Bins 1-5
+	\draw[dotted,gray] (\itemBStartX*\l, \countY+4*\l) -- +(0, -\countY-4*\l);
+	\draw[dotted,gray] (\itemBStartX*\l+\itemBLength*\l, \countY+4*\l) -- +(0, -\countY-4*\l);
+	\filldraw[preaction={fill, white},pattern=north west lines,pattern color=Red2] (\itemBStartX*\l,\countY+4*\l) rectangle node[above right=0.125 and -1.3]{Item B: \itemBStartX\ - 5.7} ++(\itemBLength*\l,0.5*\l);
+	
+	% Item B: Bins 4-11(2)
+	\draw[dotted,gray] (\itemAStartX*\l, \countY+3*\l) -- +(0, -\countY-3*\l);
+	\draw[dotted,gray] (\itemAStartX*\l+\itemALength*\l, \countY+3*\l) -- +(0, -\countY-3*\l);
+	\filldraw[preaction={fill, white},pattern=crosshatch dots,pattern color=DodgerBlue3] (\itemAStartX*\l,\countY+3*\l) rectangle node[above right=0.125 and -0.5]{Item A: \itemAStartX\ - 10.8} ++(\itemALength*\l,0.5*\l);
+	
+	\draw[->] (\itemAStartX*\l+1.85,\countY+2.75*\l) -- node[right] {1.} +(0,-1.5*\l);
+	\draw[->] (\itemBStartX*\l+0.5,\countY+3.75*\l) -- node[right] {2.} +(0,-2.5*\l);
+	
+	% Draw pattern to bins
+	\fill[preaction={fill, white},pattern=north west lines,pattern color=Red2] (\itemBIndexStart*\l,1.5*\l) rectangle ++(\l,\l);
+	\fill[preaction={fill, white},pattern=north west lines,pattern color=Red2] (\itemBIndexStart*\l+1*\l,0) rectangle ++(2*\l,\l);
+	\fill[preaction={fill, white},pattern=north west lines,pattern color=Red2] (\itemBIndexStart*\l+3*\l,1.5*\l) rectangle ++(\l,\l);
+	\fill[preaction={fill, white},pattern=north west lines,pattern color=Red2] (\itemBIndexStart*\l+4*\l,1.5*\l) rectangle ++(\l,\l);
+	
+	\fill[preaction={fill, white},pattern=crosshatch dots,pattern color=DodgerBlue3] (\itemAIndexStart*\l,0) rectangle ++(6*\l,\l);
+	\fill[preaction={fill, white},pattern=crosshatch dots,pattern color=DodgerBlue3] (0,0) rectangle ++(2*\l,\l);
+	
+	% Draw gray versions of filled bins
+	\fill[preaction={fill, white},pattern=north west lines,pattern color=lightgray] (\l*\countX+\l+\itemBIndexStart*\l+1*\l,0) rectangle ++(\l,\l);
+	\fill[preaction={fill, white},pattern=crosshatch dots,pattern color=lightgray] (\l*\countX+\l,0) rectangle ++(2*\l,\l);
+	
+	% Draw outlines of repeating gray bins
+	\foreach \x in {0,...,2}
+	{
+		\draw[lightgray] (\l*\countX+\l+\l*\x,0) rectangle ++(\l,\l);
+		\node[lightgray] at (\l*\countX+\l+\l*\x+0.5*\l,-0.35) {$\x$};
+	}
+	
+	% Draw outlines of bins
+	\foreach \x in {0,...,\countX}
+	{
+		\draw (\l*\x,0) rectangle ++(\l,\l);
+		\node at (\l*\x+0.5*\l,-0.35) {$\x$};
+	}
+	
+	\draw (\itemBIndexStart*\l,1.5*\l) rectangle ++(\l,\l);
+	\draw[->] (\itemBIndexStart*\l+0.5*\l,\l) -- ++(0,0.5*\l);
+	
+	\draw (\itemBIndexStart*\l+3*\l,1.5*\l) rectangle ++(\l,\l);
+	\draw[->] (\itemBIndexStart*\l+3.5*\l,\l) -- ++(0,0.5*\l);
+	
+	\draw (\itemBIndexStart*\l+4*\l,1.5*\l) rectangle ++(\l,\l);
+	\draw[->] (\itemBIndexStart*\l+4.5*\l,\l) -- ++(0,0.5*\l);
+	
+	\node at (0.5*\countX*\l,-0.875) {bins};
+	\node[align=right] at (-1.25,0.5*\countY*\l+0.5*\l) {Linked lists\\of bins};
+\end{tikzpicture}

@@ -1,0 +1,19 @@
+\begin{tikzpicture}
+	\tikzDot{(2,0)}{vo0};
+	\tikzDot[label={[label distance=-1.25mm]above right:$v $}]{(2,1)}{vo1};
+	\tikzDot{(2,2)}{vo2};
+	
+	\draw (vo0) -- (vo1);
+	\draw (vo1) -- (vo2);
+	
+	\tikzDot[label=left:$n_a$,outer sep=0.5mm]{(0.5,1.3)}{n1};
+	\tikzDot[label=right:$n_b$,outer sep=0.5mm]{(3.5,1)}{n2};
+	
+	\draw[dotted] (n1) -- (vo1);
+	\draw[dotted] (vo1) -- (n2);
+	
+	\draw[dotted] (n1) -- (vo0);
+	\draw[dotted] (n1) -- (vo2);
+	\draw[dotted] (n2) -- (vo0);
+	\draw[dotted] (n2) -- (vo2);
+\end{tikzpicture}

@@ -1,0 +1,50 @@
+\begin{tikzpicture}
+	\def\angle{20}
+	\def\boundingVertexDistance{3}
+	
+	\tikzDot[label=$v$]{(0,1.5)}{v}
+	\coordinate (shadow-arc-top)				at ($(v) +( \angle:\boundingVertexDistance)$);
+	\coordinate (shadow-arc-bottom)				at ($(v) +(-\angle:\boundingVertexDistance)$);
+	\coordinate (shadow-arc-top-end)			at ($(v) +( \angle:5.75)$);
+	\coordinate (shadow-arc-bottom-end)			at ($(v) +(-\angle:5.75)$);
+	\coordinate (shadow-arc-top-faded-end)		at ($(v) +( \angle:6.5)$);
+	\coordinate (shadow-arc-bottom-faded-end)	at ($(v) +(-\angle:6.5)$);
+	
+	% Gray area
+	\filldraw[lightgray] 
+	(shadow-arc-bottom) arc [start angle=-\angle, delta angle=2*\angle, radius=\boundingVertexDistance] --
+	(shadow-arc-top-end) --
+	(shadow-arc-bottom-end) --
+	cycle;
+	\draw[gray]
+	(shadow-arc-bottom-end) --
+	(shadow-arc-bottom) arc [start angle=-\angle, delta angle=2*\angle, radius=\boundingVertexDistance] --
+	(shadow-arc-top-end);
+	
+	\draw[dotted] (v) -- (shadow-arc-top);
+	\draw[dotted] (v) -- (shadow-arc-bottom);
+	
+	% Faded gray area
+	\filldraw[draw=none,lightgray,path fading=east]
+	(shadow-arc-top-faded-end) --
+	(shadow-arc-top-end) --
+	(shadow-arc-bottom-end) --
+	(shadow-arc-bottom-faded-end) --
+	cycle;
+	\draw[gray,path fading=east] (shadow-arc-top-end) -- (shadow-arc-top-faded-end);
+	\draw[gray,path fading=east] (shadow-arc-bottom-end) -- (shadow-arc-bottom-faded-end);
+	
+	% Obstacle
+	\tikzDot[Red2]{(shadow-arc-top)}{o0}
+	\tikzDot{(3.8,2)}{o1}
+	\tikzDot[Red2]{($(v) +(-\angle:1.2)$)}{o2}
+	\node[above right = 0.5 and 1.15 of o2] {$o$};
+	
+	% v' and v''
+	\tikzDot[label=right:$v'$]{(2.1,1.1)}{v'}
+	\tikzDot[label=right:$v''$]{(3.4,1.3)}{v''}
+	
+	\node[darkgray] at (4.7,1.5) {\huge$S$};
+	
+	\draw (o0) -- (o1) -- (o2) -- (o0);
+\end{tikzpicture}

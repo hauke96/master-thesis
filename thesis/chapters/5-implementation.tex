@@ -73,56 +73,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 		
 		\begin{figure}[h]
 			\begin{figcenter}
-				\begin{tikzpicture}
-					\def\angle{20}
-					\def\boundingVertexDistance{3}
-					
-					\tikzDot[label=$v$]{(0,1.5)}{v}
-					\coordinate (shadow-arc-top)				at ($(v) +( \angle:\boundingVertexDistance)$);
-					\coordinate (shadow-arc-bottom)				at ($(v) +(-\angle:\boundingVertexDistance)$);
-					\coordinate (shadow-arc-top-end)			at ($(v) +( \angle:5.75)$);
-					\coordinate (shadow-arc-bottom-end)			at ($(v) +(-\angle:5.75)$);
-					\coordinate (shadow-arc-top-faded-end)		at ($(v) +( \angle:6.5)$);
-					\coordinate (shadow-arc-bottom-faded-end)	at ($(v) +(-\angle:6.5)$);
-					
-					% Gray area
-					\filldraw[lightgray] 
-					(shadow-arc-bottom) arc [start angle=-\angle, delta angle=2*\angle, radius=\boundingVertexDistance] --
-					(shadow-arc-top-end) --
-					(shadow-arc-bottom-end) --
-					cycle;
-					\draw[gray]
-					(shadow-arc-bottom-end) --
-					(shadow-arc-bottom) arc [start angle=-\angle, delta angle=2*\angle, radius=\boundingVertexDistance] --
-					(shadow-arc-top-end);
-					
-					\draw[dotted] (v) -- (shadow-arc-top);
-					\draw[dotted] (v) -- (shadow-arc-bottom);
-					
-					% Faded gray area
-					\filldraw[draw=none,lightgray,path fading=east]
-					(shadow-arc-top-faded-end) --
-					(shadow-arc-top-end) --
-					(shadow-arc-bottom-end) --
-					(shadow-arc-bottom-faded-end) --
-					cycle;
-					\draw[gray,path fading=east] (shadow-arc-top-end) -- (shadow-arc-top-faded-end);
-					\draw[gray,path fading=east] (shadow-arc-bottom-end) -- (shadow-arc-bottom-faded-end);
-					
-					% Obstacle
-					\tikzDot[Red2]{(shadow-arc-top)}{o0}
-					\tikzDot{(3.8,2)}{o1}
-					\tikzDot[Red2]{($(v) +(-\angle:1.2)$)}{o2}
-					\node[above right = 0.5 and 1.15 of o2] {$o$};
-					
-					% v' and v''
-					\tikzDot[label=right:$v'$]{(2.1,1.1)}{v'}
-					\tikzDot[label=right:$v''$]{(3.4,1.3)}{v''}
-					
-					\node[darkgray] at (4.7,1.5) {\huge$S$};
-					
-					\draw (o0) -- (o1) -- (o2) -- (o0);
-				\end{tikzpicture}
+				\input{images/tikz-shadow-areas.tex}
 			\end{figcenter}
 			\caption[Illustration of a shadow area.]{Shadow area $S$ cast by obstacle $o$ seen from vertex $v$. The two red vertices of obstacle $o$ are the bounding vertices determining the angular range and distance of $S$. The vertex $v''$ is not visible from $v$ since it lies inside the shadow area. Note that $v'$ is not visible either, even though it is not inside the shadow area.}
 			\label{fig:shadow-area}
@@ -153,71 +104,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 	
 		\begin{figure}[h]
 			\begin{figcenter}
-				\begin{tikzpicture}
-					\def\l{0.5}
-					\def\countX{9} % One more is added due to start at x=0
-					\def\countY{1} % One more is added due to start at x=0
-					
-					\def\itemBStartX{1.6}
-					\def\itemBIndexStart{1}
-					\def\itemBLength{4.1}
-					
-					\def\itemAStartX{4}
-					\def\itemAIndexStart{4}
-					\def\itemALength{7.8}
-					
-					% Item A: Bins 1-5
-					\draw[dotted,gray] (\itemBStartX*\l, \countY+4*\l) -- +(0, -\countY-4*\l);
-					\draw[dotted,gray] (\itemBStartX*\l+\itemBLength*\l, \countY+4*\l) -- +(0, -\countY-4*\l);
-					\filldraw[preaction={fill, white},pattern=north west lines,pattern color=Red2] (\itemBStartX*\l,\countY+4*\l) rectangle node[above right=0.125 and -1.3]{Item B: \itemBStartX\ - 5.7} ++(\itemBLength*\l,0.5*\l);
-					
-					% Item B: Bins 4-11(2)
-					\draw[dotted,gray] (\itemAStartX*\l, \countY+3*\l) -- +(0, -\countY-3*\l);
-					\draw[dotted,gray] (\itemAStartX*\l+\itemALength*\l, \countY+3*\l) -- +(0, -\countY-3*\l);
-					\filldraw[preaction={fill, white},pattern=crosshatch dots,pattern color=DodgerBlue3] (\itemAStartX*\l,\countY+3*\l) rectangle node[above right=0.125 and -0.5]{Item A: \itemAStartX\ - 10.8} ++(\itemALength*\l,0.5*\l);
-					
-					\draw[->] (\itemAStartX*\l+1.85,\countY+2.75*\l) -- node[right] {1.} +(0,-1.5*\l);
-					\draw[->] (\itemBStartX*\l+0.5,\countY+3.75*\l) -- node[right] {2.} +(0,-2.5*\l);
-					
-					% Draw pattern to bins
-					\fill[preaction={fill, white},pattern=north west lines,pattern color=Red2] (\itemBIndexStart*\l,1.5*\l) rectangle ++(\l,\l);
-					\fill[preaction={fill, white},pattern=north west lines,pattern color=Red2] (\itemBIndexStart*\l+1*\l,0) rectangle ++(2*\l,\l);
-					\fill[preaction={fill, white},pattern=north west lines,pattern color=Red2] (\itemBIndexStart*\l+3*\l,1.5*\l) rectangle ++(\l,\l);
-					\fill[preaction={fill, white},pattern=north west lines,pattern color=Red2] (\itemBIndexStart*\l+4*\l,1.5*\l) rectangle ++(\l,\l);
-					
-					\fill[preaction={fill, white},pattern=crosshatch dots,pattern color=DodgerBlue3] (\itemAIndexStart*\l,0) rectangle ++(6*\l,\l);
-					\fill[preaction={fill, white},pattern=crosshatch dots,pattern color=DodgerBlue3] (0,0) rectangle ++(2*\l,\l);
-					
-					% Draw gray versions of filled bins
-					\fill[preaction={fill, white},pattern=north west lines,pattern color=lightgray] (\l*\countX+\l+\itemBIndexStart*\l+1*\l,0) rectangle ++(\l,\l);
-					\fill[preaction={fill, white},pattern=crosshatch dots,pattern color=lightgray] (\l*\countX+\l,0) rectangle ++(2*\l,\l);
-					
-					% Draw outlines of repeating gray bins
-					\foreach \x in {0,...,2}
-					{
-						\draw[lightgray] (\l*\countX+\l+\l*\x,0) rectangle ++(\l,\l);
-						\node[lightgray] at (\l*\countX+\l+\l*\x+0.5*\l,-0.35) {$\x$};
-					}
-					
-					% Draw outlines of bins
-					\foreach \x in {0,...,\countX}
-					{
-						\draw (\l*\x,0) rectangle ++(\l,\l);
-						\node at (\l*\x+0.5*\l,-0.35) {$\x$};
-					}
-					
-					\draw (\itemBIndexStart*\l,1.5*\l) rectangle ++(\l,\l);
-					\draw[->] (\itemBIndexStart*\l+0.5*\l,\l) -- ++(0,0.5*\l);
-					
-					\draw (\itemBIndexStart*\l+3*\l,1.5*\l) rectangle ++(\l,\l);
-					\draw[->] (\itemBIndexStart*\l+3.5*\l,\l) -- ++(0,0.5*\l);
-					
-					\draw (\itemBIndexStart*\l+4*\l,1.5*\l) rectangle ++(\l,\l);
-					\draw[->] (\itemBIndexStart*\l+4.5*\l,\l) -- ++(0,0.5*\l);
-					
-					\node at (0.5*\countX*\l,-0.875) {bins};
-					\node[align=right] at (-1.25,0.5*\countY*\l+0.5*\l) {Linked lists\\of bins};
-				\end{tikzpicture}
+				\input{images/tikz-bin-index.tex}
 			\end{figcenter}
 			\caption[BinIndex example with two inserted items.]{Bin index filled with two items A (added first) and B (added last). Since item A was added first, B's entries, which fall into a bin where an entry for item A already exists, are moved to the next item in the linked list of the bin. Each bin covers a range, meaning non-integer values are rounded down (for from-values) or up (for to-values).}
 			\label{fig:bin-index}
@@ -357,53 +244,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 			
 			\begin{figure}[h]
 				\begin{figcenter}
-					\begin{tikzpicture}
-						\coordinate (c00) at (0,0.4);
-						\draw (c00)
-							-- ++(2.75,-0.2) coordinate (c01)
-							-- ++(0.8,0.4) coordinate (c02)
-							-- ++(0.1,0.8) coordinate (c03)
-							-- ++(-2,0) coordinate (c04)
-							-- ++(-1.4,-0.35) coordinate (c05)
-							-- (c00);
-						\node[above right = 0.15 and 1.6 of c00] {$o_1$};
-						
-						\coordinate (c10) at (2.5,3.85);
-						\draw (c10)
-							-- ++(-0.4,-0.4) coordinate (c11)
-							-- ++(0.1,-0.6) coordinate (c12)
-							-- ++(2.8,0) coordinate (c13)
-							-- ++(-0.4,1.2) coordinate (c14)
-							-- (c10);
-						\node[below right = 0.25 and 0.75 of c10] {$o_2$};
-						
-						\def\d{1.5\pgflinewidth}
-						\filldraw[line width=0,Green4!35!white]
-							($(c03)+(0,\d)$) --
-							+(180:0.35) arc [start angle=180, delta angle=-97.126, radius=0.35];
-						\draw[thin,Green4] (c03) -- (intersection of c03--[shift=(c03)]82.874:3 and c12--c13);
-						\draw[thin,Green4] ($(c03)+(0,\d)$) -- +(180:4);
-						
-						\filldraw[line width=0,DodgerBlue3!35!white]
-							($(c12)+(0,-\d)$) --
-							+(279.462:0.4) arc [start angle=279.462, delta angle=80.538, radius=0.4];
-						\draw[thin,DodgerBlue3] (c12) -- (intersection of c12--[shift=(c12)]279.462:1 and c03--c04);
-						\draw[thin,DodgerBlue3] ($(c12)+(0,-\d)$) -- +(0:4);
-						
-						\tikzDot[label={right:$s$}]{(c01)}{s}
-						\tikzDot[label={right:$v_0$}]{(c02)}{v0}
-						\tikzDot[label={right:$v_1$}]{(c03)}{v1}
-						\tikzDot[label={left:$v_2$}]{(c12)}{v2}
-						\tikzDot[label={below:$v_3$}]{(c13)}{v3}
-						\tikzDot[label={above:$v_4$}]{(c04)}{v4}
-						\tikzDot[label={left:$t$}]{(c10)}{t}
-						
-						\draw[->,Red2,thick] (s) -- (v0);
-						\draw[->,Red2,thick] (v0) -- (v1);
-						\draw[->,Red2,thick] (v1) -- (v2);
-						\draw[->,Red2,thick] (v2) -- (c11);
-						\draw[->,Red2,thick] (c11) -- (t);
-					\end{tikzpicture}
+					\input{images/tikz-valid-angle-area.tex}
 				\end{figcenter}
 				\caption[Visualization of valid angle areas.]{
 					The path from $s$ via $v_1$ and $v_2$ to $t$ bends along the convex hulls of $o_1$ and $o_2$.
@@ -448,29 +289,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 			
 			\begin{figure}[h]
 				\begin{figcenter}
-					\begin{tikzpicture}
-						\tikzDot[label={below left:$(1,0,0)$}]{(0,0)}{a}
-						\tikzDot[label={below right:$(0,1,0)$}]{(4,0)}{b}
-						\tikzDot[label={above:$(0,0,1)$}]{(2,3)}{c}
-						
-						\coordinate[between={a and c}] (ac);
-						\coordinate[between={b and c}] (bc);
-						\coordinate[between={a and b}] (ab);
-						
-						\draw (a) -- (b);
-						\draw (a) -- (c);
-						\draw (b) -- (c);
-						
-						\draw[dotted] (a) -- (bc);
-						\draw[dotted] (b) -- (ac);
-						\draw[dotted] (c) -- (ab);
-						
-						\tikzDot{(intersection of a--bc and b--ac)}{center};
-						\node[below=1mm of center,inner sep=0mm,fill=white] {$c=(\nicefrac{1}{3},\nicefrac{1}{3},\nicefrac{1}{3})$};
-						
-						\tikzDot[label={left:$a=(0.5,0,0.5)$}]{(ac)}{left}
-						\tikzDot[label={right:$b=(-0.2,0.5,0.7)$}]{(3.4,2.1)}{right}
-					\end{tikzpicture}
+					\input{images/tikz-barycentric-coordinates.tex}
 				\end{figcenter}
 				\caption[Example of a barycentric coordinate system.]{A triangle with barycentric coordinates and dotted coordinate axes. Noteworthy is coordinate $b$ being outside the triangle, which can be directly seen from the negative value $-0.2$.}
 				\label{fig:barycentric-triangle}
@@ -512,45 +331,14 @@ And third, each algorithmic step of the graph generation and query answering is 
 			\begin{figure}[h]
 				\begin{minipage}[t]{0.475\textwidth}
 					\begin{figcenter}
-						\begin{tikzpicture}
-							\tikzDot[label={[text=gray]below:$v_0$},gray]{(0,0)}{v0}
-							\tikzDot[label=above:$v_1$]{(1,1.5)}{v1}
-							\tikzDot[label=below:$v_2$]{(2,0)}{v2}
-							\tikzDot[label=above:$v_3$]{(3,1.5)}{v3}
-							\tikzDot[label={[text=gray]below:$v_4$},gray]{(4,0)}{v4}
-							
-							\draw[gray] (v0) -- (v1);
-							\draw[->,very thick] (v2) -- (v1);
-							\draw[->,very thick] (v2) -- (v3);
-							\draw[gray] (v3) -- (v4);
-						\end{tikzpicture}
+						\input{images/tikz-obstacle-neighbors-line.tex}
 					\end{figcenter}
 					\caption[Illustration of line-based obstacle neighbors.]{The black arrows point to the obstacle neighbors $v_1$ and $v_3$ of $v_2$.}
 				\end{minipage}
 				\hfill
 				\begin{minipage}[t]{0.475\textwidth}
 					\begin{figcenter}
-						\begin{tikzpicture}
-							\def\d{1.5}
-							
-							\tikzDot[gray]{(0,0)}{c00}
-							\tikzDot[label=above:$v_0$]{(0,\d)}{v0}
-							\tikzDot[label=above:$v_1$]{(\d,\d)}{v1}
-							\tikzDot[label=above:$v_2$]{(2*\d,\d)}{v2}
-							\tikzDot[label={[text=gray]below:$v_3$},gray]{(\d,0)}{v3}
-							\tikzDot[gray]{(2*\d,0)}{c20}
-							
-							\node at (0.5*\d,0.5*\d) {$o_1$};
-							\node at (1.5*\d,0.5*\d) {$o_2$};
-							
-							\draw[gray] (c00) -- (v0);
-							\draw[gray] (c00) -- (v3);
-							\draw[->,very thick] (v1) -- (v0);
-							\draw[->,very thick] (v1) -- (v2);
-							\draw[->,gray] (v1) -- (v3);
-							\draw[gray] (c20) -- (v3);
-							\draw[gray] (c20) -- (v2);
-						\end{tikzpicture}
+						\input{images/tikz-obstacle-neighbors-polygon.tex}
 					\end{figcenter}
 					\caption[Illustration of obstacle neighbors on touching polygons.]{The black arrows point to the obstacle neighbors $v_0$ and $v_2$ of $v_1$. Vertex $v_3$ is also a neighbor, but hidden because $o_1$ and $o_2$ touch each other at the edge $(v_1, v_3)$.}
 					\label{fig:obstacle-neighbors-touching}
@@ -591,25 +379,8 @@ And third, each algorithmic step of the graph generation and query answering is 
 				\begin{figcenter}
 					\begin{subfigure}[t]{.48\textwidth}
 						\begin{figcenter}
-							\begin{tikzpicture}
-								\tikzDot{(2,0)}{vo0};
-								\tikzDot[label={[label distance=-1.25mm]above right:$v $}]{(2,1)}{vo1};
-								\tikzDot{(2,2)}{vo2};
-								
-								\draw (vo0) -- (vo1);
-								\draw (vo1) -- (vo2);
-								
-								\tikzDot[label=left:$n_a$,outer sep=0.5mm]{(0.5,1.3)}{n1};
-								\tikzDot[label=right:$n_b$,outer sep=0.5mm]{(3.5,1)}{n2};
-								
-								\draw[dotted] (n1) -- (vo1);
-								\draw[dotted] (vo1) -- (n2);
-								
-								\draw[dotted] (n1) -- (vo0);
-								\draw[dotted] (n1) -- (vo2);
-								\draw[dotted] (n2) -- (vo0);
-								\draw[dotted] (n2) -- (vo2);
-							\end{tikzpicture}
+							\input{images/tikz-vertex-creation-naive.tex
+							}
 						\end{figcenter}
 						\caption[Naive node and visibility edge creation.]{
 							Visibility graph with naive connections.
@@ -620,39 +391,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 					\hfill
 					\begin{subfigure}[t]{.48\textwidth}
 						\begin{figcenter}
-							\begin{tikzpicture}
-								\def\r{0.85mm}
-								\def\rMargin{1.1mm} % = r + 0.25mm
-								\def\gap{0.1875mm}
-								
-								\tikzDot{(2,0)}{vo0};
-								\node (vo1) at (2,1) {};
-								\node[label={[label distance=-1.25mm]above left:$v_a$}] at (vo1) {};
-								\node[label={[label distance=-1.25mm]above right:$v_b$}] at (vo1) {};
-								\coordinate (vo11) at ($(vo1)+(180:\rMargin)$);
-								\coordinate (vo12) at ($(vo1)+(0:\rMargin)$);
-								\tikzDot{(2,2)}{vo2};
-								
-								\filldraw (vo1)++(-\gap,0)++(90:\r) arc (90:270:\r);
-								\filldraw (vo1)++( \gap,0)++(90:\r) arc (90:-90:\r);
-								
-								\draw ($(vo1)+(270:\r)+(-0.275mm,0)$) -- ($(vo0)+(-0.275mm,2mm)$) -- (vo0.north);
-								\draw ($(vo1)+(270:\r)+( 0.275mm,0)$) -- ($(vo0)+( 0.275mm,2mm)$) -- (vo0.north);
-
-								\draw ($(vo1)+(90:\r)+(-0.275mm,0)$) -- ($(vo2)+(-0.275mm,-2mm)$) -- (vo2.south);
-								\draw ($(vo1)+(90:\r)+( 0.275mm,0)$) -- ($(vo2)+( 0.275mm,-2mm)$) -- (vo2.south);
-								
-								\tikzDot[label=left:$n_a$,outer sep=0.5mm]{(0.5,1.3)}{n1};
-								\tikzDot[label=right:$n_b$,outer sep=0.5mm]{(3.5,1)}{n2};
-								
-								\draw[dotted] (n1) -- (vo11);
-								\draw[dotted] (vo12) -- (n2);
-								
-								\draw[dotted] (n1) -- (vo0);
-								\draw[dotted] (n1) -- (vo2);
-								\draw[dotted] (n2) -- (vo0);
-								\draw[dotted] (n2) -- (vo2);
-							\end{tikzpicture}
+							\input{images/tikz-vertex-creation-correct.tex}
 						\end{figcenter}
 						\caption[Correct visibility edge creation with duplicated vertices.]{
 							The visibility graph with connection respecting the obstacle. Vertex $v$ is split into two, $v_a$ and $v_b$, but with exact same location (all gaps are for illustration purposes only).
@@ -670,37 +409,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 			
 			\begin{figure}[h]
 				\begin{figcenter}
-					\begin{tikzpicture}
-						\def\d{0.03}
-						
-						\tikzDot[label=below:$v$]{(0,0)}{v}
-						
-						\tikzDot[label=left:$n_1$]{(-2.25,0)}{n1}
-						\tikzDot[label=above:$n_2$]{(0,2)}{n2}
-						\tikzDot[label=right:$n_3$]{(2.25,0)}{n3}
-						
-						\draw[lightgray] (v) -- (n1);
-						\draw[lightgray] (v) -- (n3);
-						\draw[lightgray] (v) -- (n2);
-						
-						% Visibility edges to n1
-						\tikzDot[DodgerBlue3]{(-1.1,-0.25)}{vn1}
-						\tikzDot[DodgerBlue3]{(-1.6,-0.9)}{vn2}
-						\tikzDot[DodgerBlue3]{(1.6,-0.5)}{vn3}
-						\draw[DodgerBlue3,densely dashed,->] (v) -- (vn1);
-						\draw[DodgerBlue3,densely dashed,->] (v) -- (vn2);
-						\draw[DodgerBlue3,densely dashed,->] (v) -- (vn3);
-						
-						% Visibility edges to n3
-						\tikzDot[Red2]{(0.7,1.4)}{vn4}
-						\tikzDot[Red2]{(2,1)}{vn5}
-						\draw[Red2,densely dotted,->] (v) -- (vn4);
-						\draw[Red2,densely dotted,->] (v) -- (vn5);
-						
-						% Visibility edges to n2
-						\tikzDot[Green4]{(-2,1.3)}{vn6}
-						\draw[Green4,dashdotted,->] (v) -- (vn6);
-					\end{tikzpicture}
+					\input{images/tikz-visibility-neighbor-bins.tex}
 				\end{figcenter}
 				\caption[Example of vertices sorted into obstacle neighbor-based bins.]{
 					All visible neighbors of $v$, colored by their resulting bin.
@@ -731,35 +440,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 		
 		\begin{figure}[h]
 			\begin{figcenter}
-				\begin{tikzpicture}
-					\coordinate (cv) at (0,0);
-					\coordinate (cu) at (4,0.75);
-					
-					\def\pad{\pgflinewidth}
-					\def\d{0.4}
-					\def\dsmall{0.3}
-					
-					\filldraw[line width=0,Green4!25!white] (cv)++(292.5:\pad) -- +(180:\d) arc [start angle=180, delta angle=225, radius=\d];
-					\filldraw[line width=0,Red2!25!white] (cv)++(112.5:\pad) -- +(45:\dsmall) arc [start angle=45, delta angle=135, radius=\dsmall];
-					
-					\filldraw[line width=0,Green4!25!white] (cu)++(180:\pad) -- +(0:\d) arc [start angle=0, delta angle=225, radius=\d];
-					\filldraw[line width=0,DodgerBlue3!25!white] (cu)++(292.5:\pad) -- +(225:\dsmall) arc [start angle=225, delta angle=135, radius=\dsmall];
-					
-					\tikzDot[color=Green4!80!black,label={below:\contour{white}{$v$}}]{($(cv)+(292.5:0.05)$)}{v}
-					\tikzDot[color=Green4!80!black,label={above:\contour{white}{$u$}}]{($(cu)+(112.5:0.05)$)}{u}
-					
-					\draw (cv) -- +(45:1);
-					\draw[dotted] (cv)++(45:1) -- +(45:0.3);
-					\draw (cv) -- +(180:1);
-					\draw[dotted] (cv)++(180:1) -- +(180:0.3);
-					
-					\draw (cu) -- +(0:1);
-					\draw[dotted] (cu)++(0:1) -- +(0:0.3);
-					\draw (cu) -- +(225:1);
-					\draw[dotted] (cu)++(225:1) -- +(225:0.3);
-					
-					\draw[dashed] (v) -- node[above] {$e$} (u);
-				\end{tikzpicture}
+				\input{images/tikz-connecting-neighbor-bins.tex}
 			\end{figcenter}
 			\caption[Usage of obstacle neighbor-based bins for visibility edge creation.]{Edge $e$ connecting the two bin-vertices $v$ and $u$ corresponding to the green angular ranges representing the bins of $v$ and $u$.}
 			\label{fig:bin-vertex-connection}
@@ -791,21 +472,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 			\begin{figcenter}
 				\begin{subfigure}[t]{.48\textwidth}
 					\begin{figcenter}
-						\begin{tikzpicture}
-							\tikzDot{(0,-0.75)}{v1n1}
-							\tikzDot{(4,-0.6)}{v1n2}
-							
-							\tikzDot{(0,0.8)}{v2n1}
-							\tikzDot{(4.2,0.6)}{v2n2}
-							
-							\tikzDot{(1.5,-1.65)}{rn1}
-							\tikzDot{(1.8,1.65)}{rn2}
-							
-							\draw[<->,dashed] (v1n1) -- node[above right=0cm and 0.4cm] {$v$} (v1n2);
-							\draw[<->,dashed] (v2n1) -- node[above right=0cm and 0.4cm] {$u$} (v2n2);
-							
-							\draw[<->] (rn1) -- node[left] {$r$} (rn2);
-						\end{tikzpicture}
+						\input{images/tikz-merge-before.tex}
 					\end{figcenter}
 					\caption[Road and visibility edges before merging.]{
 						Before merging $r$ into the graph with six vertices and six edges.
@@ -815,28 +482,7 @@ And third, each algorithmic step of the graph generation and query answering is 
 				\hfill
 				\begin{subfigure}[t]{.48\textwidth}
 					\begin{figcenter}
-						\begin{tikzpicture}
-							\tikzDot{(0,-0.75)}{v1n1}
-							\tikzDot{(4,-0.6)}{v1n2}
-							
-							\tikzDot{(0,0.8)}{v2n1}
-							\tikzDot{(4.2,0.6)}{v2n2}
-							
-							\tikzDot{(1.5,-1.65)}{rn1}
-							\tikzDot{(1.8,1.65)}{rn2}
-							
-							\tikzDot{(intersection of v1n1--v1n2 and rn1--rn2)}{i1}
-							\tikzDot{(intersection of v2n1--v2n2 and rn1--rn2)}{i2}
-							
-							\draw[<->,dashed] (v1n1) -- node[above] {$v_1$} (i1);
-							\draw[<->,dashed] (i1)   -- node[above] {$v_2$} (v1n2);
-							\draw[<->,dashed] (v2n1) -- node[above] {$u_1$} (i2);
-							\draw[<->,dashed] (i2)   -- node[above] {$u_2$} (v2n2);
-							
-							\draw[<->] (rn1) -- node[right] {$r_1$} (i1);
-							\draw[<->] (i1)  -- node[right] {$r_2$} (i2);
-							\draw[<->] (i2)  -- node[right] {$r_3$} (rn2);
-						\end{tikzpicture}
+						\input{images/tikz-merge-after.tex}
 					\end{figcenter}
 					\caption[Road and visibility edges after merging.]{
 						After correctly splitting and merging $r$. The graph size increases by one vertex and four directed edges per intersection.

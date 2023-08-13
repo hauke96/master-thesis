@@ -1,0 +1,31 @@
+\begin{tikzpicture}
+	\def\d{0.03}
+	
+	\tikzDot[label=below:$v$]{(0,0)}{v}
+	
+	\tikzDot[label=left:$n_1$]{(-2.25,0)}{n1}
+	\tikzDot[label=above:$n_2$]{(0,2)}{n2}
+	\tikzDot[label=right:$n_3$]{(2.25,0)}{n3}
+	
+	\draw[lightgray] (v) -- (n1);
+	\draw[lightgray] (v) -- (n3);
+	\draw[lightgray] (v) -- (n2);
+	
+	% Visibility edges to n1
+	\tikzDot[DodgerBlue3]{(-1.1,-0.25)}{vn1}
+	\tikzDot[DodgerBlue3]{(-1.6,-0.9)}{vn2}
+	\tikzDot[DodgerBlue3]{(1.6,-0.5)}{vn3}
+	\draw[DodgerBlue3,densely dashed,->] (v) -- (vn1);
+	\draw[DodgerBlue3,densely dashed,->] (v) -- (vn2);
+	\draw[DodgerBlue3,densely dashed,->] (v) -- (vn3);
+	
+	% Visibility edges to n3
+	\tikzDot[Red2]{(0.7,1.4)}{vn4}
+	\tikzDot[Red2]{(2,1)}{vn5}
+	\draw[Red2,densely dotted,->] (v) -- (vn4);
+	\draw[Red2,densely dotted,->] (v) -- (vn5);
+	
+	% Visibility edges to n2
+	\tikzDot[Green4]{(-2,1.3)}{vn6}
+	\draw[Green4,dashdotted,->] (v) -- (vn6);
+\end{tikzpicture}

@@ -1,0 +1,21 @@
+\begin{tikzpicture}
+	\def\d{1.5}
+	
+	\tikzDot[gray]{(0,0)}{c00}
+	\tikzDot[label=above:$v_0$]{(0,\d)}{v0}
+	\tikzDot[label=above:$v_1$]{(\d,\d)}{v1}
+	\tikzDot[label=above:$v_2$]{(2*\d,\d)}{v2}
+	\tikzDot[label={[text=gray]below:$v_3$},gray]{(\d,0)}{v3}
+	\tikzDot[gray]{(2*\d,0)}{c20}
+	
+	\node at (0.5*\d,0.5*\d) {$o_1$};
+	\node at (1.5*\d,0.5*\d) {$o_2$};
+	
+	\draw[gray] (c00) -- (v0);
+	\draw[gray] (c00) -- (v3);
+	\draw[->,very thick] (v1) -- (v0);
+	\draw[->,very thick] (v1) -- (v2);
+	\draw[->,gray] (v1) -- (v3);
+	\draw[gray] (c20) -- (v3);
+	\draw[gray] (c20) -- (v2);
+\end{tikzpicture}

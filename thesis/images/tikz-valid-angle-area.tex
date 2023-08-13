@@ -1,0 +1,47 @@
+\begin{tikzpicture}
+	\coordinate (c00) at (0,0.4);
+	\draw (c00)
+	-- ++(2.75,-0.2) coordinate (c01)
+	-- ++(0.8,0.4) coordinate (c02)
+	-- ++(0.1,0.8) coordinate (c03)
+	-- ++(-2,0) coordinate (c04)
+	-- ++(-1.4,-0.35) coordinate (c05)
+	-- (c00);
+	\node[above right = 0.15 and 1.6 of c00] {$o_1$};
+	
+	\coordinate (c10) at (2.5,3.85);
+	\draw (c10)
+	-- ++(-0.4,-0.4) coordinate (c11)
+	-- ++(0.1,-0.6) coordinate (c12)
+	-- ++(2.8,0) coordinate (c13)
+	-- ++(-0.4,1.2) coordinate (c14)
+	-- (c10);
+	\node[below right = 0.25 and 0.75 of c10] {$o_2$};
+	
+	\def\d{1.5\pgflinewidth}
+	\filldraw[line width=0,Green4!35!white]
+	($(c03)+(0,\d)$) --
+	+(180:0.35) arc [start angle=180, delta angle=-97.126, radius=0.35];
+	\draw[thin,Green4] (c03) -- (intersection of c03--[shift=(c03)]82.874:3 and c12--c13);
+	\draw[thin,Green4] ($(c03)+(0,\d)$) -- +(180:4);
+	
+	\filldraw[line width=0,DodgerBlue3!35!white]
+	($(c12)+(0,-\d)$) --
+	+(279.462:0.4) arc [start angle=279.462, delta angle=80.538, radius=0.4];
+	\draw[thin,DodgerBlue3] (c12) -- (intersection of c12--[shift=(c12)]279.462:1 and c03--c04);
+	\draw[thin,DodgerBlue3] ($(c12)+(0,-\d)$) -- +(0:4);
+	
+	\tikzDot[label={right:$s$}]{(c01)}{s}
+	\tikzDot[label={right:$v_0$}]{(c02)}{v0}
+	\tikzDot[label={right:$v_1$}]{(c03)}{v1}
+	\tikzDot[label={left:$v_2$}]{(c12)}{v2}
+	\tikzDot[label={below:$v_3$}]{(c13)}{v3}
+	\tikzDot[label={above:$v_4$}]{(c04)}{v4}
+	\tikzDot[label={left:$t$}]{(c10)}{t}
+	
+	\draw[->,Red2,thick] (s) -- (v0);
+	\draw[->,Red2,thick] (v0) -- (v1);
+	\draw[->,Red2,thick] (v1) -- (v2);
+	\draw[->,Red2,thick] (v2) -- (c11);
+	\draw[->,Red2,thick] (c11) -- (t);
+\end{tikzpicture}

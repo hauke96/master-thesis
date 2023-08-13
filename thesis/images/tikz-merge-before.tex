@@ -1,0 +1,15 @@
+\begin{tikzpicture}
+	\tikzDot{(0,-0.75)}{v1n1}
+	\tikzDot{(4,-0.6)}{v1n2}
+	
+	\tikzDot{(0,0.8)}{v2n1}
+	\tikzDot{(4.2,0.6)}{v2n2}
+	
+	\tikzDot{(1.5,-1.65)}{rn1}
+	\tikzDot{(1.8,1.65)}{rn2}
+	
+	\draw[<->,dashed] (v1n1) -- node[above right=0cm and 0.4cm] {$v$} (v1n2);
+	\draw[<->,dashed] (v2n1) -- node[above right=0cm and 0.4cm] {$u$} (v2n2);
+	
+	\draw[<->] (rn1) -- node[left] {$r$} (rn2);
+\end{tikzpicture}

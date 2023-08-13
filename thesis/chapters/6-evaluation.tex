@@ -745,37 +745,7 @@ All optimizations active	&  11.1 s		&  1.00									&  11.1 s		& 71.13									\
 			This is in line with the results of the previous manual route analysis, according to which missing data leads to short but unrealistic routes.
 			\begin{wrapfigure}{r}{0.35\textwidth}
 				\begin{figcenter}
-					\begin{tikzpicture}
-						[
-						every node/.append style={outer sep=0.5mm, inner sep=0}
-						]
-						\def\d{0.75}
-						
-						\node (c00) at (0.6*\d ,0.1) {};
-						\node (c01) at (1*\d   ,1*\d) {};
-						\node (c02) at (0.15*\d ,2*\d) {};
-						\node (c03) at (0.55*\d,3*\d) {};
-						\node (c04) at (0      ,3.7*\d) {};
-						
-						\node (c10) at (1.8*\d  ,0.25) {};
-						\node (c11) at (2.0*\d,0.9*\d) {};
-						\node (c12) at (1.2*\d,1.8*\d) {};
-						\node (c13) at (3*\d  ,2.8*\d) {};
-						\node (c14) at (1.2*\d,3.8*\d) {};
-						
-						\draw (c00.center) -- (c01.center) -- (c02.center) -- (c03.center) -- (c04.center);
-						\draw (c10.center) -- (c11.center) -- (c12.center) -- (c13.center) -- (c14.center);
-						
-						\draw[>=stealth',<->,densely dotted] (c00) -- (c10);
-						\draw[>=stealth',<->,densely dotted] (c01) -- (c11);
-						\draw[>=stealth',<->,densely dotted] (c02) -- (c12);
-						\draw[>=stealth',<->,thick,red] (c03) -- (c13);
-						\draw[>=stealth',<->,densely dotted] (c04) -- (c14);
-						
-						% Enlarge BBOX to avoid cropping off some of the arrow heads:
-						\node (bbox_a) at (-0.05,0.05) {};
-						\node (bbox_b) at (3*\d+0.05,3.8*\d+0.05) {};
-					\end{tikzpicture}
+					\input{images/tikz-hausdorff.tex}
 				\end{figcenter}
 				\caption[Illustration of the Hausdorff distance.]{Hausdorff distance (red) between two linestrings.}
 				\label{fig:hausdorff-distance}

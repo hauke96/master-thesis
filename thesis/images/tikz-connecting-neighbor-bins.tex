@@ -1,0 +1,29 @@
+\begin{tikzpicture}
+	\coordinate (cv) at (0,0);
+	\coordinate (cu) at (4,0.75);
+	
+	\def\pad{\pgflinewidth}
+	\def\d{0.4}
+	\def\dsmall{0.3}
+	
+	\filldraw[line width=0,Green4!25!white] (cv)++(292.5:\pad) -- +(180:\d) arc [start angle=180, delta angle=225, radius=\d];
+	\filldraw[line width=0,Red2!25!white] (cv)++(112.5:\pad) -- +(45:\dsmall) arc [start angle=45, delta angle=135, radius=\dsmall];
+	
+	\filldraw[line width=0,Green4!25!white] (cu)++(180:\pad) -- +(0:\d) arc [start angle=0, delta angle=225, radius=\d];
+	\filldraw[line width=0,DodgerBlue3!25!white] (cu)++(292.5:\pad) -- +(225:\dsmall) arc [start angle=225, delta angle=135, radius=\dsmall];
+	
+	\tikzDot[color=Green4!80!black,label={below:\contour{white}{$v$}}]{($(cv)+(292.5:0.05)$)}{v}
+	\tikzDot[color=Green4!80!black,label={above:\contour{white}{$u$}}]{($(cu)+(112.5:0.05)$)}{u}
+	
+	\draw (cv) -- +(45:1);
+	\draw[dotted] (cv)++(45:1) -- +(45:0.3);
+	\draw (cv) -- +(180:1);
+	\draw[dotted] (cv)++(180:1) -- +(180:0.3);
+	
+	\draw (cu) -- +(0:1);
+	\draw[dotted] (cu)++(0:1) -- +(0:0.3);
+	\draw (cu) -- +(225:1);
+	\draw[dotted] (cu)++(225:1) -- +(225:0.3);
+	
+	\draw[dashed] (v) -- node[above] {$e$} (u);
+\end{tikzpicture}
