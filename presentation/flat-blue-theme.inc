@@ -7,7 +7,7 @@
 \let\oldmacro\insertshorttitle%
 \renewcommand*\insertshorttitle
 {
-\makebox[0.94\textwidth]{\oldmacro\hfill\thepage\,/\,\pageref{LastPage}}
+	\makebox[0.94\textwidth]{\oldmacro\hfill\insertframenumber\,/\,\inserttotalframenumber}
 }
 \makeatletter
 \newcommand*{\currentname}{\TR@currentTitle}

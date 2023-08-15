@@ -22,4 +22,6 @@
 *.lot
 *.nav
 *.snm
+*.sfp
+*.sfr
 !images/*.pdf

@@ -8,6 +8,7 @@
 \usepackage[english]{datetime2}
 \usepackage{microtype}
 \usepackage{csquotes}
+\usepackage{appendixnumberbeamer}
 
 %
 % Tables
@@ -122,6 +123,19 @@
 \defbeamertemplate{description item}{align left}{\insertdescriptionitem\hfill}
 
 %
+% For appendix
+%
+
+\newcommand{\startBackupSlides}
+{
+	\appendix
+	\renewcommand*\insertshorttitle
+	{
+		\makebox[0.94\textwidth]{\oldmacro\hfill Appendix -- (\insertframenumber)\,/\,\inserttotalframenumber}
+	}
+}
+
+%
 % Metadata
 %
 
@@ -204,14 +218,14 @@
 			\end{figure}
 		\end{frame}
 		
-%		\begin{frame}{Example 2: Densely built-up areas}
-%			\begin{figure}[t]
-%				\begin{figcenter}
-%					\includegraphics[width=0.65\textwidth]{images/qgis-routing-similar.pdf}
-%				\end{figcenter}
-%				\caption{Expected routes often follow graph edges, which hold valuable information.}
-%			\end{figure}
-%		\end{frame}
+		\begin{frame}{Value of graph data: Road edge preference}
+			\begin{figure}[t]
+				\begin{figcenter}
+					\includegraphics[width=0.65\textwidth]{images/qgis-routing-city-weights.pdf}
+				\end{figcenter}
+				\caption{Different preferences on edges. High factor prefers visibility edges, low factor prefers road edges.}
+			\end{figure}
+		\end{frame}
 		
 		\begin{frame}{Value of graph data}
 			Graph data is still valuable:\n
@@ -507,7 +521,7 @@
 	
 	\section{Evaluation}
 	
-		\begin{frame}{Optimization impact}
+		\begin{frame}{Impact of optimizations}
 			\begin{table}
 				\begin{tabularx}{0.8\textwidth}{p{4.25cm}RR}
 \toprule
@@ -541,25 +555,6 @@ All optimizations active		&  11.1 s		& 71.13				\\
 			\end{figure}
 		\end{frame}
 		
-%		\begin{frame}{Graph generation task performance}
-%			\begin{table}
-%				\begin{tabularx}{\textwidth}{p{2.925cm}>{\raggedleft\arraybackslash}p{2.075cm}R>{\raggedleft\arraybackslash}p{2.2cm}}
-%\toprule
-%\textbf{Operation}	& \textbf{Normal}	& \textbf{No roads}	& \textbf{No obstacles}	\\
-%\midrule
-%kNN search			&  5,957.97 ms		& 5,924.27 ms		&  0.01 ms				\\
-%Create graph		&    191.68 ms		&   210.40 ms		&  0.01 ms				\\
-%Get obstacles		&     42.53 ms		&    40.76 ms		&  0.78 ms				\\
-%Merge road edges	&  6,599.78 ms		&     5.67 ms		& 32.79 ms				\\
-%Add POI attributes	&      4.83 ms		&     1.53 ms		&  0.42 ms				\\
-%\midrule
-%Total time			& 12,853.51 ms		& 6,201.96 ms		& 37.19 ms				\\
-%\bottomrule
-%				\end{tabularx}
-%				\caption{Time of graph generation tasks on different variants of the 4 km\textsuperscript{2} \enquote{OSM city} dataset.}
-%			\end{table}
-%		\end{frame}
-
 		\begin{frame}{Graph generation task performance}
 			\begin{figure}
 				\begin{figcenter}
@@ -585,6 +580,49 @@ All optimizations active		&  11.1 s		& 71.13				\\
 				\caption{Time needed by routing task for differently distant requests using the 4 km\textsuperscript{2} \enquote{OSM city} dataset.}
 			\end{figure}
 		\end{frame}
+		
+		\begin{frame}{Graph generation task performance}
+			\begin{figure}
+				\begin{figcenter}
+					\hspace*{-0.35cm}
+					\scalebox{0.7}
+					{
+						\input{../thesis/images/evaluation/osm-based-city/plot-memory-usage.py_osm-based-city-4km2.pgf}
+					}
+				\end{figcenter}
+				\caption{Memory usage importing the 4 km\textsuperscript{2} \enquote{OSM city} dataset.}
+			\end{figure}
+		\end{frame}
 	
 	\section{Conclusion}
+	
+	\startBackupSlides
+	
+	\begin{frame}{Example 2: Densely built-up areas}
+		\begin{figure}[t]
+			\begin{figcenter}
+				\includegraphics[width=0.65\textwidth]{images/qgis-routing-similar.pdf}
+			\end{figcenter}
+			\caption{Expected routes often follow graph edges, which hold valuable information.}
+		\end{figure}
+	\end{frame}
+	
+	\begin{frame}{Graph generation task performance}
+		\begin{table}
+			\begin{tabularx}{\textwidth}{p{2.925cm}>{\raggedleft\arraybackslash}p{2.075cm}R>{\raggedleft\arraybackslash}p{2.2cm}}
+\toprule
+\textbf{Operation}	& \textbf{Normal}	& \textbf{No roads}	& \textbf{No obstacles}	\\
+\midrule
+kNN search			&  5,957.97 ms		& 5,924.27 ms		&  0.01 ms				\\
+Create graph		&    191.68 ms		&   210.40 ms		&  0.01 ms				\\
+Get obstacles		&     42.53 ms		&    40.76 ms		&  0.78 ms				\\
+Merge road edges	&  6,599.78 ms		&     5.67 ms		& 32.79 ms				\\
+Add POI attributes	&      4.83 ms		&     1.53 ms		&  0.42 ms				\\
+\midrule
+Total time			& 12,853.51 ms		& 6,201.96 ms		& 37.19 ms				\\
+\bottomrule
+			\end{tabularx}
+			\caption{Time of graph generation tasks on different variants of the 4 km\textsuperscript{2} \enquote{OSM city} dataset.}
+		\end{table}
+	\end{frame}
 \end{document}
