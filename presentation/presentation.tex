@@ -179,7 +179,7 @@
 		\begin{frame}{Routing techniques}
 			Graph-based:\n
 			\begin{itemize}
-				\item graph with edges representing roads / ways
+				\item abstraction of real world: edges represent roads / ways
 				\item well optimized: Dijkstra, A*, speedup techniques
 				\item detailed attributes in edges
 				\pause
@@ -209,6 +209,7 @@
 			\end{figure}
 		\end{frame}
 		
+		% TODO eher das actual result zeigen
 		\begin{frame}{Example: Expected routing behavior}
 			\begin{figure}[t]
 				\begin{figcenter}
@@ -218,30 +219,16 @@
 			\end{figure}
 		\end{frame}
 		
-		\begin{frame}{Value of graph data: Road edge preference}
-			\begin{figure}[t]
-				\begin{figcenter}
-					\includegraphics[width=0.65\textwidth]{images/qgis-routing-city-weights.pdf}
-				\end{figcenter}
-				\caption{Different preferences on edges. High factor prefers visibility edges, low factor prefers road edges.}
-			\end{figure}
-		\end{frame}
-		
 		\begin{frame}{Value of graph data}
 			Graph data is still valuable:\n
 			\begin{itemize}
 				\item detailed information
 				\begin{itemize}
-					\item surface conditions, access restrictions, allowed vehicle types
+					\item e.g. surface conditions or access restrictions
 				\end{itemize}
 				\item definitely walkable
 				\begin{itemize}
-					\item no real-world obstacles in the way
-				\end{itemize}
-				\item sometimes without alternatives
-				\begin{itemize}
-					\item bridges, tunnels
-					\item paths through obstacles (e.g. building passages)
+					\item bridges, tunnels, building passages
 				\end{itemize}
 			\end{itemize}
 		\end{frame}
@@ -251,17 +238,13 @@
 		\begin{frame}{Wanted routing algorithm}
 			Should be able to\n
 			\begin{itemize}
-				\item traverse open spaces\ \textrightarrow\ reach arbitrary locations
 				\item use roads and ways
-				\item create more realistic routes than purely graph-based routing
+				\item traverse open spaces\ \textrightarrow\ reach arbitrary locations
+				\item create realistic routes
 			\end{itemize}
 			\nn
 			\pause
-			Additional requirements:\n
-			\begin{itemize}
-				\item based on C\# / .NET and MARS (Multi-Agent Research and Simulation)
-				\item low impact on simulation time
-			\end{itemize}
+			Based on C\# / .NET, MARS (Multi-Agent Research and Simulation) and NTS (NetTopologySuite)
 		\end{frame}
 		
 		\begin{frame}{Design decisions}
@@ -276,8 +259,8 @@
 			\pause
 			Alternative approaches:\n
 			\begin{itemize}
-				\item alternating routing with continuous Dijkstra
-				\item merge of route segments in postprocessing step
+				\item routing with continuous Dijkstra
+				\item merging multiple routes in postprocessing step
 				\item other graph-generation methods
 				\begin{itemize}
 					\item Voronoi diagrams, skeletonization
@@ -294,8 +277,34 @@
 				\caption{Components of the implemented hybrid routing algorithm.}
 			\end{figure}
 		\end{frame}
+	
+	\section{Implementation}
+	
+		\begin{frame}{Considerations and terminology}
+			Key considerations:\n
+			\begin{itemize}
+				\item implementation has to support
+				\begin{itemize}
+					\item collinear vertices
+					\item arbitrary obstacle geometries (especially lines and polygons)
+					\item intersecting obstacles
+					\item arbitrary positions and non-unique coordinates
+					\item[\textrightarrow] custom implementation instead of algorithm from the literature
+				\end{itemize}
+				\item generate and connect nodes suitable for routing
+			\end{itemize}
+			\nn
+			\pause
+			Terminology:\n
+			\begin{description}[visibility neighbor]
+				\item[obstacle neighbor] neighbor of $v$ on same or touching obstacle
+				\item[visibility neighbor] visible neighbor of $v$ across open space
+				\item[input vertex] vertex / coordinate in the input dataset
+				\item[output vertex] generated vertex in the visibility graph
+			\end{description}
+		\end{frame}
 		
-		\begin{frame}{Graph generation}
+		\begin{frame}{Visibility graph creation -- Overview}
 			\begin{figure}[t]
 				\begin{figcenter}
 					\includegraphics[width=0.98\textwidth]{images/components-sequence-generation-short.pdf}
@@ -304,41 +313,7 @@
 			\end{figure}
 		\end{frame}
 		
-		\begin{frame}{Routing}
-			\begin{figure}[t]
-				\begin{figcenter}
-					\includegraphics[width=0.95\textwidth]{images/components-sequence-routing-short.pdf}
-				\end{figcenter}
-				\caption{Separate steps of answering a routing request.}
-			\end{figure}
-		\end{frame}
-	
-	\section{Implementation}
-	
-		\begin{frame}{Considerations and terminology}
-			Key considerations:\n
-			\begin{itemize}
-				\item custom implementation that supports
-				\begin{itemize}
-					\item collinear vertices
-					\item arbitrary obstacle geometries (especially lines and polygons)
-					\item intersecting obstacles
-					\item arbitrary positions and non-unique coordinates
-				\end{itemize}
-				\item generate and connect nodes suitable for routing
-			\end{itemize}
-			\nn
-			\pause
-			Terminology:\n
-			\begin{description}[visibility neighbor]
-				\item[obstacle neighbor] vertex on same or touching obstacle
-				\item[visibility neighbor] vertex across open space that is visible
-				\item[input vertex] vertex / coordinate in the input dataset
-				\item[output vertex] generated vertex in the visibility graph
-			\end{description}
-		\end{frame}
-		
-		\begin{frame}{Preparations}
+		\begin{frame}{Visibility graph creation -- Preparations}
 			Before visibility graph is created:\n
 			\begin{itemize}
 				\item get obstacles from input data
@@ -363,7 +338,7 @@
 			\end{enumerate}
 		\end{frame}
 		
-		\begin{frame}{Visibility graph creation: vertex and edge creation}
+		\begin{frame}{Visibility graph creation -- Vertex and edge creation}
 			Naive approach:
 			\begin{itemize}
 				\item one vertex per input coordinate
@@ -380,7 +355,7 @@
 			\end{itemize}
 		\end{frame}
 	
-		\begin{frame}{Visibility graph creation: vertex and edge creation}
+		\begin{frame}{Visibility graph creation -- Vertex and edge creation}
 			\begin{figure}
 				\begin{figcenter}
 					\scalebox{0.7}
@@ -407,7 +382,7 @@
 			\end{figure}
 		\end{frame}
 		
-		\begin{frame}{Road network merge}
+		\begin{frame}{Visibility graph creation -- Road network merge}
 			\begin{enumerate}
 				\item create vertices at intersection points
 				\item connect new vertex
@@ -429,6 +404,15 @@
 			\end{figure}
 		\end{frame}
 		
+		\begin{frame}{Answering routing queries -- Overview}
+			\begin{figure}[t]
+				\begin{figcenter}
+					\includegraphics[width=0.95\textwidth]{images/components-sequence-routing-short.pdf}
+				\end{figcenter}
+				\caption{Separate steps of answering a routing request.}
+			\end{figure}
+		\end{frame}
+		
 		\begin{frame}{Answering routing queries}
 			\begin{enumerate}
 				\item add vertices for source \& destination to graph
@@ -441,15 +425,16 @@
 			\end{enumerate}
 		\end{frame}
 		
-		\begin{frame}{Performance optimizations}
+		\begin{frame}{Performance optimizations -- kNN search}
 			Only consider $k = k_b \cdot k_n$ many visibility neighbors:
 			\begin{itemize}
-				\item ensure neighbors exist in all directions
 				\item $k_b$ bins, each covering $360 / k_b$ degree
 				\item $k_n$ neighbors per bin
+				\item bins ensure that neighbors exist in all directions
 			\end{itemize}
-			\nn
-			\pause
+		\end{frame}
+	
+		\begin{frame}{Performance optimizations -- Convex hull filtering}
 			Only consider vertices on a convex hull:\n
 			\begin{itemize}
 				\item convex hull is shortest path around polygon
@@ -457,7 +442,7 @@
 			\end{itemize}
 		\end{frame}
 		
-		\begin{frame}{Performance optimizations}
+		\begin{frame}{Performance optimizations -- Valid angle areas}
 			Only consider potential visibility neighbors at certain angles:\n
 			\begin{itemize}
 				\item consider shortest path $p$\ \textrightarrow\ no edges can be relaxed
@@ -475,7 +460,7 @@
 			\end{figure}
 		\end{frame}
 		
-		\begin{frame}{Performance optimizations}
+		\begin{frame}{Performance optimizations -- Shadow areas}
 			Exclude vertices in \enquote{shadow} of obstacles:\n
 			\begin{itemize}
 				\item consider vertex $v$ and think of it as light bulb
@@ -493,7 +478,7 @@
 			\end{figure}
 		\end{frame}
 		
-		\begin{frame}{Performance optimizations}
+		\begin{frame}{Performance optimizations -- BinIndex data structure}
 			Interval data structure for shadow areas:\n
 			\begin{itemize}
 				\item bin-based: each bin covers certain angle interval
@@ -568,7 +553,7 @@ All optimizations active		&  11.1 s		& 71.13				\\
 			\end{figure}
 		\end{frame}
 		
-		\begin{frame}{Graph generation task performance}
+		\begin{frame}{Routing performance}
 			\begin{figure}
 				\begin{figcenter}
 					\hspace*{-0.35cm}
@@ -581,7 +566,16 @@ All optimizations active		&  11.1 s		& 71.13				\\
 			\end{figure}
 		\end{frame}
 		
-		\begin{frame}{Graph generation task performance}
+		\begin{frame}{Routing performance}
+			\begin{figure}
+				\begin{figcenter}
+					\includegraphics[width=0.65\textwidth]{../thesis/images/qgis-osm-rural.pdf}
+				\end{figcenter}
+				\caption{Edges creates for two routing requests in the \enquote{OSM rural} dataset.}
+			\end{figure}
+		\end{frame}
+		
+		\begin{frame}{Memory usage}
 			\begin{figure}
 				\begin{figcenter}
 					\hspace*{-0.35cm}
@@ -593,10 +587,130 @@ All optimizations active		&  11.1 s		& 71.13				\\
 				\caption{Memory usage importing the 4 km\textsuperscript{2} \enquote{OSM city} dataset.}
 			\end{figure}
 		\end{frame}
+		
+		\begin{frame}{Route quality analysis}
+			\begin{figure}
+				\begin{figcenter}
+					\includegraphics[width=0.65\textwidth]{../thesis/images/qgis-routing-city-routing-6.pdf}
+				\end{figcenter}
+				\caption{Expected (green), graph-based (black) and actual (blue) routes. Faulty passages marked in red.}
+			\end{figure}
+		\end{frame}
+		
+		\begin{frame}{Route quality analysis -- Examples (OSM city)}
+			\begin{figure}
+				\begin{figcenter}
+					\includegraphics[width=0.65\textwidth]{../thesis/images/qgis-routing-city-routing-3.pdf}
+				\end{figcenter}
+				\caption{Expected (green), graph-based (black) and actual (blue) routes. Faulty passages marked in red.}
+			\end{figure}
+		\end{frame}
+		
+		\begin{frame}{Route quality analysis -- Examples (OSM city)}
+			\begin{figure}
+				\begin{figcenter}
+					\includegraphics[width=0.65\textwidth]{../thesis/images/qgis-routing-city-routing-1.pdf}
+				\end{figcenter}
+				\caption{Expected (green), graph-based (black) and actual (blue) routes. Faulty passages marked in red.}
+			\end{figure}
+		\end{frame}
+		
+		\begin{frame}{Route quality analysis -- Examples (OSM city)}
+		\begin{figure}
+			\begin{figcenter}
+				\includegraphics[width=0.65\textwidth]{images/qgis-routing-similar.pdf}
+			\end{figcenter}
+			\caption{Urban graph-based route (red) is already similar to expected route (green).}
+		\end{figure}
+		\end{frame}
+		
+		\begin{frame}{Route quality analysis -- Examples (OSM rural)}
+			\begin{figure}
+				\begin{figcenter}
+					\includegraphics[width=0.65\textwidth]{../thesis/images/qgis-routing-rural-routing-6-graph-based.pdf}
+				\end{figcenter}
+				\caption{Expected (green), graph-based (red) and actual (blue) routes.}
+			\end{figure}
+		\end{frame}
+		
+		\begin{frame}{Route quality analysis -- Examples (OSM rural)}
+			\begin{figure}
+				\begin{figcenter}
+					\includegraphics[width=0.65\textwidth]{../thesis/images/qgis-routing-rural-routing-6-aerial.pdf}
+				\end{figcenter}
+				\caption{Comparison of routes to aerial imagery.}
+			\end{figure}
+		\end{frame}
+		
+		\begin{frame}{Route quality analysis -- Examples (OSM rural)}
+			\begin{figure}
+				\begin{figcenter}
+					\includegraphics[width=0.65\textwidth]{../thesis/images/qgis-routing-rural-routing-17-graph-based.pdf}
+				\end{figcenter}
+				\caption{Expected (green), graph-based (red) and actual (blue) routes.}
+			\end{figure}
+		\end{frame}
+		
+		\begin{frame}{Hausdorff distances of routes}
+			\begin{figure}
+				\begin{figcenter}
+					\scalebox{0.66}
+					{
+						\input{../thesis/images/evaluation/similarity-metric/plot.py_osm-city_hausdorff.pgf}
+					}
+					\scalebox{0.66}
+					{
+						\input{../thesis/images/evaluation/similarity-metric/plot.py_osm-rural_hausdorff.pgf}
+					}
+				\end{figcenter}
+				\caption{Hausdorff distances between calculated and expected routes using the \enquote{OSM city} (above) and \enquote{OSM rural} (below) datasets.}
+			\end{figure}
+		\end{frame}
 	
 	\section{Conclusion}
 	
+		\begin{frame}{Future work}
+			\begin{itemize}
+				\item routing and graph generation problems
+				\item performance enhancements
+				\item additional functionalities
+				\begin{itemize}
+					\item consider road attributes and size
+					\item support for third dimension
+					\item infer attributes for visibility edges
+					\item store graph to disk
+					\item support for parallel routing queries
+					\item dynamic graph changes
+				\end{itemize}
+			\end{itemize}
+		\end{frame}
+
+		\begin{frame}{Conclusion}
+			\begin{itemize}
+				\item use of road and visibility edges
+				\begin{itemize}
+					\item visibility edges enable shortest paths
+					\item merge with road edges ensure high connectivity
+				\end{itemize}
+				\item inherent quadratic runtime (visibility graph creation)
+				\item hybrid approach beneficial for route quality
+				\begin{itemize}
+					\item data quality important for route quality
+					\item graph-based routes in urban areas already close to expected routes
+				\end{itemize}
+			\end{itemize}
+		\end{frame}		
+	
 	\startBackupSlides
+	
+	\begin{frame}{Value of graph data: Road edge preference}
+		\begin{figure}[t]
+			\begin{figcenter}
+				\includegraphics[width=0.65\textwidth]{images/qgis-routing-city-weights.pdf}
+			\end{figcenter}
+			\caption{Different preferences on edges. High factor prefers visibility edges, low factor prefers road edges.}
+		\end{figure}
+	\end{frame}
 	
 	\begin{frame}{Example 2: Densely built-up areas}
 		\begin{figure}[t]
