@@ -168,11 +168,20 @@
 		\begin{frame}{Realistic pedestrian routing}
 			Beneficial for\n
 			\begin{itemize}
-				\item real-world end-user applications\\\textrightarrow\ indoor navigation, campus navigation
+				\item real-world end-user applications
+				\begin{itemize}
+					\item[\textrightarrow] indoor navigation, campus navigation
+				\end{itemize}
 				\pause
-				\item higher level applications\\\textrightarrow\ isochrones, walkability analysis
+				\item higher level applications
+				\begin{itemize}
+					\item[\textrightarrow] isochrones, walkability analysis
+				\end{itemize}
 				\pause
-				\item \textbf{agent-based simulations}\\\textrightarrow\ crowd behavior in evacuation scenario
+				\item \textbf{agent-based simulations}
+				\begin{itemize}
+					\item[\textrightarrow] crowd behavior in evacuation scenario
+				\end{itemize}
 			\end{itemize}
 		\end{frame}
 	
@@ -181,7 +190,7 @@
 			\begin{itemize}
 				\item abstraction of real world: edges represent roads / ways
 				\item well optimized: Dijkstra, A*, speedup techniques
-				\item detailed attributes in edges
+				\item often detailed attributes in edges
 				\pause
 				\item only vertices are reachable\ \textrightarrow\ unable to traverse open spaces
 			\end{itemize}
@@ -193,10 +202,11 @@
 				\item two strategies:
 				\begin{itemize}
 					\item graph generation (e.g. visibility graphs) + graph-based routing
-					\item continuous Dijkstra
+					\item continuous Dijkstra paradigm
 				\end{itemize}
 				\pause
-				\item path realism heavily depends on data quality
+				\item not always realistic
+				\item realism heavily depends on data quality
 			\end{itemize}
 		\end{frame}
 	
@@ -546,7 +556,7 @@ All optimizations active		&  11.1 s		& 71.13				\\
 					\hspace*{-0.35cm}
 					\scalebox{0.7}
 					{
-						\input{../thesis/images/evaluation/osm-based-city/plot-import-details-per-vertices.py_absolute.pgf}
+						\input{images/osm-city_plot-import-details-per-vertices.py_absolute.pgf}
 					}
 				\end{figcenter}
 				\caption{Time of graph generation tasks on all \enquote{OSM city} datasets.}
@@ -566,15 +576,6 @@ All optimizations active		&  11.1 s		& 71.13				\\
 			\end{figure}
 		\end{frame}
 		
-		\begin{frame}{Routing performance}
-			\begin{figure}
-				\begin{figcenter}
-					\includegraphics[width=0.65\textwidth]{../thesis/images/qgis-osm-rural.pdf}
-				\end{figcenter}
-				\caption{Edges creates for two routing requests in the \enquote{OSM rural} dataset.}
-			\end{figure}
-		\end{frame}
-		
 		\begin{frame}{Memory usage}
 			\begin{figure}
 				\begin{figcenter}
@@ -588,7 +589,7 @@ All optimizations active		&  11.1 s		& 71.13				\\
 			\end{figure}
 		\end{frame}
 		
-		\begin{frame}{Route quality analysis}
+		\begin{frame}{Route quality analysis -- Example (OSM city)}
 			\begin{figure}
 				\begin{figcenter}
 					\includegraphics[width=0.65\textwidth]{../thesis/images/qgis-routing-city-routing-6.pdf}
@@ -597,16 +598,7 @@ All optimizations active		&  11.1 s		& 71.13				\\
 			\end{figure}
 		\end{frame}
 		
-		\begin{frame}{Route quality analysis -- Examples (OSM city)}
-			\begin{figure}
-				\begin{figcenter}
-					\includegraphics[width=0.65\textwidth]{../thesis/images/qgis-routing-city-routing-3.pdf}
-				\end{figcenter}
-				\caption{Expected (green), graph-based (black) and actual (blue) routes. Faulty passages marked in red.}
-			\end{figure}
-		\end{frame}
-		
-		\begin{frame}{Route quality analysis -- Examples (OSM city)}
+		\begin{frame}{Route quality analysis -- Example (OSM city)}
 			\begin{figure}
 				\begin{figcenter}
 					\includegraphics[width=0.65\textwidth]{../thesis/images/qgis-routing-city-routing-1.pdf}
@@ -615,7 +607,7 @@ All optimizations active		&  11.1 s		& 71.13				\\
 			\end{figure}
 		\end{frame}
 		
-		\begin{frame}{Route quality analysis -- Examples (OSM city)}
+		\begin{frame}{Route quality analysis -- Example (OSM city)}
 		\begin{figure}
 			\begin{figcenter}
 				\includegraphics[width=0.65\textwidth]{images/qgis-routing-similar.pdf}
@@ -624,30 +616,12 @@ All optimizations active		&  11.1 s		& 71.13				\\
 		\end{figure}
 		\end{frame}
 		
-		\begin{frame}{Route quality analysis -- Examples (OSM rural)}
+		\begin{frame}{Route quality analysis -- Example (OSM rural)}
 			\begin{figure}
 				\begin{figcenter}
 					\includegraphics[width=0.65\textwidth]{../thesis/images/qgis-routing-rural-routing-6-graph-based.pdf}
 				\end{figcenter}
-				\caption{Expected (green), graph-based (red) and actual (blue) routes.}
-			\end{figure}
-		\end{frame}
-		
-		\begin{frame}{Route quality analysis -- Examples (OSM rural)}
-			\begin{figure}
-				\begin{figcenter}
-					\includegraphics[width=0.65\textwidth]{../thesis/images/qgis-routing-rural-routing-6-aerial.pdf}
-				\end{figcenter}
-				\caption{Comparison of routes to aerial imagery.}
-			\end{figure}
-		\end{frame}
-		
-		\begin{frame}{Route quality analysis -- Examples (OSM rural)}
-			\begin{figure}
-				\begin{figcenter}
-					\includegraphics[width=0.65\textwidth]{../thesis/images/qgis-routing-rural-routing-17-graph-based.pdf}
-				\end{figcenter}
-				\caption{Expected (green), graph-based (red) and actual (blue) routes.}
+				\caption{Expected (green), graph-based (red) and actual (blue) routes.\newline\ }
 			\end{figure}
 		\end{frame}
 		
@@ -738,5 +712,80 @@ Total time			& 12,853.51 ms		& 6,201.96 ms		& 37.19 ms				\\
 			\end{tabularx}
 			\caption{Time of graph generation tasks on different variants of the 4 km\textsuperscript{2} \enquote{OSM city} dataset.}
 		\end{table}
+	\end{frame}
+	
+	\begin{frame}{Route quality analysis -- Examples (OSM city)}
+		\begin{figure}
+			\begin{figcenter}
+				\includegraphics[width=0.65\textwidth]{../thesis/images/qgis-routing-city-routing-3.pdf}
+			\end{figcenter}
+			\caption{Expected (green), graph-based (black) and actual (blue) routes. Faulty passages marked in red.}
+		\end{figure}
+	\end{frame}
+	
+	\begin{frame}{Route quality analysis -- Examples (OSM rural)}
+		\begin{figure}
+			\begin{figcenter}
+				\includegraphics[width=0.65\textwidth]{../thesis/images/qgis-routing-rural-routing-6-aerial.pdf}
+			\end{figcenter}
+			\caption{Comparison of routes to aerial imagery.}
+		\end{figure}
+	\end{frame}
+	
+	\begin{frame}{Route quality analysis -- Examples (OSM rural)}
+		\begin{figure}
+			\begin{figcenter}
+				\includegraphics[width=0.65\textwidth]{../thesis/images/qgis-routing-rural-routing-17-graph-based.pdf}
+			\end{figcenter}
+			\caption{Expected (green), graph-based (red) and actual (blue) routes.}
+		\end{figure}
+	\end{frame}
+	
+	\begin{frame}{Routing performance}
+		\begin{figure}
+			\begin{figcenter}
+				\includegraphics[width=0.65\textwidth]{../thesis/images/qgis-osm-rural.pdf}
+			\end{figcenter}
+			\caption{Edges creates for two routing requests in the \enquote{OSM rural} dataset.}
+		\end{figure}
+	\end{frame}
+	
+	\begin{frame}{Graph generation task performance}
+		\begin{figure}
+			\begin{figcenter}
+				\hspace*{-0.35cm}
+				\scalebox{0.7}
+				{
+					\input{images/osm-city_plot-import-details-per-vertices.py_relative.pgf}
+				}
+			\end{figcenter}
+			\caption{Time of graph generation tasks on all \enquote{OSM rural} datasets.}
+		\end{figure}
+	\end{frame}
+	
+	\begin{frame}{Graph generation task performance}
+		\begin{figure}
+			\begin{figcenter}
+				\hspace*{-0.35cm}
+				\scalebox{0.7}
+				{
+					\input{images/osm-rural_plot-import-details-per-vertices.py_absolute.pgf}
+				}
+			\end{figcenter}
+			\caption{Time of graph generation tasks on all \enquote{OSM rural} datasets.}
+		\end{figure}
+	\end{frame}
+	
+	\begin{frame}{Graph generation task performance}
+		\begin{figure}
+			\begin{figcenter}
+				\hspace*{-0.35cm}
+				\scalebox{0.7}
+				{
+					\input{images/osm-rural_plot-import-details-per-vertices.py_relative.pgf}
+				}
+			\end{figcenter}
+			\caption{Time of graph generation tasks on all \enquote{OSM rural} datasets.}
+		\end{figure}
 	\end{frame}
 \end{document}
