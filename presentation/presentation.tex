@@ -261,21 +261,13 @@
 			Decisions of implemented algorithm:\n
 			\begin{itemize}
 				\item visibility graph generation
+				\begin{itemize}
+					\item custom algorithm
+					\item algorithms from literature would have required additional adjustments
+				\end{itemize}
 				\item merge with existing road network
 				\item connect source / destination with visibility edges
 				\item usage of graph-based routing
-			\end{itemize}
-			\nn
-			\pause
-			Alternative approaches:\n
-			\begin{itemize}
-				\item routing with continuous Dijkstra
-				\item merging multiple routes in postprocessing step
-				\item other graph-generation methods
-				\begin{itemize}
-					\item Voronoi diagrams, skeletonization
-					\item ad-hoc generation (e.g. by using continuous Dijkstra)
-				\end{itemize}
 			\end{itemize}
 		\end{frame}
 		
@@ -370,16 +362,6 @@
 				\begin{figcenter}
 					\scalebox{0.7}
 					{
-						\input{../thesis/images/tikz-visibility-neighbor-bins.tex}
-					}
-				\end{figcenter}
-				\caption{Sorting visibility neighbors into bins, based on the obstacle neighbors of $v$.}
-			\end{figure}
-			\pause
-			\begin{figure}
-				\begin{figcenter}
-					\scalebox{0.7}
-					{
 						\input{../thesis/images/tikz-vertex-creation-naive.tex}
 					}
 					\hspace{0.75cm}
@@ -389,6 +371,16 @@
 					}
 				\end{figcenter}
 				\caption{Naive (left) and correct (right) vertex creation and connection.}
+			\end{figure}
+			\pause
+			\begin{figure}
+				\begin{figcenter}
+					\scalebox{0.7}
+					{
+						\input{../thesis/images/tikz-visibility-neighbor-bins.tex}
+					}
+				\end{figcenter}
+				\caption{Sorting visibility neighbors into bins, based on the obstacle neighbors of $v$.}
 			\end{figure}
 		\end{frame}
 		
@@ -435,30 +427,12 @@
 			\end{enumerate}
 		\end{frame}
 		
-		\begin{frame}{Performance optimizations -- kNN search}
-			Only consider $k = k_b \cdot k_n$ many visibility neighbors:
-			\begin{itemize}
-				\item $k_b$ bins, each covering $360 / k_b$ degree
-				\item $k_n$ neighbors per bin
-				\item bins ensure that neighbors exist in all directions
-			\end{itemize}
-		\end{frame}
-	
-		\begin{frame}{Performance optimizations -- Convex hull filtering}
-			Only consider vertices on a convex hull:\n
-			\begin{itemize}
-				\item convex hull is shortest path around polygon
-				\item[\textrightarrow\hspace{-0.1cm}] vertex not on any convex hull will never be part of any shortest path
-			\end{itemize}
-		\end{frame}
-		
 		\begin{frame}{Performance optimizations -- Valid angle areas}
 			Only consider potential visibility neighbors at certain angles:\n
 			\begin{itemize}
 				\item consider shortest path $p$\ \textrightarrow\ no edges can be relaxed
 				\item only vertices at certain angles are valid neighbors\ \textrightarrow\ valid angle area
 			\end{itemize}
-			\pause
 			\begin{figure}[b]
 				\begin{figcenter}
 					\scalebox{0.7}
@@ -476,7 +450,6 @@
 				\item consider vertex $v$ and think of it as light bulb
 				\item obstacles cast shadow outwards, hiding vertices
 			\end{itemize}
-			\pause
 			\begin{figure}[b]
 				\begin{figcenter}
 					\scalebox{0.7}
@@ -488,29 +461,13 @@
 			\end{figure}
 		\end{frame}
 		
-		\begin{frame}{Performance optimizations -- BinIndex data structure}
-			Interval data structure for shadow areas:\n
-			\begin{itemize}
-				\item bin-based: each bin covers certain angle interval
-				\item constant-time bin access
-			\end{itemize}
-			\begin{figure}[b]
-				\begin{figcenter}
-					\scalebox{0.7}
-					{
-						\input{../thesis/images/tikz-bin-index.tex}
-					}
-				\end{figcenter}
-				\caption{BinIndex data structure storing two overlapping intervals.}
-			\end{figure}
-		\end{frame}
-		
 		\begin{frame}{Performance optimizations}
 			Additional optimizations:
 			\begin{itemize}
 				\item usage of spatial indices
-				\item custom line segment intersection check
-				\item custom triangle intersection check
+				\item only consider $k$ nearest visibility neighbors
+				\item filter vertices by appearance in any convex hull
+				\item custom line segment and point in triangle intersection check
 			\end{itemize}
 		\end{frame}
 	
@@ -676,6 +633,53 @@ All optimizations active		&  11.1 s		& 71.13				\\
 		\end{frame}		
 	
 	\startBackupSlides
+	
+	\begin{frame}{Alternative approaches}
+		Alternatives to visibility graph generation:\n
+		\begin{itemize}
+			\item routing with continuous Dijkstra
+			\item merging multiple routes in postprocessing step
+			\item other graph-generation methods
+			\begin{itemize}
+				\item Voronoi diagrams, skeletonization
+				\item ad-hoc generation (e.g. by using continuous Dijkstra)
+			\end{itemize}
+		\end{itemize}
+	\end{frame}
+	
+	\begin{frame}{Performance optimizations -- kNN search}
+		Only consider $k = k_b \cdot k_n$ many visibility neighbors:
+		\begin{itemize}
+			\item $k_b$ bins, each covering $360 / k_b$ degree
+			\item $k_n$ neighbors per bin
+			\item bins ensure that neighbors exist in all directions
+		\end{itemize}
+	\end{frame}
+	
+	\begin{frame}{Performance optimizations -- Convex hull filtering}
+		Only consider vertices on a convex hull:\n
+		\begin{itemize}
+			\item convex hull is shortest path around polygon
+			\item[\textrightarrow\hspace{-0.1cm}] vertex not on any convex hull will never be part of any shortest path
+		\end{itemize}
+	\end{frame}
+	
+	\begin{frame}{Performance optimizations -- BinIndex data structure}
+		Interval data structure for shadow areas:\n
+		\begin{itemize}
+			\item bin-based: each bin covers certain angle interval
+			\item constant-time bin access
+		\end{itemize}
+		\begin{figure}[b]
+			\begin{figcenter}
+				\scalebox{0.7}
+				{
+					\input{../thesis/images/tikz-bin-index.tex}
+				}
+			\end{figcenter}
+			\caption{BinIndex data structure storing two overlapping intervals.}
+		\end{figure}
+	\end{frame}
 	
 	\begin{frame}{Value of graph data: Road edge preference}
 		\begin{figure}[t]
