@@ -9,6 +9,7 @@
 \usepackage{microtype}
 \usepackage{csquotes}
 \usepackage{appendixnumberbeamer}
+\usepackage{caption}
 
 %
 % Tables
@@ -210,22 +211,30 @@
 			\end{itemize}
 		\end{frame}
 	
-		\begin{frame}{Example: Pure graph-based routing}
+		\begin{frame}{Example: Graph-based and geometric routing}
 			\begin{figure}[t]
 				\begin{figcenter}
 					\includegraphics[width=0.65\textwidth]{images/qgis-routing-osterstrasse_routing.pdf}
 				\end{figcenter}
-				\caption{Graph-based routing result using \href{https://www.osm.org/directions?engine=graphhopper\_foot\&route=53.57657,9.95210;53.57601,9.95268}{\emph{GraphHopper}}.}
+				\caption{Graph-based routing result using the routing engine \href{https://www.osm.org/directions?engine=graphhopper\_foot\&route=53.57657,9.95210;53.57601,9.95268}{\emph{GraphHopper}}.}
 			\end{figure}
 		\end{frame}
-		
-		% TODO eher das actual result zeigen
-		\begin{frame}{Example: Expected routing behavior}
+	
+		\begin{frame}[noframenumbering]{Example: Graph-based and geometric routing}
 			\begin{figure}[t]
 				\begin{figcenter}
-					\includegraphics[width=0.65\textwidth]{images/qgis-routing-osterstrasse_expected.pdf}
+					\includegraphics[width=0.65\textwidth]{images/qgis-routing-osterstrasse_routing-actual.pdf}
 				\end{figcenter}
-				\caption{Routes an actual pedestrian would likely choose.}
+				\caption{Graph-based route (red) compared to the purely geometric route (blue).}
+			\end{figure}
+		\end{frame}
+	
+		\begin{frame}[noframenumbering]{Example: Graph-based and geometric routing}
+			\begin{figure}[t]
+				\begin{figcenter}
+					\includegraphics[width=0.65\textwidth]{images/qgis-routing-osterstrasse_routing-actual-expected.pdf}
+				\end{figcenter}
+				\caption{Graph-based (red), purely geometric (blue) and expected real-world route (green).}
 			\end{figure}
 		\end{frame}
 		
