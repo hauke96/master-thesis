@@ -206,8 +206,7 @@
 					\item continuous Dijkstra paradigm
 				\end{itemize}
 				\pause
-				\item not always realistic
-				\item realism heavily depends on data quality
+				\item not always realistic (insufficient data quality)
 			\end{itemize}
 		\end{frame}
 	
@@ -613,12 +612,12 @@ All optimizations active		&  11.1 s		& 71.13				\\
 			\begin{itemize}
 				\item routing and graph generation problems
 				\item performance enhancements
-				\item additional functionalities
+				\item additional functionalities:
 				\begin{itemize}
-					\item consider road attributes and size
-					\item support for third dimension
+					\item respect road attributes and size
 					\item infer attributes for visibility edges
-					\item store graph to disk
+					\item support for third dimension
+%					\item store graph to disk
 					\item support for parallel routing queries
 					\item dynamic graph changes
 				\end{itemize}
@@ -627,16 +626,17 @@ All optimizations active		&  11.1 s		& 71.13				\\
 
 		\begin{frame}{Conclusion}
 			\begin{itemize}
-				\item use of road and visibility edges
+				\item potential for performance enhancements
 				\begin{itemize}
-					\item visibility edges enable shortest paths
-					\item merge with road edges ensure high connectivity
+					\item currently: quadratic runtime complexity
 				\end{itemize}
-				\item inherent quadratic runtime (visibility graph creation)
-				\item hybrid approach beneficial for route quality
+				\item urban graph-based routes already close to expected routes
+				\item data quality important for route quality
+				\item hybrid routing algorithm able to yield high quality paths
 				\begin{itemize}
-					\item data quality important for route quality
-					\item graph-based routes in urban areas already close to expected routes
+					\item visibility edges enable paths through open spaces
+					\item road edges are walkable and contain useful information
+					\item arbitrary positions reachable
 				\end{itemize}
 			\end{itemize}
 		\end{frame}		
