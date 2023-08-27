@@ -160,7 +160,7 @@
 		\addtocounter{page}{-1}
 	}
 	
-	\begin{frame}[t]{Inhalt}
+	\begin{frame}[t]{Outline}
 		\tableofcontents[hidesubsections]
 	\end{frame}
 	
@@ -268,6 +268,7 @@
 		\begin{frame}{Design decisions}
 			Decisions of implemented algorithm:\n
 			\begin{itemize}
+				\item Graph generation
 				\item visibility graph generation
 				\begin{itemize}
 					\item custom algorithm
@@ -584,7 +585,7 @@ All optimizations active		&  11.1 s		& 71.13				\\
 		\begin{frame}{Route quality analysis -- Example (OSM rural)}
 			\begin{figure}
 				\begin{figcenter}
-					\includegraphics[width=0.65\textwidth]{../thesis/images/qgis-routing-rural-routing-6-graph-based.pdf}
+					\includegraphics[width=0.65\textwidth]{images/qgis-routing-rural-routing-6-graph-based.pdf}
 				\end{figcenter}
 				\caption{Expected (green), graph-based (red) and actual (blue) routes.\newline\ }
 			\end{figure}
@@ -696,15 +697,6 @@ All optimizations active		&  11.1 s		& 71.13				\\
 				\includegraphics[width=0.65\textwidth]{images/qgis-routing-city-weights.pdf}
 			\end{figcenter}
 			\caption{Different preferences on edges. High factor prefers visibility edges, low factor prefers road edges.}
-		\end{figure}
-	\end{frame}
-	
-	\begin{frame}{Example 2: Densely built-up areas}
-		\begin{figure}[t]
-			\begin{figcenter}
-				\includegraphics[width=0.65\textwidth]{images/qgis-routing-similar.pdf}
-			\end{figcenter}
-			\caption{Expected routes often follow graph edges, which hold valuable information.}
 		\end{figure}
 	\end{frame}
 	
