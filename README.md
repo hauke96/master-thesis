@@ -12,6 +12,7 @@ This repository contains all content for my master thesis *A Hybrid Algorithm fo
 
 * [`code`](./code): the C# solution of the *hybrid routing algorithm* including some example projects.
 * [`thesis`](./thesis): Thesis including bibliography and images.
+* [`presentation`](./presentation): Presentation of my defense.
 * [`notes`](./notes): Personal notes on various things (not necessarily up-to-date).
 * [`doc`](./doc): Documentation and additional information on the code. Not necessarily up-to-date but those passages are marked accordingly.
 * [`misc`](./misc): Scripts used to measure smaller things mentioned in the thesis.
